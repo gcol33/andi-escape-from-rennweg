@@ -1,0 +1,6 @@
+# Project-specific ignores
+CLAUDE.md
+prototype/
+
+# Claude Code local settings
+.claude/
