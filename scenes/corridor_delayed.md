@@ -8,11 +8,7 @@ chars:
 
 You shake off Joni and step firmly into the corridor, only to be immediately intercepted by Fabio and Ali.
 
----
-
 "Andy! Leaving already? Just wanted to say hello and wish you luck!"
-
----
 
 After a few minutes of pleasantries, Ali adds, "Oh, you didn't say bye to the fourth floor folks, did you? Michi, Gilles, and Ruling will never forgive you!"
 

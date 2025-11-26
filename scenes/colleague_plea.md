@@ -8,8 +8,6 @@ chars:
 
 Norbert grabs your sleeve.
 
----
-
 "Please, Andy! Five minutes! You were always the best! If Joni misses the deadline, he loses everything!"
 
 ### Choices

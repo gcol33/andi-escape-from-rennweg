@@ -9,8 +9,6 @@ The old wooden door closes with a dull thud behind you for the very last time. Y
 
 You stand in the dim hallway of the 1st floor, where scuffed tile stretches ahead and the overhead fluorescents hum their familiar drone.
 
----
-
 Your new job starts Monday, and this chapter is finally closed. Now, you just need to get to the entrance and head out to freedom.
 
 ### Choices

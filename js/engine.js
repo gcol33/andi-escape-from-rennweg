@@ -25,17 +25,20 @@ const VNEngine = (function() {
         assetPaths: {
             bg: 'assets/bg/',
             char: 'assets/char/',
+            music: 'assets/music/',
             sfx: 'assets/sfx/'
         },
         startScene: 'start',
+        defaultMusic: 'default.mp3',  // fallback if scene has no music
         textSpeed: {
-            normal: 30,  // milliseconds per character
-            fast: 10,    // 3x faster
-            auto: 30,    // same as normal, but auto-advances
+            normal: 20,  // milliseconds per character
+            fast: 8,     // ~2.5x faster
+            auto: 20,    // same as normal, but auto-advances
             skip: 0      // instant (only for read blocks)
         },
         autoDelay: 1500, // ms to wait before auto-advancing
-        currentSpeed: 'normal'
+        currentSpeed: 'normal',
+        saveKey: 'andi_vn_save'  // localStorage key for save data
     };
 
     // === State ===
@@ -56,6 +59,11 @@ const VNEngine = (function() {
             renderedHTML: '',
             onComplete: null,
             canSkip: false
+        },
+        audio: {
+            currentMusic: null,  // filename of currently playing music
+            muted: false,
+            volume: 1.0
         },
         devMode: false,
         devKeysHeld: {}
@@ -97,6 +105,17 @@ const VNEngine = (function() {
         },
 
         /**
+         * Play sound effect action handler
+         * Plays a one-shot sound effect
+         */
+        play_sfx: function(action) {
+            var file = action.file;
+            if (file) {
+                playSfx(file);
+            }
+        },
+
+        /**
          * Custom action handler for extensibility
          * Calls named handler functions with params
          */
@@ -121,7 +140,28 @@ const VNEngine = (function() {
         setupClickToSkip();
         setupSpeedControls();
         setupContinueButton();
-        loadScene(config.startScene);
+        setupMuteButton();
+        setupFirstInteraction();
+        setupResetButton();
+
+        // Try to load saved state
+        if (!loadSavedState()) {
+            // No save found, start fresh
+            loadScene(config.startScene);
+        }
+    }
+
+    function setupFirstInteraction() {
+        // Browser autoplay policy requires user interaction before audio can play.
+        // Listen for any click on the VN container to try starting music.
+        var vnContainer = document.getElementById('vn-container');
+        if (vnContainer) {
+            var tryStart = function() {
+                tryPlayMusic();
+                vnContainer.removeEventListener('click', tryStart);
+            };
+            vnContainer.addEventListener('click', tryStart);
+        }
     }
 
     function cacheElements() {
@@ -130,15 +170,36 @@ const VNEngine = (function() {
             choicesContainer: document.getElementById('choices-container'),
             backgroundLayer: document.getElementById('background-layer'),
             spriteLayer: document.getElementById('sprite-layer'),
-            continueBtn: document.getElementById('continue-btn')
+            continueBtn: document.getElementById('continue-btn'),
+            bgMusic: document.getElementById('bg-music'),
+            muteBtn: document.getElementById('mute-btn'),
+            volumeSlider: document.getElementById('volume-slider')
         };
     }
 
     function setupContinueButton() {
         if (elements.continueBtn) {
             elements.continueBtn.addEventListener('click', function() {
+                tryPlayMusic(); // Retry music on user interaction
                 advanceTextBlock();
             });
+        }
+    }
+
+    function setupMuteButton() {
+        if (elements.muteBtn) {
+            elements.muteBtn.addEventListener('click', function() {
+                toggleMute();
+            });
+        }
+
+        if (elements.volumeSlider) {
+            elements.volumeSlider.addEventListener('input', function() {
+                setVolume(this.value / 100);
+                updateVolumeSliderFill();
+            });
+            // Initialize fill on load
+            updateVolumeSliderFill();
         }
     }
 
@@ -289,8 +350,99 @@ const VNEngine = (function() {
         state.currentBlockIndex = 0;
         state.history.push(sceneId);
 
+        // Auto-save progress
+        saveState();
+
         // Render the scene
         renderScene(scene, prependContent);
+    }
+
+    // === Text Splitting ===
+    // Maximum characters before auto-splitting (approximate, will split at sentence boundary)
+    var MAX_BLOCK_LENGTH = 350;
+
+    function splitTextIntoSentences(text) {
+        // Split on sentence endings (. ! ?) followed by space or newline
+        // Keep the punctuation with the sentence
+        var sentences = [];
+        var regex = /[^.!?]*[.!?]+(?:\s|$)|[^.!?]+$/g;
+        var match;
+
+        while ((match = regex.exec(text)) !== null) {
+            var sentence = match[0].trim();
+            if (sentence) {
+                sentences.push(sentence);
+            }
+        }
+
+        return sentences;
+    }
+
+    function balanceSplitText(text, maxLength) {
+        // If text is short enough, return as single block
+        if (text.length <= maxLength) {
+            return [text];
+        }
+
+        var sentences = splitTextIntoSentences(text);
+
+        // If only one sentence (or couldn't split), return as is
+        if (sentences.length <= 1) {
+            return [text];
+        }
+
+        // Calculate how many blocks we need
+        var numBlocks = Math.ceil(text.length / maxLength);
+        var targetLength = text.length / numBlocks;
+
+        var blocks = [];
+        var currentBlock = '';
+
+        for (var i = 0; i < sentences.length; i++) {
+            var sentence = sentences[i];
+            var potentialBlock = currentBlock ? currentBlock + ' ' + sentence : sentence;
+
+            // If adding this sentence would exceed target and we have content,
+            // and we're not on the last sentence, consider starting a new block
+            if (currentBlock && potentialBlock.length > targetLength && i < sentences.length - 1) {
+                // Check if current block is reasonably sized
+                if (currentBlock.length >= targetLength * 0.5) {
+                    blocks.push(currentBlock.trim());
+                    currentBlock = sentence;
+                } else {
+                    currentBlock = potentialBlock;
+                }
+            } else {
+                currentBlock = potentialBlock;
+            }
+        }
+
+        // Add the last block
+        if (currentBlock.trim()) {
+            blocks.push(currentBlock.trim());
+        }
+
+        return blocks;
+    }
+
+    function preprocessTextBlocks(textBlocks, isEnding) {
+        // If it's an ending screen, don't split - allow expansion
+        if (isEnding) {
+            return textBlocks;
+        }
+
+        var processedBlocks = [];
+
+        for (var i = 0; i < textBlocks.length; i++) {
+            var block = textBlocks[i];
+            var splitBlocks = balanceSplitText(block, MAX_BLOCK_LENGTH);
+
+            for (var j = 0; j < splitBlocks.length; j++) {
+                processedBlocks.push(splitBlocks[j]);
+            }
+        }
+
+        return processedBlocks;
     }
 
     // === Rendering ===
@@ -311,8 +463,29 @@ const VNEngine = (function() {
             clearCharacters();
         }
 
+        // Update music (use scene music, or fall back to default)
+        var musicToPlay = scene.music || config.defaultMusic;
+        setMusic(musicToPlay);
+
         // Clear choices while showing text
         elements.choicesContainer.innerHTML = '';
+
+        // Check if this is an ending (no choices)
+        var isEnding = !scene.choices || scene.choices.length === 0;
+
+        // Preprocess text blocks - split long ones unless it's an ending
+        state.processedTextBlocks = preprocessTextBlocks(scene.textBlocks || [], isEnding);
+        state.isEndingScene = isEnding;
+
+        // Update text box class for ending scenes
+        var textBox = document.getElementById('text-box');
+        if (textBox) {
+            if (isEnding) {
+                textBox.classList.add('ending-scene');
+            } else {
+                textBox.classList.remove('ending-scene');
+            }
+        }
 
         // Show first text block
         renderCurrentBlock(prependContent);
@@ -324,7 +497,8 @@ const VNEngine = (function() {
         var scene = story[state.currentSceneId];
         if (!scene) return;
 
-        var textBlocks = scene.textBlocks || [];
+        // Use processed text blocks (auto-split for non-ending scenes)
+        var textBlocks = state.processedTextBlocks || scene.textBlocks || [];
         var currentText = textBlocks[state.currentBlockIndex] || '';
         var isLastBlock = state.currentBlockIndex >= textBlocks.length - 1;
 
@@ -375,10 +549,12 @@ const VNEngine = (function() {
         var scene = story[state.currentSceneId];
         if (!scene) return;
 
-        var textBlocks = scene.textBlocks || [];
+        // Use processed text blocks (auto-split for non-ending scenes)
+        var textBlocks = state.processedTextBlocks || scene.textBlocks || [];
 
         if (state.currentBlockIndex < textBlocks.length - 1) {
             state.currentBlockIndex++;
+            saveState();  // Auto-save on block advance
             renderCurrentBlock();
         }
     }
@@ -576,6 +752,7 @@ const VNEngine = (function() {
                 button.className = 'choice-button';
                 button.textContent = choice.label;
                 button.onclick = function() {
+                    tryPlayMusic(); // Retry music on user interaction
                     // Set flags from choice
                     if (choice.set_flags && choice.set_flags.length > 0) {
                         setFlags(choice.set_flags);
@@ -650,6 +827,99 @@ const VNEngine = (function() {
         }
     }
 
+    // === Audio Management ===
+    function setMusic(filename) {
+        if (!elements.bgMusic) return;
+
+        // If same music, do nothing
+        if (filename === state.audio.currentMusic) return;
+
+        // Stop music if 'none' or null
+        if (!filename || filename === 'none') {
+            stopMusic();
+            return;
+        }
+
+        // Set new music
+        var path = config.assetPaths.music + filename;
+        elements.bgMusic.src = path;
+        elements.bgMusic.loop = true;
+        elements.bgMusic.volume = state.audio.volume;
+        state.audio.currentMusic = filename;
+
+        // Try to play
+        tryPlayMusic();
+    }
+
+    function tryPlayMusic() {
+        if (!elements.bgMusic || !state.audio.currentMusic) return;
+        if (state.audio.muted) return;
+
+        elements.bgMusic.play().catch(function(e) {
+            // Autoplay blocked - will retry after user interaction
+            console.log('VNEngine: Music autoplay blocked, will retry after interaction');
+        });
+    }
+
+    function stopMusic() {
+        if (!elements.bgMusic) return;
+
+        elements.bgMusic.pause();
+        elements.bgMusic.currentTime = 0;
+        elements.bgMusic.src = '';
+        state.audio.currentMusic = null;
+    }
+
+    function playSfx(filename) {
+        if (state.audio.muted) return;
+
+        var path = config.assetPaths.sfx + filename;
+        var audio = new Audio(path);
+        audio.play().catch(function(e) {
+            console.log('VNEngine: SFX playback failed:', e);
+        });
+    }
+
+    function toggleMute() {
+        state.audio.muted = !state.audio.muted;
+
+        if (elements.bgMusic) {
+            elements.bgMusic.muted = state.audio.muted;
+        }
+
+        // Update mute button appearance
+        if (elements.muteBtn) {
+            elements.muteBtn.textContent = state.audio.muted ? '🔇' : '🔊';
+            elements.muteBtn.title = state.audio.muted ? 'Unmute' : 'Mute';
+        }
+    }
+
+    function setVolume(volume) {
+        state.audio.volume = volume;
+
+        if (elements.bgMusic) {
+            elements.bgMusic.volume = volume;
+        }
+
+        // Update mute button icon based on volume
+        if (elements.muteBtn && !state.audio.muted) {
+            if (volume === 0) {
+                elements.muteBtn.textContent = '🔇';
+            } else if (volume < 0.5) {
+                elements.muteBtn.textContent = '🔉';
+            } else {
+                elements.muteBtn.textContent = '🔊';
+            }
+        }
+    }
+
+    function updateVolumeSliderFill() {
+        if (elements.volumeSlider) {
+            var percent = elements.volumeSlider.value + '%';
+            elements.volumeSlider.style.background = 'linear-gradient(to right, #b08b5a ' + percent + ', #d3c2a8 ' + percent + ')';
+        }
+    }
+
     // === Flag Management ===
     function setFlags(flags) {
         flags.forEach(function(flag) {
@@ -671,6 +941,108 @@ const VNEngine = (function() {
         state.flags = {};
     }
 
+    // === Save/Load System ===
+    function saveState() {
+        try {
+            var saveData = {
+                currentSceneId: state.currentSceneId,
+                currentBlockIndex: state.currentBlockIndex,
+                flags: state.flags,
+                readBlocks: state.readBlocks,
+                history: state.history
+            };
+            localStorage.setItem(config.saveKey, JSON.stringify(saveData));
+        } catch (e) {
+            console.warn('VNEngine: Could not save state:', e);
+        }
+    }
+
+    function loadSavedState() {
+        try {
+            var saved = localStorage.getItem(config.saveKey);
+            if (!saved) return false;
+
+            var saveData = JSON.parse(saved);
+
+            // Restore state
+            state.flags = saveData.flags || {};
+            state.readBlocks = saveData.readBlocks || {};
+            state.history = saveData.history || [];
+
+            // Update skip button visibility based on loaded read blocks
+            updateSkipButtonVisibility();
+
+            // Load the saved scene
+            if (saveData.currentSceneId && story[saveData.currentSceneId]) {
+                state.currentSceneId = saveData.currentSceneId;
+                state.currentBlockIndex = saveData.currentBlockIndex || 0;
+
+                // Render the scene at the saved position
+                var scene = story[saveData.currentSceneId];
+                var isEnding = !scene.choices || scene.choices.length === 0;
+                state.processedTextBlocks = preprocessTextBlocks(scene.textBlocks || [], isEnding);
+                state.isEndingScene = isEnding;
+
+                // Render scene visuals
+                if (scene.bg) {
+                    setBackground(scene.bg);
+                }
+                if (scene.chars && scene.chars.length > 0) {
+                    setCharacters(scene.chars);
+                }
+                var musicToPlay = scene.music || config.defaultMusic;
+                setMusic(musicToPlay);
+
+                // Update text box class for ending scenes
+                var textBox = document.getElementById('text-box');
+                if (textBox) {
+                    if (isEnding) {
+                        textBox.classList.add('ending-scene');
+                    } else {
+                        textBox.classList.remove('ending-scene');
+                    }
+                }
+
+                renderCurrentBlock();
+                return true;
+            }
+        } catch (e) {
+            console.warn('VNEngine: Could not load saved state:', e);
+        }
+        return false;
+    }
+
+    function clearSavedState() {
+        try {
+            localStorage.removeItem(config.saveKey);
+        } catch (e) {
+            console.warn('VNEngine: Could not clear saved state:', e);
+        }
+    }
+
+    function setupResetButton() {
+        // Create reset button in bottom-right corner
+        var resetBtn = document.createElement('button');
+        resetBtn.id = 'reset-btn';
+        resetBtn.textContent = '↺';
+        resetBtn.title = 'Reset Progress';
+        resetBtn.style.cssText = 'position: fixed; bottom: 15px; right: 15px; width: 36px; height: 36px; background: rgba(176, 139, 90, 0.8); color: #fffbe9; border: none; border-radius: 50%; font-size: 18px; cursor: pointer; z-index: 1000; transition: background 0.2s, transform 0.1s;';
+
+        resetBtn.addEventListener('mouseenter', function() {
+            this.style.background = '#8f6f46';
+        });
+        resetBtn.addEventListener('mouseleave', function() {
+            this.style.background = 'rgba(176, 139, 90, 0.8)';
+        });
+        resetBtn.addEventListener('click', function() {
+            if (confirm('Reset all progress? This will clear your saved game.')) {
+                fullReset();
+            }
+        });
+
+        document.body.appendChild(resetBtn);
+    }
+
     // === Game Reset ===
     function reset() {
         state.currentSceneId = null;
@@ -679,6 +1051,22 @@ const VNEngine = (function() {
         state.history = [];
         clearBackground();
         clearCharacters();
+        stopMusic();
+        loadScene(config.startScene);
+    }
+
+    function fullReset() {
+        // Clear everything including read blocks and saved state
+        state.currentSceneId = null;
+        state.currentBlockIndex = 0;
+        state.flags = {};
+        state.history = [];
+        state.readBlocks = {};
+        clearSavedState();
+        updateSkipButtonVisibility();
+        clearBackground();
+        clearCharacters();
+        stopMusic();
         loadScene(config.startScene);
     }
 

@@ -25,17 +25,25 @@
                 <!-- Text Speed Controls -->
                 <div id="text-controls">
                     <button class="speed-btn active" data-speed="normal" title="Normal speed">▶</button>
-                    <button class="speed-btn" data-speed="fast" title="Fast">▶▶</button>
                     <button class="speed-btn" data-speed="auto" title="Auto">▶|</button>
+                    <button class="speed-btn" data-speed="fast" title="Fast">▶▶</button>
                     <button class="speed-btn" data-speed="skip" title="Skip read text" id="skip-btn" style="display: none;">⏭</button>
+                    <div id="volume-control">
+                        <button id="mute-btn" class="mute-btn" title="Mute">🔊</button>
+                        <input type="range" id="volume-slider" min="0" max="100" value="100" title="Volume">
+                    </div>
                 </div>
                 <div id="story-output"></div>
-                <div id="choices-container">
+                <div id="button-area">
                     <button id="continue-btn" class="continue-button" style="display: none;">Continue</button>
+                    <div id="choices-container"></div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Audio element for background music -->
+    <audio id="bg-music" loop></audio>
 
     <!-- Scripts: Story data must load before engine -->
     <script src="js/story.js"></script>

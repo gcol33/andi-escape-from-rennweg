@@ -7,10 +7,6 @@ chars:
 
 You reach the main lobby. The security guard waves you goodbye.
 
----
-
 You push open the heavy front doors and step out onto the street.
-
----
 
 The sun is shining. The chapter is closed. **YOU WIN.**

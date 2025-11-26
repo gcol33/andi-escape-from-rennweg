@@ -1,114 +1,70 @@
-# Andi – Escape from Rennweg (VN Project)
+# Andi - Escape from Rennweg
 
-This is a small, Markdown-driven visual novel (VN) built as a static site for Andi’s PhD goodbye.  
-The idea is to make it easy for everyone to contribute scenes, jokes, and endings without touching JavaScript.
+A silly visual novel made by five friends for Andi's PhD farewell.
 
----
-
-## 🎯 Goal
-
-- Tell a branching, replayable farewell story about Andi escaping Rennweg.
-- Keep the technical side simple: pure HTML, CSS, and JavaScript.
-- Let non-programmers write scenes as `.md` files.
-- Use a static site generator to turn Markdown scenes into `story.js` that the VN engine can read.
+The premise: it's Andi's last day at the institute. All he has to do is walk out the front door. How hard can it be?
 
 ---
 
-## 🧱 Planned Project Structure
+## What is this?
 
-```text
-andi-espace-from-rennweg/
-│
-├─ index.html              # Single-page VN shell
-│
-├─ css/
-│   └─ style.css           # Layout, text box, buttons, etc.
-│
-├─ js/
-│   ├─ engine.js           # Generic VN engine logic
-│   └─ story.js            # Generated from scenes/*.md
-│
-├─ scenes/
-│   └─ *.md                # One file per scene (source of truth for the story)
-│
-├─ assets/
-│   ├─ bg/                 # Background images (office photos, etc.)
-│   ├─ char/               # Character overlays / sprites
-│   └─ sfx/                # Optional sound effects
-│
-├─ tools/
-│   └─ build_story_from_md.py   # Static site generator for story.js
-│
-└─ claude.md               # Project rules, architecture, and prompts for AI refactors
+We wanted to make something fun and personal for Andi's goodbye, so we built a little branching story game where you try to escape the office without getting trapped by colleagues, HR paperwork, or one last cup of coffee.
+
+The whole thing runs in a browser - no installs, no servers, just open `index.html` and play.
+
+---
+
+## How to add scenes
+
+Scenes live in `scenes/` as Markdown files. Each file is one "screen" of the game.
+
+Basic structure:
+
+```markdown
+---
+id: scene_name
+bg: background_image.jpg
+chars:
+  - character.svg
+---
+
+The text that appears on screen.
+
+### Choices
+
+- First option -> next_scene_id
+- Second option -> other_scene_id
+```
+
+If you want multiple "continue" clicks before showing choices, separate text blocks with `---`.
+
+After editing, run the build script to regenerate the story data:
+
+```bash
+python tools/build_story_from_md.py
+```
+
+Then refresh the browser.
+
+---
+
+## Project structure
+
+```
+Andi/
+  index.html          - the game page
+  css/style.css       - styling
+  js/engine.js        - the VN engine (don't touch unless you know what you're doing)
+  js/story.js         - generated from scenes/*.md (don't edit directly)
+  scenes/*.md         - the actual story content (edit these!)
+  assets/bg/          - background images
+  assets/char/        - character sprites (SVG)
+  assets/music/       - background music
+  tools/              - build script
 ```
 
 ---
 
-## 📝 Scene Format (Concept)
+## Who made this
 
-Each scene will be written as a Markdown file in `scenes/`:
-
-- **Frontmatter** (YAML-like) for:
-  - `id`: unique scene id
-  - `bg`: background image id
-  - `chars`: list of character sprite ids
-  - `set_flags`: flags to set when entering/leaving the scene
-  - `require_flags`: flags required to access this scene
-  - `actions`: optional special actions (e.g. dice rolls)
-
-- **Text blocks** separated by `---`  
-  Each block is one “continue” click in the VN.
-
-- **Choices** section at the end:
-
-  ```markdown
-  ### Choices
-  - Option label → target_scene_id
-  - Another label → other_scene_id
-  ```
-
-Special behavior (like dice rolls) is expressed via `actions` in frontmatter, and the engine maps these to handlers in `engine.js`. No raw JS is written in Markdown.
-
----
-
-## 🔧 Static Site Generator
-
-The script in `tools/build_story_from_md.py` will:
-
-1. Scan all `.md` files in `scenes/`.
-2. Parse:
-   - frontmatter (metadata)
-   - text blocks (`---` separators)
-   - choices (`### Choices` list)
-   - actions (if any)
-3. Validate that all `target_scene_id` references exist.
-4. Generate `js/story.js` with a big `story` object that the engine consumes.
-
-Writers only touch `scenes/*.md`; the generator and engine handle the rest.
-
----
-
-## 🚀 Development Workflow (Planned)
-
-1. Clone the repo.
-2. Edit or add `.md` files in `scenes/` and/or images in `assets/`.
-3. Run the build script to regenerate `js/story.js`:
-   ```bash
-   python tools/build_story_from_md.py
-   ```
-4. Open `index.html` in a browser to test.
-5. Commit changes to:
-   - `scenes/`
-   - `assets/`
-   - `js/story.js`
-   - and any updates to `css/`, `js/engine.js`, or `claude.md`.
-
----
-
-## 🤝 Collaboration
-
-- The repo is private; collaborators are added by invite.
-- Writers mainly work in `scenes/`.
-- Devs maintain `engine.js`, `build_story_from_md.py`, and overall structure.
-- `claude.md` documents the architecture and the rules we expect AI tools (and humans) to follow.
-
+A few people from the office who wanted to give Andi a proper sendoff. You know who you are.

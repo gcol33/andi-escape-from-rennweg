@@ -63,10 +63,10 @@ h1 {
 /* === Character Sprite Layer === */
 #sprite-layer {
     position: absolute;
-    bottom: 30%;
+    bottom: 32%;
     left: 0;
     width: 100%;
-    height: 65%;
+    height: 64%;
     display: flex;
     justify-content: center;
     align-items: flex-end;
@@ -82,19 +82,26 @@ h1 {
     filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.3));
 }
 
-/* === Text Box (lower third) === */
+/* === Text Box (dynamic height - grows with content up to 50%) === */
 #text-box {
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 32%;
+    min-height: 32%;
+    max-height: 50%;
+    height: auto;
     background-color: rgba(250, 241, 224, 0.95);
     border-top: 3px solid #d3c2a8;
     z-index: 10;
     display: flex;
     flex-direction: column;
-    padding: 10px 30px 20px 30px;
+    padding: 12px 30px 20px 30px;
+}
+
+/* Allow more expansion on ending screens (win/lose) */
+#text-box.ending-scene {
+    max-height: 60%;
 }
 
 /* === Text Speed Controls === */
@@ -124,6 +131,65 @@ h1 {
 .speed-btn.active {
     background-color: #b08b5a;
     color: #fffbe9;
+    border-color: #b08b5a;
+}
+
+/* === Volume Control Container === */
+#volume-control {
+    display: flex;
+    align-items: center;
+    margin-left: 8px;
+}
+
+/* === Volume Slider === */
+#volume-slider {
+    width: 60px;
+    height: 12px;
+    margin-left: 6px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    accent-color: #b08b5a;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    background: #d3c2a8;
+    border-radius: 2px;
+    clip-path: polygon(0 40%, 100% 0, 100% 100%, 0 60%);
+}
+
+#volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 0;
+    height: 0;
+}
+
+#volume-slider::-moz-range-thumb {
+    width: 0;
+    height: 0;
+    border: none;
+}
+
+#volume-control:hover #volume-slider {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* === Mute Button === */
+.mute-btn {
+    padding: 4px 10px;
+    font-size: 0.9rem;
+    background-color: transparent;
+    color: #8a7a6a;
+    border: 1px solid #d3c2a8;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.mute-btn:hover {
+    background-color: rgba(176, 139, 90, 0.2);
     border-color: #b08b5a;
 }
 
@@ -190,13 +256,22 @@ h1 {
     margin-bottom: 5px;
 }
 
+/* === Button Area (contains continue + choices) === */
+#button-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+}
+
 /* === Choices Container === */
 #choices-container {
     display: flex;
     flex-wrap: nowrap;
     gap: 10px;
-    margin-top: 12px;
     justify-content: center;
+    width: 100%;
 }
 
 /* === Choice Buttons === */
@@ -283,8 +358,14 @@ h1 {
     }
 
     #text-box {
-        height: 38%;
+        min-height: 36%;
+        max-height: 55%;
         padding: 12px 20px 15px 20px;
+    }
+
+    #sprite-layer {
+        bottom: 36%;
+        height: 60%;
     }
 
     #story-output {
@@ -304,8 +385,14 @@ h1 {
 
 @media (max-width: 600px) {
     #text-box {
-        height: 42%;
+        min-height: 40%;
+        max-height: 60%;
         padding: 10px 15px;
+    }
+
+    #sprite-layer {
+        bottom: 40%;
+        height: 56%;
     }
 
     #story-output {

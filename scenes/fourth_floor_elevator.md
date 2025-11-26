@@ -9,11 +9,7 @@ chars:
 
 You agree and press the "4" button. The ride up is silent.
 
----
-
 When the doors open, Michi, Gilles, and Ruling are there, ready to ambush you with a whiteboard.
-
----
 
 You spend the next two agonizing hours discussing the optimal parameters for a highly complex, niche model. Your resolve slowly erodes.
 

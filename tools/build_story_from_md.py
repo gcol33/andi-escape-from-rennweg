@@ -208,6 +208,7 @@ def parse_scene_file(filepath):
     scene = {
         'id': frontmatter.get('id', filepath.stem),
         'bg': frontmatter.get('bg', None),
+        'music': frontmatter.get('music', None),
         'chars': frontmatter.get('chars', []),
         'set_flags': frontmatter.get('set_flags', []),
         'require_flags': frontmatter.get('require_flags', []),

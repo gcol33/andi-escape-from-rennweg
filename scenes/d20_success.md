@@ -7,11 +7,7 @@ chars:
 
 You weren't fast enough to catch her completely off guard, but you saw the movement!
 
----
-
 Agnes stretches her leg in a lightning-fast trip move. In a moment of great sportiveness (you? REALLY?), you leap over her extended foot with a surprising burst of agility.
-
----
 
 You get a clean run to the main stairs!
 

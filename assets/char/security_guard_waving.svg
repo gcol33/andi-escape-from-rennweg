@@ -15,7 +15,7 @@
   <rect x="68" y="148" width="15" height="8" fill="#283593"/>
   <rect x="117" y="148" width="15" height="8" fill="#283593"/>
   <!-- Head -->
-  <ellipse cx="100" cy="80" rx="36" ry="46" fill="#8d6e63"/>
+  <ellipse cx="100" cy="80" rx="36" ry="46" fill="#f5d0c5"/>
   <!-- Cap -->
   <path d="M60 65 Q60 45 100 40 Q140 45 140 65 L140 70 L60 70 Z" fill="#1a237e"/>
   <rect x="60" y="65" width="80" height="8" fill="#283593"/>
@@ -24,15 +24,15 @@
   <!-- Friendly eyes -->
   <ellipse cx="85" cy="78" rx="4" ry="4" fill="white"/>
   <ellipse cx="115" cy="78" rx="4" ry="4" fill="white"/>
-  <ellipse cx="85" cy="79" rx="2" ry="2" fill="#2d2620"/>
-  <ellipse cx="115" cy="79" rx="2" ry="2" fill="#2d2620"/>
+  <ellipse cx="85" cy="79" rx="2" ry="2" fill="#4a3728"/>
+  <ellipse cx="115" cy="79" rx="2" ry="2" fill="#4a3728"/>
   <!-- Big friendly smile -->
-  <path d="M85 95 Q100 108 115 95" stroke="#5d4037" stroke-width="2" fill="none"/>
+  <path d="M85 95 Q100 108 115 95" stroke="#c9967a" stroke-width="2" fill="none"/>
   <!-- Mustache -->
-  <path d="M85 88 Q100 92 115 88" stroke="#3e2723" stroke-width="3" fill="none"/>
+  <path d="M85 88 Q100 92 115 88" stroke="#8b7355" stroke-width="3" fill="none"/>
   <!-- Waving arm -->
-  <path d="M70 160 Q50 200 55 250" stroke="#8d6e63" stroke-width="14" fill="none" stroke-linecap="round"/>
-  <path d="M130 160 Q175 120 180 90" stroke="#8d6e63" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <path d="M70 160 Q50 200 55 250" stroke="#f5d0c5" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <path d="M130 160 Q175 120 180 90" stroke="#f5d0c5" stroke-width="14" fill="none" stroke-linecap="round"/>
   <!-- Waving hand -->
-  <circle cx="182" cy="85" r="14" fill="#8d6e63"/>
+  <circle cx="182" cy="85" r="14" fill="#f5d0c5"/>
 </svg>

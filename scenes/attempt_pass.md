@@ -13,11 +13,7 @@ actions:
 
 You mutter a quick "Gotta run!" and try to dart past Agnes.
 
----
-
 You are fast, but Agnes is known to have a hidden history as a competitive ballroom dancer.
-
----
 
 **You must roll a d20 (13 or lower to succeed).**
 

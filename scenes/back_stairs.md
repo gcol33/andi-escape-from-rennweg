@@ -8,11 +8,7 @@ chars:
 
 You turn left toward the back stairwell, but before you reach it, you hear a frantic whispering from the office next door.
 
----
-
 Two colleagues, Joni and Norbert, step out, looking desperate. Joni is frantically clutching a printed thesis draft.
-
----
 
 "Andy! Thank God! You're the only one who knows the Bayesian Multi-Variate Regression with Inverse Propensity Weighting. My PhD submission is today, and it just crashed! Please, you have to help me!"
 
