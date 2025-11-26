@@ -18,33 +18,171 @@ The whole thing runs in a browser - no installs, no servers, just open `index.ht
 
 Scenes live in `scenes/` as Markdown files. Each file is one "screen" of the game.
 
-Basic structure:
+### Basic scene
 
 ```markdown
 ---
-id: scene_name
-bg: background_image.jpg
-chars:
-  - character.svg
+id: my_scene
+bg: office_corridor.jpg
 ---
 
-The text that appears on screen.
+This is the text that appears on screen. You can write multiple paragraphs.
+
+The player reads this, then sees the choices below.
 
 ### Choices
 
-- First option -> next_scene_id
-- Second option -> other_scene_id
+- Go left -> left_scene
+- Go right -> right_scene
 ```
 
-If you want multiple "continue" clicks before showing choices, separate text blocks with `---`.
+### Frontmatter fields
 
-After editing, run the build script to regenerate the story data:
+The stuff between the `---` at the top is called frontmatter. Here's what you can put there:
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `id` | yes | Unique name for this scene (used in choice targets) |
+| `bg` | no | Background image filename (from `assets/bg/`) |
+| `chars` | no | List of character sprites to show (from `assets/char/`) |
+| `music` | no | Music file to play (from `assets/music/`). If not set, uses `default.mp3` |
+
+Example with all fields:
+
+```markdown
+---
+id: meeting_room
+bg: meeting_room_whiteboard.jpg
+music: tense_music.mp3
+chars:
+  - michi_whiteboard.svg
+  - gilles_explaining.svg
+---
+```
+
+### Multiple text blocks (continue clicks)
+
+If you want the player to click "Continue" before seeing more text, separate blocks with `---`:
+
+```markdown
+---
+id: long_scene
+bg: hallway.jpg
+---
+
+You walk down the hallway. Something feels off.
+
+---
+
+Suddenly, you hear footsteps behind you.
+
+---
+
+You turn around and see... nobody. Just your imagination.
+
+### Choices
+
+- Keep walking -> next_scene
+```
+
+Each block becomes one screen. The choices only appear after the last block.
+
+### Endings (no choices)
+
+If a scene has no `### Choices` section, it's treated as an ending. The game will show a "Play Again" button.
+
+```markdown
+---
+id: bad_ending
+bg: dark_office.jpg
+---
+
+You are trapped forever. The end.
+```
+
+### Dice rolls
+
+For random outcomes (like the Agnes chase scene), use actions in the frontmatter:
+
+```markdown
+---
+id: chase_scene
+bg: hallway.jpg
+actions:
+  - type: roll_dice
+    dice: d20
+    threshold: 13
+    success_target: escaped
+    failure_target: caught
+---
+
+You try to sprint past Agnes. Roll a d20 - you need 13 or lower to succeed.
+
+### Choices
+
+- ROLL D20... -> _roll
+```
+
+The special target `_roll` triggers the dice roll action. The result determines which scene loads next.
+
+### Flags (for tracking choices)
+
+You can set and check flags to remember what the player did:
+
+```markdown
+---
+id: take_key
+set_flags:
+  - has_key
+---
+
+You pick up the key.
+
+### Choices
+
+- Continue -> next_room
+```
+
+Then in another scene, you can make choices conditional:
+
+```markdown
+### Choices
+
+- Open the door (requires: has_key) -> secret_room
+- Leave -> hallway
+```
+
+The first choice only appears if the player has the `has_key` flag.
+
+---
+
+## Adding assets
+
+### Backgrounds
+
+Drop `.jpg` files in `assets/bg/`. Use lowercase with underscores: `office_corridor.jpg`
+
+### Character sprites
+
+SVG files go in `assets/char/`. They should be 200x400 viewBox. Look at existing ones for reference.
+
+### Music
+
+Put `.mp3` files in `assets/music/`. There's a `default.mp3` that plays on all scenes unless you specify something else.
+
+---
+
+## Building
+
+After editing scenes, regenerate the story data:
 
 ```bash
 python tools/build_story_from_md.py
 ```
 
-Then refresh the browser.
+The script will warn you if you reference scenes that don't exist.
+
+Then refresh the browser to see your changes.
 
 ---
 
