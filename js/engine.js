@@ -31,15 +31,24 @@ const VNEngine = (function() {
         startScene: 'start',
         defaultMusic: 'default.mp3',  // fallback if scene has no music
         textSpeed: {
-            normal: 20,  // milliseconds per character
-            fast: 8,     // ~2.5x faster
-            auto: 20,    // same as normal, but auto-advances
+            normal: 12,  // milliseconds per character (faster default)
+            fast: 4,     // ~3x faster
+            auto: 12,    // same as normal, but auto-advances
             skip: 0      // instant (only for read blocks)
         },
         autoDelay: 1500, // ms to wait before auto-advancing
         currentSpeed: 'normal',
         saveKey: 'andi_vn_save'  // localStorage key for save data
     };
+
+    // === Touch Device Detection ===
+    // Detect if the device primarily uses touch input
+    function isTouchDevice() {
+        return ('ontouchstart' in window) ||
+               (navigator.maxTouchPoints > 0) ||
+               (navigator.msMaxTouchPoints > 0) ||
+               (window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches);
+    }
 
     // === State ===
     const state = {
@@ -231,16 +240,25 @@ const VNEngine = (function() {
     }
 
     function setupClickToSkip() {
-        // Click on story output to skip typewriter
+        // Click/tap on story output to skip typewriter
         elements.storyOutput.addEventListener('click', function() {
             skipTypewriter();
         });
 
-        // Also allow spacebar to skip or continue
+        // Touch event for better mobile response (fires before click)
+        elements.storyOutput.addEventListener('touchend', function(e) {
+            // Prevent double-firing with click event
+            if (skipTypewriter()) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        // Allow spacebar to skip or continue (desktop keyboard)
         document.addEventListener('keydown', function(e) {
             if (e.code === 'Space' || e.key === ' ') {
-                // Only if not focused on a button
-                if (document.activeElement.tagName !== 'BUTTON') {
+                // Only if not focused on a button or input
+                var activeTag = document.activeElement.tagName;
+                if (activeTag !== 'BUTTON' && activeTag !== 'INPUT') {
                     e.preventDefault();
 
                     // If typing, try to skip
@@ -562,6 +580,12 @@ const VNEngine = (function() {
     function showContinueButton() {
         if (elements.continueBtn) {
             elements.continueBtn.style.display = 'inline-block';
+            // On touch devices, update button text to hint at tapping
+            if (isTouchDevice()) {
+                elements.continueBtn.textContent = 'Tap to Continue';
+            } else {
+                elements.continueBtn.textContent = 'Continue';
+            }
         }
     }
 
@@ -1021,12 +1045,13 @@ const VNEngine = (function() {
     }
 
     function setupResetButton() {
-        // Create reset button in bottom-right corner
+        // Create reset button in bottom-right corner (touch-friendly 44x44 minimum)
         var resetBtn = document.createElement('button');
         resetBtn.id = 'reset-btn';
         resetBtn.textContent = '↺';
         resetBtn.title = 'Reset Progress';
-        resetBtn.style.cssText = 'position: fixed; bottom: 15px; right: 15px; width: 36px; height: 36px; background: rgba(176, 139, 90, 0.8); color: #fffbe9; border: none; border-radius: 50%; font-size: 18px; cursor: pointer; z-index: 1000; transition: background 0.2s, transform 0.1s;';
+        // Touch-friendly sizing: 44x44px minimum tap target
+        resetBtn.style.cssText = 'position: fixed; bottom: 10px; right: 10px; width: 44px; height: 44px; background: rgba(176, 139, 90, 0.8); color: #fffbe9; border: none; border-radius: 50%; font-size: 20px; cursor: pointer; z-index: 1000; transition: background 0.2s, transform 0.1s; -webkit-tap-highlight-color: rgba(143, 111, 70, 0.5); user-select: none; -webkit-user-select: none;';
 
         resetBtn.addEventListener('mouseenter', function() {
             this.style.background = '#8f6f46';
@@ -1034,6 +1059,15 @@ const VNEngine = (function() {
         resetBtn.addEventListener('mouseleave', function() {
             this.style.background = 'rgba(176, 139, 90, 0.8)';
         });
+        // Active state for touch feedback
+        resetBtn.addEventListener('touchstart', function() {
+            this.style.background = '#8f6f46';
+            this.style.transform = 'scale(0.95)';
+        }, { passive: true });
+        resetBtn.addEventListener('touchend', function() {
+            this.style.background = 'rgba(176, 139, 90, 0.8)';
+            this.style.transform = 'scale(1)';
+        }, { passive: true });
         resetBtn.addEventListener('click', function() {
             if (confirm('Reset all progress? This will clear your saved game.')) {
                 fullReset();

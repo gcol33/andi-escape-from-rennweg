@@ -1,5 +1,5 @@
 /* Andi VN - Main Stylesheet */
-/* Traditional VN-style layout with original theme */
+/* Traditional VN-style layout with responsive design for all devices */
 
 /* === Password Overlay (styled like a VN scene) === */
 #password-overlay {
@@ -14,6 +14,8 @@
     align-items: center;
     z-index: 10000;
     transition: opacity 0.5s ease-out;
+    /* Safe area insets for notched devices */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 #password-overlay.hidden {
@@ -40,6 +42,9 @@
 #password-inputs {
     display: flex;
     gap: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 10px;
 }
 
 .password-char {
@@ -56,6 +61,8 @@
     color: #4b3e2a;
     outline: none;
     transition: border-color 0.2s, transform 0.1s, background-color 0.2s, box-shadow 0.2s;
+    /* Touch-friendly: prevent zoom on focus in iOS */
+    font-size: max(16px, 2.2rem);
 }
 
 .password-char:focus {
@@ -81,35 +88,6 @@
     background-color: #fdd;
 }
 
-/* Responsive password inputs */
-@media (max-width: 900px) {
-    #password-container {
-        margin: 10px;
-    }
-
-    .password-char {
-        width: 50px;
-        height: 60px;
-        font-size: 1.8rem;
-    }
-
-    #password-inputs {
-        gap: 10px;
-    }
-}
-
-@media (max-width: 600px) {
-    .password-char {
-        width: 40px;
-        height: 50px;
-        font-size: 1.5rem;
-    }
-
-    #password-inputs {
-        gap: 8px;
-    }
-}
-
 /* === Reset & Base === */
 * {
     margin: 0;
@@ -117,13 +95,25 @@
     box-sizing: border-box;
 }
 
+html {
+    /* Prevent font-size inflation on mobile */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
 body {
     font-family: 'Arial', sans-serif;
     background-color: #f2e7d5;
     min-height: 100vh;
+    /* Use dvh for mobile browsers with dynamic viewport */
+    min-height: 100dvh;
     display: flex;
     justify-content: center;
     align-items: center;
+    /* Safe area insets for notched devices */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    /* Prevent pull-to-refresh on mobile */
+    overscroll-behavior: none;
 }
 
 /* === VN Wrapper (centers the game) === */
@@ -141,6 +131,7 @@ h1 {
     color: #5c4732;
     text-align: center;
     margin-bottom: 15px;
+    font-size: clamp(1.2rem, 4vw, 2rem);
 }
 
 /* === VN Container (fixed 16:9 aspect ratio) === */
@@ -153,6 +144,11 @@ h1 {
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    /* Prevent text selection during gameplay */
+    user-select: none;
+    -webkit-user-select: none;
+    /* Improve touch scrolling behavior */
+    touch-action: manipulation;
 }
 
 /* === Background Layer === */
@@ -187,6 +183,8 @@ h1 {
 #sprite-layer img {
     max-height: 100%;
     max-width: 300px;
+    width: auto;
+    height: auto;
     object-fit: contain;
     filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.3));
 }
@@ -219,20 +217,31 @@ h1 {
     gap: 8px;
     margin-bottom: 8px;
     justify-content: flex-end;
+    flex-wrap: wrap;
+    align-items: center;
 }
 
 .speed-btn {
-    padding: 4px 12px;
-    font-size: 0.75rem;
+    /* Touch-friendly minimum tap target: 44x44px recommended */
+    min-width: 44px;
+    min-height: 36px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
     background-color: transparent;
     color: #8a7a6a;
     border: 1px solid #d3c2a8;
     border-radius: 3px;
     cursor: pointer;
     transition: all 0.2s;
+    /* Prevent text selection */
+    user-select: none;
+    -webkit-user-select: none;
+    /* Touch feedback */
+    -webkit-tap-highlight-color: rgba(176, 139, 90, 0.3);
 }
 
-.speed-btn:hover {
+.speed-btn:hover,
+.speed-btn:active {
     background-color: rgba(176, 139, 90, 0.2);
     border-color: #b08b5a;
 }
@@ -248,16 +257,13 @@ h1 {
     display: flex;
     align-items: center;
     margin-left: 8px;
+    gap: 6px;
 }
 
-/* === Volume Slider === */
+/* === Volume Slider - Always visible on touch devices === */
 #volume-slider {
     width: 60px;
-    height: 12px;
-    margin-left: 6px;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s, visibility 0.2s;
+    height: 20px;
     accent-color: #b08b5a;
     cursor: pointer;
     -webkit-appearance: none;
@@ -265,6 +271,10 @@ h1 {
     background: #d3c2a8;
     border-radius: 2px;
     clip-path: polygon(0 40%, 100% 0, 100% 100%, 0 60%);
+    /* Default: hidden, shown on hover for desktop */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
 }
 
 #volume-slider::-webkit-slider-thumb {
@@ -280,6 +290,7 @@ h1 {
     border: none;
 }
 
+/* Show slider on hover for desktop */
 #volume-control:hover #volume-slider {
     opacity: 1;
     visibility: visible;
@@ -287,17 +298,23 @@ h1 {
 
 /* === Mute Button === */
 .mute-btn {
-    padding: 4px 10px;
-    font-size: 0.9rem;
+    min-width: 44px;
+    min-height: 36px;
+    padding: 6px 10px;
+    font-size: 1rem;
     background-color: transparent;
     color: #8a7a6a;
     border: 1px solid #d3c2a8;
     border-radius: 3px;
     cursor: pointer;
     transition: all 0.2s;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: rgba(176, 139, 90, 0.3);
 }
 
-.mute-btn:hover {
+.mute-btn:hover,
+.mute-btn:active {
     background-color: rgba(176, 139, 90, 0.2);
     border-color: #b08b5a;
 }
@@ -306,12 +323,15 @@ h1 {
 #story-output {
     flex: 1;
     color: #4b3e2a;
-    font-size: 1.1rem;
+    font-size: clamp(0.9rem, 2.5vw, 1.1rem);
     line-height: 1.6;
     overflow-y: auto;
     padding-right: 10px;
     cursor: default;
     user-select: none;
+    -webkit-user-select: none;
+    /* Smooth scrolling on iOS */
+    -webkit-overflow-scrolling: touch;
 }
 
 /* Custom scrollbar for text */
@@ -377,7 +397,7 @@ h1 {
 /* === Choices Container === */
 #choices-container {
     display: flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     gap: 10px;
     justify-content: center;
     width: 100%;
@@ -385,21 +405,34 @@ h1 {
 
 /* === Choice Buttons === */
 .choice-button {
-    flex: 1 1 0;
-    padding: 10px 15px;
+    flex: 1 1 auto;
+    min-width: 120px;
+    max-width: 100%;
+    /* Touch-friendly minimum height */
+    min-height: 44px;
+    padding: 12px 15px;
     background-color: #b08b5a;
     color: #fffbe9;
     border: none;
     border-radius: 4px;
-    font-size: 0.9rem;
+    font-size: clamp(0.85rem, 2vw, 0.95rem);
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s, transform 0.1s;
     white-space: normal;
     text-align: center;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: rgba(143, 111, 70, 0.5);
 }
 
-.choice-button:hover {
+.choice-button:hover,
+.choice-button:active {
     background-color: #8f6f46;
+}
+
+/* Active/pressed state for touch */
+.choice-button:active {
+    transform: scale(0.98);
 }
 
 /* === Game Over State === */
@@ -416,7 +449,8 @@ h1 {
 /* === Restart Button === */
 .restart-button {
     flex: 0 0 auto;
-    min-width: 250px;
+    min-width: 200px;
+    min-height: 48px;
     padding: 12px 30px;
     background-color: #5c4732;
     color: #fffbe9;
@@ -426,17 +460,25 @@ h1 {
     font-weight: bold;
     cursor: pointer;
     transition: background-color 0.3s, transform 0.1s;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: rgba(75, 62, 42, 0.5);
 }
 
-.restart-button:hover {
+.restart-button:hover,
+.restart-button:active {
     background-color: #4b3e2a;
-    transform: scale(1.02);
+}
+
+.restart-button:active {
+    transform: scale(0.98);
 }
 
 /* === Continue Button === */
 .continue-button {
     flex: 0 0 auto;
-    min-width: 200px;
+    min-width: 160px;
+    min-height: 44px;
     padding: 10px 30px;
     background-color: #b08b5a;
     color: #fffbe9;
@@ -445,11 +487,18 @@ h1 {
     font-size: 1rem;
     cursor: pointer;
     transition: background-color 0.3s, transform 0.1s;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: rgba(143, 111, 70, 0.5);
 }
 
-.continue-button:hover {
+.continue-button:hover,
+.continue-button:active {
     background-color: #8f6f46;
-    transform: scale(1.02);
+}
+
+.continue-button:active {
+    transform: scale(0.98);
 }
 
 /* === Dice Roll Display === */
@@ -460,16 +509,41 @@ h1 {
     margin: 10px 0;
 }
 
-/* === Responsive Design === */
+/* === Mobile tap hint === */
+.tap-hint {
+    font-size: 0.7rem;
+    color: #a09080;
+    text-align: center;
+    margin-top: 4px;
+    opacity: 0.8;
+}
+
+/* ============================================= */
+/* === RESPONSIVE DESIGN - TABLET (≤900px) === */
+/* ============================================= */
 @media (max-width: 900px) {
     #vn-wrapper {
         padding: 10px;
     }
 
+    #password-container {
+        margin: 10px;
+    }
+
+    .password-char {
+        width: 50px;
+        height: 60px;
+        font-size: max(16px, 1.8rem);
+    }
+
+    #password-inputs {
+        gap: 10px;
+    }
+
     #text-box {
         min-height: 36%;
         max-height: 55%;
-        padding: 12px 20px 15px 20px;
+        padding: 10px 20px 15px 20px;
     }
 
     #sprite-layer {
@@ -477,44 +551,363 @@ h1 {
         height: 60%;
     }
 
-    #story-output {
-        font-size: 1rem;
-    }
-
-    .choice-button {
-        min-width: 150px;
-        font-size: 0.9rem;
-        padding: 8px 15px;
-    }
-
     #sprite-layer img {
         max-width: 200px;
     }
+
+    .choice-button {
+        min-width: 100px;
+        padding: 10px 12px;
+    }
+
+    /* On tablets, allow 2 choices per row max */
+    #choices-container {
+        gap: 8px;
+    }
+
+    .choice-button {
+        flex: 1 1 calc(50% - 8px);
+        max-width: calc(50% - 4px);
+    }
+
+    /* Single choice should center */
+    .choice-button:only-child {
+        flex: 0 1 auto;
+        max-width: 300px;
+    }
 }
 
+/* ============================================= */
+/* === RESPONSIVE DESIGN - MOBILE (≤600px) === */
+/* ============================================= */
 @media (max-width: 600px) {
+    body {
+        /* Allow slight padding on very small screens */
+        padding: 5px;
+        padding-top: max(5px, env(safe-area-inset-top));
+        padding-bottom: max(5px, env(safe-area-inset-bottom));
+    }
+
+    #vn-wrapper {
+        padding: 5px;
+    }
+
+    h1 {
+        margin-bottom: 8px;
+        font-size: 1.1rem;
+    }
+
+    #password-container {
+        margin: 5px;
+        border-radius: 4px;
+    }
+
+    .password-char {
+        width: 42px;
+        height: 52px;
+        font-size: max(16px, 1.5rem);
+        border-width: 2px;
+    }
+
+    #password-inputs {
+        gap: 6px;
+    }
+
+    #vn-container {
+        border-radius: 4px;
+    }
+
     #text-box {
         min-height: 40%;
         max-height: 60%;
-        padding: 10px 15px;
+        padding: 8px 12px 12px 12px;
+    }
+
+    #text-box.ending-scene {
+        max-height: 70%;
     }
 
     #sprite-layer {
         bottom: 40%;
         height: 56%;
-    }
-
-    #story-output {
-        font-size: 0.9rem;
-        line-height: 1.5;
-    }
-
-    .choice-button {
-        min-width: 100%;
-        font-size: 0.85rem;
+        gap: 10px;
     }
 
     #sprite-layer img {
-        max-width: 140px;
+        max-width: 120px;
+    }
+
+    /* Text controls: stack on mobile */
+    #text-controls {
+        gap: 6px;
+        justify-content: center;
+    }
+
+    .speed-btn {
+        min-width: 40px;
+        min-height: 34px;
+        padding: 5px 8px;
+        font-size: 0.75rem;
+    }
+
+    .mute-btn {
+        min-width: 40px;
+        min-height: 34px;
+        padding: 5px 8px;
+        font-size: 0.9rem;
+    }
+
+    /* Always show volume slider on mobile (touch devices) */
+    #volume-slider {
+        opacity: 1;
+        visibility: visible;
+        width: 50px;
+        height: 18px;
+    }
+
+    #volume-control {
+        margin-left: 4px;
+    }
+
+    #story-output {
+        line-height: 1.5;
+        padding-right: 5px;
+    }
+
+    #button-area {
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    /* On mobile, stack choices vertically */
+    #choices-container {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .choice-button {
+        flex: 0 0 auto;
+        width: 100%;
+        max-width: 100%;
+        min-height: 44px;
+        padding: 12px 15px;
+    }
+
+    .continue-button {
+        min-width: 140px;
+        min-height: 44px;
+        padding: 10px 20px;
+        font-size: 0.95rem;
+    }
+
+    .restart-button {
+        min-width: 180px;
+        min-height: 44px;
+        padding: 10px 25px;
+        font-size: 0.95rem;
+    }
+}
+
+/* ============================================= */
+/* === VERY SMALL SCREENS (≤400px) === */
+/* ============================================= */
+@media (max-width: 400px) {
+    h1 {
+        font-size: 1rem;
+    }
+
+    .password-char {
+        width: 36px;
+        height: 46px;
+        font-size: max(16px, 1.3rem);
+    }
+
+    #password-inputs {
+        gap: 4px;
+    }
+
+    #text-box {
+        padding: 6px 10px 10px 10px;
+    }
+
+    #sprite-layer img {
+        max-width: 100px;
+    }
+
+    #text-controls {
+        gap: 4px;
+    }
+
+    .speed-btn {
+        min-width: 36px;
+        padding: 4px 6px;
+        font-size: 0.7rem;
+    }
+
+    .mute-btn {
+        min-width: 36px;
+        padding: 4px 6px;
+    }
+
+    #volume-slider {
+        width: 40px;
+    }
+}
+
+/* ============================================= */
+/* === LANDSCAPE MOBILE OPTIMIZATION === */
+/* ============================================= */
+@media (max-height: 500px) and (orientation: landscape) {
+    body {
+        align-items: flex-start;
+        padding-top: 5px;
+    }
+
+    #vn-wrapper {
+        padding: 5px;
+    }
+
+    h1 {
+        font-size: 0.9rem;
+        margin-bottom: 5px;
+    }
+
+    /* In landscape on small screens, give more room to the game */
+    #text-box {
+        min-height: 35%;
+        max-height: 50%;
+        padding: 6px 15px 10px 15px;
+    }
+
+    #sprite-layer {
+        bottom: 35%;
+        height: 62%;
+    }
+
+    #text-controls {
+        margin-bottom: 4px;
+    }
+
+    #button-area {
+        margin-top: 6px;
+        gap: 6px;
+    }
+
+    /* In landscape, choices can be horizontal again */
+    #choices-container {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .choice-button {
+        flex: 1 1 auto;
+        min-width: 80px;
+        width: auto;
+        max-width: calc(50% - 4px);
+        min-height: 38px;
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+
+    .continue-button,
+    .restart-button {
+        min-height: 38px;
+        padding: 8px 20px;
+        font-size: 0.85rem;
+    }
+}
+
+/* ============================================= */
+/* === TOUCH DEVICE DETECTION === */
+/* ============================================= */
+/* For devices that support touch, always show volume slider */
+@media (hover: none) and (pointer: coarse) {
+    #volume-slider {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    /* Increase touch targets on touch devices */
+    .speed-btn,
+    .mute-btn {
+        min-width: 44px;
+        min-height: 38px;
+    }
+
+    .choice-button {
+        min-height: 48px;
+    }
+
+    .continue-button,
+    .restart-button {
+        min-height: 48px;
+    }
+}
+
+/* ============================================= */
+/* === HIGH DPI / RETINA DISPLAYS === */
+/* ============================================= */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    /* Ensure crisp borders on retina displays */
+    #vn-container,
+    #password-container,
+    .choice-button,
+    .continue-button,
+    .restart-button,
+    .speed-btn,
+    .mute-btn {
+        border: none;
+        /* Use box-shadow for crisp 1px borders on retina */
+    }
+
+    .password-char {
+        border-width: 2px;
+    }
+}
+
+/* ============================================= */
+/* === DARK MODE SUPPORT (optional) === */
+/* ============================================= */
+@media (prefers-color-scheme: dark) {
+    /* Keep the warm VN aesthetic regardless of system preference */
+    /* The game has its own themed appearance */
+}
+
+/* ============================================= */
+/* === REDUCED MOTION === */
+/* ============================================= */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .typewriter-text::after {
+        animation: none;
+        opacity: 1;
+    }
+}
+
+/* ============================================= */
+/* === PRINT STYLES === */
+/* ============================================= */
+@media print {
+    #password-overlay,
+    #text-controls,
+    #button-area,
+    #reset-btn {
+        display: none !important;
+    }
+
+    body {
+        background: white;
+    }
+
+    #vn-container {
+        box-shadow: none;
+        border: 1px solid #ccc;
     }
 }
