@@ -1,6 +1,7 @@
 ---
 id: lost_to_PhD
 bg: desk_computer_code.jpg
+music: spooky.mp3
 ---
 
 You sit down and dive into the code. The problem is deep, fascinating, and consumes your entire focus.

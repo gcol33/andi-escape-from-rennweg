@@ -7,6 +7,20 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <!-- Password overlay - blocks game until correct password entered -->
+    <div id="password-overlay">
+        <div id="password-container">
+            <div id="password-inputs">
+                <input type="text" class="password-char" maxlength="1" data-index="0" autocomplete="off" autofocus>
+                <input type="text" class="password-char" maxlength="1" data-index="1" autocomplete="off">
+                <input type="text" class="password-char" maxlength="1" data-index="2" autocomplete="off">
+                <input type="text" class="password-char" maxlength="1" data-index="3" autocomplete="off">
+                <input type="text" class="password-char" maxlength="1" data-index="4" autocomplete="off">
+                <input type="text" class="password-char" maxlength="1" data-index="5" autocomplete="off">
+            </div>
+        </div>
+    </div>
+
     <!-- Outer wrapper for centering the game -->
     <div id="vn-wrapper">
         <!-- Title above game -->
@@ -47,6 +61,7 @@
 
     <!-- Scripts: Story data must load before engine -->
     <script src="js/story.js"></script>
+    <script src="js/password.js"></script>
     <script src="js/engine.js"></script>
 </body>
 </html>

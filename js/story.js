@@ -11,7 +11,7 @@ const story = {
   "attempt_pass": {
     "id": "attempt_pass",
     "bg": "stairwell_landing.jpg",
-    "music": null,
+    "music": "dicey_decisions.mp3",
     "chars": [
       "agnes_blocking.svg"
     ],
@@ -41,7 +41,7 @@ const story = {
   "back_stairs": {
     "id": "back_stairs",
     "bg": "office_corridor.jpg",
-    "music": null,
+    "music": "default.mp3",
     "chars": [
       "joni_desperate.svg",
       "norbert_pleading.svg"
@@ -76,7 +76,7 @@ const story = {
   "coffee_kitchen": {
     "id": "coffee_kitchen",
     "bg": "office_kitchen.jpg",
-    "music": null,
+    "music": "spooky.mp3",
     "chars": [],
     "set_flags": [],
     "require_flags": [],
@@ -96,7 +96,7 @@ const story = {
   "colleague_plea": {
     "id": "colleague_plea",
     "bg": "office_corridor.jpg",
-    "music": null,
+    "music": "default.mp3",
     "chars": [
       "joni_desperate.svg",
       "norbert_grabbing.svg"
@@ -125,7 +125,7 @@ const story = {
   "corridor_delayed": {
     "id": "corridor_delayed",
     "bg": "office_corridor.jpg",
-    "music": null,
+    "music": "default.mp3",
     "chars": [
       "fabio_friendly.svg",
       "ali_friendly.svg"
@@ -154,7 +154,7 @@ const story = {
   "corridor_safe": {
     "id": "corridor_safe",
     "bg": "back_stairwell_dim.jpg",
-    "music": null,
+    "music": "default.mp3",
     "chars": [],
     "set_flags": [],
     "require_flags": [],
@@ -174,7 +174,7 @@ const story = {
   "d20_failure": {
     "id": "d20_failure",
     "bg": "hallway_dim.jpg",
-    "music": null,
+    "music": "spooky.mp3",
     "chars": [
       "agnes_victorious.svg"
     ],
@@ -196,7 +196,7 @@ const story = {
   "d20_success": {
     "id": "d20_success",
     "bg": "stairwell_escape.jpg",
-    "music": null,
+    "music": "dicey_decisions.mp3",
     "chars": [
       "agnes_surprised.svg"
     ],
@@ -218,7 +218,7 @@ const story = {
   "document_refusal": {
     "id": "document_refusal",
     "bg": "hallway_red_alert.jpg",
-    "music": null,
+    "music": "spooky.mp3",
     "chars": [
       "agnes_angry.svg"
     ],
@@ -240,7 +240,7 @@ const story = {
   "document_signed": {
     "id": "document_signed",
     "bg": "stairwell_landing.jpg",
-    "music": null,
+    "music": "legal_trap_stairwell.mp3",
     "chars": [
       "agnes_happy.svg"
     ],
@@ -262,7 +262,7 @@ const story = {
   "exit_lobby": {
     "id": "exit_lobby",
     "bg": "sunny_street_freedom.jpg",
-    "music": null,
+    "music": "last_day.mp3",
     "chars": [
       "security_guard_waving.svg"
     ],
@@ -277,7 +277,7 @@ const story = {
   "fourth_floor_elevator": {
     "id": "fourth_floor_elevator",
     "bg": "meeting_room_whiteboard.jpg",
-    "music": null,
+    "music": "default.mp3",
     "chars": [
       "michi_whiteboard.svg",
       "gilles_explaining.svg",
@@ -301,7 +301,7 @@ const story = {
   "lost_to_coffee": {
     "id": "lost_to_coffee",
     "bg": "dark_office_desk.jpg",
-    "music": null,
+    "music": "spooky.mp3",
     "chars": [],
     "set_flags": [],
     "require_flags": [],
@@ -314,7 +314,7 @@ const story = {
   "lost_to_HR": {
     "id": "lost_to_HR",
     "bg": "bedroom_morning.jpg",
-    "music": null,
+    "music": "spooky.mp3",
     "chars": [],
     "set_flags": [],
     "require_flags": [],
@@ -327,7 +327,7 @@ const story = {
   "lost_to_PhD": {
     "id": "lost_to_PhD",
     "bg": "desk_computer_code.jpg",
-    "music": null,
+    "music": "spooky.mp3",
     "chars": [],
     "set_flags": [],
     "require_flags": [],
@@ -340,7 +340,7 @@ const story = {
   "main_stairs": {
     "id": "main_stairs",
     "bg": "stairwell_landing.jpg",
-    "music": null,
+    "music": "legal_trap_stairwell.mp3",
     "chars": [
       "agnes_neutral.svg"
     ],
@@ -374,7 +374,7 @@ const story = {
   "start": {
     "id": "start",
     "bg": "hallway_fluorescent.jpg",
-    "music": null,
+    "music": "last_day.mp3",
     "chars": [],
     "set_flags": [],
     "require_flags": [],

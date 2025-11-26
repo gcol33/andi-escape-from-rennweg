@@ -1,6 +1,7 @@
 ---
 id: corridor_safe
 bg: back_stairwell_dim.jpg
+music: default.mp3
 ---
 
 Ignoring their desperate pleas, you walk past your former colleagues.

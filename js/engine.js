@@ -1087,6 +1087,18 @@ const VNEngine = (function() {
 })();
 
 // Auto-initialize when DOM is ready
+// Password screen must be completed before game starts
 document.addEventListener('DOMContentLoaded', function() {
-    VNEngine.init();
+    // Check if password screen exists
+    var passwordOverlay = document.getElementById('password-overlay');
+
+    if (passwordOverlay && typeof PasswordScreen !== 'undefined') {
+        // Initialize password screen, pass VNEngine.init as callback
+        PasswordScreen.init(function() {
+            VNEngine.init();
+        });
+    } else {
+        // No password screen, start game directly
+        VNEngine.init();
+    }
 });

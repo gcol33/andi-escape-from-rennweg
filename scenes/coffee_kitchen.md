@@ -1,6 +1,7 @@
 ---
 id: coffee_kitchen
 bg: office_kitchen.jpg
+music: spooky.mp3
 ---
 
 You step into the kitchen. It is eerily quiet. The coffee machine is running, smelling comfortingly familiar.

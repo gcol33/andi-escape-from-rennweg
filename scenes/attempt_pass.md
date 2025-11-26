@@ -1,6 +1,7 @@
 ---
 id: attempt_pass
 bg: stairwell_landing.jpg
+music: dicey_decisions.mp3
 chars:
   - agnes_blocking.svg
 actions:

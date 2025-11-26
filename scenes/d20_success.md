@@ -1,6 +1,7 @@
 ---
 id: d20_success
 bg: stairwell_escape.jpg
+music: dicey_decisions.mp3
 chars:
   - agnes_surprised.svg
 ---

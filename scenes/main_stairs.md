@@ -1,6 +1,7 @@
 ---
 id: main_stairs
 bg: stairwell_landing.jpg
+music: legal_trap_stairwell.mp3
 chars:
   - agnes_neutral.svg
 ---

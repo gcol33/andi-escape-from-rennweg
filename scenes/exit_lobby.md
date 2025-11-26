@@ -1,6 +1,7 @@
 ---
 id: exit_lobby
 bg: sunny_street_freedom.jpg
+music: last_day.mp3
 chars:
   - security_guard_waving.svg
 ---

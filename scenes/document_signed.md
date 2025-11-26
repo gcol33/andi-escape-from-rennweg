@@ -1,6 +1,7 @@
 ---
 id: document_signed
 bg: stairwell_landing.jpg
+music: legal_trap_stairwell.mp3
 chars:
   - agnes_happy.svg
 ---

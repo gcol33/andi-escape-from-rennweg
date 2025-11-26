@@ -1,6 +1,7 @@
 ---
 id: d20_failure
 bg: hallway_dim.jpg
+music: spooky.mp3
 chars:
   - agnes_victorious.svg
 ---
