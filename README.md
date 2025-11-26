@@ -160,15 +160,90 @@ The first choice only appears if the player has the `has_key` flag.
 
 ### Backgrounds
 
-Drop `.jpg` files in `assets/bg/`. Use lowercase with underscores: `office_corridor.jpg`
+Background images go in `assets/bg/`. Use `.jpg` format, lowercase filenames with underscores.
+
+Recommended size: 1280x720 or similar 16:9 aspect ratio. The image will fill the game container.
+
+You can use photos, AI-generated images, or anything that fits the scene. Just make sure it's not too busy - the text box covers the bottom third.
+
+Example filenames:
+- `office_corridor.jpg`
+- `meeting_room_whiteboard.jpg`
+- `sunny_street_freedom.jpg`
 
 ### Character sprites
 
-SVG files go in `assets/char/`. They should be 200x400 viewBox. Look at existing ones for reference.
+Character sprites go in `assets/char/`. Use SVG format with a 200x400 viewBox.
+
+The easiest way to make a new sprite is to copy an existing one and modify it. Look at [agnes_neutral.svg](assets/char/agnes_neutral.svg) for a simple example.
+
+Basic SVG structure:
+
+```xml
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400" width="200" height="400">
+  <!-- Head -->
+  <ellipse cx="100" cy="80" rx="35" ry="45" fill="#f5d0c5"/>
+
+  <!-- Body -->
+  <path d="M70 150 Q60 200 55 300 L55 380 L145 380 L145 300 Q140 200 130 150 Z" fill="#3366cc"/>
+
+  <!-- Eyes, mouth, hair, etc. -->
+</svg>
+```
+
+Tips:
+- Keep it simple - these are small on screen
+- Use the same skin tone across sprites for consistency: `#f5d0c5`
+- Name them `charactername_emotion.svg` (e.g., `agnes_angry.svg`, `joni_desperate.svg`)
 
 ### Music
 
-Put `.mp3` files in `assets/music/`. There's a `default.mp3` that plays on all scenes unless you specify something else.
+Music files go in `assets/music/`. Use `.mp3` format.
+
+There's a `default.mp3` that plays automatically on all scenes. If you want a different track for a specific scene (like a tense moment or the win screen), add the file and reference it in the scene's frontmatter:
+
+```markdown
+---
+id: dramatic_scene
+music: tense_drums.mp3
+---
+```
+
+Tips:
+- Keep file sizes reasonable (under 5MB ideally)
+- Loopable tracks work best since music repeats
+- The volume slider lets players adjust it, so don't worry too much about levels
+
+### Writing text
+
+The text in scenes supports basic formatting:
+
+- **Bold text** using `**double asterisks**` - use for emphasis or game-over messages like `**YOU WIN**`
+- Paragraphs are separated by blank lines
+- Keep individual text blocks readable - if it's getting long, split it with `---` to add a continue click
+
+Example:
+
+```markdown
+---
+id: example
+bg: hallway.jpg
+---
+
+You walk down the corridor. The fluorescent lights flicker overhead.
+
+This is a second paragraph. Notice the blank line above.
+
+If you want **bold text** for emphasis, use double asterisks.
+
+---
+
+This is a separate text block. The player has to click "Continue" to see this part.
+
+### Choices
+
+- Keep going -> next_scene
+```
 
 ---
 
