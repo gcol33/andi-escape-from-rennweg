@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400" width="200" height="400">
+  <!-- Michi - Colleague at whiteboard -->
+  <defs>
+    <linearGradient id="cardigan" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#7b1fa2"/>
+      <stop offset="100%" style="stop-color:#4a148c"/>
+    </linearGradient>
+  </defs>
+  <!-- Body/Cardigan -->
+  <path d="M70 150 Q60 200 55 300 L55 380 L145 380 L145 300 Q140 200 130 150 Z" fill="url(#cardigan)"/>
+  <!-- Head -->
+  <ellipse cx="100" cy="80" rx="36" ry="46" fill="#f5d6ba"/>
+  <!-- Long hair -->
+  <path d="M60 75 Q55 30 100 22 Q145 30 140 75 L140 140 Q130 160 100 155 Q70 160 60 140 Z" fill="#4a3728"/>
+  <!-- Face opening in hair -->
+  <ellipse cx="100" cy="78" rx="32" ry="42" fill="#f5d6ba"/>
+  <!-- Focused eyes -->
+  <ellipse cx="88" cy="75" rx="4" ry="4" fill="white"/>
+  <ellipse cx="112" cy="75" rx="4" ry="4" fill="white"/>
+  <ellipse cx="88" cy="76" rx="2" ry="2" fill="#2d2620"/>
+  <ellipse cx="112" cy="76" rx="2" ry="2" fill="#2d2620"/>
+  <!-- Slight smile -->
+  <path d="M90 95 Q100 100 110 95" stroke="#8b4513" stroke-width="2" fill="none"/>
+  <!-- Arm pointing at whiteboard -->
+  <path d="M70 160 Q40 180 50 220" stroke="#f5d6ba" stroke-width="12" fill="none" stroke-linecap="round"/>
+  <path d="M130 160 Q180 140 185 120" stroke="#f5d6ba" stroke-width="12" fill="none" stroke-linecap="round"/>
+  <!-- Marker in hand -->
+  <rect x="180" y="110" width="8" height="25" fill="#e53935" rx="2"/>
+</svg>

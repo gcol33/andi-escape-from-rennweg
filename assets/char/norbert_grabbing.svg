@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400" width="200" height="400">
+  <!-- Norbert - Colleague, Grabbing sleeve -->
+  <defs>
+    <linearGradient id="sweater" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#6b4423"/>
+      <stop offset="100%" style="stop-color:#4a2c16"/>
+    </linearGradient>
+  </defs>
+  <!-- Body/Sweater -->
+  <path d="M70 150 Q60 200 55 300 L55 380 L145 380 L145 300 Q140 200 130 150 Z" fill="url(#sweater)"/>
+  <!-- Head -->
+  <ellipse cx="100" cy="80" rx="38" ry="48" fill="#d4a574"/>
+  <!-- Short hair -->
+  <path d="M62 70 Q60 35 100 30 Q140 35 138 70 Q130 50 100 45 Q70 50 62 70" fill="#2d2620"/>
+  <!-- Desperate eyebrows -->
+  <path d="M75 60 Q85 56 95 62" stroke="#2d2620" stroke-width="2" fill="none"/>
+  <path d="M105 62 Q115 56 125 60" stroke="#2d2620" stroke-width="2" fill="none"/>
+  <!-- Wide desperate eyes -->
+  <ellipse cx="85" cy="75" rx="7" ry="8" fill="white"/>
+  <ellipse cx="115" cy="75" rx="7" ry="8" fill="white"/>
+  <ellipse cx="85" cy="77" rx="3" ry="3" fill="#2d2620"/>
+  <ellipse cx="115" cy="77" rx="3" ry="3" fill="#2d2620"/>
+  <!-- Open mouth pleading -->
+  <ellipse cx="100" cy="100" rx="8" ry="5" fill="#8b4513"/>
+  <!-- One arm reaching out to grab -->
+  <path d="M70 160 Q20 180 10 220" stroke="#d4a574" stroke-width="15" fill="none" stroke-linecap="round"/>
+  <path d="M130 160 Q150 200 140 250" stroke="#d4a574" stroke-width="15" fill="none" stroke-linecap="round"/>
+  <!-- Glasses -->
+  <circle cx="85" cy="75" r="12" stroke="#333" stroke-width="2" fill="none"/>
+  <circle cx="115" cy="75" r="12" stroke="#333" stroke-width="2" fill="none"/>
+  <line x1="97" y1="75" x2="103" y2="75" stroke="#333" stroke-width="2"/>
+</svg>

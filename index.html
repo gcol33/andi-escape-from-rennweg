@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Andy's Farewell</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Outer wrapper for centering the game -->
+    <div id="vn-wrapper">
+        <!-- Title above game -->
+        <h1>Andy's Farewell</h1>
+
+        <!-- Fixed aspect ratio game container -->
+        <div id="vn-container">
+            <!-- Background Layer -->
+            <div id="background-layer"></div>
+
+            <!-- Character Sprite Layer -->
+            <div id="sprite-layer"></div>
+
+            <!-- Text Box (lower third) -->
+            <div id="text-box">
+                <!-- Text Speed Controls -->
+                <div id="text-controls">
+                    <button class="speed-btn active" data-speed="normal" title="Normal speed">▶</button>
+                    <button class="speed-btn" data-speed="fast" title="Fast">▶▶</button>
+                    <button class="speed-btn" data-speed="auto" title="Auto">▶|</button>
+                    <button class="speed-btn" data-speed="skip" title="Skip read text" id="skip-btn" style="display: none;">⏭</button>
+                </div>
+                <div id="story-output"></div>
+                <div id="choices-container">
+                    <button id="continue-btn" class="continue-button" style="display: none;">Continue</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts: Story data must load before engine -->
+    <script src="js/story.js"></script>
+    <script src="js/engine.js"></script>
+</body>
+</html>

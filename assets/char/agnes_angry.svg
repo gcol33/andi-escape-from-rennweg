@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400" width="200" height="400">
+  <!-- Agnes - HR Lady, Angry -->
+  <defs>
+    <linearGradient id="dress" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4a3f35"/>
+      <stop offset="100%" style="stop-color:#2d2620"/>
+    </linearGradient>
+  </defs>
+  <!-- Body/Dress -->
+  <path d="M70 150 Q60 200 55 300 L55 380 L145 380 L145 300 Q140 200 130 150 Z" fill="url(#dress)"/>
+  <!-- Head -->
+  <ellipse cx="100" cy="80" rx="40" ry="50" fill="#d4a574"/>
+  <!-- Hair -->
+  <path d="M60 70 Q60 30 100 25 Q140 30 140 70 Q140 50 100 45 Q60 50 60 70" fill="#3d2b1f"/>
+  <!-- Hair bun -->
+  <circle cx="100" cy="35" r="20" fill="#3d2b1f"/>
+  <!-- Angry eyebrows -->
+  <path d="M75 65 L92 72" stroke="#3d2b1f" stroke-width="3" fill="none"/>
+  <path d="M125 65 L108 72" stroke="#3d2b1f" stroke-width="3" fill="none"/>
+  <!-- Angry eyes -->
+  <ellipse cx="85" cy="78" rx="5" ry="4" fill="#2d2620"/>
+  <ellipse cx="115" cy="78" rx="5" ry="4" fill="#2d2620"/>
+  <!-- Frown -->
+  <path d="M85 100 Q100 90 115 100" stroke="#8b4513" stroke-width="2" fill="none"/>
+  <!-- Arms crossed -->
+  <path d="M70 160 Q50 200 80 220" stroke="#d4a574" stroke-width="15" fill="none" stroke-linecap="round"/>
+  <path d="M130 160 Q150 200 120 220" stroke="#d4a574" stroke-width="15" fill="none" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400" width="200" height="400">
+  <!-- Ali - Colleague, Friendly -->
+  <defs>
+    <linearGradient id="blazer" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#37474f"/>
+      <stop offset="100%" style="stop-color:#263238"/>
+    </linearGradient>
+  </defs>
+  <!-- Body/Blazer -->
+  <path d="M70 150 Q60 200 55 300 L55 380 L145 380 L145 300 Q140 200 130 150 Z" fill="url(#blazer)"/>
+  <!-- White shirt underneath -->
+  <path d="M90 150 L100 180 L110 150" fill="white"/>
+  <!-- Head -->
+  <ellipse cx="100" cy="80" rx="38" ry="48" fill="#d4a574"/>
+  <!-- Short neat hair -->
+  <path d="M62 70 Q60 35 100 30 Q140 35 138 70 Q130 50 100 45 Q70 50 62 70" fill="#1a1a1a"/>
+  <!-- Friendly eyes -->
+  <ellipse cx="85" cy="75" rx="5" ry="5" fill="white"/>
+  <ellipse cx="115" cy="75" rx="5" ry="5" fill="white"/>
+  <ellipse cx="85" cy="76" rx="3" ry="3" fill="#2d2620"/>
+  <ellipse cx="115" cy="76" rx="3" ry="3" fill="#2d2620"/>
+  <!-- Warm smile -->
+  <path d="M82 95 Q100 108 118 95" stroke="#8b4513" stroke-width="2" fill="none"/>
+  <!-- Arms relaxed, one gesturing -->
+  <path d="M70 160 Q45 200 55 250" stroke="#d4a574" stroke-width="15" fill="none" stroke-linecap="round"/>
+  <path d="M130 160 Q170 180 165 210" stroke="#d4a574" stroke-width="15" fill="none" stroke-linecap="round"/>
+  <!-- Beard stubble -->
+  <ellipse cx="100" cy="105" rx="20" ry="15" fill="#2d2620" opacity="0.2"/>
+</svg>

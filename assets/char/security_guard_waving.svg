@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400" width="200" height="400">
+  <!-- Security Guard - Waving goodbye -->
+  <defs>
+    <linearGradient id="uniform" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a237e"/>
+      <stop offset="100%" style="stop-color:#0d1642"/>
+    </linearGradient>
+  </defs>
+  <!-- Body/Uniform -->
+  <path d="M70 150 Q60 200 55 300 L55 380 L145 380 L145 300 Q140 200 130 150 Z" fill="url(#uniform)"/>
+  <!-- Badge -->
+  <ellipse cx="85" cy="180" rx="10" ry="12" fill="gold" stroke="#b8860b" stroke-width="1"/>
+  <text x="85" y="183" text-anchor="middle" font-size="8" fill="#1a237e">SEC</text>
+  <!-- Epaulettes -->
+  <rect x="68" y="148" width="15" height="8" fill="#283593"/>
+  <rect x="117" y="148" width="15" height="8" fill="#283593"/>
+  <!-- Head -->
+  <ellipse cx="100" cy="80" rx="36" ry="46" fill="#8d6e63"/>
+  <!-- Cap -->
+  <path d="M60 65 Q60 45 100 40 Q140 45 140 65 L140 70 L60 70 Z" fill="#1a237e"/>
+  <rect x="60" y="65" width="80" height="8" fill="#283593"/>
+  <!-- Cap badge -->
+  <circle cx="100" cy="58" r="8" fill="gold"/>
+  <!-- Friendly eyes -->
+  <ellipse cx="85" cy="78" rx="4" ry="4" fill="white"/>
+  <ellipse cx="115" cy="78" rx="4" ry="4" fill="white"/>
+  <ellipse cx="85" cy="79" rx="2" ry="2" fill="#2d2620"/>
+  <ellipse cx="115" cy="79" rx="2" ry="2" fill="#2d2620"/>
+  <!-- Big friendly smile -->
+  <path d="M85 95 Q100 108 115 95" stroke="#5d4037" stroke-width="2" fill="none"/>
+  <!-- Mustache -->
+  <path d="M85 88 Q100 92 115 88" stroke="#3e2723" stroke-width="3" fill="none"/>
+  <!-- Waving arm -->
+  <path d="M70 160 Q50 200 55 250" stroke="#8d6e63" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <path d="M130 160 Q175 120 180 90" stroke="#8d6e63" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <!-- Waving hand -->
+  <circle cx="182" cy="85" r="14" fill="#8d6e63"/>
+</svg>

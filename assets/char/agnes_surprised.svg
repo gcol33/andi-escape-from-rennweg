@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400" width="200" height="400">
+  <!-- Agnes - HR Lady, Surprised -->
+  <defs>
+    <linearGradient id="dress" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4a3f35"/>
+      <stop offset="100%" style="stop-color:#2d2620"/>
+    </linearGradient>
+  </defs>
+  <!-- Body/Dress -->
+  <path d="M70 150 Q60 200 55 300 L55 380 L145 380 L145 300 Q140 200 130 150 Z" fill="url(#dress)"/>
+  <!-- Head -->
+  <ellipse cx="100" cy="80" rx="40" ry="50" fill="#d4a574"/>
+  <!-- Hair -->
+  <path d="M60 70 Q60 30 100 25 Q140 30 140 70 Q140 50 100 45 Q60 50 60 70" fill="#3d2b1f"/>
+  <!-- Hair bun -->
+  <circle cx="100" cy="35" r="20" fill="#3d2b1f"/>
+  <!-- Raised eyebrows -->
+  <path d="M75 62 Q85 58 92 62" stroke="#3d2b1f" stroke-width="2" fill="none"/>
+  <path d="M108 62 Q115 58 125 62" stroke="#3d2b1f" stroke-width="2" fill="none"/>
+  <!-- Wide surprised eyes -->
+  <ellipse cx="85" cy="75" rx="7" ry="7" fill="white"/>
+  <ellipse cx="115" cy="75" rx="7" ry="7" fill="white"/>
+  <ellipse cx="85" cy="75" rx="4" ry="4" fill="#2d2620"/>
+  <ellipse cx="115" cy="75" rx="4" ry="4" fill="#2d2620"/>
+  <!-- O mouth -->
+  <ellipse cx="100" cy="98" rx="8" ry="10" fill="#8b4513"/>
+  <!-- Arms up in surprise -->
+  <path d="M70 160 Q30 140 35 180" stroke="#d4a574" stroke-width="15" fill="none" stroke-linecap="round"/>
+  <path d="M130 160 Q170 140 165 180" stroke="#d4a574" stroke-width="15" fill="none" stroke-linecap="round"/>
+</svg>

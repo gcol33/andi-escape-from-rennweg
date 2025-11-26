@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400" width="200" height="400">
+  <!-- Agnes - HR Lady, Victorious/Smug -->
+  <defs>
+    <linearGradient id="dress" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4a3f35"/>
+      <stop offset="100%" style="stop-color:#2d2620"/>
+    </linearGradient>
+  </defs>
+  <!-- Body/Dress -->
+  <path d="M70 150 Q60 200 55 300 L55 380 L145 380 L145 300 Q140 200 130 150 Z" fill="url(#dress)"/>
+  <!-- Head tilted slightly -->
+  <ellipse cx="100" cy="80" rx="40" ry="50" fill="#d4a574"/>
+  <!-- Hair -->
+  <path d="M60 70 Q60 30 100 25 Q140 30 140 70 Q140 50 100 45 Q60 50 60 70" fill="#3d2b1f"/>
+  <!-- Hair bun -->
+  <circle cx="100" cy="35" r="20" fill="#3d2b1f"/>
+  <!-- Smug half-closed eyes -->
+  <path d="M78 75 Q85 72 92 75" stroke="#2d2620" stroke-width="3" fill="none"/>
+  <path d="M108 75 Q115 72 122 75" stroke="#2d2620" stroke-width="3" fill="none"/>
+  <!-- Smug smile -->
+  <path d="M82 95 Q100 108 118 95" stroke="#8b4513" stroke-width="2" fill="none"/>
+  <!-- One arm on hip, other holding folder -->
+  <path d="M70 160 Q45 200 70 230" stroke="#d4a574" stroke-width="15" fill="none" stroke-linecap="round"/>
+  <path d="M130 160 Q165 200 155 250" stroke="#d4a574" stroke-width="15" fill="none" stroke-linecap="round"/>
+  <!-- Folder dangling -->
+  <rect x="145" y="240" width="40" height="50" fill="#c4a35a" rx="2"/>
+</svg>

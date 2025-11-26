@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400" width="200" height="400">
+  <!-- Joni - PhD Student, Desperate -->
+  <defs>
+    <linearGradient id="shirt" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#3a6ea5"/>
+      <stop offset="100%" style="stop-color:#2c5282"/>
+    </linearGradient>
+  </defs>
+  <!-- Body/Casual shirt -->
+  <path d="M70 150 Q60 200 55 300 L55 380 L145 380 L145 300 Q140 200 130 150 Z" fill="url(#shirt)"/>
+  <!-- Head -->
+  <ellipse cx="100" cy="80" rx="38" ry="48" fill="#e8c4a0"/>
+  <!-- Messy hair -->
+  <path d="M62 65 Q60 25 100 20 Q140 25 138 65 Q130 40 100 35 Q70 40 62 65" fill="#5c4033"/>
+  <path d="M65 50 Q70 35 80 45" stroke="#5c4033" stroke-width="4" fill="none"/>
+  <path d="M135 50 Q130 35 120 45" stroke="#5c4033" stroke-width="4" fill="none"/>
+  <!-- Worried eyebrows -->
+  <path d="M78 62 Q85 68 92 65" stroke="#5c4033" stroke-width="2" fill="none"/>
+  <path d="M108 65 Q115 68 122 62" stroke="#5c4033" stroke-width="2" fill="none"/>
+  <!-- Worried eyes -->
+  <ellipse cx="85" cy="75" rx="6" ry="6" fill="white"/>
+  <ellipse cx="115" cy="75" rx="6" ry="6" fill="white"/>
+  <ellipse cx="85" cy="76" rx="3" ry="3" fill="#2d2620"/>
+  <ellipse cx="115" cy="76" rx="3" ry="3" fill="#2d2620"/>
+  <!-- Open worried mouth -->
+  <ellipse cx="100" cy="100" rx="10" ry="6" fill="#8b4513"/>
+  <!-- Arms clutching papers -->
+  <path d="M70 160 Q40 200 60 250" stroke="#e8c4a0" stroke-width="15" fill="none" stroke-linecap="round"/>
+  <path d="M130 160 Q160 200 140 250" stroke="#e8c4a0" stroke-width="15" fill="none" stroke-linecap="round"/>
+  <!-- Thesis papers -->
+  <rect x="50" y="230" width="35" height="45" fill="white" stroke="#ccc" stroke-width="1"/>
+  <rect x="115" y="230" width="35" height="45" fill="white" stroke="#ccc" stroke-width="1"/>
+  <line x1="55" y1="240" x2="80" y2="240" stroke="#999" stroke-width="1"/>
+  <line x1="55" y1="250" x2="80" y2="250" stroke="#999" stroke-width="1"/>
+  <line x1="55" y1="260" x2="75" y2="260" stroke="#999" stroke-width="1"/>
+</svg>

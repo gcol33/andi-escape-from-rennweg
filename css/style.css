@@ -1,0 +1,324 @@
+/* Andi VN - Main Stylesheet */
+/* Traditional VN-style layout with original theme */
+
+/* === Reset & Base === */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f2e7d5;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* === VN Wrapper (centers the game) === */
+#vn-wrapper {
+    width: 100%;
+    max-width: 1280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+/* === Header === */
+h1 {
+    color: #5c4732;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+/* === VN Container (fixed 16:9 aspect ratio) === */
+#vn-container {
+    position: relative;
+    width: 100%;
+    max-width: 1280px;
+    aspect-ratio: 16 / 9;
+    background-color: #4b3e2a;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* === Background Layer === */
+#background-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: #d3c2a8;
+    z-index: 1;
+}
+
+/* === Character Sprite Layer === */
+#sprite-layer {
+    position: absolute;
+    bottom: 30%;
+    left: 0;
+    width: 100%;
+    height: 65%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 20px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+#sprite-layer img {
+    max-height: 100%;
+    max-width: 300px;
+    object-fit: contain;
+    filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.3));
+}
+
+/* === Text Box (lower third) === */
+#text-box {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 32%;
+    background-color: rgba(250, 241, 224, 0.95);
+    border-top: 3px solid #d3c2a8;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 30px 20px 30px;
+}
+
+/* === Text Speed Controls === */
+#text-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    justify-content: flex-end;
+}
+
+.speed-btn {
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    background-color: transparent;
+    color: #8a7a6a;
+    border: 1px solid #d3c2a8;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.speed-btn:hover {
+    background-color: rgba(176, 139, 90, 0.2);
+    border-color: #b08b5a;
+}
+
+.speed-btn.active {
+    background-color: #b08b5a;
+    color: #fffbe9;
+    border-color: #b08b5a;
+}
+
+/* === Story Output === */
+#story-output {
+    flex: 1;
+    color: #4b3e2a;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    overflow-y: auto;
+    padding-right: 10px;
+    cursor: default;
+    user-select: none;
+}
+
+/* Custom scrollbar for text */
+#story-output::-webkit-scrollbar {
+    width: 6px;
+}
+
+#story-output::-webkit-scrollbar-track {
+    background: rgba(211, 194, 168, 0.3);
+    border-radius: 3px;
+}
+
+#story-output::-webkit-scrollbar-thumb {
+    background: #b08b5a;
+    border-radius: 3px;
+}
+
+/* === Typewriter Effect === */
+.typewriter-text {
+    margin: 0;
+}
+
+.typewriter-text::after {
+    content: '▌';
+    animation: blink 0.7s infinite;
+    color: #b08b5a;
+    margin-left: 2px;
+}
+
+.typewriter-complete::after {
+    content: '';
+    animation: none;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+/* Already-read text indicator */
+.already-read {
+    opacity: 0.85;
+}
+
+#story-output:has(.already-read)::before {
+    content: '(already read)';
+    display: block;
+    font-size: 0.75rem;
+    color: #a09080;
+    font-style: italic;
+    margin-bottom: 5px;
+}
+
+/* === Choices Container === */
+#choices-container {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 10px;
+    margin-top: 12px;
+    justify-content: center;
+}
+
+/* === Choice Buttons === */
+.choice-button {
+    flex: 1 1 0;
+    padding: 10px 15px;
+    background-color: #b08b5a;
+    color: #fffbe9;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    white-space: normal;
+    text-align: center;
+}
+
+.choice-button:hover {
+    background-color: #8f6f46;
+}
+
+/* === Game Over State === */
+.game-over {
+    color: #4b1f0d;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 15px;
+    padding: 10px;
+    border: 2px solid #4b1f0d;
+    border-radius: 5px;
+}
+
+/* === Restart Button === */
+.restart-button {
+    flex: 0 0 auto;
+    min-width: 250px;
+    padding: 12px 30px;
+    background-color: #5c4732;
+    color: #fffbe9;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+}
+
+.restart-button:hover {
+    background-color: #4b3e2a;
+    transform: scale(1.02);
+}
+
+/* === Continue Button === */
+.continue-button {
+    flex: 0 0 auto;
+    min-width: 200px;
+    padding: 10px 30px;
+    background-color: #b08b5a;
+    color: #fffbe9;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+}
+
+.continue-button:hover {
+    background-color: #8f6f46;
+    transform: scale(1.02);
+}
+
+/* === Dice Roll Display === */
+.dice-roll {
+    font-size: 1.1rem;
+    color: #b08b5a;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+/* === Responsive Design === */
+@media (max-width: 900px) {
+    #vn-wrapper {
+        padding: 10px;
+    }
+
+    #text-box {
+        height: 38%;
+        padding: 12px 20px 15px 20px;
+    }
+
+    #story-output {
+        font-size: 1rem;
+    }
+
+    .choice-button {
+        min-width: 150px;
+        font-size: 0.9rem;
+        padding: 8px 15px;
+    }
+
+    #sprite-layer img {
+        max-width: 200px;
+    }
+}
+
+@media (max-width: 600px) {
+    #text-box {
+        height: 42%;
+        padding: 10px 15px;
+    }
+
+    #story-output {
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    .choice-button {
+        min-width: 100%;
+        font-size: 0.85rem;
+    }
+
+    #sprite-layer img {
+        max-width: 140px;
+    }
+}
