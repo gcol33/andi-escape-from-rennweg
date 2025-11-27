@@ -589,4 +589,9 @@ h1 {
         height: 32px !important;
         font-size: 14px !important;
     }
+
+    /* Hide volume slider in portrait */
+    #volume-slider {
+        display: none !important;
+    }
 }
