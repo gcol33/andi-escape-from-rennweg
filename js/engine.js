@@ -1063,7 +1063,7 @@ const VNEngine = (function() {
         // Create reset button in bottom-right corner (touch-friendly 44x44 minimum)
         var resetBtn = document.createElement('button');
         resetBtn.id = 'reset-btn';
-        resetBtn.textContent = 'R';
+        resetBtn.textContent = '↺';
         resetBtn.title = 'Reset Progress';
         // Touch-friendly sizing: 44x44px minimum tap target
         resetBtn.style.cssText = 'position: fixed; bottom: 10px; right: 10px; width: 44px; height: 44px; background: rgba(176, 139, 90, 0.8); color: #fffbe9; border: none; border-radius: 50%; font-size: 20px; cursor: pointer; z-index: 1000; transition: background 0.2s, transform 0.1s; -webkit-tap-highlight-color: rgba(143, 111, 70, 0.5); user-select: none; -webkit-user-select: none;';
