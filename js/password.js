@@ -18,6 +18,21 @@ const PasswordScreen = (function() {
     // Callback to run when password is correct
     let onSuccessCallback = null;
 
+    // Lockout tracking
+    let failedAttempts = 0;
+    let isLockedOut = false;
+    const MAX_ATTEMPTS = 3;
+    const LOCKOUT_DURATION = 5000; // 5 seconds
+
+    // Funny lockout messages
+    const LOCKOUT_MESSAGES = [
+        "Whoa there! Take a breather... 🧘",
+        "Nice try, but no. Cool down for 5 seconds!",
+        "Error 418: I'm a teapot. Wait 5 seconds.",
+        "Password machine broke. Try again in 5s.",
+        "Andi says: 'Not today!' Wait 5 seconds..."
+    ];
+
     /**
      * Initialize the password screen
      * @param {Function} onSuccess - Callback to execute when password is correct
@@ -112,6 +127,9 @@ const PasswordScreen = (function() {
      * Check if entered password matches the correct password
      */
     function checkPassword(inputs) {
+        // Don't check if locked out
+        if (isLockedOut) return;
+
         // Collect all characters
         let enteredPassword = '';
         let allFilled = true;
@@ -166,6 +184,9 @@ const PasswordScreen = (function() {
         // Add error class for shake animation
         inputsContainer.classList.add('error');
 
+        // Increment failed attempts
+        failedAttempts++;
+
         // Clear all fields after animation
         setTimeout(function() {
             inputsContainer.classList.remove('error');
@@ -175,9 +196,76 @@ const PasswordScreen = (function() {
                 input.classList.remove('filled');
             });
 
-            // Focus first input
-            inputs[0].focus();
+            // Check if we need to lock out
+            if (failedAttempts >= MAX_ATTEMPTS) {
+                triggerLockout(inputs);
+            } else {
+                // Focus first input
+                inputs[0].focus();
+            }
         }, 500);
+    }
+
+    /**
+     * Trigger lockout after too many failed attempts
+     */
+    function triggerLockout(inputs) {
+        isLockedOut = true;
+
+        // Disable all inputs
+        inputs.forEach(function(input) {
+            input.disabled = true;
+        });
+
+        // Show lockout message
+        const message = LOCKOUT_MESSAGES[Math.floor(Math.random() * LOCKOUT_MESSAGES.length)];
+        showLockoutMessage(message);
+
+        // Re-enable after lockout duration
+        setTimeout(function() {
+            isLockedOut = false;
+            failedAttempts = 0;
+
+            inputs.forEach(function(input) {
+                input.disabled = false;
+            });
+
+            hideLockoutMessage();
+            inputs[0].focus();
+        }, LOCKOUT_DURATION);
+    }
+
+    /**
+     * Show lockout message overlay
+     */
+    function showLockoutMessage(message) {
+        let msgElement = document.getElementById('lockout-message');
+
+        if (!msgElement) {
+            msgElement = document.createElement('div');
+            msgElement.id = 'lockout-message';
+            msgElement.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(75, 62, 42, 0.95); color: #fffbe9; padding: 20px 30px; border-radius: 8px; font-size: 1.2rem; text-align: center; z-index: 10001; animation: fadeIn 0.3s ease-out;';
+            document.getElementById('password-container').appendChild(msgElement);
+        }
+
+        msgElement.textContent = message;
+        msgElement.style.display = 'block';
+
+        // Hide the inputs visually
+        document.getElementById('password-inputs').style.opacity = '0.3';
+    }
+
+    /**
+     * Hide lockout message
+     */
+    function hideLockoutMessage() {
+        const msgElement = document.getElementById('lockout-message');
+        if (msgElement) {
+            msgElement.style.display = 'none';
+        }
+
+        // Restore inputs visibility
+        document.getElementById('password-inputs').style.opacity = '1';
     }
 
     /**
