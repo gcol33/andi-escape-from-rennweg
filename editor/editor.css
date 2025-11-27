@@ -1092,9 +1092,13 @@ label textarea {
     background: var(--warning);
 }
 
+.legend-dot.has-flags {
+    background: #9b59b6;
+}
+
 /* Graph nodes */
 .graph-node {
-    cursor: pointer;
+    cursor: grab;
 }
 
 .graph-node rect {
@@ -1144,6 +1148,25 @@ label textarea {
     fill: var(--warning);
 }
 
+.graph-node.has-flags rect {
+    stroke: #9b59b6;
+    stroke-width: 2;
+}
+
+.graph-node.has-flags::after {
+    content: '🔒';
+}
+
+.graph-node.dragging {
+    cursor: grabbing;
+}
+
+.graph-node.dragging rect {
+    stroke: var(--accent);
+    stroke-width: 2;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
 /* Graph edges */
 .graph-edge {
     fill: none;
@@ -1172,6 +1195,65 @@ label textarea {
 
 .graph-edge-arrow.failure {
     fill: var(--danger);
+}
+
+.legend-hint {
+    margin-left: auto;
+    font-style: italic;
+    color: var(--text-muted);
+}
+
+/* === Context Menu === */
+.context-menu {
+    position: fixed;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 0;
+    min-width: 150px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 2000;
+}
+
+.context-menu.hidden {
+    display: none;
+}
+
+.context-menu-item {
+    display: block;
+    width: 100%;
+    padding: 8px 16px;
+    text-align: left;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    border-radius: 0;
+}
+
+.context-menu-item:hover:not(:disabled) {
+    background: var(--bg-tertiary);
+}
+
+.context-menu-item:disabled {
+    color: var(--text-muted);
+    cursor: not-allowed;
+}
+
+.context-menu-item.danger {
+    color: var(--danger);
+}
+
+.context-menu-item.danger:hover:not(:disabled) {
+    background: var(--danger);
+    color: #fff;
+}
+
+.context-menu-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 4px 0;
 }
 
 /* === Scrollbar === */

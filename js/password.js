@@ -24,13 +24,13 @@ const PasswordScreen = (function() {
     const MAX_ATTEMPTS = 3;
     const LOCKOUT_DURATION = 5000; // 5 seconds
 
-    // Funny lockout messages
+    // Funny lockout messages (use {s} as placeholder for seconds)
     const LOCKOUT_MESSAGES = [
-        "Whoa there! Take a breather... 🧘",
-        "Nice try, but no. Cool down for 5 seconds!",
-        "Error 418: I'm a teapot. Wait 5 seconds.",
-        "Password machine broke. Try again in 5s.",
-        "Andi says: 'Not today!' Wait 5 seconds..."
+        "Whoa there! Take a breather... {s}s 🧘",
+        "Nice try, but no. Cool down for {s} seconds!",
+        "Error 418: I'm a teapot. Wait {s} seconds.",
+        "Password machine broke. Try again in {s}s.",
+        "Andi says: 'Not today!' Wait {s} seconds..."
     ];
 
     /**
@@ -217,12 +217,24 @@ const PasswordScreen = (function() {
             input.disabled = true;
         });
 
-        // Show lockout message
-        const message = LOCKOUT_MESSAGES[Math.floor(Math.random() * LOCKOUT_MESSAGES.length)];
-        showLockoutMessage(message);
+        // Pick a random message template
+        const messageTemplate = LOCKOUT_MESSAGES[Math.floor(Math.random() * LOCKOUT_MESSAGES.length)];
+        let secondsRemaining = Math.ceil(LOCKOUT_DURATION / 1000);
+
+        // Show initial message with countdown
+        showLockoutMessage(messageTemplate.replace('{s}', secondsRemaining));
+
+        // Update countdown every second
+        const countdownInterval = setInterval(function() {
+            secondsRemaining--;
+            if (secondsRemaining > 0) {
+                showLockoutMessage(messageTemplate.replace('{s}', secondsRemaining));
+            }
+        }, 1000);
 
         // Re-enable after lockout duration
         setTimeout(function() {
+            clearInterval(countdownInterval);
             isLockedOut = false;
             failedAttempts = 0;
 

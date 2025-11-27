@@ -85,7 +85,13 @@ const Editor = (function() {
             panY: 0,
             isPanning: false,
             startPanX: 0,
-            startPanY: 0
+            startPanY: 0,
+            contextMenuNode: null,  // Node currently shown in context menu
+            // Node dragging
+            draggingNode: null,
+            dragOffsetX: 0,
+            dragOffsetY: 0,
+            nodePositions: {}  // Custom positions keyed by node ID
         }
     };
 
@@ -226,7 +232,15 @@ const Editor = (function() {
             graphClose: document.getElementById('graph-close'),
             graphZoomIn: document.getElementById('graph-zoom-in'),
             graphZoomOut: document.getElementById('graph-zoom-out'),
-            graphReset: document.getElementById('graph-reset')
+            graphReset: document.getElementById('graph-reset'),
+            graphResetLayout: document.getElementById('graph-reset-layout'),
+
+            // Graph context menu
+            graphContextMenu: document.getElementById('graph-context-menu'),
+            ctxEditScene: document.getElementById('ctx-edit-scene'),
+            ctxRenameScene: document.getElementById('ctx-rename-scene'),
+            ctxViewFlags: document.getElementById('ctx-view-flags'),
+            ctxDeleteScene: document.getElementById('ctx-delete-scene')
         };
     }
 
@@ -281,9 +295,17 @@ const Editor = (function() {
         elements.graphZoomIn.addEventListener('click', () => zoomGraph(1.2));
         elements.graphZoomOut.addEventListener('click', () => zoomGraph(0.8));
         elements.graphReset.addEventListener('click', resetGraphView);
+        elements.graphResetLayout.addEventListener('click', resetGraphLayout);
         elements.graphModal.addEventListener('click', (e) => {
             if (e.target === elements.graphModal) hideGraphModal();
         });
+
+        // Graph context menu
+        elements.ctxEditScene.addEventListener('click', ctxEditScene);
+        elements.ctxRenameScene.addEventListener('click', ctxRenameScene);
+        elements.ctxViewFlags.addEventListener('click', ctxViewFlags);
+        elements.ctxDeleteScene.addEventListener('click', ctxDeleteScene);
+        document.addEventListener('click', hideContextMenu);
 
         // Collapsible sections
         document.querySelectorAll('.collapsible-header').forEach(header => {
@@ -1367,6 +1389,11 @@ const Editor = (function() {
         updateGraphTransform();
     }
 
+    function resetGraphLayout() {
+        state.graph.nodePositions = {};
+        renderGraph();
+    }
+
     function zoomGraph(factor) {
         state.graph.zoom = Math.max(0.2, Math.min(3, state.graph.zoom * factor));
         updateGraphTransform();
@@ -1384,13 +1411,52 @@ const Editor = (function() {
         const container = elements.graphContainer;
 
         container.onmousedown = (e) => {
-            if (e.target.closest('.graph-node')) return;
+            // If clicking on a node, start node dragging
+            const nodeGroup = e.target.closest('.graph-node');
+            if (nodeGroup) {
+                const nodeId = nodeGroup.dataset.nodeId;
+                if (nodeId) {
+                    state.graph.draggingNode = nodeId;
+                    // Get the node's current position
+                    const rect = nodeGroup.querySelector('rect');
+                    const nodeX = parseFloat(rect.getAttribute('x')) + 50; // center of node (width/2)
+                    const nodeY = parseFloat(rect.getAttribute('y')) + 15; // center of node (height/2)
+                    // Calculate mouse position in graph space
+                    const mouseX = (e.clientX - state.graph.panX) / state.graph.zoom;
+                    const mouseY = (e.clientY - state.graph.panY) / state.graph.zoom;
+                    // Store offset from mouse to node center
+                    state.graph.dragOffsetX = nodeX - mouseX;
+                    state.graph.dragOffsetY = nodeY - mouseY;
+                    nodeGroup.classList.add('dragging');
+                    e.preventDefault();
+                    return;
+                }
+            }
+            // Otherwise, start panning
             state.graph.isPanning = true;
             state.graph.startPanX = e.clientX - state.graph.panX;
             state.graph.startPanY = e.clientY - state.graph.panY;
         };
 
         container.onmousemove = (e) => {
+            // Handle node dragging
+            if (state.graph.draggingNode) {
+                const nodeId = state.graph.draggingNode;
+                // Calculate new position in graph coordinate space, applying the offset
+                const mouseX = (e.clientX - state.graph.panX) / state.graph.zoom;
+                const mouseY = (e.clientY - state.graph.panY) / state.graph.zoom;
+                const newX = mouseX + state.graph.dragOffsetX;
+                const newY = mouseY + state.graph.dragOffsetY;
+
+                // Update stored position
+                state.graph.nodePositions[nodeId] = { x: newX, y: newY };
+
+                // Re-render graph with new position
+                renderGraph();
+                return;
+            }
+
+            // Handle panning
             if (!state.graph.isPanning) return;
             state.graph.panX = e.clientX - state.graph.startPanX;
             state.graph.panY = e.clientY - state.graph.startPanY;
@@ -1398,10 +1464,20 @@ const Editor = (function() {
         };
 
         container.onmouseup = () => {
+            if (state.graph.draggingNode) {
+                const nodeGroup = elements.graphSvg.querySelector(`[data-node-id="${state.graph.draggingNode}"]`);
+                if (nodeGroup) nodeGroup.classList.remove('dragging');
+                state.graph.draggingNode = null;
+            }
             state.graph.isPanning = false;
         };
 
         container.onmouseleave = () => {
+            if (state.graph.draggingNode) {
+                const nodeGroup = elements.graphSvg.querySelector(`[data-node-id="${state.graph.draggingNode}"]`);
+                if (nodeGroup) nodeGroup.classList.remove('dragging');
+                state.graph.draggingNode = null;
+            }
             state.graph.isPanning = false;
         };
 
@@ -1427,16 +1503,24 @@ const Editor = (function() {
         const edges = [];
         const missingTargets = new Set();
 
+        // Special targets that are handled by the engine (not actual scenes)
+        const specialTargets = new Set(['_roll']);
+
         // Build node list from existing scenes
         Object.keys(state.scenes).forEach(id => {
-            nodes[id] = { id, exists: true };
+            const scene = state.scenes[id];
+            nodes[id] = {
+                id,
+                exists: true,
+                hasFlags: scene.require_flags && scene.require_flags.length > 0
+            };
         });
 
         // Build edges and find missing targets
         Object.values(state.scenes).forEach(scene => {
             if (scene.choices) {
                 scene.choices.forEach(choice => {
-                    if (choice.target) {
+                    if (choice.target && !specialTargets.has(choice.target)) {
                         edges.push({ from: scene.id, to: choice.target, type: 'choice' });
                         if (!nodes[choice.target]) {
                             missingTargets.add(choice.target);
@@ -1446,13 +1530,13 @@ const Editor = (function() {
             }
             if (scene.actions) {
                 scene.actions.forEach(action => {
-                    if (action.success_target) {
+                    if (action.success_target && !specialTargets.has(action.success_target)) {
                         edges.push({ from: scene.id, to: action.success_target, type: 'success' });
                         if (!nodes[action.success_target]) {
                             missingTargets.add(action.success_target);
                         }
                     }
-                    if (action.failure_target) {
+                    if (action.failure_target && !specialTargets.has(action.failure_target)) {
                         edges.push({ from: scene.id, to: action.failure_target, type: 'failure' });
                         if (!nodes[action.failure_target]) {
                             missingTargets.add(action.failure_target);
@@ -1464,7 +1548,7 @@ const Editor = (function() {
 
         // Add missing targets as nodes
         missingTargets.forEach(id => {
-            nodes[id] = { id, exists: false };
+            nodes[id] = { id, exists: false, hasFlags: false };
         });
 
         // Find start scene (no incoming edges) and ending scenes (no outgoing edges)
@@ -1481,6 +1565,13 @@ const Editor = (function() {
         // Layout: simple layered layout
         const nodeList = Object.values(nodes);
         const positions = layoutGraph(nodeList, edges, width, height);
+
+        // Apply any custom positions from dragging
+        Object.keys(state.graph.nodePositions).forEach(nodeId => {
+            if (positions[nodeId]) {
+                positions[nodeId] = { ...state.graph.nodePositions[nodeId] };
+            }
+        });
 
         // Create main group for transformations
         const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -1512,10 +1603,13 @@ const Editor = (function() {
 
             const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
             group.classList.add('graph-node');
+            group.dataset.nodeId = node.id;  // For drag handling
             if (!node.exists) group.classList.add('missing');
             if (node.isStart) group.classList.add('start');
             if (node.isEnding) group.classList.add('ending');
+            if (node.hasFlags) group.classList.add('has-flags');
             if (node.id === state.currentSceneId) group.classList.add('current');
+            if (state.graph.draggingNode === node.id) group.classList.add('dragging');
 
             const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
             rect.setAttribute('x', pos.x - nodeWidth / 2);
@@ -1543,6 +1637,12 @@ const Editor = (function() {
                         createSceneWithId(node.id);
                     }
                 }
+            });
+
+            // Right-click for context menu
+            group.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                showGraphContextMenu(e, node);
             });
 
             group.setAttribute('title', node.id);
@@ -1607,10 +1707,10 @@ const Editor = (function() {
             currentLayer = nextLayer;
         }
 
-        // Position nodes
-        const layerGap = 150;
-        const nodeGap = 50;
-        const startX = 100;
+        // Position nodes - more spacing for readability
+        const layerGap = 200;
+        const nodeGap = 60;
+        const startX = 120;
         const startY = height / 2;
 
         layers.forEach((layer, layerIndex) => {
@@ -1660,6 +1760,175 @@ const Editor = (function() {
         arrow.classList.add('graph-edge-arrow', type);
 
         return arrow;
+    }
+
+    // === Graph Context Menu ===
+    function showGraphContextMenu(e, node) {
+        state.graph.contextMenuNode = node;
+
+        const menu = elements.graphContextMenu;
+        menu.classList.remove('hidden');
+
+        // Position menu at click location
+        menu.style.left = e.clientX + 'px';
+        menu.style.top = e.clientY + 'px';
+
+        // Adjust if menu would go off screen
+        const rect = menu.getBoundingClientRect();
+        if (rect.right > window.innerWidth) {
+            menu.style.left = (e.clientX - rect.width) + 'px';
+        }
+        if (rect.bottom > window.innerHeight) {
+            menu.style.top = (e.clientY - rect.height) + 'px';
+        }
+
+        // Disable options for missing nodes
+        elements.ctxEditScene.disabled = !node.exists;
+        elements.ctxRenameScene.disabled = !node.exists;
+        elements.ctxDeleteScene.disabled = !node.exists;
+    }
+
+    function hideContextMenu() {
+        elements.graphContextMenu.classList.add('hidden');
+        state.graph.contextMenuNode = null;
+    }
+
+    function ctxEditScene() {
+        const node = state.graph.contextMenuNode;
+        if (!node || !node.exists) return;
+
+        hideContextMenu();
+        hideGraphModal();
+        loadScene(node.id);
+    }
+
+    function ctxRenameScene() {
+        const node = state.graph.contextMenuNode;
+        if (!node || !node.exists) return;
+
+        const newId = prompt(`Rename scene "${node.id}" to:`, node.id);
+        if (!newId || newId === node.id) {
+            hideContextMenu();
+            return;
+        }
+
+        const cleanId = newId.trim().toLowerCase().replace(/\s+/g, '_');
+
+        // Check for conflicts
+        if (state.scenes[cleanId]) {
+            alert(`A scene with ID "${cleanId}" already exists.`);
+            hideContextMenu();
+            return;
+        }
+
+        // Rename the scene
+        const scene = state.scenes[node.id];
+        delete state.scenes[node.id];
+        scene.id = cleanId;
+        state.scenes[cleanId] = scene;
+
+        // Update references in other scenes
+        Object.values(state.scenes).forEach(s => {
+            if (s.choices) {
+                s.choices.forEach(choice => {
+                    if (choice.target === node.id) {
+                        choice.target = cleanId;
+                    }
+                });
+            }
+            if (s.actions) {
+                s.actions.forEach(action => {
+                    if (action.success_target === node.id) {
+                        action.success_target = cleanId;
+                    }
+                    if (action.failure_target === node.id) {
+                        action.failure_target = cleanId;
+                    }
+                });
+            }
+        });
+
+        // Update current scene if needed
+        if (state.currentSceneId === node.id) {
+            state.currentSceneId = cleanId;
+            elements.sceneId.value = cleanId;
+            elements.currentSceneName.textContent = cleanId;
+        }
+
+        saveSenesToStorage();
+        renderSceneList();
+        renderGraph();
+        hideContextMenu();
+    }
+
+    function ctxViewFlags() {
+        const node = state.graph.contextMenuNode;
+        if (!node) {
+            hideContextMenu();
+            return;
+        }
+
+        const scene = state.scenes[node.id];
+        let message = `Flags for "${node.id}":\n\n`;
+
+        if (!scene) {
+            message += '(Scene does not exist yet)';
+        } else {
+            // Required flags
+            if (scene.require_flags && scene.require_flags.length > 0) {
+                message += `Requires:\n  • ${scene.require_flags.join('\n  • ')}\n\n`;
+            } else {
+                message += 'Requires: (none)\n\n';
+            }
+
+            // Set flags
+            if (scene.set_flags && scene.set_flags.length > 0) {
+                message += `Sets:\n  • ${scene.set_flags.join('\n  • ')}`;
+            } else {
+                message += 'Sets: (none)';
+            }
+        }
+
+        alert(message);
+        hideContextMenu();
+    }
+
+    function ctxDeleteScene() {
+        const node = state.graph.contextMenuNode;
+        if (!node || !node.exists) return;
+
+        // Check for incoming references
+        const incoming = findIncomingScenes(node.id);
+        let message = `Are you sure you want to delete "${node.id}"?`;
+
+        if (incoming.length > 0) {
+            const refs = incoming.map(r => r.from).join(', ');
+            message += `\n\nWarning: This scene is referenced by: ${refs}`;
+        }
+
+        if (!confirm(message)) {
+            hideContextMenu();
+            return;
+        }
+
+        // Delete the scene
+        delete state.scenes[node.id];
+
+        // If this was the current scene, clear editor
+        if (state.currentSceneId === node.id) {
+            state.currentSceneId = null;
+            elements.sceneId.value = '';
+            elements.currentSceneName.textContent = 'No scene selected';
+            elements.previewSprites.innerHTML = '';
+            elements.saveBtn.disabled = true;
+            elements.deleteSceneBtn.disabled = true;
+            clearNodeConnections();
+        }
+
+        saveSenesToStorage();
+        renderSceneList();
+        renderGraph();
+        hideContextMenu();
     }
 
     // === Save / Export ===

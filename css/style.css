@@ -318,14 +318,17 @@ h1 {
 
 /* === Mute Button === */
 .mute-btn {
-    padding: 4px 10px;
-    font-size: 0.9rem;
+    padding: 4px 12px;
+    font-size: 0.75rem;
     background-color: transparent;
     color: #8a7a6a;
     border: 1px solid #d3c2a8;
     border-radius: 3px;
     cursor: pointer;
     transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .mute-btn:hover {

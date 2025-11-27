@@ -180,7 +180,8 @@
                 <div class="graph-controls">
                     <button id="graph-zoom-in" class="btn-icon" title="Zoom in">+</button>
                     <button id="graph-zoom-out" class="btn-icon" title="Zoom out">−</button>
-                    <button id="graph-reset" class="btn-icon" title="Reset view">Reset</button>
+                    <button id="graph-reset" class="btn-icon" title="Reset pan/zoom">⟲</button>
+                    <button id="graph-reset-layout" class="btn-icon" title="Reset node positions">⊞</button>
                     <button id="graph-close" class="btn-icon" title="Close">✕</button>
                 </div>
             </div>
@@ -192,8 +193,19 @@
                 <span class="legend-item"><span class="legend-dot success"></span> Dice Success</span>
                 <span class="legend-item"><span class="legend-dot failure"></span> Dice Failure</span>
                 <span class="legend-item"><span class="legend-dot missing"></span> Missing Scene</span>
+                <span class="legend-item"><span class="legend-dot has-flags"></span> Requires Flags</span>
+                <span class="legend-hint">Right-click node for options</span>
             </div>
         </div>
+    </div>
+
+    <!-- Graph Context Menu -->
+    <div id="graph-context-menu" class="context-menu hidden">
+        <button id="ctx-edit-scene" class="context-menu-item">Edit Scene</button>
+        <button id="ctx-rename-scene" class="context-menu-item">Rename Scene</button>
+        <button id="ctx-view-flags" class="context-menu-item">View Flags</button>
+        <hr class="context-menu-divider">
+        <button id="ctx-delete-scene" class="context-menu-item danger">Delete Scene</button>
     </div>
 
     <!-- Delete Confirmation Modal -->
