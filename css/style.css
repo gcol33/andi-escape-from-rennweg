@@ -526,11 +526,19 @@ h1 {
     #vn-container {
         aspect-ratio: 9 / 16;
         max-width: min(100%, 56.25vh); /* Constrain width based on height */
+        max-height: 85vh; /* Leave buffer room like landscape */
     }
 
     #password-container {
         aspect-ratio: 9 / 16;
         max-width: min(100%, 56.25vh);
+        max-height: 85vh;
+    }
+
+    /* Ensure wrapper doesn't force overflow */
+    #vn-wrapper {
+        max-height: 100vh;
+        overflow: hidden;
     }
 
     /* Adjust text box for taller container */
