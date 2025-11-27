@@ -77,7 +77,16 @@ const Editor = (function() {
         musicPlaying: false,
         // Text block navigation
         textBlocks: [''],     // Current text blocks array
-        currentTextBlockIndex: 0
+        currentTextBlockIndex: 0,
+        // Graph view state
+        graph: {
+            zoom: 1,
+            panX: 0,
+            panY: 0,
+            isPanning: false,
+            startPanX: 0,
+            startPanY: 0
+        }
     };
 
     // === DOM References ===
@@ -207,7 +216,17 @@ const Editor = (function() {
             deleteModal: document.getElementById('delete-modal'),
             deleteWarnings: document.getElementById('delete-warnings'),
             deleteCancelBtn: document.getElementById('delete-cancel-btn'),
-            deleteConfirmBtn: document.getElementById('delete-confirm-btn')
+            deleteConfirmBtn: document.getElementById('delete-confirm-btn'),
+
+            // Graph
+            graphBtn: document.getElementById('graph-btn'),
+            graphModal: document.getElementById('graph-modal'),
+            graphSvg: document.getElementById('graph-svg'),
+            graphContainer: document.getElementById('graph-container'),
+            graphClose: document.getElementById('graph-close'),
+            graphZoomIn: document.getElementById('graph-zoom-in'),
+            graphZoomOut: document.getElementById('graph-zoom-out'),
+            graphReset: document.getElementById('graph-reset')
         };
     }
 
@@ -255,6 +274,16 @@ const Editor = (function() {
         elements.deleteSceneBtn.addEventListener('click', showDeleteModal);
         elements.deleteCancelBtn.addEventListener('click', hideDeleteModal);
         elements.deleteConfirmBtn.addEventListener('click', confirmDelete);
+
+        // Graph
+        elements.graphBtn.addEventListener('click', showGraphModal);
+        elements.graphClose.addEventListener('click', hideGraphModal);
+        elements.graphZoomIn.addEventListener('click', () => zoomGraph(1.2));
+        elements.graphZoomOut.addEventListener('click', () => zoomGraph(0.8));
+        elements.graphReset.addEventListener('click', resetGraphView);
+        elements.graphModal.addEventListener('click', (e) => {
+            if (e.target === elements.graphModal) hideGraphModal();
+        });
 
         // Collapsible sections
         document.querySelectorAll('.collapsible-header').forEach(header => {
@@ -1317,6 +1346,320 @@ const Editor = (function() {
         elements.nodeCurrentScene.textContent = 'No scene selected';
         elements.incomingConnections.innerHTML = '<span class="placeholder">No scenes lead here</span>';
         elements.outgoingConnections.innerHTML = '<span class="placeholder">No outgoing connections</span>';
+    }
+
+    // === Story Graph ===
+    function showGraphModal() {
+        elements.graphModal.classList.remove('hidden');
+        resetGraphView();
+        renderGraph();
+        setupGraphPanning();
+    }
+
+    function hideGraphModal() {
+        elements.graphModal.classList.add('hidden');
+    }
+
+    function resetGraphView() {
+        state.graph.zoom = 1;
+        state.graph.panX = 0;
+        state.graph.panY = 0;
+        updateGraphTransform();
+    }
+
+    function zoomGraph(factor) {
+        state.graph.zoom = Math.max(0.2, Math.min(3, state.graph.zoom * factor));
+        updateGraphTransform();
+    }
+
+    function updateGraphTransform() {
+        const g = elements.graphSvg.querySelector('g');
+        if (g) {
+            g.setAttribute('transform',
+                `translate(${state.graph.panX}, ${state.graph.panY}) scale(${state.graph.zoom})`);
+        }
+    }
+
+    function setupGraphPanning() {
+        const container = elements.graphContainer;
+
+        container.onmousedown = (e) => {
+            if (e.target.closest('.graph-node')) return;
+            state.graph.isPanning = true;
+            state.graph.startPanX = e.clientX - state.graph.panX;
+            state.graph.startPanY = e.clientY - state.graph.panY;
+        };
+
+        container.onmousemove = (e) => {
+            if (!state.graph.isPanning) return;
+            state.graph.panX = e.clientX - state.graph.startPanX;
+            state.graph.panY = e.clientY - state.graph.startPanY;
+            updateGraphTransform();
+        };
+
+        container.onmouseup = () => {
+            state.graph.isPanning = false;
+        };
+
+        container.onmouseleave = () => {
+            state.graph.isPanning = false;
+        };
+
+        // Mouse wheel zoom
+        container.onwheel = (e) => {
+            e.preventDefault();
+            const factor = e.deltaY > 0 ? 0.9 : 1.1;
+            zoomGraph(factor);
+        };
+    }
+
+    function renderGraph() {
+        const svg = elements.graphSvg;
+        const container = elements.graphContainer;
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+
+        svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        svg.innerHTML = '';
+
+        // Collect all nodes and edges
+        const nodes = {};
+        const edges = [];
+        const missingTargets = new Set();
+
+        // Build node list from existing scenes
+        Object.keys(state.scenes).forEach(id => {
+            nodes[id] = { id, exists: true };
+        });
+
+        // Build edges and find missing targets
+        Object.values(state.scenes).forEach(scene => {
+            if (scene.choices) {
+                scene.choices.forEach(choice => {
+                    if (choice.target) {
+                        edges.push({ from: scene.id, to: choice.target, type: 'choice' });
+                        if (!nodes[choice.target]) {
+                            missingTargets.add(choice.target);
+                        }
+                    }
+                });
+            }
+            if (scene.actions) {
+                scene.actions.forEach(action => {
+                    if (action.success_target) {
+                        edges.push({ from: scene.id, to: action.success_target, type: 'success' });
+                        if (!nodes[action.success_target]) {
+                            missingTargets.add(action.success_target);
+                        }
+                    }
+                    if (action.failure_target) {
+                        edges.push({ from: scene.id, to: action.failure_target, type: 'failure' });
+                        if (!nodes[action.failure_target]) {
+                            missingTargets.add(action.failure_target);
+                        }
+                    }
+                });
+            }
+        });
+
+        // Add missing targets as nodes
+        missingTargets.forEach(id => {
+            nodes[id] = { id, exists: false };
+        });
+
+        // Find start scene (no incoming edges) and ending scenes (no outgoing edges)
+        const hasIncoming = new Set(edges.map(e => e.to));
+        const hasOutgoing = new Set(edges.map(e => e.from));
+
+        Object.values(nodes).forEach(node => {
+            if (node.exists) {
+                if (!hasIncoming.has(node.id)) node.isStart = true;
+                if (!hasOutgoing.has(node.id)) node.isEnding = true;
+            }
+        });
+
+        // Layout: simple layered layout
+        const nodeList = Object.values(nodes);
+        const positions = layoutGraph(nodeList, edges, width, height);
+
+        // Create main group for transformations
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+        // Draw edges first (behind nodes)
+        edges.forEach(edge => {
+            const fromPos = positions[edge.from];
+            const toPos = positions[edge.to];
+            if (!fromPos || !toPos) return;
+
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            const d = createEdgePath(fromPos, toPos);
+            path.setAttribute('d', d);
+            path.classList.add('graph-edge', edge.type);
+            g.appendChild(path);
+
+            // Add arrowhead
+            const arrow = createArrowhead(fromPos, toPos, edge.type);
+            g.appendChild(arrow);
+        });
+
+        // Draw nodes
+        const nodeWidth = 100;
+        const nodeHeight = 30;
+
+        nodeList.forEach(node => {
+            const pos = positions[node.id];
+            if (!pos) return;
+
+            const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            group.classList.add('graph-node');
+            if (!node.exists) group.classList.add('missing');
+            if (node.isStart) group.classList.add('start');
+            if (node.isEnding) group.classList.add('ending');
+            if (node.id === state.currentSceneId) group.classList.add('current');
+
+            const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            rect.setAttribute('x', pos.x - nodeWidth / 2);
+            rect.setAttribute('y', pos.y - nodeHeight / 2);
+            rect.setAttribute('width', nodeWidth);
+            rect.setAttribute('height', nodeHeight);
+            group.appendChild(rect);
+
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('x', pos.x);
+            text.setAttribute('y', pos.y);
+            // Truncate long names
+            const displayName = node.id.length > 14 ? node.id.substring(0, 12) + '...' : node.id;
+            text.textContent = displayName;
+            group.appendChild(text);
+
+            // Click to navigate
+            group.addEventListener('click', () => {
+                if (node.exists) {
+                    hideGraphModal();
+                    loadScene(node.id);
+                } else {
+                    if (confirm(`Scene "${node.id}" doesn't exist. Create it?`)) {
+                        hideGraphModal();
+                        createSceneWithId(node.id);
+                    }
+                }
+            });
+
+            group.setAttribute('title', node.id);
+            g.appendChild(group);
+        });
+
+        svg.appendChild(g);
+        updateGraphTransform();
+    }
+
+    function layoutGraph(nodes, edges, width, height) {
+        const positions = {};
+
+        // Build adjacency for topological sort
+        const outgoing = {};
+        const incoming = {};
+        nodes.forEach(n => {
+            outgoing[n.id] = [];
+            incoming[n.id] = [];
+        });
+        edges.forEach(e => {
+            if (outgoing[e.from]) outgoing[e.from].push(e.to);
+            if (incoming[e.to]) incoming[e.to].push(e.from);
+        });
+
+        // Find layers using BFS from start nodes
+        const layers = [];
+        const assigned = new Set();
+
+        // Start nodes (no incoming)
+        let currentLayer = nodes.filter(n => incoming[n.id].length === 0).map(n => n.id);
+        if (currentLayer.length === 0) {
+            // No clear start, pick first
+            currentLayer = nodes.length > 0 ? [nodes[0].id] : [];
+        }
+
+        while (currentLayer.length > 0) {
+            layers.push(currentLayer);
+            currentLayer.forEach(id => assigned.add(id));
+
+            const nextLayer = [];
+            currentLayer.forEach(id => {
+                outgoing[id].forEach(targetId => {
+                    if (!assigned.has(targetId) && !nextLayer.includes(targetId)) {
+                        // Check if all incoming are assigned
+                        const allIncomingAssigned = incoming[targetId].every(src => assigned.has(src));
+                        if (allIncomingAssigned) {
+                            nextLayer.push(targetId);
+                        }
+                    }
+                });
+            });
+
+            // Handle cycles - add remaining unassigned nodes
+            if (nextLayer.length === 0) {
+                const remaining = nodes.filter(n => !assigned.has(n.id));
+                if (remaining.length > 0) {
+                    nextLayer.push(remaining[0].id);
+                }
+            }
+
+            currentLayer = nextLayer;
+        }
+
+        // Position nodes
+        const layerGap = 150;
+        const nodeGap = 50;
+        const startX = 100;
+        const startY = height / 2;
+
+        layers.forEach((layer, layerIndex) => {
+            const layerHeight = layer.length * nodeGap;
+            const layerStartY = startY - layerHeight / 2 + nodeGap / 2;
+
+            layer.forEach((nodeId, nodeIndex) => {
+                positions[nodeId] = {
+                    x: startX + layerIndex * layerGap,
+                    y: layerStartY + nodeIndex * nodeGap
+                };
+            });
+        });
+
+        return positions;
+    }
+
+    function createEdgePath(from, to) {
+        const nodeWidth = 100;
+        const nodeHeight = 30;
+
+        // Start from right edge of from node
+        const startX = from.x + nodeWidth / 2;
+        const startY = from.y;
+
+        // End at left edge of to node
+        const endX = to.x - nodeWidth / 2;
+        const endY = to.y;
+
+        // Create curved path
+        const midX = (startX + endX) / 2;
+
+        return `M ${startX} ${startY} C ${midX} ${startY}, ${midX} ${endY}, ${endX} ${endY}`;
+    }
+
+    function createArrowhead(from, to, type) {
+        const nodeWidth = 100;
+        const endX = to.x - nodeWidth / 2;
+        const endY = to.y;
+
+        const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        const size = 6;
+
+        // Arrow pointing left
+        arrow.setAttribute('points',
+            `${endX},${endY} ${endX + size},${endY - size/2} ${endX + size},${endY + size/2}`);
+        arrow.classList.add('graph-edge-arrow', type);
+
+        return arrow;
     }
 
     // === Save / Export ===

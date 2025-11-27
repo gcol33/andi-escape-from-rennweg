@@ -997,6 +997,183 @@ label textarea {
     gap: 10px;
 }
 
+/* === Graph Modal === */
+.graph-modal-content {
+    max-width: 90vw;
+    width: 90vw;
+    height: 85vh;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.graph-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.graph-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.graph-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.graph-controls button {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+}
+
+#graph-container {
+    flex: 1;
+    overflow: hidden;
+    background: var(--bg-primary);
+    cursor: grab;
+    position: relative;
+}
+
+#graph-container:active {
+    cursor: grabbing;
+}
+
+#graph-svg {
+    width: 100%;
+    height: 100%;
+}
+
+.graph-legend {
+    display: flex;
+    gap: 20px;
+    padding: 10px 20px;
+    border-top: 1px solid var(--border);
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.legend-dot.choice {
+    background: var(--accent);
+}
+
+.legend-dot.success {
+    background: var(--success);
+}
+
+.legend-dot.failure {
+    background: var(--danger);
+}
+
+.legend-dot.missing {
+    background: var(--warning);
+}
+
+/* Graph nodes */
+.graph-node {
+    cursor: pointer;
+}
+
+.graph-node rect {
+    fill: var(--bg-tertiary);
+    stroke: var(--border);
+    stroke-width: 1.5;
+    rx: 4;
+    transition: all 0.15s;
+}
+
+.graph-node:hover rect {
+    stroke: var(--accent);
+    stroke-width: 2;
+}
+
+.graph-node.current rect {
+    stroke: var(--accent);
+    stroke-width: 2;
+    fill: var(--bg-secondary);
+}
+
+.graph-node.missing rect {
+    stroke: var(--warning);
+    stroke-dasharray: 4 2;
+    fill: transparent;
+}
+
+.graph-node.ending rect {
+    fill: var(--bg-secondary);
+    stroke: var(--success);
+}
+
+.graph-node.start rect {
+    fill: var(--accent-dark);
+    stroke: var(--accent);
+}
+
+.graph-node text {
+    fill: var(--text-primary);
+    font-size: 11px;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    pointer-events: none;
+}
+
+.graph-node.missing text {
+    fill: var(--warning);
+}
+
+/* Graph edges */
+.graph-edge {
+    fill: none;
+    stroke-width: 1.5;
+}
+
+.graph-edge.choice {
+    stroke: var(--accent);
+}
+
+.graph-edge.success {
+    stroke: var(--success);
+}
+
+.graph-edge.failure {
+    stroke: var(--danger);
+}
+
+.graph-edge-arrow {
+    fill: var(--accent);
+}
+
+.graph-edge-arrow.success {
+    fill: var(--success);
+}
+
+.graph-edge-arrow.failure {
+    fill: var(--danger);
+}
+
 /* === Scrollbar === */
 ::-webkit-scrollbar {
     width: 8px;
