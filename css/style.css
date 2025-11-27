@@ -594,4 +594,11 @@ h1 {
     #volume-slider {
         display: none !important;
     }
+
+    /* Also prevent hover from showing it */
+    #volume-control:hover #volume-slider {
+        display: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+    }
 }
