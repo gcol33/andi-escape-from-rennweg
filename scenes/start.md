@@ -2,6 +2,9 @@
 id: start
 bg: hallway_fluorescent.jpg
 music: last_day.mp3
+actions:
+  - type: play_sfx
+    file: door_slam.ogg
 ---
 
 The old wooden door closes with a dull thud behind you for the very last time. Your badge no longer works; your desk is empty.

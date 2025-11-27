@@ -2,6 +2,9 @@
 id: corridor_safe
 bg: back_stairwell_dim.jpg
 music: zen.mp3
+actions:
+  - type: play_sfx
+    file: footstep.ogg
 ---
 
 Ignoring their desperate pleas, you walk past your former colleagues.

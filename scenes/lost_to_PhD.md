@@ -2,6 +2,11 @@
 id: lost_to_PhD
 bg: desk_computer_code.jpg
 music: coding_frenzy.mp3
+actions:
+  - type: play_sfx
+    file: door_slam.ogg
+  - type: play_sfx
+    file: failure.ogg
 ---
 
 You sit down and dive into the code. The problem is deep, fascinating, and consumes your entire focus.

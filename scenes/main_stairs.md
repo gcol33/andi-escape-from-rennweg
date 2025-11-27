@@ -4,6 +4,9 @@ bg: stairwell_landing.jpg
 music: legal_trap_stairwell.mp3
 chars:
   - agnes_neutral.svg
+actions:
+  - type: play_sfx
+    file: footstep.ogg
 ---
 
 You turn right and walk toward the main stairwell. Just as you reach the landing, Agnes from HR steps out, blocking your path.

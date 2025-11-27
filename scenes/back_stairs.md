@@ -5,6 +5,9 @@ music: default.mp3
 chars:
   - joni_desperate.svg
   - norbert_pleading.svg
+actions:
+  - type: play_sfx
+    file: alert.ogg
 ---
 
 You turn left toward the back stairwell, but before you reach it, you hear a frantic whispering from the office next door.

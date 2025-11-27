@@ -2,6 +2,9 @@
 id: coffee_kitchen
 bg: office_kitchen.jpg
 music: coffee.mp3
+actions:
+  - type: play_sfx
+    file: gulp.ogg
 ---
 
 You step into the kitchen. It is eerily quiet. The coffee machine is running, smelling comfortingly familiar.

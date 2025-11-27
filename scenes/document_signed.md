@@ -4,6 +4,9 @@ bg: stairwell_landing.jpg
 music: legal_trap_stairwell.mp3
 chars:
   - agnes_happy.svg
+actions:
+  - type: play_sfx
+    file: click.ogg
 ---
 
 You sigh, scribble your signature on the last page of the dense legal document, and hand the pen back to Agnes.

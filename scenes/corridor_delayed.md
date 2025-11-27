@@ -5,6 +5,9 @@ music: default.mp3
 chars:
   - fabio_friendly.svg
   - ali_friendly.svg
+actions:
+  - type: play_sfx
+    file: door_open.ogg
 ---
 
 You shake off Joni and step firmly into the corridor, only to be immediately intercepted by Fabio and Ali.

@@ -4,6 +4,9 @@ bg: hallway_dim.jpg
 music: spooky.mp3
 chars:
   - agnes_victorious.svg
+actions:
+  - type: play_sfx
+    file: thud.ogg
 ---
 
 You moved very fast, but Agnes is faster. Her leg snaps out with precision, and you trip, falling face down onto the carpet.

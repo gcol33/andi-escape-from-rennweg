@@ -4,6 +4,9 @@ bg: stairwell_escape.jpg
 music: dicey_decisions.mp3
 chars:
   - agnes_surprised.svg
+actions:
+  - type: play_sfx
+    file: success.ogg
 ---
 
 You weren't fast enough to catch her completely off guard, but you saw the movement!

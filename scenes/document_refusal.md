@@ -4,6 +4,11 @@ bg: hallway_red_alert.jpg
 music: spooky.mp3
 chars:
   - agnes_angry.svg
+actions:
+  - type: play_sfx
+    file: alarm.ogg
+  - type: play_sfx
+    file: zap.ogg
 ---
 
 You politely (or rudely) refuse to sign. Agnes's smile vanishes, replaced by an expression of cold, professional disapproval.

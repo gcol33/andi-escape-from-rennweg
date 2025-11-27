@@ -6,6 +6,9 @@ chars:
   - michi_whiteboard.svg
   - gilles_explaining.svg
   - ruling_pointing.svg
+actions:
+  - type: play_sfx
+    file: elevator_ding.ogg
 ---
 
 You agree and press the "4" button. The ride up is silent.
