@@ -135,71 +135,128 @@
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script>
   // ------------------------------
-  // Node + Link Data (Planned Story)
+  // Node + Link Data (Planned Story - Based on Current + Extensions)
   // ------------------------------
   const nodes = [
-    { id: "INTRO", type: "intro", desc: "Opening scene. Your last day at Rennweg." },
-    { id: "HUB 1", type: "hub", desc: "First major branching point. Choose your path." },
+    // === ACT 1: The Escape Begins ===
+    { id: "start", type: "intro", desc: "Opening scene. Your last day at Rennweg. Badge disabled, desk empty." },
 
-    { id: "Coffee Wing", type: "branch", desc: "Coffee route events. Dangerous but rewarding." },
-    { id: "Main Stairs", type: "branch", desc: "Stairs & HR encounter. Agnes awaits." },
-    { id: "Office Corridor", type: "branch", desc: "Office help requests. PhD students need you." },
+    // First branch - 3 paths from hallway
+    { id: "main_stairs", type: "branch", desc: "Agnes from HR blocks your path with a mysterious document." },
+    { id: "back_stairs", type: "branch", desc: "Joni and Norbert desperately need help with PhD code." },
+    { id: "coffee_kitchen", type: "branch", desc: "One last sentimental coffee... but it's drugged!" },
 
-    { id: "Midgame Hub", type: "hub", desc: "Central hub. Multiple paths forward." },
+    // Main stairs sub-branches
+    { id: "document_signed", type: "branch", desc: "You sign without reading. What did you agree to?" },
+    { id: "document_refusal", type: "branch", desc: "You refuse. Agnes triggers TERMINATION PROTOCOL." },
+    { id: "attempt_pass", type: "branch", desc: "Try to run past Agnes. Roll d20 (need ≤13)." },
+    { id: "d20_success", type: "branch", desc: "You leap over Agnes's trip attempt!" },
+    { id: "d20_failure", type: "branch", desc: "Agnes trips you. Everything goes dark..." },
 
-    { id: "Fourth Floor Trap", type: "branch", desc: "Academic trap. Whiteboard discussions await." },
-    { id: "Basement Escape Route", type: "branch", desc: "Stealth basement segment. Avoid detection." },
-    { id: "HR Confrontation", type: "branch", desc: "Final HR showdown. Agnes's last stand." },
+    // Back stairs sub-branches
+    { id: "colleague_plea", type: "branch", desc: "Norbert grabs your sleeve, begging desperately." },
+    { id: "corridor_safe", type: "branch", desc: "You ignore them and head to the back stairwell." },
+    { id: "corridor_delayed", type: "branch", desc: "Fabio and Ali intercept you. 4th floor guilt trip." },
+    { id: "fourth_floor", type: "branch", desc: "2 hours of whiteboard torture with Michi, Gilles, Ruling." },
 
-    { id: "Final Hub", type: "hub", desc: "Final decision point. Choose your ending." },
+    // === ACT 2: Midgame Complications (NEW) ===
+    { id: "lobby_checkpoint", type: "hub", desc: "You reach the lobby. But security has questions..." },
 
-    { id: "Early Bad End\nCoffee", type: "quickbad", desc: "Quick bad end: cursed coffee traps you forever." },
-    { id: "Early Bad End\nPhD Trap", type: "quickbad", desc: "Quick bad end: trapped helping PhD students until 2035." },
-    { id: "Bad Ending\nHR Trap", type: "quickbad", desc: "Quick bad end: immediate HR contract re-employment." },
+    { id: "security_bribe", type: "branch", desc: "Offer the guard your leftover lunch money." },
+    { id: "security_sneak", type: "branch", desc: "Wait for distraction and slip past." },
+    { id: "security_confront", type: "branch", desc: "Boldly claim you have clearance." },
 
-    { id: "Bad Ending\nRe-Employed", type: "bad", desc: "Long bad ending: eternal reemployment loop." },
+    { id: "parking_garage", type: "branch", desc: "Alternative exit through the basement garage." },
+    { id: "fire_escape", type: "branch", desc: "Emergency stairs. Alarm might trigger..." },
 
-    { id: "Neutral Ending", type: "ending", desc: "Standard exit. You escape, but nothing special." },
-    { id: "Good Ending A\nAcademic Freedom", type: "ending", desc: "Survives academic trap with dignity intact." },
-    { id: "Good Ending B\nHR Victory", type: "ending", desc: "Defeats HR entirely. Agnes is vanquished." },
-    { id: "Coffee Ascension", type: "ending", desc: "Transcends via coffee. Become one with the bean." },
-    { id: "True Ending", type: "ending", desc: "Secret true route. Requires specific flags." }
+    // === ACT 3: Final Escape ===
+    { id: "exit_lobby", type: "hub", desc: "The front doors are in sight. Freedom awaits." },
+
+    // === ENDINGS ===
+    // Quick Bad Endings
+    { id: "lost_to_coffee", type: "quickbad", desc: "BAD END: Drugged, chained to desk forever." },
+    { id: "lost_to_HR", type: "quickbad", desc: "BAD END: Memory erased, stuck in yesterday's loop." },
+    { id: "lost_to_PhD", type: "quickbad", desc: "BAD END: Absorbed by code until 2035." },
+    { id: "lost_to_security", type: "quickbad", desc: "BAD END: Detained for 'suspicious behavior'." },
+    { id: "lost_to_alarm", type: "quickbad", desc: "BAD END: Fire alarm lockdown. Re-employed." },
+
+    // Standard Endings
+    { id: "neutral_escape", type: "ending", desc: "NEUTRAL: You escape, but signed away your pension." },
+    { id: "clean_escape", type: "ending", desc: "GOOD: Clean getaway. No strings attached." },
+
+    // Special Endings (require multiple flags)
+    { id: "revenge_ending", type: "ending", desc: "GOOD+: Expose HR's illegal contracts to the press. Requires: refused_document + found_evidence" },
+    { id: "hero_ending", type: "ending", desc: "BEST: Save colleagues AND escape. Requires: helped_secretly + clean_escape" },
+    { id: "coffee_ascension", type: "ending", desc: "SECRET: Transcend via coffee mastery. Requires: resisted_coffee + coffee_beans + perfect_brew" },
+    { id: "true_ending", type: "ending", desc: "TRUE: The perfect run. Requires: all_colleagues_helped + hr_defeated + no_documents_signed + secret_found" }
   ];
 
   const links = [
-    { source: "INTRO", target: "HUB 1", label: "" },
+    // === ACT 1 ===
+    { source: "start", target: "main_stairs", label: "main_stairs" },
+    { source: "start", target: "back_stairs", label: "back_stairs" },
+    { source: "start", target: "coffee_kitchen", label: "get_coffee" },
 
-    { source: "HUB 1", target: "Coffee Wing", label: "go_coffee" },
-    { source: "HUB 1", target: "Main Stairs", label: "go_stairs" },
-    { source: "HUB 1", target: "Office Corridor", label: "go_office" },
+    // Coffee path (instant trap)
+    { source: "coffee_kitchen", target: "lost_to_coffee", label: "drink" },
+    { source: "coffee_kitchen", target: "corridor_safe", label: "resist +coffee_resisted" },
 
-    { source: "Coffee Wing", target: "Midgame Hub", label: "resist_coffee" },
-    { source: "Coffee Wing", target: "Early Bad End\nCoffee", label: "drink_coffee" },
+    // Main stairs - HR encounter
+    { source: "main_stairs", target: "document_signed", label: "sign" },
+    { source: "main_stairs", target: "document_refusal", label: "refuse +refused_doc" },
+    { source: "main_stairs", target: "attempt_pass", label: "run_past" },
 
-    { source: "Main Stairs", target: "Midgame Hub", label: "evade_hr" },
-    { source: "Main Stairs", target: "Bad Ending\nHR Trap", label: "sign_document" },
+    { source: "document_signed", target: "lobby_checkpoint", label: "signed_away" },
+    { source: "document_refusal", target: "lost_to_HR", label: "protocol_alpha" },
+    { source: "document_refusal", target: "parking_garage", label: "escape_chaos +found_evidence" },
 
-    { source: "Office Corridor", target: "Midgame Hub", label: "refuse_help" },
-    { source: "Office Corridor", target: "Early Bad End\nPhD Trap", label: "help_phd" },
+    { source: "attempt_pass", target: "d20_success", label: "roll≤13" },
+    { source: "attempt_pass", target: "d20_failure", label: "roll>13" },
+    { source: "d20_success", target: "lobby_checkpoint", label: "+dodged_hr" },
+    { source: "d20_failure", target: "lost_to_coffee", label: "captured" },
 
-    { source: "Midgame Hub", target: "Fourth Floor Trap", label: "elevator_up" },
-    { source: "Midgame Hub", target: "Basement Escape Route", label: "go_basement" },
-    { source: "Midgame Hub", target: "HR Confrontation", label: "face_hr" },
+    // Back stairs - PhD trap
+    { source: "back_stairs", target: "lost_to_PhD", label: "help_them" },
+    { source: "back_stairs", target: "colleague_plea", label: "polite_no" },
+    { source: "back_stairs", target: "corridor_safe", label: "fuck_off +rude" },
 
-    { source: "Fourth Floor Trap", target: "Final Hub", label: "escape_whiteboard" },
-    { source: "Fourth Floor Trap", target: "Bad Ending\nRe-Employed", label: "stay_discussing" },
+    { source: "colleague_plea", target: "lost_to_PhD", label: "fine_5min" },
+    { source: "colleague_plea", target: "corridor_delayed", label: "refuse_again" },
+    { source: "colleague_plea", target: "corridor_safe", label: "secret_help +helped_secretly" },
 
-    { source: "Basement Escape Route", target: "Final Hub", label: "stealth_success" },
+    { source: "corridor_safe", target: "lobby_checkpoint", label: "" },
+    { source: "corridor_delayed", target: "fourth_floor", label: "go_4th" },
+    { source: "corridor_delayed", target: "corridor_safe", label: "no_time" },
+    { source: "fourth_floor", target: "lobby_checkpoint", label: "+whiteboard_survivor" },
 
-    { source: "HR Confrontation", target: "Final Hub", label: "defeat_agnes" },
-    { source: "HR Confrontation", target: "Bad Ending\nHR Trap", label: "agnes_wins" },
+    // === ACT 2: Lobby complications ===
+    { source: "lobby_checkpoint", target: "security_bribe", label: "bribe" },
+    { source: "lobby_checkpoint", target: "security_sneak", label: "sneak" },
+    { source: "lobby_checkpoint", target: "security_confront", label: "confront" },
+    { source: "lobby_checkpoint", target: "exit_lobby", label: "has:dodged_hr" },
 
-    { source: "Final Hub", target: "Neutral Ending", label: "just_leave" },
-    { source: "Final Hub", target: "Good Ending A\nAcademic Freedom", label: "academic_flag" },
-    { source: "Final Hub", target: "Good Ending B\nHR Victory", label: "hr_defeated_flag" },
-    { source: "Final Hub", target: "Coffee Ascension", label: "coffee_master_flag" },
-    { source: "Final Hub", target: "Bad Ending\nRe-Employed", label: "give_up" },
-    { source: "Final Hub", target: "True Ending", label: "all_flags" }
+    { source: "security_bribe", target: "exit_lobby", label: "+bribed_guard" },
+    { source: "security_bribe", target: "lost_to_security", label: "insulted" },
+
+    { source: "security_sneak", target: "exit_lobby", label: "+stealth" },
+    { source: "security_sneak", target: "fire_escape", label: "spotted" },
+
+    { source: "security_confront", target: "exit_lobby", label: "+intimidation" },
+    { source: "security_confront", target: "lost_to_security", label: "failed_bluff" },
+
+    { source: "parking_garage", target: "exit_lobby", label: "+garage_route" },
+    { source: "parking_garage", target: "lost_to_security", label: "no_car_keys" },
+
+    { source: "fire_escape", target: "exit_lobby", label: "lucky" },
+    { source: "fire_escape", target: "lost_to_alarm", label: "alarm_triggered" },
+
+    // === ACT 3: Endings ===
+    { source: "exit_lobby", target: "neutral_escape", label: "has:signed_away" },
+    { source: "exit_lobby", target: "clean_escape", label: "default" },
+    { source: "exit_lobby", target: "revenge_ending", label: "has:refused_doc+found_evidence" },
+    { source: "exit_lobby", target: "hero_ending", label: "has:helped_secretly+stealth" },
+    { source: "exit_lobby", target: "coffee_ascension", label: "has:coffee_resisted+3_beans" },
+    { source: "exit_lobby", target: "true_ending", label: "has:ALL_FLAGS" }
   ];
 
   // ------------------------------
@@ -303,10 +360,10 @@
   // Force Layout
   // ------------------------------
   const sim = d3.forceSimulation(nodes)
-    .force("link", d3.forceLink(links).id(d => d.id).distance(150))
-    .force("charge", d3.forceManyBody().strength(-420))
+    .force("link", d3.forceLink(links).id(d => d.id).distance(220))
+    .force("charge", d3.forceManyBody().strength(-900))
     .force("center", d3.forceCenter(width / 2, height / 2))
-    .force("collision", d3.forceCollide().radius(60));
+    .force("collision", d3.forceCollide().radius(75));
 
   sim.on("tick", () => {
     link
@@ -370,7 +427,7 @@
       }
     }
 
-    dfs("INTRO", ["INTRO"], []);
+    dfs("start", ["start"], []);
     return paths;
   }
 
