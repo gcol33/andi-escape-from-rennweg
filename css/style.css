@@ -321,7 +321,7 @@ h1 {
 /* === Mute Button === */
 .mute-btn {
     padding: 4px 12px;
-    font-size: 0.9rem;
+    font-size: 1rem;
     background-color: transparent;
     color: #8a7a6a;
     border: 1px solid #d3c2a8;
