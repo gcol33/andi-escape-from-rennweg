@@ -298,13 +298,18 @@ h1 {
     visibility: visible;
 }
 
-/* === Icon switching for landscape/portrait === */
+/* === Icon switching for landscape/portrait (speed buttons only) === */
 .icon-portrait {
     display: none;
 }
 
 .icon-landscape {
     display: inline;
+}
+
+/* === SVG icons in mute button === */
+.mute-btn svg {
+    display: block;
 }
 
 /* === Mute Button === */

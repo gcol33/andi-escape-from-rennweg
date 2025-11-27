@@ -982,10 +982,10 @@ const VNEngine = (function() {
 
     function updateMuteButtonIcon(muted) {
         if (!elements.muteBtn) return;
-        var landscapeIcon = elements.muteBtn.querySelector('.icon-landscape');
-        var portraitIcon = elements.muteBtn.querySelector('.icon-portrait');
-        if (landscapeIcon) landscapeIcon.textContent = muted ? '🔇' : '🔊';
-        if (portraitIcon) portraitIcon.textContent = muted ? 'X' : 'V';
+        var soundOn = elements.muteBtn.querySelector('.sound-on');
+        var soundOff = elements.muteBtn.querySelector('.sound-off');
+        if (soundOn) soundOn.style.display = muted ? 'none' : 'block';
+        if (soundOff) soundOff.style.display = muted ? 'block' : 'none';
     }
 
     function setVolume(volume) {
