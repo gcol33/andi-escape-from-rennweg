@@ -346,6 +346,12 @@ The engine implements a text block progression system:
 - Use `---` only for block separators
 - Put choices at the very end of the file
 
+### CSS
+- **Never use pixel-based media queries** — they don't scale properly with device pixel ratios
+- Use `em`-based breakpoints instead (e.g., `56em` instead of `900px`)
+- Reference: `1em = 16px` at default browser settings, so `56em ≈ 900px`, `37.5em ≈ 600px`
+- Use `dvh` (dynamic viewport height) instead of `vh` for mobile browser compatibility
+
 ### Assets
 - Background filenames: lowercase with underscores, `.jpg` extension
 - Character sprites: lowercase with underscores, `.svg` extension

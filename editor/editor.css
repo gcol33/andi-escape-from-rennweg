@@ -1318,13 +1318,16 @@ label textarea {
 }
 
 /* === Responsive adjustments === */
-@media (max-width: 1200px) {
+/* Use em-based breakpoints for better scaling across devices */
+/* 1em = 16px default, so: 75em ≈ 1200px, 56em ≈ 900px, 37.5em ≈ 600px */
+
+@media (max-width: 75em) {
     #app {
         grid-template-columns: 200px 1fr 300px;
     }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 56em) {
     #app {
         grid-template-columns: 1fr;
         grid-template-rows: auto 1fr auto;
@@ -1432,7 +1435,7 @@ label textarea {
 }
 
 /* Portrait phone styles */
-@media (max-width: 600px) {
+@media (max-width: 37.5em) {
     #app {
         grid-template-rows: auto 1fr auto;
     }
@@ -1486,7 +1489,7 @@ label textarea {
 }
 
 /* Orientation: portrait (phones held vertically) */
-@media (orientation: portrait) and (max-width: 900px) {
+@media (orientation: portrait) and (max-width: 56em) {
     #app {
         height: 100dvh; /* Dynamic viewport height for mobile browsers */
     }
