@@ -126,6 +126,7 @@
       <div class="legend-item"><div class="legend-color" style="background: #e64980;"></div> Good Ending</div>
       <div class="legend-item"><div class="legend-color" style="background: #fa5252;"></div> Bad Ending</div>
       <div class="legend-item"><div class="legend-color" style="background: #444;"></div> Quick Bad End</div>
+      <p style="margin-top: 12px; font-size: 11px; color: #888;">Solid = Implemented<br/>Transparent = Planned</p>
     </div>
 
     <div id="hint">Drag nodes, scroll to zoom. Click background to reset.</div>
@@ -137,6 +138,14 @@
   // ------------------------------
   // Node + Link Data (Planned Story - Based on Current + Extensions)
   // ------------------------------
+  // Nodes that are currently implemented
+  const implementedNodes = new Set([
+    "start", "main_stairs", "back_stairs", "coffee_kitchen",
+    "document_signed", "document_refusal", "attempt_pass", "d20_success", "d20_failure",
+    "colleague_plea", "corridor_safe", "corridor_delayed", "fourth_floor",
+    "exit_lobby", "lost_to_coffee", "lost_to_HR", "lost_to_PhD"
+  ]);
+
   const nodes = [
     // === ACT 1: The Escape Begins ===
     { id: "start", type: "intro", desc: "Opening scene. Your last day at Rennweg. Badge disabled, desk empty." },
@@ -184,6 +193,7 @@
     { id: "lost_to_agnes", type: "quickbad", desc: "BAD: Agnes catches you. Eternal contract." },
 
     // === GOOD ENDINGS (from different paths) ===
+    { id: "exit_lobby", type: "ending", desc: "WIN: You escape! Currently the only good ending implemented." },
     { id: "pension_escape", type: "ending", desc: "NEUTRAL: Escape but signed away pension." },
     { id: "clean_escape", type: "ending", desc: "GOOD: Clean getaway via front door." },
     { id: "garage_escape", type: "ending", desc: "GOOD: Drive off into the sunset." },
@@ -245,10 +255,15 @@
     { source: "corridor_delayed", target: "fourth_floor", label: "go_4th" },
     { source: "corridor_delayed", target: "corridor_safe", label: "no_time" },
 
-    { source: "fourth_floor", target: "ground_floor", label: "escape_whiteboard" },
+    { source: "fourth_floor", target: "exit_lobby", label: "escape_whiteboard" },
     { source: "fourth_floor", target: "secret_lab", label: "find_secret" },
     { source: "secret_lab", target: "true_ending", label: "+all_secrets" },
     { source: "secret_lab", target: "basement_route", label: "use_elevator" },
+
+    // Current implementation paths to exit_lobby
+    { source: "document_signed", target: "exit_lobby", label: "current_impl" },
+    { source: "d20_success", target: "exit_lobby", label: "current_impl" },
+    { source: "corridor_safe", target: "exit_lobby", label: "current_impl" },
 
     { source: "basement_route", target: "parking_garage", label: "to_garage" },
     { source: "basement_route", target: "loading_dock", label: "to_dock" },
@@ -314,7 +329,12 @@
     .data(links)
     .enter()
     .append("line")
-    .attr("class", "link");
+    .attr("class", "link")
+    .attr("opacity", d => {
+      const sourceId = d.source.id || d.source;
+      const targetId = d.target.id || d.target;
+      return (implementedNodes.has(sourceId) && implementedNodes.has(targetId)) ? 1 : 0.3;
+    });
 
   // Arrow markers in middle of each edge
   const linkArrows = zoomLayer.selectAll(".link-arrow")
@@ -323,7 +343,12 @@
     .append("path")
     .attr("class", "link-arrow")
     .attr("d", "M0,-5L10,0L0,5")
-    .attr("fill", "#666");
+    .attr("fill", "#666")
+    .attr("opacity", d => {
+      const sourceId = d.source.id || d.source;
+      const targetId = d.target.id || d.target;
+      return (implementedNodes.has(sourceId) && implementedNodes.has(targetId)) ? 1 : 0.3;
+    });
 
   // Edge labels (flags)
   const linkLabels = zoomLayer.selectAll(".link-label")
@@ -331,7 +356,12 @@
     .enter()
     .append("text")
     .attr("class", "link-label")
-    .text(d => d.label);
+    .text(d => d.label)
+    .attr("opacity", d => {
+      const sourceId = d.source.id || d.source;
+      const targetId = d.target.id || d.target;
+      return (implementedNodes.has(sourceId) && implementedNodes.has(targetId)) ? 1 : 0.4;
+    });
 
   // ------------------------------
   // Nodes
@@ -350,11 +380,13 @@
 
   node.append("circle")
     .attr("r", d => d.type === "hub" ? 50 : 42)
-    .attr("fill", d => typeColor[d.type]);
+    .attr("fill", d => typeColor[d.type])
+    .attr("opacity", d => implementedNodes.has(d.id) ? 1 : 0.4);
 
   node.append("text")
     .attr("text-anchor", "middle")
     .attr("dy", "0.35em")
+    .attr("opacity", d => implementedNodes.has(d.id) ? 1 : 0.5)
     .each(function(d) {
       const text = d3.select(this);
       const lines = d.id.split("\n");
