@@ -913,7 +913,7 @@ const VNEngine = (function() {
 
         // Update mute button appearance
         if (elements.muteBtn) {
-            elements.muteBtn.textContent = state.audio.muted ? 'Off' : 'Vol';
+            elements.muteBtn.textContent = state.audio.muted ? '🔇' : '🔊';
             elements.muteBtn.title = state.audio.muted ? 'Unmute' : 'Mute';
         }
     }
@@ -928,11 +928,11 @@ const VNEngine = (function() {
         // Update mute button icon based on volume
         if (elements.muteBtn && !state.audio.muted) {
             if (volume === 0) {
-                elements.muteBtn.textContent = 'Off';
+                elements.muteBtn.textContent = '🔇';
             } else if (volume < 0.5) {
-                elements.muteBtn.textContent = 'Low';
+                elements.muteBtn.textContent = '🔉';
             } else {
-                elements.muteBtn.textContent = 'Vol';
+                elements.muteBtn.textContent = '🔊';
             }
         }
     }

@@ -579,8 +579,12 @@ h1 {
         padding: 10px 20px;
     }
 
-    /* Reset button lower on portrait phones */
+    /* Reset button smaller and lower on portrait phones */
     #reset-btn {
-        bottom: 5px !important;
+        bottom: 2px !important;
+        right: 5px !important;
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 14px !important;
     }
 }
