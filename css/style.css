@@ -314,14 +314,14 @@ h1 {
 /* === SVG icons in mute button === */
 .mute-btn svg {
     display: block;
-    width: 14px;
-    height: 14px;
+    width: 1em;
+    height: 1em;
 }
 
 /* === Mute Button === */
 .mute-btn {
     padding: 4px 12px;
-    font-size: 0.75rem;
+    font-size: 0.9rem;
     background-color: transparent;
     color: #8a7a6a;
     border: 1px solid #d3c2a8;

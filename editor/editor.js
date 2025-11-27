@@ -120,6 +120,7 @@ const Editor = (function() {
             console.log(`Auto-loaded ${count} scenes from global story object`);
             renderSceneList();
             saveSenesToStorage();
+            restoreCurrentScene();
             return;
         }
 
@@ -147,6 +148,7 @@ const Editor = (function() {
                         console.log(`Auto-loaded ${count} scenes from story.js via fetch`);
                         renderSceneList();
                         saveSenesToStorage();
+                        restoreCurrentScene();
                         return;
                     }
                 }
@@ -2203,6 +2205,10 @@ const Editor = (function() {
     function saveSenesToStorage() {
         try {
             localStorage.setItem('andi_editor_scenes', JSON.stringify(state.scenes));
+            // Also save current scene ID
+            if (state.currentSceneId) {
+                localStorage.setItem('andi_editor_current_scene', state.currentSceneId);
+            }
         } catch (e) {
             console.warn('Could not save to localStorage:', e);
         }
@@ -2215,9 +2221,22 @@ const Editor = (function() {
                 state.scenes = JSON.parse(saved);
                 renderSceneList();
                 console.log('Loaded', Object.keys(state.scenes).length, 'scenes from storage');
+                // Restore current scene
+                restoreCurrentScene();
             }
         } catch (e) {
             console.warn('Could not load from localStorage:', e);
+        }
+    }
+
+    function restoreCurrentScene() {
+        try {
+            const savedSceneId = localStorage.getItem('andi_editor_current_scene');
+            if (savedSceneId && state.scenes[savedSceneId]) {
+                loadScene(savedSceneId);
+            }
+        } catch (e) {
+            console.warn('Could not restore current scene:', e);
         }
     }
 
