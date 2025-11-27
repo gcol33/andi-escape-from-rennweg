@@ -406,12 +406,7 @@ const story = {
     ],
     "set_flags": [],
     "require_flags": [],
-    "actions": [
-      {
-        "type": "play_sfx",
-        "file": "victory.ogg"
-      }
-    ],
+    "actions": [],
     "textBlocks": [
       "You reach the main lobby. The security guard waves you goodbye.\n\nYou push open the heavy front doors and step out onto the street.\n\nThe sun is shining. The chapter is closed. **YOU WIN.**"
     ],
