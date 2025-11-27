@@ -88,7 +88,36 @@ const Editor = (function() {
         populateAssetSelectors();
         populateSpriteGallery();
 
-        // Load existing scenes from localStorage or prompt import
+        // Auto-load scenes on startup
+        autoLoadScenes();
+    }
+
+    async function autoLoadScenes() {
+        // First, try to load from the compiled story.js
+        try {
+            const response = await fetch('../js/story.js');
+            if (response.ok) {
+                const jsContent = await response.text();
+                // Extract the story object from the JS file
+                const match = jsContent.match(/const story = ({[\s\S]*?});/);
+                if (match) {
+                    const storyData = JSON.parse(match[1]);
+                    let count = 0;
+                    for (const [id, scene] of Object.entries(storyData)) {
+                        state.scenes[id] = scene;
+                        count++;
+                    }
+                    console.log(`Auto-loaded ${count} scenes from story.js`);
+                    renderSceneList();
+                    saveSenesToStorage();
+                    return;
+                }
+            }
+        } catch (e) {
+            console.log('Could not load from story.js:', e.message);
+        }
+
+        // Fallback: try to load from localStorage
         loadScenesFromStorage();
     }
 
