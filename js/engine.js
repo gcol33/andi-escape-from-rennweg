@@ -236,6 +236,10 @@ const VNEngine = (function() {
     }
 
     function getTextSpeed() {
+        // Use speed override if set (for skip mode on new text)
+        if (state.typewriter.speedOverride) {
+            return config.textSpeed[state.typewriter.speedOverride] || config.textSpeed.normal;
+        }
         return config.textSpeed[config.currentSpeed] || config.textSpeed.normal;
     }
 
@@ -632,6 +636,9 @@ const VNEngine = (function() {
             // Already-read text with normal/fast: still typewriter but can skip
             textElement.classList.add('already-read');
             startTypewriter(formattedText, textElement, onComplete, true);
+        } else if (config.currentSpeed === 'skip') {
+            // Skip mode on new text: use fast speed instead
+            startTypewriter(formattedText, textElement, onComplete, false, 'fast');
         } else {
             // New text: typewriter effect (no skip allowed on first read)
             startTypewriter(formattedText, textElement, onComplete, false);
@@ -639,7 +646,7 @@ const VNEngine = (function() {
     }
 
     // === Typewriter Effect ===
-    function startTypewriter(html, element, onComplete, canSkip) {
+    function startTypewriter(html, element, onComplete, canSkip, speedOverride) {
         stopTypewriter();
 
         var segments = parseHTMLSegments(html);
@@ -654,7 +661,8 @@ const VNEngine = (function() {
             element: element,
             renderedHTML: '',
             onComplete: onComplete,
-            canSkip: canSkip || false
+            canSkip: canSkip || false,
+            speedOverride: speedOverride || null
         };
 
         typeNextChar();
