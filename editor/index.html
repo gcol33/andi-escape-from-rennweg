@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Andi VN - Scene Editor</title>
+    <link rel="stylesheet" href="editor.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Left Sidebar: Scene List -->
+        <aside id="scene-list-panel">
+            <div class="panel-header">
+                <h2>Scenes</h2>
+                <button id="new-scene-btn" class="btn-primary">+ New Scene</button>
+            </div>
+            <div id="scene-search">
+                <input type="text" id="scene-search-input" placeholder="Search scenes...">
+            </div>
+            <div id="scene-list"></div>
+            <div class="panel-footer">
+                <button id="import-scenes-btn" class="btn-secondary">Import All</button>
+            </div>
+        </aside>
+
+        <!-- Main Content: Canvas Preview -->
+        <main id="editor-main">
+            <div id="canvas-toolbar">
+                <span id="current-scene-name">No scene selected</span>
+                <div class="toolbar-actions">
+                    <button id="preview-btn" class="btn-icon" title="Preview in game">Preview</button>
+                    <button id="save-btn" class="btn-primary" disabled>Save Scene</button>
+                    <button id="download-btn" class="btn-secondary" title="Download .md file">Download</button>
+                </div>
+            </div>
+
+            <!-- Canvas Preview Area -->
+            <div id="canvas-container">
+                <div id="canvas-preview">
+                    <div id="preview-background"></div>
+                    <div id="preview-sprites"></div>
+                    <div id="preview-textbox">
+                        <p id="preview-text">Select or create a scene to begin editing...</p>
+                    </div>
+                </div>
+
+                <!-- Drop zone overlay -->
+                <div id="drop-zone" class="hidden">
+                    <div class="drop-zone-content">
+                        <span class="drop-icon">Drop image here</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sprite Palette -->
+            <div id="sprite-palette">
+                <h3>Sprites <span class="hint">(drag onto canvas)</span></h3>
+                <div id="sprite-gallery"></div>
+            </div>
+        </main>
+
+        <!-- Right Sidebar: Scene Properties -->
+        <aside id="properties-panel">
+            <div class="panel-section">
+                <h3>Scene Info</h3>
+                <label>
+                    Scene ID <span class="required">*</span>
+                    <input type="text" id="scene-id" placeholder="unique_scene_id">
+                    <span class="hint">Lowercase, underscores, no spaces</span>
+                </label>
+            </div>
+
+            <div class="panel-section">
+                <h3>Background</h3>
+                <div id="bg-selector">
+                    <div id="bg-preview" class="asset-preview">
+                        <span class="placeholder">No background</span>
+                    </div>
+                    <select id="bg-select">
+                        <option value="">-- None --</option>
+                    </select>
+                    <div class="bg-drop-hint">Or drag & drop image</div>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3>Music</h3>
+                <div id="music-selector">
+                    <select id="music-select">
+                        <option value="">-- Default --</option>
+                        <option value="none">No music</option>
+                    </select>
+                    <button id="music-preview-btn" class="btn-icon" title="Preview music">Play</button>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3>Text Blocks</h3>
+                <div id="text-blocks-container"></div>
+                <button id="add-text-block-btn" class="btn-secondary">+ Add Text Block</button>
+            </div>
+
+            <div class="panel-section">
+                <h3>Choices / Outputs</h3>
+                <div id="choices-container"></div>
+                <button id="add-choice-btn" class="btn-secondary">+ Add Choice</button>
+                <div class="hint">Leave empty for ending scene</div>
+            </div>
+
+            <div class="panel-section collapsible">
+                <h3 class="collapsible-header">
+                    Advanced
+                    <span class="collapse-icon">+</span>
+                </h3>
+                <div class="collapsible-content collapsed">
+                    <div class="subsection">
+                        <h4>Input (Coming From)</h4>
+                        <div id="incoming-scenes" class="incoming-list">
+                            <span class="placeholder">Save scene to see references</span>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h4>Set Flags</h4>
+                        <div id="set-flags-container"></div>
+                        <div class="flag-input-row">
+                            <input type="text" id="new-set-flag" placeholder="flag_name">
+                            <button id="add-set-flag-btn" class="btn-icon">+</button>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h4>Require Flags</h4>
+                        <div id="require-flags-container"></div>
+                        <div class="flag-input-row">
+                            <input type="text" id="new-require-flag" placeholder="flag_name">
+                            <button id="add-require-flag-btn" class="btn-icon">+</button>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h4>Actions</h4>
+                        <div id="actions-container"></div>
+                        <button id="add-action-btn" class="btn-secondary">+ Add Dice Roll</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-section danger-zone">
+                <button id="delete-scene-btn" class="btn-danger" disabled>Delete Scene</button>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Delete Scene?</h3>
+            <div id="delete-warnings"></div>
+            <div class="modal-actions">
+                <button id="delete-cancel-btn" class="btn-secondary">Cancel</button>
+                <button id="delete-confirm-btn" class="btn-danger">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio element for music preview -->
+    <audio id="music-player"></audio>
+
+    <script src="editor.js"></script>
+</body>
+</html>

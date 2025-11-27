@@ -292,6 +292,15 @@ h1 {
     visibility: visible;
 }
 
+/* === Icon switching for landscape/portrait === */
+.icon-portrait {
+    display: none;
+}
+
+.icon-landscape {
+    display: inline;
+}
+
 /* === Mute Button === */
 .mute-btn {
     padding: 4px 10px;
@@ -418,6 +427,12 @@ h1 {
     padding: 10px;
     border: 2px solid #4b1f0d;
     border-radius: 5px;
+}
+
+/* Stack game-over message above restart button in landscape */
+#choices-container:has(.game-over) {
+    flex-direction: column;
+    align-items: center;
 }
 
 /* === Restart Button === */
@@ -554,6 +569,11 @@ h1 {
         max-height: 75%;
     }
 
+    /* Center text controls in portrait */
+    #text-controls {
+        justify-content: center;
+    }
+
     #text-box.ending-scene {
         max-height: 90%;
     }
@@ -607,5 +627,28 @@ h1 {
         display: none !important;
         opacity: 0 !important;
         visibility: hidden !important;
+    }
+
+    /* Switch to text icons in portrait */
+    .icon-landscape {
+        display: none;
+    }
+
+    .icon-portrait {
+        display: inline;
+    }
+
+    /* Remove sticky focus/active states on touch */
+    .speed-btn:focus,
+    .mute-btn:focus,
+    .choice-button:focus,
+    .continue-button:focus,
+    .restart-button:focus {
+        outline: none;
+        background-color: transparent;
+    }
+
+    .speed-btn.active:focus {
+        background-color: #b08b5a;
     }
 }

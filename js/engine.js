@@ -856,12 +856,52 @@ const VNEngine = (function() {
 
         elements.spriteLayer.innerHTML = '';
 
-        chars.forEach(function(filename) {
-            var img = document.createElement('img');
-            img.src = config.assetPaths.char + filename;
-            img.alt = filename;
-            elements.spriteLayer.appendChild(img);
+        // Check if using new positioned format or old simple format
+        var hasPositioning = chars.some(function(char) {
+            return typeof char === 'object' && char.file;
         });
+
+        if (hasPositioning) {
+            // New format: sprites with x/y positions
+            // Switch to absolute positioning mode
+            elements.spriteLayer.style.display = 'block';
+
+            chars.forEach(function(char) {
+                var img = document.createElement('img');
+                var filename, x, y;
+
+                if (typeof char === 'object') {
+                    filename = char.file;
+                    x = char.x !== undefined ? char.x : 50;
+                    y = char.y !== undefined ? char.y : 85;
+                } else {
+                    filename = char;
+                    x = 50;
+                    y = 85;
+                }
+
+                img.src = config.assetPaths.char + filename;
+                img.alt = filename;
+                img.style.position = 'absolute';
+                img.style.left = x + '%';
+                img.style.bottom = (100 - y) + '%';
+                img.style.transform = 'translateX(-50%)';
+                img.style.maxHeight = '100%';
+                img.style.maxWidth = '300px';
+
+                elements.spriteLayer.appendChild(img);
+            });
+        } else {
+            // Old format: simple filenames, use flexbox centering
+            elements.spriteLayer.style.display = 'flex';
+
+            chars.forEach(function(filename) {
+                var img = document.createElement('img');
+                img.src = config.assetPaths.char + filename;
+                img.alt = filename;
+                elements.spriteLayer.appendChild(img);
+            });
+        }
     }
 
     function clearCharacters() {
@@ -932,9 +972,17 @@ const VNEngine = (function() {
 
         // Update mute button appearance
         if (elements.muteBtn) {
-            elements.muteBtn.textContent = state.audio.muted ? 'V̶' : 'V';
+            updateMuteButtonIcon(state.audio.muted);
             elements.muteBtn.title = state.audio.muted ? 'Unmute' : 'Mute';
         }
+    }
+
+    function updateMuteButtonIcon(muted) {
+        if (!elements.muteBtn) return;
+        var landscapeIcon = elements.muteBtn.querySelector('.icon-landscape');
+        var portraitIcon = elements.muteBtn.querySelector('.icon-portrait');
+        if (landscapeIcon) landscapeIcon.textContent = muted ? '🔇' : '🔊';
+        if (portraitIcon) portraitIcon.textContent = muted ? 'X' : 'V';
     }
 
     function setVolume(volume) {
@@ -946,11 +994,7 @@ const VNEngine = (function() {
 
         // Update mute button icon based on volume
         if (elements.muteBtn && !state.audio.muted) {
-            if (volume === 0) {
-                elements.muteBtn.textContent = 'V̶';
-            } else {
-                elements.muteBtn.textContent = 'V';
-            }
+            updateMuteButtonIcon(volume === 0);
         }
     }
 

@@ -44,7 +44,9 @@ def parse_frontmatter(content):
     current_key = None
     current_list = None
     current_action = None
+    current_char = None  # For positioned sprite format
     actions_list = []
+    chars_list = []
 
     for line in frontmatter_text.split('\n'):
         stripped = line.strip()
@@ -56,6 +58,15 @@ def parse_frontmatter(content):
             if current_action:
                 actions_list.append(current_action)
             current_action = {'type': stripped[7:].strip()}
+            current_char = None
+            continue
+
+        # Check for positioned char format: - file: filename.svg
+        if current_key == 'chars' and stripped.startswith('- file:'):
+            if current_char:
+                chars_list.append(current_char)
+            current_char = {'file': stripped[7:].strip()}
+            current_action = None
             continue
 
         # Check for action properties (indented under - type:)
@@ -69,10 +80,29 @@ def parse_frontmatter(content):
             current_action[key] = value
             continue
 
-        # Check for list item
+        # Check for char properties (x, y under - file:)
+        if current_char is not None and line.startswith('    ') and ':' in stripped:
+            key, _, value = stripped.partition(':')
+            key = key.strip()
+            value = value.strip()
+            # Parse as float for x/y coordinates
+            try:
+                value = float(value)
+                if value == int(value):
+                    value = int(value)
+            except ValueError:
+                pass
+            current_char[key] = value
+            continue
+
+        # Check for simple list item (old format chars or other lists)
         if stripped.startswith('- '):
-            if current_list is not None:
-                current_list.append(stripped[2:].strip())
+            item = stripped[2:].strip()
+            if current_key == 'chars' and current_char is None:
+                # Old format: simple filename
+                chars_list.append(item)
+            elif current_list is not None:
+                current_list.append(item)
             continue
 
         # Check for key: value
@@ -81,16 +111,23 @@ def parse_frontmatter(content):
             key = key.strip()
             value = value.strip()
 
-            # Finish previous action list if we hit a new key
+            # Finish previous action/char if we hit a new top-level key
             if current_action:
                 actions_list.append(current_action)
                 current_action = None
+            if current_char:
+                chars_list.append(current_char)
+                current_char = None
 
             # Check if this starts a list
             if value == '':
                 if key == 'actions':
                     current_key = 'actions'
                     current_list = None
+                elif key == 'chars':
+                    current_key = 'chars'
+                    current_list = None
+                    chars_list = []
                 else:
                     current_list = []
                     frontmatter[key] = current_list
@@ -103,12 +140,16 @@ def parse_frontmatter(content):
                     value = int(value)
                 frontmatter[key] = value
 
-    # Finish any remaining action
+    # Finish any remaining action or char
     if current_action:
         actions_list.append(current_action)
+    if current_char:
+        chars_list.append(current_char)
 
     if actions_list:
         frontmatter['actions'] = actions_list
+    if chars_list:
+        frontmatter['chars'] = chars_list
 
     return frontmatter, body
 
