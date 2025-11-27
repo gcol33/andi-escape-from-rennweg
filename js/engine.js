@@ -622,11 +622,11 @@ const VNEngine = (function() {
         elements.storyOutput.innerHTML = prependContent + '<p class="typewriter-text"></p>';
         var textElement = elements.storyOutput.querySelector('.typewriter-text');
 
-        if (config.currentSpeed === 'skip') {
-            // Skip mode: instant display for all text
+        if (alreadyRead && config.currentSpeed === 'skip') {
+            // Skip mode on already-read text: instant display
             textElement.innerHTML = formattedText;
             textElement.classList.add('typewriter-complete');
-            if (alreadyRead) textElement.classList.add('already-read');
+            textElement.classList.add('already-read');
             if (onComplete) onComplete();
         } else if (alreadyRead) {
             // Already-read text with normal/fast: still typewriter but can skip
