@@ -236,6 +236,8 @@ h1 {
 
 /* Allow more expansion on ending screens (win/lose) */
 #text-box.ending-scene {
+    height: auto;
+    min-height: 40%;
     max-height: 60%;
 }
 
@@ -649,6 +651,8 @@ h1 {
     }
 
     #text-box.ending-scene {
+        height: auto;
+        min-height: 40%;
         max-height: 90%;
     }
 
