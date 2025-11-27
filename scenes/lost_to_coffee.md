@@ -1,7 +1,7 @@
 ---
 id: lost_to_coffee
 bg: dark_office_desk.jpg
-music: spooky.mp3
+music: outside.mp3
 ---
 
 You wake up with a throbbing headache. You are chained to your old desk chair.

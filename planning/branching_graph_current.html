@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Andi – Current Story Graph</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: system-ui, sans-serif;
+      background: #111;
+      color: #eee;
+      overflow: hidden;
+    }
+
+    #container {
+      display: grid;
+      grid-template-columns: 3fr 1fr;
+      height: 100%;
+    }
+
+    #graph {
+      background: #151515;
+    }
+
+    #sidebar {
+      border-left: 1px solid #333;
+      padding: 12px;
+      box-sizing: border-box;
+      background: #181818;
+      overflow-y: auto;
+    }
+
+    #sidebar h1 { font-size: 18px; margin-top: 0; }
+    #sidebar h2 { font-size: 16px; margin: 10px 0 4px; }
+
+    #sidebar p { font-size: 14px; margin: 4px 0; }
+    #sidebar code { background: #222; padding: 2px 4px; border-radius: 3px; }
+
+    .legend { margin-top: 16px; }
+    .legend-item { display: flex; align-items: center; margin: 4px 0; font-size: 13px; }
+    .legend-color { width: 16px; height: 16px; border-radius: 50%; margin-right: 8px; }
+
+    .node circle {
+      stroke: #111;
+      stroke-width: 1.5px;
+      cursor: pointer;
+    }
+
+    .node text {
+      pointer-events: none;
+      font-size: 10px;
+      fill: #f5f5f5;
+      text-shadow: 0 0 3px #000;
+    }
+
+    .link {
+      fill: none;
+      stroke: #666;
+      stroke-width: 1.4px;
+    }
+
+    .link.highlight {
+      stroke: #ffdd57;
+      stroke-width: 2.4px;
+    }
+
+    .link-label {
+      font-size: 9px;
+      fill: #aaa;
+      pointer-events: none;
+    }
+
+    .node circle.highlight-main {
+      stroke: #ffdd57;
+      stroke-width: 3px;
+    }
+
+    .node circle.highlight-neighbor {
+      stroke: #5ccfe6;
+      stroke-width: 2px;
+    }
+
+    #hint {
+      font-size: 12px;
+      color: #aaa;
+      margin-top: 10px;
+    }
+
+    #paths-to-ending {
+      margin-top: 12px;
+      font-size: 13px;
+    }
+    #paths-to-ending ul {
+      padding-left: 16px;
+      margin: 4px 0;
+    }
+    #paths-to-ending li {
+      margin: 2px 0;
+    }
+  </style>
+</head>
+<body>
+
+<div id="container">
+  <div id="graph"></div>
+  <div id="sidebar">
+    <h1>Andi – Current Story Graph</h1>
+    <p style="color: #888; font-size: 12px;">Based on implemented scenes</p>
+
+    <h2>Node details</h2>
+    <p id="node-title"><em>Click a node in the graph.</em></p>
+    <p id="node-type"></p>
+    <p id="node-desc"></p>
+    <h2>Outgoing edges</h2>
+    <div id="node-edges"></div>
+
+    <div id="paths-to-ending"></div>
+
+    <div class="legend">
+      <h2>Legend</h2>
+      <div class="legend-item"><div class="legend-color" style="background: #4c6ef5;"></div> Start</div>
+      <div class="legend-item"><div class="legend-color" style="background: #f59f00;"></div> Scene</div>
+      <div class="legend-item"><div class="legend-color" style="background: #9775fa;"></div> Dice Roll</div>
+      <div class="legend-item"><div class="legend-color" style="background: #37b24d;"></div> Win</div>
+      <div class="legend-item"><div class="legend-color" style="background: #fa5252;"></div> Bad End</div>
+    </div>
+
+    <div id="hint">Drag nodes, scroll to zoom. Click background to reset.</div>
+  </div>
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+  // ------------------------------
+  // Node + Link Data (Current Story)
+  // ------------------------------
+  const nodes = [
+    { id: "start", type: "start", desc: "Opening scene. Your last day at the office." },
+
+    { id: "main_stairs", type: "scene", desc: "Agnes from HR blocks your path with a document." },
+    { id: "back_stairs", type: "scene", desc: "Joni and Norbert beg for help with PhD code." },
+    { id: "coffee_kitchen", type: "scene", desc: "Get one last cup of coffee... it's drugged!" },
+
+    { id: "document_signed", type: "scene", desc: "You sign the document without reading it." },
+    { id: "document_refusal", type: "scene", desc: "You refuse to sign. Agnes triggers the alarm." },
+    { id: "attempt_pass", type: "dice", desc: "Try to run past Agnes. Roll d20 (need ≤13)." },
+
+    { id: "d20_success", type: "scene", desc: "You leap over Agnes's trip attempt!" },
+    { id: "d20_failure", type: "scene", desc: "Agnes trips you. You wake up chained to your desk." },
+
+    { id: "colleague_plea", type: "scene", desc: "Norbert grabs your sleeve, begging again." },
+    { id: "corridor_safe", type: "scene", desc: "You ignore them and head to the back stairwell." },
+    { id: "corridor_delayed", type: "scene", desc: "Fabio and Ali intercept you in the corridor." },
+
+    { id: "fourth_floor_elevator", type: "scene", desc: "2 hours of whiteboard torture with Michi, Gilles, Ruling." },
+
+    { id: "exit_lobby", type: "win", desc: "YOU WIN! Freedom awaits outside." },
+    { id: "lost_to_coffee", type: "bad", desc: "BAD END: Drugged and chained to your desk forever." },
+    { id: "lost_to_HR", type: "bad", desc: "BAD END: Memory erased, stuck in yesterday's loop." },
+    { id: "lost_to_PhD", type: "bad", desc: "BAD END: Absorbed by code until 2035." }
+  ];
+
+  const links = [
+    // From start
+    { source: "start", target: "main_stairs", label: "Main stairs" },
+    { source: "start", target: "back_stairs", label: "Back stairs" },
+    { source: "start", target: "coffee_kitchen", label: "Get coffee" },
+
+    // Coffee path (instant bad end)
+    { source: "coffee_kitchen", target: "lost_to_coffee", label: "" },
+
+    // Main stairs path
+    { source: "main_stairs", target: "document_signed", label: "Sign it" },
+    { source: "main_stairs", target: "document_refusal", label: "Refuse" },
+    { source: "main_stairs", target: "attempt_pass", label: "Run past" },
+
+    { source: "document_signed", target: "exit_lobby", label: "" },
+    { source: "document_refusal", target: "lost_to_HR", label: "" },
+
+    { source: "attempt_pass", target: "d20_success", label: "Roll ≤13" },
+    { source: "attempt_pass", target: "d20_failure", label: "Roll >13" },
+
+    { source: "d20_success", target: "exit_lobby", label: "" },
+    { source: "d20_failure", target: "lost_to_coffee", label: "" },
+
+    // Back stairs path
+    { source: "back_stairs", target: "lost_to_PhD", label: "Help them" },
+    { source: "back_stairs", target: "colleague_plea", label: "Polite refusal" },
+    { source: "back_stairs", target: "corridor_safe", label: "\"FUCK OFF\"" },
+
+    { source: "colleague_plea", target: "lost_to_PhD", label: "\"Fine, 5 min\"" },
+    { source: "colleague_plea", target: "corridor_delayed", label: "Refuse again" },
+
+    { source: "corridor_safe", target: "exit_lobby", label: "" },
+
+    { source: "corridor_delayed", target: "fourth_floor_elevator", label: "Go to 4th floor" },
+    { source: "corridor_delayed", target: "corridor_safe", label: "\"No time!\"" },
+
+    { source: "fourth_floor_elevator", target: "exit_lobby", label: "" }
+  ];
+
+  // ------------------------------
+  // Colors
+  // ------------------------------
+  const typeColor = {
+    start:  "#4c6ef5",
+    scene:  "#f59f00",
+    dice:   "#9775fa",
+    win:    "#37b24d",
+    bad:    "#fa5252"
+  };
+
+  // ------------------------------
+  // SVG + Zoom Layer
+  // ------------------------------
+  const width = document.getElementById("graph").clientWidth;
+  const height = document.getElementById("graph").clientHeight;
+
+  const svg = d3.select("#graph").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+  const zoomLayer = svg.append("g");
+
+  svg.call(
+    d3.zoom().scaleExtent([0.3, 3])
+      .on("zoom", (event) => zoomLayer.attr("transform", event.transform))
+  ).on("dblclick.zoom", null);
+
+  // ------------------------------
+  // Arrowhead marker (middle of edge)
+  // ------------------------------
+  const defs = svg.append("defs");
+  defs.append("marker")
+    .attr("id", "arrowhead")
+    .attr("viewBox", "0 -5 10 10")
+    .attr("refX", 5)
+    .attr("refY", 0)
+    .attr("markerWidth", 6)
+    .attr("markerHeight", 6)
+    .attr("orient", "auto")
+    .append("path")
+    .attr("d", "M0,-5L10,0L0,5")
+    .attr("fill", "#666");
+
+  // Highlighted arrowhead
+  defs.append("marker")
+    .attr("id", "arrowhead-highlight")
+    .attr("viewBox", "0 -5 10 10")
+    .attr("refX", 5)
+    .attr("refY", 0)
+    .attr("markerWidth", 6)
+    .attr("markerHeight", 6)
+    .attr("orient", "auto")
+    .append("path")
+    .attr("d", "M0,-5L10,0L0,5")
+    .attr("fill", "#ffdd57");
+
+  // ------------------------------
+  // Edges (straight lines with arrow in middle)
+  // ------------------------------
+  const link = zoomLayer.selectAll(".link")
+    .data(links)
+    .enter()
+    .append("line")
+    .attr("class", "link");
+
+  // Arrow markers in middle of each edge
+  const linkArrows = zoomLayer.selectAll(".link-arrow")
+    .data(links)
+    .enter()
+    .append("path")
+    .attr("class", "link-arrow")
+    .attr("d", "M0,-5L10,0L0,5")
+    .attr("fill", "#666");
+
+  // Edge labels
+  const linkLabels = zoomLayer.selectAll(".link-label")
+    .data(links.filter(l => l.label))
+    .enter()
+    .append("text")
+    .attr("class", "link-label")
+    .text(d => d.label);
+
+  // ------------------------------
+  // Nodes
+  // ------------------------------
+  const node = zoomLayer.selectAll(".node")
+    .data(nodes)
+    .enter()
+    .append("g")
+    .attr("class", "node")
+    .call(
+      d3.drag()
+        .on("start", dragStart)
+        .on("drag", dragged)
+        .on("end", dragEnd)
+    );
+
+  node.append("circle")
+    .attr("r", d => (d.type === "start" || d.type === "win" || d.type === "bad") ? 45 : 38)
+    .attr("fill", d => typeColor[d.type]);
+
+  node.append("text")
+    .attr("text-anchor", "middle")
+    .attr("dy", "0.35em")
+    .each(function(d) {
+      const text = d3.select(this);
+      const words = d.id.split("_");
+      if (words.length > 1 && d.id.length > 10) {
+        text.append("tspan")
+          .attr("x", 0)
+          .attr("dy", "-0.3em")
+          .text(words.slice(0, Math.ceil(words.length/2)).join("_"));
+        text.append("tspan")
+          .attr("x", 0)
+          .attr("dy", "1em")
+          .text(words.slice(Math.ceil(words.length/2)).join("_"));
+      } else {
+        text.text(d.id);
+      }
+    });
+
+  // ------------------------------
+  // Force Layout
+  // ------------------------------
+  const sim = d3.forceSimulation(nodes)
+    .force("link", d3.forceLink(links).id(d => d.id).distance(120))
+    .force("charge", d3.forceManyBody().strength(-350))
+    .force("center", d3.forceCenter(width / 2, height / 2))
+    .force("collision", d3.forceCollide().radius(55))
+    .force("y", d3.forceY().strength(0.05));
+
+  sim.on("tick", () => {
+    link
+      .attr("x1", d => d.source.x)
+      .attr("y1", d => d.source.y)
+      .attr("x2", d => d.target.x)
+      .attr("y2", d => d.target.y);
+
+    // Position arrows in middle of edge, rotated to point in direction of travel
+    linkArrows.attr("transform", d => {
+      const midX = (d.source.x + d.target.x) / 2;
+      const midY = (d.source.y + d.target.y) / 2;
+      const angle = Math.atan2(d.target.y - d.source.y, d.target.x - d.source.x) * 180 / Math.PI;
+      return `translate(${midX}, ${midY}) rotate(${angle})`;
+    });
+
+    linkLabels
+      .attr("x", d => (d.source.x + d.target.x) / 2)
+      .attr("y", d => (d.source.y + d.target.y) / 2 - 10);
+
+    node.attr("transform", d => `translate(${d.x}, ${d.y})`);
+  });
+
+  function dragStart(event, d) {
+    if (!event.active) sim.alphaTarget(0.3).restart();
+    d.fx = d.x;
+    d.fy = d.y;
+  }
+  function dragged(event, d) {
+    d.fx = event.x;
+    d.fy = event.y;
+  }
+  function dragEnd(event, d) {
+    if (!event.active) sim.alphaTarget(0);
+    d.fx = null;
+    d.fy = null;
+  }
+
+  // ------------------------------
+  // Path finding to endings
+  // ------------------------------
+  function findPathsToNode(targetId) {
+    const paths = [];
+
+    function dfs(nodeId, currentPath, currentChoices) {
+      if (nodeId === targetId) {
+        paths.push({ path: [...currentPath], choices: [...currentChoices] });
+        return;
+      }
+
+      const outgoing = links.filter(l => (l.source.id || l.source) === nodeId);
+      for (const edge of outgoing) {
+        const nextId = edge.target.id || edge.target;
+        if (!currentPath.includes(nextId)) {
+          currentPath.push(nextId);
+          if (edge.label) currentChoices.push(edge.label);
+          dfs(nextId, currentPath, currentChoices);
+          currentPath.pop();
+          if (edge.label) currentChoices.pop();
+        }
+      }
+    }
+
+    dfs("start", ["start"], []);
+    return paths;
+  }
+
+  // ------------------------------
+  // Sidebar logic
+  // ------------------------------
+  const titleEl = document.getElementById("node-title");
+  const typeEl  = document.getElementById("node-type");
+  const descEl  = document.getElementById("node-desc");
+  const edgesEl = document.getElementById("node-edges");
+  const pathsEl = document.getElementById("paths-to-ending");
+
+  function clearHighlight() {
+    link.classed("highlight", false);
+    linkArrows.attr("fill", "#666");
+    node.selectAll("circle")
+      .classed("highlight-main", false)
+      .classed("highlight-neighbor", false);
+  }
+
+  function showInfo(d) {
+    titleEl.textContent = d.id;
+    typeEl.textContent  = "Type: " + d.type;
+    descEl.textContent  = d.desc;
+
+    const outgoing = links.filter(l => (l.source.id || l.source) === d.id);
+    if (outgoing.length) {
+      edgesEl.innerHTML = "<ul>" + outgoing.map(l => {
+        const targetId = l.target.id || l.target;
+        const label = l.label ? ` <em>(${l.label})</em>` : "";
+        return `<li><code>${targetId}</code>${label}</li>`;
+      }).join("") + "</ul>";
+    } else {
+      edgesEl.innerHTML = "<em>No outgoing edges (ending).</em>";
+    }
+
+    // Show paths to this node if it's an ending
+    if (d.type === "win" || d.type === "bad") {
+      const paths = findPathsToNode(d.id);
+      if (paths.length > 0) {
+        let html = `<h2>How to reach ${d.id}</h2><ul>`;
+        for (const p of paths) {
+          const choiceStr = p.choices.length > 0 ? p.choices.join(" → ") : "(direct)";
+          html += `<li>${choiceStr}</li>`;
+        }
+        html += "</ul>";
+        pathsEl.innerHTML = html;
+      }
+    } else {
+      pathsEl.innerHTML = "";
+    }
+  }
+
+  node.on("click", (e, d) => {
+    e.stopPropagation();
+    clearHighlight();
+
+    d3.select(e.currentTarget).select("circle")
+      .classed("highlight-main", true);
+
+    links.forEach(l => {
+      const s = l.source.id || l.source;
+      const t = l.target.id || l.target;
+
+      if (s === d.id || t === d.id) {
+        link.filter(x => x === l).classed("highlight", true);
+        linkArrows.filter(x => x === l).attr("fill", "#ffdd57");
+
+        const neighbor = (s === d.id) ? t : s;
+        node.filter(n => n.id === neighbor)
+            .select("circle")
+            .classed("highlight-neighbor", true);
+      }
+    });
+
+    showInfo(d);
+  });
+
+  svg.on("click", () => {
+    clearHighlight();
+    titleEl.innerHTML = "<em>Click a node in the graph.</em>";
+    typeEl.textContent = "";
+    descEl.textContent = "";
+    edgesEl.innerHTML = "";
+    pathsEl.innerHTML = "";
+  });
+</script>
+
+</body>
+</html>

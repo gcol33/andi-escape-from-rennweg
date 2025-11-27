@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Andi – Planned Story Graph</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: system-ui, sans-serif;
+      background: #111;
+      color: #eee;
+      overflow: hidden;
+    }
+
+    #container {
+      display: grid;
+      grid-template-columns: 3fr 1fr;
+      height: 100%;
+    }
+
+    #graph {
+      background: #151515;
+    }
+
+    #sidebar {
+      border-left: 1px solid #333;
+      padding: 12px;
+      box-sizing: border-box;
+      background: #181818;
+      overflow-y: auto;
+    }
+
+    #sidebar h1 { font-size: 18px; margin-top: 0; }
+    #sidebar h2 { font-size: 16px; margin: 10px 0 4px; }
+
+    #sidebar p { font-size: 14px; margin: 4px 0; }
+    #sidebar code { background: #222; padding: 2px 4px; border-radius: 3px; }
+
+    .legend { margin-top: 16px; }
+    .legend-item { display: flex; align-items: center; margin: 4px 0; font-size: 13px; }
+    .legend-color { width: 16px; height: 16px; border-radius: 50%; margin-right: 8px; }
+
+    .node circle {
+      stroke: #111;
+      stroke-width: 1.5px;
+      cursor: pointer;
+    }
+
+    .node text {
+      pointer-events: none;
+      font-size: 10px;
+      fill: #f5f5f5;
+      text-shadow: 0 0 3px #000;
+    }
+
+    .link {
+      fill: none;
+      stroke: #666;
+      stroke-width: 1.4px;
+    }
+
+    .link.highlight {
+      stroke: #ffdd57;
+      stroke-width: 2.4px;
+    }
+
+    .link-label {
+      font-size: 8px;
+      fill: #aaa;
+      pointer-events: none;
+    }
+
+    .node circle.highlight-main {
+      stroke: #ffdd57;
+      stroke-width: 3px;
+    }
+
+    .node circle.highlight-neighbor {
+      stroke: #5ccfe6;
+      stroke-width: 2px;
+    }
+
+    #hint {
+      font-size: 12px;
+      color: #aaa;
+      margin-top: 10px;
+    }
+
+    #paths-to-ending {
+      margin-top: 12px;
+      font-size: 13px;
+    }
+    #paths-to-ending ul {
+      padding-left: 16px;
+      margin: 4px 0;
+    }
+    #paths-to-ending li {
+      margin: 2px 0;
+    }
+  </style>
+</head>
+<body>
+
+<div id="container">
+  <div id="graph"></div>
+  <div id="sidebar">
+    <h1>Andi – Planned Story Graph</h1>
+    <p style="color: #888; font-size: 12px;">Full planned story structure</p>
+
+    <h2>Node details</h2>
+    <p id="node-title"><em>Click a node in the graph.</em></p>
+    <p id="node-type"></p>
+    <p id="node-desc"></p>
+    <h2>Outgoing edges</h2>
+    <div id="node-edges"></div>
+
+    <div id="paths-to-ending"></div>
+
+    <div class="legend">
+      <h2>Legend</h2>
+      <div class="legend-item"><div class="legend-color" style="background: #4c6ef5;"></div> Intro</div>
+      <div class="legend-item"><div class="legend-color" style="background: #37b24d;"></div> Hub</div>
+      <div class="legend-item"><div class="legend-color" style="background: #f59f00;"></div> Branch</div>
+      <div class="legend-item"><div class="legend-color" style="background: #e64980;"></div> Good Ending</div>
+      <div class="legend-item"><div class="legend-color" style="background: #fa5252;"></div> Bad Ending</div>
+      <div class="legend-item"><div class="legend-color" style="background: #444;"></div> Quick Bad End</div>
+    </div>
+
+    <div id="hint">Drag nodes, scroll to zoom. Click background to reset.</div>
+  </div>
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+  // ------------------------------
+  // Node + Link Data (Planned Story)
+  // ------------------------------
+  const nodes = [
+    { id: "INTRO", type: "intro", desc: "Opening scene. Your last day at Rennweg." },
+    { id: "HUB 1", type: "hub", desc: "First major branching point. Choose your path." },
+
+    { id: "Coffee Wing", type: "branch", desc: "Coffee route events. Dangerous but rewarding." },
+    { id: "Main Stairs", type: "branch", desc: "Stairs & HR encounter. Agnes awaits." },
+    { id: "Office Corridor", type: "branch", desc: "Office help requests. PhD students need you." },
+
+    { id: "Midgame Hub", type: "hub", desc: "Central hub. Multiple paths forward." },
+
+    { id: "Fourth Floor Trap", type: "branch", desc: "Academic trap. Whiteboard discussions await." },
+    { id: "Basement Escape Route", type: "branch", desc: "Stealth basement segment. Avoid detection." },
+    { id: "HR Confrontation", type: "branch", desc: "Final HR showdown. Agnes's last stand." },
+
+    { id: "Final Hub", type: "hub", desc: "Final decision point. Choose your ending." },
+
+    { id: "Early Bad End\nCoffee", type: "quickbad", desc: "Quick bad end: cursed coffee traps you forever." },
+    { id: "Early Bad End\nPhD Trap", type: "quickbad", desc: "Quick bad end: trapped helping PhD students until 2035." },
+    { id: "Bad Ending\nHR Trap", type: "quickbad", desc: "Quick bad end: immediate HR contract re-employment." },
+
+    { id: "Bad Ending\nRe-Employed", type: "bad", desc: "Long bad ending: eternal reemployment loop." },
+
+    { id: "Neutral Ending", type: "ending", desc: "Standard exit. You escape, but nothing special." },
+    { id: "Good Ending A\nAcademic Freedom", type: "ending", desc: "Survives academic trap with dignity intact." },
+    { id: "Good Ending B\nHR Victory", type: "ending", desc: "Defeats HR entirely. Agnes is vanquished." },
+    { id: "Coffee Ascension", type: "ending", desc: "Transcends via coffee. Become one with the bean." },
+    { id: "True Ending", type: "ending", desc: "Secret true route. Requires specific flags." }
+  ];
+
+  const links = [
+    { source: "INTRO", target: "HUB 1", label: "" },
+
+    { source: "HUB 1", target: "Coffee Wing", label: "go_coffee" },
+    { source: "HUB 1", target: "Main Stairs", label: "go_stairs" },
+    { source: "HUB 1", target: "Office Corridor", label: "go_office" },
+
+    { source: "Coffee Wing", target: "Midgame Hub", label: "resist_coffee" },
+    { source: "Coffee Wing", target: "Early Bad End\nCoffee", label: "drink_coffee" },
+
+    { source: "Main Stairs", target: "Midgame Hub", label: "evade_hr" },
+    { source: "Main Stairs", target: "Bad Ending\nHR Trap", label: "sign_document" },
+
+    { source: "Office Corridor", target: "Midgame Hub", label: "refuse_help" },
+    { source: "Office Corridor", target: "Early Bad End\nPhD Trap", label: "help_phd" },
+
+    { source: "Midgame Hub", target: "Fourth Floor Trap", label: "elevator_up" },
+    { source: "Midgame Hub", target: "Basement Escape Route", label: "go_basement" },
+    { source: "Midgame Hub", target: "HR Confrontation", label: "face_hr" },
+
+    { source: "Fourth Floor Trap", target: "Final Hub", label: "escape_whiteboard" },
+    { source: "Fourth Floor Trap", target: "Bad Ending\nRe-Employed", label: "stay_discussing" },
+
+    { source: "Basement Escape Route", target: "Final Hub", label: "stealth_success" },
+
+    { source: "HR Confrontation", target: "Final Hub", label: "defeat_agnes" },
+    { source: "HR Confrontation", target: "Bad Ending\nHR Trap", label: "agnes_wins" },
+
+    { source: "Final Hub", target: "Neutral Ending", label: "just_leave" },
+    { source: "Final Hub", target: "Good Ending A\nAcademic Freedom", label: "academic_flag" },
+    { source: "Final Hub", target: "Good Ending B\nHR Victory", label: "hr_defeated_flag" },
+    { source: "Final Hub", target: "Coffee Ascension", label: "coffee_master_flag" },
+    { source: "Final Hub", target: "Bad Ending\nRe-Employed", label: "give_up" },
+    { source: "Final Hub", target: "True Ending", label: "all_flags" }
+  ];
+
+  // ------------------------------
+  // Colors
+  // ------------------------------
+  const typeColor = {
+    intro:    "#4c6ef5",
+    hub:      "#37b24d",
+    branch:   "#f59f00",
+    ending:   "#e64980",
+    bad:      "#fa5252",
+    quickbad: "#444"
+  };
+
+  // ------------------------------
+  // SVG + Zoom Layer
+  // ------------------------------
+  const width = document.getElementById("graph").clientWidth;
+  const height = document.getElementById("graph").clientHeight;
+
+  const svg = d3.select("#graph").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+  const zoomLayer = svg.append("g");
+
+  svg.call(
+    d3.zoom().scaleExtent([0.3, 3])
+      .on("zoom", (event) => zoomLayer.attr("transform", event.transform))
+  ).on("dblclick.zoom", null);
+
+  // ------------------------------
+  // Arrowhead marker (middle of edge)
+  // ------------------------------
+  const defs = svg.append("defs");
+
+  // ------------------------------
+  // Edges (straight lines with arrow in middle)
+  // ------------------------------
+  const link = zoomLayer.selectAll(".link")
+    .data(links)
+    .enter()
+    .append("line")
+    .attr("class", "link");
+
+  // Arrow markers in middle of each edge
+  const linkArrows = zoomLayer.selectAll(".link-arrow")
+    .data(links)
+    .enter()
+    .append("path")
+    .attr("class", "link-arrow")
+    .attr("d", "M0,-5L10,0L0,5")
+    .attr("fill", "#666");
+
+  // Edge labels (flags)
+  const linkLabels = zoomLayer.selectAll(".link-label")
+    .data(links.filter(l => l.label))
+    .enter()
+    .append("text")
+    .attr("class", "link-label")
+    .text(d => d.label);
+
+  // ------------------------------
+  // Nodes
+  // ------------------------------
+  const node = zoomLayer.selectAll(".node")
+    .data(nodes)
+    .enter()
+    .append("g")
+    .attr("class", "node")
+    .call(
+      d3.drag()
+        .on("start", dragStart)
+        .on("drag", dragged)
+        .on("end", dragEnd)
+    );
+
+  node.append("circle")
+    .attr("r", d => d.type === "hub" ? 50 : 42)
+    .attr("fill", d => typeColor[d.type]);
+
+  node.append("text")
+    .attr("text-anchor", "middle")
+    .attr("dy", "0.35em")
+    .each(function(d) {
+      const text = d3.select(this);
+      const lines = d.id.split("\n");
+      if (lines.length > 1) {
+        lines.forEach((line, i) => {
+          text.append("tspan")
+            .attr("x", 0)
+            .attr("dy", i === 0 ? `-${(lines.length - 1) * 0.5}em` : "1em")
+            .text(line);
+        });
+      } else {
+        text.text(d.id);
+      }
+    });
+
+  // ------------------------------
+  // Force Layout
+  // ------------------------------
+  const sim = d3.forceSimulation(nodes)
+    .force("link", d3.forceLink(links).id(d => d.id).distance(150))
+    .force("charge", d3.forceManyBody().strength(-420))
+    .force("center", d3.forceCenter(width / 2, height / 2))
+    .force("collision", d3.forceCollide().radius(60));
+
+  sim.on("tick", () => {
+    link
+      .attr("x1", d => d.source.x)
+      .attr("y1", d => d.source.y)
+      .attr("x2", d => d.target.x)
+      .attr("y2", d => d.target.y);
+
+    // Position arrows in middle of edge, rotated to point in direction of travel
+    linkArrows.attr("transform", d => {
+      const midX = (d.source.x + d.target.x) / 2;
+      const midY = (d.source.y + d.target.y) / 2;
+      const angle = Math.atan2(d.target.y - d.source.y, d.target.x - d.source.x) * 180 / Math.PI;
+      return `translate(${midX}, ${midY}) rotate(${angle})`;
+    });
+
+    linkLabels
+      .attr("x", d => (d.source.x + d.target.x) / 2)
+      .attr("y", d => (d.source.y + d.target.y) / 2 - 10);
+
+    node.attr("transform", d => `translate(${d.x}, ${d.y})`);
+  });
+
+  function dragStart(event, d) {
+    if (!event.active) sim.alphaTarget(0.3).restart();
+    d.fx = d.x;
+    d.fy = d.y;
+  }
+  function dragged(event, d) {
+    d.fx = event.x;
+    d.fy = event.y;
+  }
+  function dragEnd(event, d) {
+    if (!event.active) sim.alphaTarget(0);
+    d.fx = null;
+    d.fy = null;
+  }
+
+  // ------------------------------
+  // Path finding to endings
+  // ------------------------------
+  function findPathsToNode(targetId) {
+    const paths = [];
+
+    function dfs(nodeId, currentPath, currentFlags) {
+      if (nodeId === targetId) {
+        paths.push({ path: [...currentPath], flags: [...currentFlags] });
+        return;
+      }
+
+      const outgoing = links.filter(l => (l.source.id || l.source) === nodeId);
+      for (const edge of outgoing) {
+        const nextId = edge.target.id || edge.target;
+        if (!currentPath.includes(nextId)) {
+          currentPath.push(nextId);
+          if (edge.label) currentFlags.push(edge.label);
+          dfs(nextId, currentPath, currentFlags);
+          currentPath.pop();
+          if (edge.label) currentFlags.pop();
+        }
+      }
+    }
+
+    dfs("INTRO", ["INTRO"], []);
+    return paths;
+  }
+
+  // ------------------------------
+  // Sidebar logic
+  // ------------------------------
+  const titleEl = document.getElementById("node-title");
+  const typeEl  = document.getElementById("node-type");
+  const descEl  = document.getElementById("node-desc");
+  const edgesEl = document.getElementById("node-edges");
+  const pathsEl = document.getElementById("paths-to-ending");
+
+  function clearHighlight() {
+    link.classed("highlight", false);
+    linkArrows.attr("fill", "#666");
+    node.selectAll("circle")
+      .classed("highlight-main", false)
+      .classed("highlight-neighbor", false);
+  }
+
+  function showInfo(d) {
+    titleEl.textContent = d.id.replace(/\n/g, " ");
+    typeEl.textContent  = "Type: " + d.type;
+    descEl.textContent  = d.desc;
+
+    const outgoing = links.filter(l => (l.source.id || l.source) === d.id);
+    if (outgoing.length) {
+      edgesEl.innerHTML = "<ul>" + outgoing.map(l => {
+        const targetId = (l.target.id || l.target).replace(/\n/g, " ");
+        const label = l.label ? ` <em>[${l.label}]</em>` : "";
+        return `<li><code>${targetId}</code>${label}</li>`;
+      }).join("") + "</ul>";
+    } else {
+      edgesEl.innerHTML = "<em>No outgoing edges (ending).</em>";
+    }
+
+    // Show paths to this node if it's an ending
+    if (d.type === "ending" || d.type === "bad" || d.type === "quickbad") {
+      const paths = findPathsToNode(d.id);
+      if (paths.length > 0) {
+        let html = `<h2>How to reach this ending</h2><ul>`;
+        for (const p of paths) {
+          const flagStr = p.flags.length > 0 ? p.flags.join(" → ") : "(direct)";
+          html += `<li>${flagStr}</li>`;
+        }
+        html += "</ul>";
+        pathsEl.innerHTML = html;
+      }
+    } else {
+      pathsEl.innerHTML = "";
+    }
+  }
+
+  node.on("click", (e, d) => {
+    e.stopPropagation();
+    clearHighlight();
+
+    d3.select(e.currentTarget).select("circle")
+      .classed("highlight-main", true);
+
+    links.forEach(l => {
+      const s = l.source.id || l.source;
+      const t = l.target.id || l.target;
+
+      if (s === d.id || t === d.id) {
+        link.filter(x => x === l).classed("highlight", true);
+        linkArrows.filter(x => x === l).attr("fill", "#ffdd57");
+
+        const neighbor = (s === d.id) ? t : s;
+        node.filter(n => n.id === neighbor)
+            .select("circle")
+            .classed("highlight-neighbor", true);
+      }
+    });
+
+    showInfo(d);
+  });
+
+  svg.on("click", () => {
+    clearHighlight();
+    titleEl.innerHTML = "<em>Click a node in the graph.</em>";
+    typeEl.textContent = "";
+    descEl.textContent = "";
+    edgesEl.innerHTML = "";
+    pathsEl.innerHTML = "";
+  });
+</script>
+
+</body>
+</html>
