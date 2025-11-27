@@ -553,6 +553,13 @@ const VNEngine = (function() {
                         advanceTextBlock();
                     }, config.autoDelay);
                 }
+
+                // Skip mode: auto-advance quickly until choice
+                if (config.currentSpeed === 'skip') {
+                    state.typewriter.autoAdvanceId = setTimeout(function() {
+                        advanceTextBlock();
+                    }, 150); // Short delay for skip mode
+                }
             }
         });
     }
@@ -615,11 +622,11 @@ const VNEngine = (function() {
         elements.storyOutput.innerHTML = prependContent + '<p class="typewriter-text"></p>';
         var textElement = elements.storyOutput.querySelector('.typewriter-text');
 
-        if (alreadyRead && config.currentSpeed === 'skip') {
-            // Skip mode on already-read text: instant display
+        if (config.currentSpeed === 'skip') {
+            // Skip mode: instant display for all text
             textElement.innerHTML = formattedText;
             textElement.classList.add('typewriter-complete');
-            textElement.classList.add('already-read');
+            if (alreadyRead) textElement.classList.add('already-read');
             if (onComplete) onComplete();
         } else if (alreadyRead) {
             // Already-read text with normal/fast: still typewriter but can skip
