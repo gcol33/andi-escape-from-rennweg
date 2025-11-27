@@ -2,11 +2,6 @@
 id: lost_to_HR
 bg: bedroom_morning.jpg
 music: game_over.mp3
-actions:
-  - type: play_sfx
-    file: alarm_clock.ogg
-  - type: play_sfx
-    file: failure.ogg
 ---
 
 You wake up in your apartment, startled. The clock says 7:00 AM.

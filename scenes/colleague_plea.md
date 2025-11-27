@@ -5,9 +5,6 @@ music: questioning.mp3
 chars:
   - joni_desperate.svg
   - norbert_grabbing.svg
-actions:
-  - type: play_sfx
-    file: warning.ogg
 ---
 
 Norbert grabs your sleeve.

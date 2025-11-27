@@ -2,11 +2,6 @@
 id: lost_to_coffee
 bg: dark_office_desk.jpg
 music: game_over.mp3
-actions:
-  - type: play_sfx
-    file: chain.ogg
-  - type: play_sfx
-    file: failure.ogg
 ---
 
 You wake up with a throbbing headache. You are chained to your old desk chair.

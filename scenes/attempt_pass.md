@@ -5,8 +5,6 @@ music: dicey_decisions.mp3
 chars:
   - agnes_blocking.svg
 actions:
-  - type: play_sfx
-    file: dice_roll.ogg
   - type: roll_dice
     dice: d20
     threshold: 13
