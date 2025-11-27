@@ -561,14 +561,6 @@ h1 {
         max-width: 45%;
     }
 
-    /* Stack choices vertically in portrait */
-    #choices-container {
-        flex-direction: column;
-    }
-
-    .choice-button {
-        width: 100%;
-    }
 
     /* Smaller buttons for portrait */
     .continue-button,
