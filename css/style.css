@@ -544,11 +544,11 @@ h1 {
     /* Adjust text box for taller container */
     #text-box {
         min-height: 25%;
-        max-height: 40%;
+        max-height: 75%;
     }
 
     #text-box.ending-scene {
-        max-height: 50%;
+        max-height: 75%;
     }
 
     /* Adjust sprite positioning for portrait */
@@ -564,10 +564,12 @@ h1 {
     /* Stack choices vertically in portrait */
     #choices-container {
         flex-direction: column;
+        flex-wrap: nowrap;
         gap: 8px;
     }
 
     .choice-button {
+        flex: none;
         width: 100%;
         padding: 12px 15px;
     }
