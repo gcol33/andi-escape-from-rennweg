@@ -31,9 +31,9 @@ const VNEngine = (function() {
         startScene: 'start',
         defaultMusic: 'default.mp3',  // fallback if scene has no music
         textSpeed: {
-            normal: 16,  // milliseconds per character (~20% faster than original 20ms)
+            normal: 18,  // milliseconds per character
             fast: 10,    // noticeably faster but still readable
-            auto: 16,    // same as normal, but auto-advances
+            auto: 18,    // same as normal, but auto-advances
             skip: 0      // instant (only for read blocks)
         },
         autoDelay: 1500, // ms to wait before auto-advancing
