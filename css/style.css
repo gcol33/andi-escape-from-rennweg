@@ -134,7 +134,7 @@ h1 {
     font-size: clamp(1.2rem, 4vw, 2rem);
 }
 
-/* === VN Container (fixed 16:9 aspect ratio) === */
+/* === VN Container (fixed 16:9 on desktop, fills screen on mobile) === */
 #vn-container {
     position: relative;
     width: 100%;
@@ -149,6 +149,26 @@ h1 {
     -webkit-user-select: none;
     /* Improve touch scrolling behavior */
     touch-action: manipulation;
+}
+
+/* On mobile: fill the screen instead of fixed aspect ratio */
+@media (max-width: 600px) {
+    #vn-container {
+        aspect-ratio: unset;
+        height: calc(100dvh - 50px); /* Full height minus title */
+        max-width: 100%;
+        border-radius: 0;
+    }
+}
+
+/* Landscape mobile: also fill screen */
+@media (max-height: 500px) and (orientation: landscape) {
+    #vn-container {
+        aspect-ratio: unset;
+        height: calc(100dvh - 30px);
+        max-width: 100%;
+        border-radius: 0;
+    }
 }
 
 /* === Background Layer === */
@@ -582,24 +602,32 @@ h1 {
 /* ============================================= */
 @media (max-width: 600px) {
     body {
-        /* Allow slight padding on very small screens */
-        padding: 5px;
-        padding-top: max(5px, env(safe-area-inset-top));
-        padding-bottom: max(5px, env(safe-area-inset-bottom));
+        /* Fill screen on mobile */
+        padding: 0;
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+        align-items: flex-start;
     }
 
     #vn-wrapper {
-        padding: 5px;
+        padding: 0;
+        width: 100%;
+        max-width: 100%;
+        height: 100dvh;
+        height: 100vh; /* Fallback for browsers without dvh */
     }
 
     h1 {
-        margin-bottom: 8px;
+        margin: 8px 0;
         font-size: 1.1rem;
+        padding: 0 10px;
     }
 
     #password-container {
-        margin: 5px;
-        border-radius: 4px;
+        margin: 0;
+        border-radius: 0;
+        height: calc(100dvh - 50px);
+        aspect-ratio: unset;
     }
 
     .password-char {
@@ -613,28 +641,27 @@ h1 {
         gap: 6px;
     }
 
-    #vn-container {
-        border-radius: 4px;
-    }
-
+    /* Text box takes more space on mobile */
     #text-box {
-        min-height: 40%;
-        max-height: 60%;
+        min-height: 35%;
+        max-height: 55%;
         padding: 8px 12px 12px 12px;
     }
 
     #text-box.ending-scene {
-        max-height: 70%;
+        max-height: 65%;
     }
 
+    /* Sprites positioned relative to text box */
     #sprite-layer {
-        bottom: 40%;
-        height: 56%;
+        bottom: 35%;
+        height: 60%;
         gap: 10px;
     }
 
     #sprite-layer img {
-        max-width: 120px;
+        max-width: 140px;
+        max-height: 90%;
     }
 
     /* Text controls: stack on mobile */
@@ -760,28 +787,47 @@ h1 {
 @media (max-height: 500px) and (orientation: landscape) {
     body {
         align-items: flex-start;
-        padding-top: 5px;
+        padding: 0;
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
     }
 
     #vn-wrapper {
-        padding: 5px;
+        padding: 0;
+        width: 100%;
+        max-width: 100%;
+        height: 100dvh;
+        height: 100vh;
     }
 
     h1 {
-        font-size: 0.9rem;
-        margin-bottom: 5px;
+        font-size: 0.85rem;
+        margin: 4px 0;
+        padding: 0 10px;
     }
 
-    /* In landscape on small screens, give more room to the game */
+    #password-container {
+        margin: 0;
+        border-radius: 0;
+        height: calc(100dvh - 25px);
+        aspect-ratio: unset;
+    }
+
+    /* In landscape: text box on the side, more room for visuals */
     #text-box {
-        min-height: 35%;
-        max-height: 50%;
+        min-height: 40%;
+        max-height: 55%;
         padding: 6px 15px 10px 15px;
     }
 
     #sprite-layer {
-        bottom: 35%;
-        height: 62%;
+        bottom: 40%;
+        height: 58%;
+    }
+
+    #sprite-layer img {
+        max-height: 95%;
+        max-width: 180px;
     }
 
     #text-controls {
@@ -793,7 +839,7 @@ h1 {
         gap: 6px;
     }
 
-    /* In landscape, choices can be horizontal again */
+    /* In landscape, choices can be horizontal */
     #choices-container {
         flex-direction: row;
         flex-wrap: wrap;
