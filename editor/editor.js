@@ -13,7 +13,8 @@ const Editor = (function() {
         assetPaths: {
             bg: '../assets/bg/',
             char: '../assets/char/',
-            music: '../assets/music/'
+            music: '../assets/music/',
+            sfx: '../assets/sfx/'
         },
         // These will be populated by scanning or hardcoded
         assets: {
@@ -60,6 +61,26 @@ const Editor = (function() {
                 'spooky.mp3',
                 'victory.mp3',
                 'zen.mp3'
+            ],
+            sfx: [
+                'alarm.ogg',
+                'alarm_clock.ogg',
+                'alert.ogg',
+                'chain.ogg',
+                'click.ogg',
+                'dice_roll.ogg',
+                'door_open.ogg',
+                'door_slam.ogg',
+                'elevator_ding.ogg',
+                'failure.ogg',
+                'footstep.ogg',
+                'gulp.ogg',
+                'negative.ogg',
+                'success.ogg',
+                'thud.ogg',
+                'victory.ogg',
+                'warning.ogg',
+                'zap.ogg'
             ]
         }
     };
@@ -872,6 +893,30 @@ const Editor = (function() {
         targetRow.appendChild(targetInput);
         targetGroup.appendChild(targetRow);
 
+        // SFX dropdown
+        const sfxGroup = document.createElement('label');
+        sfxGroup.textContent = 'Sound effect';
+        const sfxSelect = document.createElement('select');
+        sfxSelect.className = 'choice-sfx';
+
+        // Add "None" option
+        const noneOption = document.createElement('option');
+        noneOption.value = '';
+        noneOption.textContent = '(none)';
+        sfxSelect.appendChild(noneOption);
+
+        // Add all SFX options
+        config.assets.sfx.forEach(sfxFile => {
+            const option = document.createElement('option');
+            option.value = sfxFile;
+            option.textContent = sfxFile.replace('.ogg', '');
+            sfxSelect.appendChild(option);
+        });
+
+        sfxSelect.value = choice && choice.sfx ? choice.sfx : '';
+        sfxSelect.addEventListener('change', onSceneModified);
+        sfxGroup.appendChild(sfxSelect);
+
         // Optional flags
         const flagsRow = document.createElement('div');
         flagsRow.className = 'choice-flags';
@@ -901,6 +946,7 @@ const Editor = (function() {
 
         inputs.appendChild(labelGroup);
         inputs.appendChild(targetGroup);
+        inputs.appendChild(sfxGroup);
         inputs.appendChild(flagsRow);
 
         choiceDiv.appendChild(header);
@@ -926,6 +972,7 @@ const Editor = (function() {
         elements.choicesContainer.querySelectorAll('.choice-item').forEach(item => {
             const label = item.querySelector('.choice-label').value.trim();
             const target = item.querySelector('.choice-target').value.trim();
+            const sfx = item.querySelector('.choice-sfx').value;
             const requireStr = item.querySelector('.choice-require').value.trim();
             const setsStr = item.querySelector('.choice-sets').value.trim();
 
@@ -933,6 +980,7 @@ const Editor = (function() {
                 const choice = {
                     label: label,
                     target: target,
+                    sfx: sfx || null,
                     require_flags: requireStr ? requireStr.split(',').map(f => f.trim()).filter(f => f) : [],
                     set_flags: setsStr ? setsStr.split(',').map(f => f.trim()).filter(f => f) : []
                 };
@@ -2299,6 +2347,9 @@ const Editor = (function() {
                 if (choice.set_flags && choice.set_flags.length > 0) {
                     choiceLine += ` (sets: ${choice.set_flags.join(', ')})`;
                 }
+                if (choice.sfx) {
+                    choiceLine += ` [sfx: ${choice.sfx}]`;
+                }
 
                 choiceLine += ` → ${choice.target}`;
                 md += choiceLine + '\n';
@@ -2597,6 +2648,7 @@ const Editor = (function() {
                 const choice = {
                     label: label,
                     target: target,
+                    sfx: null,
                     require_flags: [],
                     set_flags: []
                 };
@@ -2612,6 +2664,13 @@ const Editor = (function() {
                 if (setsMatch) {
                     choice.set_flags = setsMatch[1].split(',').map(f => f.trim());
                     choice.label = choice.label.replace(/\(sets:\s*[^)]+\)/, '').trim();
+                }
+
+                // Parse SFX from label [sfx: filename.ogg]
+                const sfxMatch = choice.label.match(/\[sfx:\s*([^\]]+)\]/);
+                if (sfxMatch) {
+                    choice.sfx = sfxMatch[1].trim();
+                    choice.label = choice.label.replace(/\[sfx:\s*[^\]]+\]/, '').trim();
                 }
 
                 if (choice.label && choice.target) {
