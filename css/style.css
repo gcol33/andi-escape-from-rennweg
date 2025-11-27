@@ -567,6 +567,7 @@ h1 {
     }
 
     #text-box {
+        height: auto;
         min-height: 36%;
         max-height: 55%;
         padding: 12px 20px 15px 20px;
@@ -594,6 +595,7 @@ h1 {
 
 @media (max-width: 600px) {
     #text-box {
+        height: auto;
         min-height: 40%;
         max-height: 60%;
         padding: 10px 15px;
