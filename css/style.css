@@ -134,7 +134,7 @@ h1 {
     font-size: clamp(1.2rem, 4vw, 2rem);
 }
 
-/* === VN Container (fixed 16:9 on desktop, fills screen on mobile) === */
+/* === VN Container (16:9 landscape, 9:16 portrait) === */
 #vn-container {
     position: relative;
     width: 100%;
@@ -151,23 +151,11 @@ h1 {
     touch-action: manipulation;
 }
 
-/* Portrait mode: fill screen height */
+/* Portrait: 9:16 aspect ratio */
 @media (orientation: portrait) {
     #vn-container {
-        aspect-ratio: unset;
-        height: calc(100dvh - 50px); /* Full height minus title */
-        max-width: 100%;
-        border-radius: 4px;
-    }
-}
-
-/* Landscape mode: fill screen height */
-@media (orientation: landscape) {
-    #vn-container {
-        aspect-ratio: unset;
-        height: calc(100dvh - 40px); /* Full height minus title */
-        max-width: 100%;
-        border-radius: 4px;
+        aspect-ratio: 9 / 16;
+        max-width: 720px; /* Max width for portrait */
     }
 }
 
@@ -602,54 +590,18 @@ h1 {
 /* ============================================= */
 @media (orientation: portrait) {
     body {
-        padding: 0;
-        padding-top: env(safe-area-inset-top);
-        padding-bottom: env(safe-area-inset-bottom);
-        align-items: flex-start;
+        padding: 10px;
+        padding-top: max(10px, env(safe-area-inset-top));
+        padding-bottom: max(10px, env(safe-area-inset-bottom));
     }
 
     #vn-wrapper {
-        padding: 0 5px;
-        width: 100%;
-        max-width: 100%;
-        height: 100dvh;
-        height: 100vh;
+        padding: 10px;
     }
 
     h1 {
         margin: 10px 0;
         font-size: 1.2rem;
-        padding: 0 10px;
-    }
-
-    #password-container {
-        margin: 0;
-        border-radius: 4px;
-        height: calc(100dvh - 50px);
-        aspect-ratio: unset;
-    }
-
-    /* Text box in portrait */
-    #text-box {
-        min-height: 35%;
-        max-height: 55%;
-        padding: 10px 15px 15px 15px;
-    }
-
-    #text-box.ending-scene {
-        max-height: 65%;
-    }
-
-    /* Sprites in portrait */
-    #sprite-layer {
-        bottom: 35%;
-        height: 60%;
-        gap: 15px;
-    }
-
-    #sprite-layer img {
-        max-width: 45vw;
-        max-height: 90%;
     }
 
     /* Always show volume slider on touch devices */
@@ -681,52 +633,18 @@ h1 {
 /* ============================================= */
 @media (orientation: landscape) {
     body {
-        align-items: flex-start;
-        padding: 0;
-        padding-left: env(safe-area-inset-left);
-        padding-right: env(safe-area-inset-right);
+        padding: 10px;
+        padding-left: max(10px, env(safe-area-inset-left));
+        padding-right: max(10px, env(safe-area-inset-right));
     }
 
     #vn-wrapper {
-        padding: 5px 10px;
-        width: 100%;
-        max-width: 100%;
-        height: 100dvh;
-        height: 100vh;
+        padding: 10px;
     }
 
     h1 {
         font-size: 1rem;
         margin: 5px 0;
-    }
-
-    #password-container {
-        margin: 0;
-        border-radius: 4px;
-        height: calc(100dvh - 40px);
-        aspect-ratio: unset;
-    }
-
-    /* Text box in landscape */
-    #text-box {
-        min-height: 38%;
-        max-height: 52%;
-        padding: 8px 20px 12px 20px;
-    }
-
-    #text-box.ending-scene {
-        max-height: 60%;
-    }
-
-    /* Sprites in landscape */
-    #sprite-layer {
-        bottom: 38%;
-        height: 58%;
-    }
-
-    #sprite-layer img {
-        max-height: 95%;
-        max-width: 25vw;
     }
 
     /* Always show volume slider */
