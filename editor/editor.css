@@ -1328,17 +1328,175 @@ label textarea {
     #app {
         grid-template-columns: 1fr;
         grid-template-rows: auto 1fr auto;
+        height: 100vh;
+        overflow: hidden;
     }
 
     #scene-list-panel {
         border-right: none;
         border-bottom: 1px solid var(--border);
-        max-height: 200px;
+        max-height: 150px;
+        min-height: 100px;
+        flex-shrink: 0;
+    }
+
+    #editor-main {
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    #canvas-container {
+        padding: 10px;
+        min-height: 0;
+        flex: 1;
+    }
+
+    #canvas-preview {
+        max-height: 100%;
+    }
+
+    /* Make textbox scrollable and prevent overlay */
+    #preview-textbox {
+        height: 35%;
+        max-height: 35%;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    #preview-text {
+        min-height: 50px;
+    }
+
+    /* Hide extra panels on mobile to save space */
+    #node-connections-panel {
+        display: none;
+    }
+
+    #sprite-palette {
+        padding: 8px 10px;
+    }
+
+    #sprite-palette h3 {
+        font-size: 0.8rem;
+        margin-bottom: 5px;
+    }
+
+    .sprite-thumb {
+        width: 40px;
+        height: 55px;
     }
 
     #properties-panel {
         border-left: none;
         border-top: 1px solid var(--border);
-        max-height: 50vh;
+        max-height: 40vh;
+        min-height: 120px;
+        overflow-y: auto;
+        flex-shrink: 0;
+    }
+
+    /* Compact choices on mobile */
+    .choice-item {
+        padding: 8px;
+    }
+
+    .choice-inputs {
+        gap: 6px;
+    }
+
+    /* Toolbar adjustments */
+    #canvas-toolbar {
+        padding: 8px 10px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    #current-scene-name {
+        font-size: 0.85rem;
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .toolbar-actions {
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+
+    .toolbar-actions button {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+}
+
+/* Portrait phone styles */
+@media (max-width: 600px) {
+    #app {
+        grid-template-rows: auto 1fr auto;
+    }
+
+    #scene-list-panel {
+        max-height: 120px;
+        min-height: 80px;
+    }
+
+    #preview-textbox {
+        height: 40%;
+        max-height: 40%;
+        padding: 8px 10px;
+    }
+
+    #text-nav {
+        gap: 4px;
+        margin-bottom: 5px;
+    }
+
+    .text-nav-btn {
+        padding: 3px 8px;
+        font-size: 0.75rem;
+    }
+
+    #text-block-indicator {
+        font-size: 0.7rem;
+        min-width: 60px;
+    }
+
+    #preview-text {
+        font-size: 0.85rem;
+    }
+
+    #properties-panel {
+        max-height: 35vh;
+    }
+
+    .panel-section {
+        padding: 10px;
+    }
+
+    .panel-section h3 {
+        font-size: 0.8rem;
+        margin-bottom: 8px;
+    }
+
+    #sprite-palette {
+        display: none;
+    }
+}
+
+/* Orientation: portrait (phones held vertically) */
+@media (orientation: portrait) and (max-width: 900px) {
+    #app {
+        height: 100dvh; /* Dynamic viewport height for mobile browsers */
+    }
+
+    #properties-panel {
+        max-height: 45vh;
+    }
+
+    /* Make the preview fit better in portrait */
+    #canvas-preview {
+        aspect-ratio: 4 / 3;
     }
 }
