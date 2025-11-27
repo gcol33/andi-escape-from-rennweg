@@ -558,14 +558,29 @@ h1 {
     }
 
     #sprite-layer img {
-        max-width: 45%;
+        max-width: 35%;
     }
 
+    /* Stack choices vertically in portrait */
+    #choices-container {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .choice-button {
+        width: 100%;
+        padding: 12px 15px;
+    }
 
     /* Smaller buttons for portrait */
     .continue-button,
     .restart-button {
         min-width: 180px;
         padding: 10px 20px;
+    }
+
+    /* Reset button lower on portrait phones */
+    #reset-btn {
+        bottom: 5px !important;
     }
 }
