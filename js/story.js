@@ -38,7 +38,7 @@ const story = {
   "lost_to_HR": {
     "id": "lost_to_HR",
     "bg": "bedroom_morning.jpg",
-    "music": "spooky.mp3",
+    "music": "game_over.mp3",
     "chars": [],
     "set_flags": [],
     "require_flags": [],
@@ -60,7 +60,7 @@ const story = {
   "fourth_floor_elevator": {
     "id": "fourth_floor_elevator",
     "bg": "meeting_room_whiteboard.jpg",
-    "music": "default.mp3",
+    "music": "reading_papers.mp3",
     "chars": [
       "michi_whiteboard.svg",
       "gilles_explaining.svg",
@@ -179,7 +179,7 @@ const story = {
   "lost_to_coffee": {
     "id": "lost_to_coffee",
     "bg": "dark_office_desk.jpg",
-    "music": "outside.mp3",
+    "music": "game_over.mp3",
     "chars": [],
     "set_flags": [],
     "require_flags": [],
@@ -201,7 +201,7 @@ const story = {
   "d20_success": {
     "id": "d20_success",
     "bg": "stairwell_escape.jpg",
-    "music": "dicey_decisions.mp3",
+    "music": "running_escape.mp3",
     "chars": [
       "agnes_surprised.svg"
     ],
@@ -228,7 +228,7 @@ const story = {
   "corridor_delayed": {
     "id": "corridor_delayed",
     "bg": "office_corridor.jpg",
-    "music": "default.mp3",
+    "music": "i_can_do_it.mp3",
     "chars": [
       "fabio_friendly.svg",
       "ali_friendly.svg"
@@ -262,7 +262,7 @@ const story = {
   "back_stairs": {
     "id": "back_stairs",
     "bg": "office_corridor.jpg",
-    "music": "default.mp3",
+    "music": "oh_oh.mp3",
     "chars": [
       "joni_desperate.svg",
       "norbert_pleading.svg"
@@ -302,7 +302,7 @@ const story = {
   "colleague_plea": {
     "id": "colleague_plea",
     "bg": "office_corridor.jpg",
-    "music": "default.mp3",
+    "music": "questioning.mp3",
     "chars": [
       "joni_desperate.svg",
       "norbert_grabbing.svg"
@@ -336,7 +336,7 @@ const story = {
   "main_stairs": {
     "id": "main_stairs",
     "bg": "stairwell_landing.jpg",
-    "music": "legal_trap_stairwell.mp3",
+    "music": "BOSS_TIME.mp3",
     "chars": [
       "agnes_neutral.svg"
     ],
@@ -375,7 +375,7 @@ const story = {
   "coffee_kitchen": {
     "id": "coffee_kitchen",
     "bg": "office_kitchen.jpg",
-    "music": "coffee.mp3",
+    "music": "too_much_coffee.mp3",
     "chars": [],
     "set_flags": [],
     "require_flags": [],
@@ -454,7 +454,7 @@ const story = {
   "document_refusal": {
     "id": "document_refusal",
     "bg": "hallway_red_alert.jpg",
-    "music": "spooky.mp3",
+    "music": "glitch.mp3",
     "chars": [
       "agnes_angry.svg"
     ],
@@ -485,7 +485,7 @@ const story = {
   "lost_to_PhD": {
     "id": "lost_to_PhD",
     "bg": "desk_computer_code.jpg",
-    "music": "coding_frenzy.mp3",
+    "music": "game_over.mp3",
     "chars": [],
     "set_flags": [],
     "require_flags": [],
