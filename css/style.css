@@ -314,6 +314,8 @@ h1 {
 /* === SVG icons in mute button === */
 .mute-btn svg {
     display: block;
+    width: 14px;
+    height: 14px;
 }
 
 /* === Mute Button === */
