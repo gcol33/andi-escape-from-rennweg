@@ -151,40 +151,23 @@ h1 {
     touch-action: manipulation;
 }
 
-/* On mobile portrait: fill the screen */
-@media (max-width: 600px) and (orientation: portrait) {
+/* Portrait mode: fill screen height */
+@media (orientation: portrait) {
     #vn-container {
         aspect-ratio: unset;
         height: calc(100dvh - 50px); /* Full height minus title */
-        max-width: 100%;
-        border-radius: 0;
-    }
-}
-
-/* On tablet portrait: keep 16:9 but maximize width */
-@media (min-width: 601px) and (max-width: 1024px) and (orientation: portrait) {
-    #vn-container {
-        /* Keep 16:9 aspect ratio on tablet portrait */
-        aspect-ratio: 16 / 9;
-        max-width: 100%;
-    }
-}
-
-/* Landscape on any device: fill the screen width, let height adapt */
-@media (orientation: landscape) and (max-width: 1280px) {
-    #vn-container {
-        aspect-ratio: unset;
-        height: calc(100dvh - 40px); /* Full height minus title */
         max-width: 100%;
         border-radius: 4px;
     }
 }
 
-/* Small phones in landscape: tighter spacing */
-@media (max-height: 500px) and (orientation: landscape) {
+/* Landscape mode: fill screen height */
+@media (orientation: landscape) {
     #vn-container {
-        height: calc(100dvh - 25px);
-        border-radius: 0;
+        aspect-ratio: unset;
+        height: calc(100dvh - 40px); /* Full height minus title */
+        max-width: 100%;
+        border-radius: 4px;
     }
 }
 
@@ -615,11 +598,10 @@ h1 {
 }
 
 /* ============================================= */
-/* === RESPONSIVE DESIGN - MOBILE (≤600px) === */
+/* === PORTRAIT MODE === */
 /* ============================================= */
-@media (max-width: 600px) {
+@media (orientation: portrait) {
     body {
-        /* Fill screen on mobile */
         padding: 0;
         padding-top: env(safe-area-inset-top);
         padding-bottom: env(safe-area-inset-bottom);
@@ -627,81 +609,50 @@ h1 {
     }
 
     #vn-wrapper {
-        padding: 0;
+        padding: 0 5px;
         width: 100%;
         max-width: 100%;
         height: 100dvh;
-        height: 100vh; /* Fallback for browsers without dvh */
+        height: 100vh;
     }
 
     h1 {
-        margin: 8px 0;
-        font-size: 1.1rem;
+        margin: 10px 0;
+        font-size: 1.2rem;
         padding: 0 10px;
     }
 
     #password-container {
         margin: 0;
-        border-radius: 0;
+        border-radius: 4px;
         height: calc(100dvh - 50px);
         aspect-ratio: unset;
     }
 
-    .password-char {
-        width: 42px;
-        height: 52px;
-        font-size: max(16px, 1.5rem);
-        border-width: 2px;
-    }
-
-    #password-inputs {
-        gap: 6px;
-    }
-
-    /* Text box takes more space on mobile */
+    /* Text box in portrait */
     #text-box {
         min-height: 35%;
         max-height: 55%;
-        padding: 8px 12px 12px 12px;
+        padding: 10px 15px 15px 15px;
     }
 
     #text-box.ending-scene {
         max-height: 65%;
     }
 
-    /* Sprites positioned relative to text box */
+    /* Sprites in portrait */
     #sprite-layer {
         bottom: 35%;
         height: 60%;
-        gap: 10px;
+        gap: 15px;
     }
 
     #sprite-layer img {
-        max-width: 140px;
+        max-width: 45vw;
         max-height: 90%;
     }
 
-    /* Text controls: stack on mobile */
-    #text-controls {
-        gap: 6px;
-        justify-content: center;
-    }
-
-    .speed-btn {
-        min-width: 40px;
-        min-height: 34px;
-        padding: 5px 8px;
-        font-size: 0.75rem;
-    }
-
-    .mute-btn {
-        min-width: 40px;
-        min-height: 34px;
-        padding: 5px 8px;
-        font-size: 0.9rem;
-    }
-
-    /* Always show volume slider on mobile (touch devices) */
+    /* Always show volume slider on touch devices */
     #volume-slider {
         opacity: 1;
         visibility: visible;
@@ -709,21 +660,7 @@ h1 {
         height: 18px;
     }
 
-    #volume-control {
-        margin-left: 4px;
-    }
-
-    #story-output {
-        line-height: 1.5;
-        padding-right: 5px;
-    }
-
-    #button-area {
-        gap: 8px;
-        margin-top: 8px;
-    }
-
-    /* On mobile, stack choices vertically */
+    /* Stack choices vertically in portrait */
     #choices-container {
         flex-direction: column;
         gap: 8px;
@@ -736,72 +673,13 @@ h1 {
         min-height: 44px;
         padding: 12px 15px;
     }
-
-    .continue-button {
-        min-width: 140px;
-        min-height: 44px;
-        padding: 10px 20px;
-        font-size: 0.95rem;
-    }
-
-    .restart-button {
-        min-width: 180px;
-        min-height: 44px;
-        padding: 10px 25px;
-        font-size: 0.95rem;
-    }
 }
 
-/* ============================================= */
-/* === VERY SMALL SCREENS (≤400px) === */
-/* ============================================= */
-@media (max-width: 400px) {
-    h1 {
-        font-size: 1rem;
-    }
-
-    .password-char {
-        width: 36px;
-        height: 46px;
-        font-size: max(16px, 1.3rem);
-    }
-
-    #password-inputs {
-        gap: 4px;
-    }
-
-    #text-box {
-        padding: 6px 10px 10px 10px;
-    }
-
-    #sprite-layer img {
-        max-width: 100px;
-    }
-
-    #text-controls {
-        gap: 4px;
-    }
-
-    .speed-btn {
-        min-width: 36px;
-        padding: 4px 6px;
-        font-size: 0.7rem;
-    }
-
-    .mute-btn {
-        min-width: 36px;
-        padding: 4px 6px;
-    }
-
-    #volume-slider {
-        width: 40px;
-    }
-}
 
 /* ============================================= */
-/* === LANDSCAPE MODE (ALL DEVICES) === */
+/* === LANDSCAPE MODE === */
 /* ============================================= */
-@media (orientation: landscape) and (max-width: 1280px) {
+@media (orientation: landscape) {
     body {
         align-items: flex-start;
         padding: 0;
@@ -829,13 +707,18 @@ h1 {
         aspect-ratio: unset;
     }
 
-    /* Text box adjustments for landscape */
+    /* Text box in landscape */
     #text-box {
         min-height: 38%;
         max-height: 52%;
         padding: 8px 20px 12px 20px;
     }
 
+    #text-box.ending-scene {
+        max-height: 60%;
+    }
+
+    /* Sprites in landscape */
     #sprite-layer {
         bottom: 38%;
         height: 58%;
@@ -843,7 +726,13 @@ h1 {
 
     #sprite-layer img {
         max-height: 95%;
-        max-width: 220px;
+        max-width: 25vw;
+    }
+
+    /* Always show volume slider */
+    #volume-slider {
+        opacity: 1;
+        visibility: visible;
     }
 
     /* Horizontal choices in landscape */
@@ -858,88 +747,6 @@ h1 {
         max-width: calc(50% - 5px);
         min-height: 40px;
         padding: 10px 15px;
-    }
-}
-
-/* ============================================= */
-/* === SMALL PHONE LANDSCAPE === */
-/* ============================================= */
-@media (max-height: 500px) and (orientation: landscape) {
-    body {
-        align-items: flex-start;
-        padding: 0;
-        padding-left: env(safe-area-inset-left);
-        padding-right: env(safe-area-inset-right);
-    }
-
-    #vn-wrapper {
-        padding: 0;
-        width: 100%;
-        max-width: 100%;
-        height: 100dvh;
-        height: 100vh;
-    }
-
-    h1 {
-        font-size: 0.85rem;
-        margin: 4px 0;
-        padding: 0 10px;
-    }
-
-    #password-container {
-        margin: 0;
-        border-radius: 0;
-        height: calc(100dvh - 25px);
-        aspect-ratio: unset;
-    }
-
-    /* In landscape: text box on the side, more room for visuals */
-    #text-box {
-        min-height: 40%;
-        max-height: 55%;
-        padding: 6px 15px 10px 15px;
-    }
-
-    #sprite-layer {
-        bottom: 40%;
-        height: 58%;
-    }
-
-    #sprite-layer img {
-        max-height: 95%;
-        max-width: 180px;
-    }
-
-    #text-controls {
-        margin-bottom: 4px;
-    }
-
-    #button-area {
-        margin-top: 6px;
-        gap: 6px;
-    }
-
-    /* In landscape, choices can be horizontal */
-    #choices-container {
-        flex-direction: row;
-        flex-wrap: wrap;
-    }
-
-    .choice-button {
-        flex: 1 1 auto;
-        min-width: 80px;
-        width: auto;
-        max-width: calc(50% - 4px);
-        min-height: 38px;
-        padding: 8px 12px;
-        font-size: 0.8rem;
-    }
-
-    .continue-button,
-    .restart-button {
-        min-height: 38px;
-        padding: 8px 20px;
-        font-size: 0.85rem;
     }
 }
 
