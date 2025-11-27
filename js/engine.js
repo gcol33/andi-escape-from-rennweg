@@ -448,6 +448,22 @@ const VNEngine = (function() {
         return blocks;
     }
 
+    /**
+     * Check if text contains formatting that shouldn't be split
+     * (bold markers, quotes, etc.)
+     */
+    function hasFormattingMarkers(text) {
+        // Check for markdown bold **text**
+        if (/\*\*[^*]+\*\*/.test(text)) return true;
+        // Check for quotes "text"
+        if (/"[^"]+"/.test(text)) return true;
+        // Check for single quotes 'text'
+        if (/'[^']+'/.test(text)) return true;
+        // Check for italics *text*
+        if (/(?<!\*)\*[^*]+\*(?!\*)/.test(text)) return true;
+        return false;
+    }
+
     function preprocessTextBlocks(textBlocks, isEnding) {
         // If it's an ending screen, don't split - allow expansion
         if (isEnding) {
@@ -458,10 +474,16 @@ const VNEngine = (function() {
 
         for (var i = 0; i < textBlocks.length; i++) {
             var block = textBlocks[i];
-            var splitBlocks = balanceSplitText(block, MAX_BLOCK_LENGTH);
 
-            for (var j = 0; j < splitBlocks.length; j++) {
-                processedBlocks.push(splitBlocks[j]);
+            // Don't split blocks that contain formatting markers
+            if (hasFormattingMarkers(block)) {
+                processedBlocks.push(block);
+            } else {
+                var splitBlocks = balanceSplitText(block, MAX_BLOCK_LENGTH);
+
+                for (var j = 0; j < splitBlocks.length; j++) {
+                    processedBlocks.push(splitBlocks[j]);
+                }
             }
         }
 
