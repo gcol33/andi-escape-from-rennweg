@@ -157,7 +157,7 @@ h1 {
 #vn-container {
     position: relative;
     width: 100%;
-    max-width: min(95vw, calc(85vh * 16 / 9));
+    max-width: min(95vw, calc(75vh * 16 / 9));
     aspect-ratio: 16 / 9;
     background-color: #4b3e2a;
     border-radius: 8px;
