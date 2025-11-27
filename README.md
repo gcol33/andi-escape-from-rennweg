@@ -249,7 +249,20 @@ This is a separate text block. The player has to click "Continue" to see this pa
 
 ## Building
 
-After editing scenes, regenerate the story data:
+### Option 1: Just push (no Python needed)
+
+If you edit any `.md` file in `scenes/` and push to GitHub, the build runs automatically. GitHub Actions will:
+
+1. Install Python on the server
+2. Run the build script
+3. Commit the updated `js/story.js`
+4. Deploy to GitHub Pages
+
+You don't need Python installed locally. Just edit Markdown, push, and the site updates.
+
+### Option 2: Build locally (for developers)
+
+If you have Python installed and want to preview changes before pushing:
 
 ```bash
 python tools/build_story_from_md.py
@@ -257,7 +270,7 @@ python tools/build_story_from_md.py
 
 The script will warn you if you reference scenes that don't exist.
 
-Then refresh the browser to see your changes.
+Then open `index.html` in a browser to see your changes.
 
 ---
 

@@ -72,7 +72,7 @@ const VNEngine = (function() {
         audio: {
             currentMusic: null,  // filename of currently playing music
             muted: false,
-            volume: 1.0
+            volume: 0.4
         },
         devMode: false,
         devKeysHeld: {}

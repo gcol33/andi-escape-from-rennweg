@@ -172,10 +172,10 @@ h1 {
 /* === Character Sprite Layer === */
 #sprite-layer {
     position: absolute;
-    bottom: 32%;
+    bottom: 40%;
     left: 0;
     width: 100%;
-    height: 64%;
+    height: 56%;
     display: flex;
     justify-content: center;
     align-items: flex-end;
@@ -191,15 +191,14 @@ h1 {
     filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.3));
 }
 
-/* === Text Box (dynamic height - grows with content up to 50%) === */
+/* === Text Box (fixed 40% height, expansion only as fallback) === */
 #text-box {
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
-    min-height: 32%;
+    height: 40%;
     max-height: 50%;
-    height: auto;
     background-color: rgba(250, 241, 224, 0.95);
     border-top: 3px solid #d3c2a8;
     z-index: 10;
@@ -207,6 +206,7 @@ h1 {
     flex-direction: column;
     padding: 12px 30px 20px 30px;
     transition: transform 0.3s ease-out;
+    overflow: hidden;
 }
 
 /* Allow more expansion on ending screens (win/lose) */
@@ -550,7 +550,7 @@ h1 {
 
     /* Adjust text box for taller container */
     #text-box {
-        min-height: 25%;
+        height: 40%;
         max-height: 75%;
     }
 
@@ -560,8 +560,8 @@ h1 {
 
     /* Adjust sprite positioning for portrait */
     #sprite-layer {
-        bottom: 25%;
-        height: 70%;
+        bottom: 40%;
+        height: 55%;
     }
 
     #sprite-layer img {
