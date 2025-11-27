@@ -690,9 +690,14 @@ h1 {
         padding: 10px 20px;
     }
 
-    /* Hide reset button on portrait phones - use Play Again at endings instead */
+    /* Move reset button to top-right on portrait phones */
     #reset-btn {
-        display: none !important;
+        bottom: auto !important;
+        top: 10px !important;
+        right: 10px !important;
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 16px !important;
     }
 
 
