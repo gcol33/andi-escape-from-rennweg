@@ -518,3 +518,54 @@ h1 {
         max-width: 140px;
     }
 }
+
+/* === Portrait Mode (phones held vertically) === */
+/* These rules ONLY apply when screen is taller than wide */
+@media (orientation: portrait) {
+    /* Use 9:16 aspect ratio for portrait screens */
+    #vn-container {
+        aspect-ratio: 9 / 16;
+        max-width: min(100%, 56.25vh); /* Constrain width based on height */
+    }
+
+    #password-container {
+        aspect-ratio: 9 / 16;
+        max-width: min(100%, 56.25vh);
+    }
+
+    /* Adjust text box for taller container */
+    #text-box {
+        min-height: 25%;
+        max-height: 40%;
+    }
+
+    #text-box.ending-scene {
+        max-height: 50%;
+    }
+
+    /* Adjust sprite positioning for portrait */
+    #sprite-layer {
+        bottom: 25%;
+        height: 70%;
+    }
+
+    #sprite-layer img {
+        max-width: 45%;
+    }
+
+    /* Stack choices vertically in portrait */
+    #choices-container {
+        flex-direction: column;
+    }
+
+    .choice-button {
+        width: 100%;
+    }
+
+    /* Smaller buttons for portrait */
+    .continue-button,
+    .restart-button {
+        min-width: 180px;
+        padding: 10px 20px;
+    }
+}
