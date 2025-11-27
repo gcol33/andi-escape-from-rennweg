@@ -17,6 +17,15 @@ The focus is on:
 
 The final product is a **single-page VN** that loads story data and images dynamically.
 
+### Password Protection
+
+The game is protected by a 4-character password screen that appears on load:
+- Password inputs auto-focus and auto-advance between characters
+- Correct password hides the overlay and starts the game
+- Incorrect attempts trigger shake animation and funny error messages
+- After 5 failed attempts, a 30-second lockout is applied
+- Password logic lives in `js/password.js`
+
 ---
 
 ## 2. High-Level Architecture
@@ -487,18 +496,32 @@ The VN supports background music and sound effects.
 - Music continues playing across scene transitions unless changed
 - Use `music: none` to stop music
 
-**Naming convention:** `mood_description.mp3`
-- `ambient_office.mp3` - Calm office atmosphere
-- `tense_chase.mp3` - High-tension moments
-- `victory_theme.mp3` - Win state music
-- `defeat_somber.mp3` - Loss state music
+**Available music tracks:**
+- `BOSS_TIME.mp3` - Intense confrontation music
+- `coding.mp3`, `coding_frenzy.mp3` - Working/coding atmosphere
+- `coffee.mp3`, `too_much_coffee.mp3` - Kitchen/coffee scenes
+- `default.mp3` - General background
+- `dicey_decisions.mp3` - Dice roll moments
+- `game_over.mp3` - Loss state music
+- `glitch.mp3` - Error/glitch effects
+- `i_can_do_it.mp3` - Motivational moments
+- `last_day.mp3` - Nostalgic/farewell mood
+- `legal_trap_stairwell.mp3` - Tense stairwell scenes
+- `oh_oh.mp3`, `OH_SHIT.mp3` - Trouble/danger moments
+- `outside.mp3`, `rooftop.mp3` - Outdoor scenes
+- `questioning.mp3` - Dialogue/interrogation
+- `reading_papers.mp3` - Document signing
+- `running_escape.mp3` - Chase/escape sequences
+- `spooky.mp3` - Eerie atmosphere
+- `victory.mp3` - Win state music
+- `zen.mp3` - Calm/peaceful moments
 
 **Example usage in scene:**
 ```yaml
 ---
 id: start
 bg: hallway_fluorescent.jpg
-music: ambient_office.mp3
+music: last_day.mp3
 ---
 ```
 
