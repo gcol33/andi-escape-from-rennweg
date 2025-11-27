@@ -628,16 +628,10 @@ h1 {
         font-size: 14px !important;
     }
 
-    /* Hide volume slider in portrait */
+    /* Show volume slider always in portrait (no hover needed on touch) */
     #volume-slider {
-        display: none !important;
-    }
-
-    /* Also prevent hover from showing it */
-    #volume-control:hover #volume-slider {
-        display: none !important;
-        opacity: 0 !important;
-        visibility: hidden !important;
+        opacity: 1 !important;
+        visibility: visible !important;
     }
 
     /* Switch to text icons in portrait */

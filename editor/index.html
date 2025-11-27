@@ -28,6 +28,7 @@
             <div id="canvas-toolbar">
                 <span id="current-scene-name">No scene selected</span>
                 <div class="toolbar-actions">
+                    <button id="graph-btn" class="btn-icon" title="View story graph">Graph</button>
                     <button id="preview-btn" class="btn-icon" title="Preview in game">Preview</button>
                     <button id="save-btn" class="btn-primary" disabled>Save Scene</button>
                     <button id="download-btn" class="btn-secondary" title="Download .md file">Download</button>
@@ -169,6 +170,30 @@
                 <button id="delete-scene-btn" class="btn-danger" disabled>Delete Scene</button>
             </div>
         </aside>
+    </div>
+
+    <!-- Graph Overview Modal -->
+    <div id="graph-modal" class="modal hidden">
+        <div class="modal-content graph-modal-content">
+            <div class="graph-header">
+                <h3>Story Graph</h3>
+                <div class="graph-controls">
+                    <button id="graph-zoom-in" class="btn-icon" title="Zoom in">+</button>
+                    <button id="graph-zoom-out" class="btn-icon" title="Zoom out">−</button>
+                    <button id="graph-reset" class="btn-icon" title="Reset view">Reset</button>
+                    <button id="graph-close" class="btn-icon" title="Close">✕</button>
+                </div>
+            </div>
+            <div id="graph-container">
+                <svg id="graph-svg"></svg>
+            </div>
+            <div class="graph-legend">
+                <span class="legend-item"><span class="legend-dot choice"></span> Choice</span>
+                <span class="legend-item"><span class="legend-dot success"></span> Dice Success</span>
+                <span class="legend-item"><span class="legend-dot failure"></span> Dice Failure</span>
+                <span class="legend-item"><span class="legend-dot missing"></span> Missing Scene</span>
+            </div>
+        </div>
     </div>
 
     <!-- Delete Confirmation Modal -->
