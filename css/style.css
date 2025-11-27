@@ -89,7 +89,7 @@
 }
 
 /* Responsive password inputs */
-@media (max-width: 900px) {
+@media (max-width: 56.25em) {
     #password-container {
         margin: 10px;
     }
@@ -105,7 +105,7 @@
     }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 37.5em) {
     .password-char {
         width: 40px;
         height: 50px;
@@ -561,7 +561,7 @@ h1 {
 }
 
 /* === Responsive Design === */
-@media (max-width: 900px) {
+@media (max-width: 56.25em) {
     #vn-wrapper {
         padding: 10px;
     }
@@ -593,7 +593,7 @@ h1 {
     }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 37.5em) {
     #text-box {
         height: auto;
         min-height: 40%;
