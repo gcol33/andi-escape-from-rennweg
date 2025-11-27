@@ -206,11 +206,18 @@ h1 {
     display: flex;
     flex-direction: column;
     padding: 12px 30px 20px 30px;
+    transition: transform 0.3s ease-out;
 }
 
 /* Allow more expansion on ending screens (win/lose) */
 #text-box.ending-scene {
     max-height: 60%;
+}
+
+/* Hidden text box state for tap-to-hide feature */
+#text-box.hidden-textbox {
+    transform: translateY(100%);
+    pointer-events: none;
 }
 
 /* === Text Speed Controls === */
@@ -549,12 +556,6 @@ h1 {
 
     #text-box.ending-scene {
         max-height: 90%;
-    }
-
-    /* In portrait ending scenes, don't limit story output scroll */
-    #text-box.ending-scene #story-output {
-        flex: 0 0 auto;
-        overflow-y: visible;
     }
 
     /* Adjust sprite positioning for portrait */

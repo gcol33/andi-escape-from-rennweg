@@ -152,6 +152,7 @@ const VNEngine = (function() {
         setupMuteButton();
         setupFirstInteraction();
         setupResetButton();
+        setupTapToHide();
 
         // Try to load saved state
         if (!loadSavedState()) {
@@ -802,8 +803,11 @@ const VNEngine = (function() {
                 elements.choicesContainer.appendChild(button);
             });
         } else {
-            // Game over state - add restart button
-            elements.storyOutput.innerHTML += '<p class="game-over">The adventure is complete!</p>';
+            // Game over state - add completion message and restart button
+            var completionMsg = document.createElement('p');
+            completionMsg.className = 'game-over';
+            completionMsg.textContent = 'The adventure is complete!';
+            elements.choicesContainer.appendChild(completionMsg);
 
             var restartButton = document.createElement('button');
             restartButton.className = 'restart-button';
@@ -1088,6 +1092,23 @@ const VNEngine = (function() {
         });
 
         document.body.appendChild(resetBtn);
+    }
+
+    // === Tap-to-Hide Feature ===
+    function setupTapToHide() {
+        var textBox = document.getElementById('text-box');
+        var bgLayer = document.getElementById('background-layer');
+        var spriteLayer = document.getElementById('sprite-layer');
+        if (!textBox) return;
+
+        // Click on background or sprite layer toggles text box
+        function toggleTextBox(e) {
+            textBox.classList.toggle('hidden-textbox');
+            e.stopPropagation();
+        }
+
+        if (bgLayer) bgLayer.addEventListener('click', toggleTextBox);
+        if (spriteLayer) spriteLayer.addEventListener('click', toggleTextBox);
     }
 
     // === Game Reset ===
