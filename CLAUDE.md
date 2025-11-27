@@ -351,6 +351,12 @@ The engine implements a text block progression system:
 - Use `em`-based breakpoints instead (e.g., `56em` instead of `900px`)
 - Reference: `1em = 16px` at default browser settings, so `56em ≈ 900px`, `37.5em ≈ 600px`
 - Use `dvh` (dynamic viewport height) instead of `vh` for mobile browser compatibility
+- **Always provide fallbacks for modern CSS features** to support older browsers (~2012):
+  - `aspect-ratio`: Use padding-bottom percentage trick as fallback (e.g., `padding-bottom: 56.25%` for 16:9)
+  - `clamp()`/`min()`/`max()`: Provide a static fallback value first
+  - `gap` in flexbox: Use margin on children with `@supports (gap: 10px)` to remove margins in modern browsers
+  - `:has()` selector: Add a fallback class via JS (e.g., `.has-game-over`) and use `@supports selector(:has(*))` for modern browsers
+  - `display: flex`: Add `display: block` or `display: inline-block` as preceding fallback
 
 ### Assets
 - Background filenames: lowercase with underscores, `.jpg` extension

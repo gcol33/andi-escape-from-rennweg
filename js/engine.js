@@ -669,16 +669,22 @@ const VNEngine = (function() {
             textElement.innerHTML = formattedText;
             textElement.classList.add('typewriter-complete');
             textElement.classList.add('already-read');
+            // Fallback for browsers without :has() support
+            elements.storyOutput.classList.add('has-already-read');
             if (onComplete) onComplete();
         } else if (alreadyRead) {
             // Already-read text with normal/fast: still typewriter but can skip
             textElement.classList.add('already-read');
+            // Fallback for browsers without :has() support
+            elements.storyOutput.classList.add('has-already-read');
             startTypewriter(formattedText, textElement, onComplete, true);
         } else if (config.currentSpeed === 'skip') {
             // Skip mode on new text: use fast speed instead
+            elements.storyOutput.classList.remove('has-already-read');
             startTypewriter(formattedText, textElement, onComplete, false, 'fast');
         } else {
             // New text: typewriter effect (no skip allowed on first read)
+            elements.storyOutput.classList.remove('has-already-read');
             startTypewriter(formattedText, textElement, onComplete, false);
         }
     }
@@ -813,6 +819,7 @@ const VNEngine = (function() {
 
     function renderChoices(choices) {
         elements.choicesContainer.innerHTML = '';
+        elements.choicesContainer.classList.remove('has-game-over');
         hideContinueButton();
 
         if (choices && choices.length > 0) {
@@ -845,6 +852,8 @@ const VNEngine = (function() {
             completionMsg.className = 'game-over';
             completionMsg.textContent = 'The adventure is complete!';
             elements.choicesContainer.appendChild(completionMsg);
+            // Fallback for browsers without :has() support
+            elements.choicesContainer.classList.add('has-game-over');
 
             var restartButton = document.createElement('button');
             restartButton.className = 'restart-button';

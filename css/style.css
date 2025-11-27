@@ -25,7 +25,14 @@
 #password-container {
     position: relative;
     width: 100%;
+    /* Fallbacks for older browsers that don't support min()/aspect-ratio */
+    max-width: 95vw;
+    height: 0;
+    padding-bottom: 56.25%; /* 16:9 ratio fallback via padding trick */
+    /* Modern browsers override with aspect-ratio */
     max-width: min(95vw, calc(75vh * 16 / 9));
+    height: auto;
+    padding-bottom: 0;
     aspect-ratio: 16 / 9;
     background-color: #d3c2a8;
     border-radius: 8px;
@@ -119,6 +126,7 @@
 
 /* Responsive root font size: scales from 16px to 22px based on viewport */
 html {
+    font-size: 18px; /* Fallback for older browsers */
     font-size: clamp(16px, 1.2vw, 22px);
 }
 
@@ -157,7 +165,14 @@ h1 {
 #vn-container {
     position: relative;
     width: 100%;
+    /* Fallbacks for older browsers that don't support min()/aspect-ratio */
+    max-width: 95vw;
+    height: 0;
+    padding-bottom: 56.25%; /* 16:9 ratio fallback via padding trick */
+    /* Modern browsers override with aspect-ratio */
     max-width: min(95vw, calc(75vh * 16 / 9));
+    height: auto;
+    padding-bottom: 0;
     aspect-ratio: 16 / 9;
     background-color: #4b3e2a;
     border-radius: 8px;
@@ -392,13 +407,26 @@ h1 {
     opacity: 0.85;
 }
 
-#story-output:has(.already-read)::before {
+/* Fallback: JS adds .has-already-read class to #story-output */
+#story-output.has-already-read::before {
     content: '(already read)';
     display: block;
     font-size: 0.75rem;
     color: #a09080;
     font-style: italic;
     margin-bottom: 5px;
+}
+
+/* Modern browsers: use :has() selector */
+@supports selector(:has(*)) {
+    #story-output:has(.already-read)::before {
+        content: '(already read)';
+        display: block;
+        font-size: 0.75rem;
+        color: #a09080;
+        font-style: italic;
+        margin-bottom: 5px;
+    }
 }
 
 /* === Button Area (contains continue + choices) === */
@@ -412,15 +440,31 @@ h1 {
 
 /* === Choices Container === */
 #choices-container {
+    display: block; /* Fallback for very old browsers */
     display: flex;
     flex-wrap: nowrap;
-    gap: 10px;
     justify-content: center;
     width: 100%;
 }
 
+/* Fallback spacing for browsers without gap support */
+#choices-container > * {
+    margin: 5px;
+}
+
+/* Modern browsers: use gap and remove margin fallback */
+@supports (gap: 10px) {
+    #choices-container {
+        gap: 10px;
+    }
+    #choices-container > * {
+        margin: 0;
+    }
+}
+
 /* === Choice Buttons === */
 .choice-button {
+    display: inline-block; /* Fallback for older browsers */
     flex: 1 1 0;
     padding: 10px 15px;
     background-color: #b08b5a;
@@ -450,13 +494,23 @@ h1 {
 }
 
 /* Stack game-over message above restart button in landscape */
-#choices-container:has(.game-over) {
+/* Fallback: JS adds .has-game-over class to #choices-container */
+#choices-container.has-game-over {
     flex-direction: column;
     align-items: center;
 }
 
+/* Modern browsers: use :has() selector */
+@supports selector(:has(*)) {
+    #choices-container:has(.game-over) {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
 /* === Restart Button === */
 .restart-button {
+    display: inline-block; /* Fallback for older browsers */
     flex: 0 0 auto;
     min-width: 250px;
     padding: 12px 30px;
@@ -477,6 +531,7 @@ h1 {
 
 /* === Continue Button === */
 .continue-button {
+    display: inline-block; /* Fallback for older browsers */
     flex: 0 0 auto;
     min-width: 200px;
     padding: 10px 30px;
