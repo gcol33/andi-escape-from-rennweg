@@ -551,6 +551,12 @@ h1 {
         max-height: 90%;
     }
 
+    /* In portrait ending scenes, don't limit story output scroll */
+    #text-box.ending-scene #story-output {
+        flex: 0 0 auto;
+        overflow-y: visible;
+    }
+
     /* Adjust sprite positioning for portrait */
     #sprite-layer {
         bottom: 25%;
