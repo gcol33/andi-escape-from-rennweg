@@ -16,4 +16,4 @@ A wave of nausea hits you, and all thoughts of your new job vanish. You are inst
 
 ### Choices
 
-- Collapse into the carpet, your future erased. → lost_to_HR
+- Collapse into the carpet, your future erased. [sfx: thud.ogg] → lost_to_HR

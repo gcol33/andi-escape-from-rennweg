@@ -110,7 +110,24 @@ const Editor = (function() {
     }
 
     async function autoLoadScenes() {
-        // First check if story is already loaded (via script tag)
+        // First priority: localStorage (has user's edits)
+        try {
+            const saved = localStorage.getItem('andi_editor_scenes');
+            if (saved) {
+                const savedScenes = JSON.parse(saved);
+                if (Object.keys(savedScenes).length > 0) {
+                    state.scenes = savedScenes;
+                    console.log(`Loaded ${Object.keys(savedScenes).length} scenes from localStorage`);
+                    renderSceneList();
+                    restoreCurrentScene();
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn('Could not load from localStorage:', e);
+        }
+
+        // Second: check if story is already loaded (via script tag)
         if (typeof story !== 'undefined' && story) {
             let count = 0;
             for (const [id, scene] of Object.entries(story)) {
@@ -124,7 +141,7 @@ const Editor = (function() {
             return;
         }
 
-        // Try to load from the compiled story.js via fetch
+        // Third: try to load from the compiled story.js via fetch
         try {
             const response = await fetch('../js/story.js');
             if (response.ok) {
@@ -156,9 +173,6 @@ const Editor = (function() {
         } catch (e) {
             console.log('Could not load from story.js via fetch:', e.message);
         }
-
-        // Fallback: try to load from localStorage
-        loadScenesFromStorage();
     }
 
     function cacheElements() {
@@ -174,6 +188,7 @@ const Editor = (function() {
             previewBtn: document.getElementById('preview-btn'),
             saveBtn: document.getElementById('save-btn'),
             downloadBtn: document.getElementById('download-btn'),
+            exportAllBtn: document.getElementById('export-all-btn'),
             canvasPreview: document.getElementById('canvas-preview'),
             previewBackground: document.getElementById('preview-background'),
             previewSprites: document.getElementById('preview-sprites'),
@@ -255,6 +270,7 @@ const Editor = (function() {
         // Save/Download
         elements.saveBtn.addEventListener('click', saveCurrentScene);
         elements.downloadBtn.addEventListener('click', downloadCurrentScene);
+        elements.exportAllBtn.addEventListener('click', exportAllScenes);
         elements.previewBtn.addEventListener('click', previewInGame);
 
         // Scene properties
@@ -632,6 +648,13 @@ const Editor = (function() {
 
         state.currentSceneId = sceneId;
         state.modified = false;
+
+        // Save current scene ID to localStorage so it persists on refresh
+        try {
+            localStorage.setItem('andi_editor_current_scene', sceneId);
+        } catch (e) {
+            // Ignore storage errors
+        }
 
         loadSceneIntoEditor(scene);
         highlightCurrentScene();
@@ -2054,6 +2077,155 @@ const Editor = (function() {
         URL.revokeObjectURL(url);
     }
 
+    async function exportAllScenes() {
+        const sceneIds = Object.keys(state.scenes);
+
+        if (sceneIds.length === 0) {
+            alert('No scenes to export.');
+            return;
+        }
+
+        // Save current scene first if there's one being edited
+        if (state.currentSceneId) {
+            saveCurrentScene();
+        }
+
+        // Generate all markdown files and download them individually
+        // Put them in a scenes/ folder structure via zip
+        const files = [];
+
+        sceneIds.forEach(sceneId => {
+            const scene = state.scenes[sceneId];
+            if (scene) {
+                const md = generateMarkdown(scene);
+                files.push({
+                    name: `${scene.id}.md`,
+                    content: md
+                });
+            }
+        });
+
+        if (files.length === 0) {
+            alert('No valid scenes to export.');
+            return;
+        }
+
+        // Create a simple zip file manually (no external library needed)
+        const zipBlob = await createZipBlob(files);
+
+        // Download the zip
+        const url = URL.createObjectURL(zipBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'scenes.zip';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        console.log(`Exported ${files.length} scenes to scenes.zip`);
+    }
+
+    // Simple ZIP file creator (no compression, just store)
+    async function createZipBlob(files) {
+        const localFiles = [];
+        const centralDir = [];
+        let offset = 0;
+
+        for (const file of files) {
+            const fileName = new TextEncoder().encode(file.name);
+            const fileContent = new TextEncoder().encode(file.content);
+
+            // Local file header
+            const localHeader = new Uint8Array(30 + fileName.length);
+            const localView = new DataView(localHeader.buffer);
+
+            localView.setUint32(0, 0x04034b50, true); // Local file header signature
+            localView.setUint16(4, 20, true);          // Version needed
+            localView.setUint16(6, 0, true);           // General purpose flag
+            localView.setUint16(8, 0, true);           // Compression method (store)
+            localView.setUint16(10, 0, true);          // File time
+            localView.setUint16(12, 0, true);          // File date
+            localView.setUint32(14, crc32(fileContent), true); // CRC-32
+            localView.setUint32(18, fileContent.length, true); // Compressed size
+            localView.setUint32(22, fileContent.length, true); // Uncompressed size
+            localView.setUint16(26, fileName.length, true);    // File name length
+            localView.setUint16(28, 0, true);          // Extra field length
+            localHeader.set(fileName, 30);
+
+            // Central directory header
+            const centralHeader = new Uint8Array(46 + fileName.length);
+            const centralView = new DataView(centralHeader.buffer);
+
+            centralView.setUint32(0, 0x02014b50, true);  // Central dir signature
+            centralView.setUint16(4, 20, true);           // Version made by
+            centralView.setUint16(6, 20, true);           // Version needed
+            centralView.setUint16(8, 0, true);            // General purpose flag
+            centralView.setUint16(10, 0, true);           // Compression method
+            centralView.setUint16(12, 0, true);           // File time
+            centralView.setUint16(14, 0, true);           // File date
+            centralView.setUint32(16, crc32(fileContent), true); // CRC-32
+            centralView.setUint32(20, fileContent.length, true); // Compressed size
+            centralView.setUint32(24, fileContent.length, true); // Uncompressed size
+            centralView.setUint16(28, fileName.length, true);    // File name length
+            centralView.setUint16(30, 0, true);           // Extra field length
+            centralView.setUint16(32, 0, true);           // Comment length
+            centralView.setUint16(34, 0, true);           // Disk number start
+            centralView.setUint16(36, 0, true);           // Internal attributes
+            centralView.setUint32(38, 0, true);           // External attributes
+            centralView.setUint32(42, offset, true);      // Offset of local header
+            centralHeader.set(fileName, 46);
+
+            localFiles.push(localHeader, fileContent);
+            centralDir.push(centralHeader);
+
+            offset += localHeader.length + fileContent.length;
+        }
+
+        // End of central directory
+        const eocd = new Uint8Array(22);
+        const eocdView = new DataView(eocd.buffer);
+        const centralDirSize = centralDir.reduce((sum, h) => sum + h.length, 0);
+
+        eocdView.setUint32(0, 0x06054b50, true);  // EOCD signature
+        eocdView.setUint16(4, 0, true);           // Disk number
+        eocdView.setUint16(6, 0, true);           // Disk with central dir
+        eocdView.setUint16(8, files.length, true);  // Entries on this disk
+        eocdView.setUint16(10, files.length, true); // Total entries
+        eocdView.setUint32(12, centralDirSize, true); // Central dir size
+        eocdView.setUint32(16, offset, true);     // Central dir offset
+        eocdView.setUint16(20, 0, true);          // Comment length
+
+        return new Blob([...localFiles, ...centralDir, eocd], { type: 'application/zip' });
+    }
+
+    // CRC-32 calculation for ZIP
+    function crc32(data) {
+        let crc = 0xFFFFFFFF;
+        const table = getCrc32Table();
+
+        for (let i = 0; i < data.length; i++) {
+            crc = (crc >>> 8) ^ table[(crc ^ data[i]) & 0xFF];
+        }
+
+        return (crc ^ 0xFFFFFFFF) >>> 0;
+    }
+
+    function getCrc32Table() {
+        if (!getCrc32Table.table) {
+            const table = new Uint32Array(256);
+            for (let i = 0; i < 256; i++) {
+                let c = i;
+                for (let j = 0; j < 8; j++) {
+                    c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+                }
+                table[i] = c;
+            }
+            getCrc32Table.table = table;
+        }
+        return getCrc32Table.table;
+    }
+
     function generateMarkdown(scene) {
         let md = '---\n';
         md += `id: ${scene.id}\n`;
@@ -2535,4 +2707,8 @@ const Editor = (function() {
 })();
 
 // Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', Editor.init);
+document.addEventListener('DOMContentLoaded', () => {
+    Editor.init();
+    // Show page after initialization to prevent FOUC
+    document.documentElement.classList.add('loaded');
+});

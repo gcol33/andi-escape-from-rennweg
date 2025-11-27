@@ -174,7 +174,8 @@ def parse_choices(text):
             'label': '',
             'target': '',
             'require_flags': [],
-            'set_flags': []
+            'set_flags': [],
+            'sfx': None
         }
 
         # Split by arrow
@@ -203,6 +204,12 @@ def parse_choices(text):
             flags = [f.strip() for f in sets_match.group(1).split(',')]
             choice['set_flags'] = flags
             label_part = re.sub(r'\(sets:\s*[^)]+\)', '', label_part).strip()
+
+        # [sfx: filename.ogg]
+        sfx_match = re.search(r'\[sfx:\s*([^\]]+)\]', label_part)
+        if sfx_match:
+            choice['sfx'] = sfx_match.group(1).strip()
+            label_part = re.sub(r'\[sfx:\s*[^\]]+\]', '', label_part).strip()
 
         choice['label'] = label_part
         choices.append(choice)

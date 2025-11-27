@@ -12,4 +12,4 @@ You lean against the counter, feeling satisfied... and suddenly, incredibly drow
 
 ### Choices
 
-- The room is spinning. You close your eyes. → lost_to_coffee
+- The room is spinning. You close your eyes. [sfx: gulp.ogg] → lost_to_coffee

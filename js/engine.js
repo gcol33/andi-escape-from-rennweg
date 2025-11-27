@@ -819,8 +819,15 @@ const VNEngine = (function() {
                     if (choice.set_flags && choice.set_flags.length > 0) {
                         setFlags(choice.set_flags);
                     }
-                    // Navigate to target
-                    loadScene(choice.target);
+                    // If choice has SFX, play it with ducking then navigate
+                    if (choice.sfx) {
+                        playSfxWithDucking(choice.sfx, function() {
+                            loadScene(choice.target);
+                        });
+                    } else {
+                        // Navigate to target immediately
+                        loadScene(choice.target);
+                    }
                 };
                 elements.choicesContainer.appendChild(button);
             });
@@ -978,13 +985,61 @@ const VNEngine = (function() {
         state.audio.currentMusic = null;
     }
 
-    function playSfx(filename) {
-        if (state.audio.muted) return;
+    function playSfx(filename, callback) {
+        if (state.audio.muted) {
+            if (callback) callback();
+            return;
+        }
 
         var path = config.assetPaths.sfx + filename;
         var audio = new Audio(path);
+
+        // If callback provided, call it when SFX ends
+        if (callback) {
+            audio.addEventListener('ended', callback);
+            audio.addEventListener('error', callback);
+        }
+
         audio.play().catch(function(e) {
             console.log('VNEngine: SFX playback failed:', e);
+            if (callback) callback();
+        });
+    }
+
+    /**
+     * Play SFX with music ducking (VN-style)
+     * Ducks music volume, plays SFX, then restores music and calls callback
+     */
+    function playSfxWithDucking(filename, callback) {
+        if (state.audio.muted) {
+            if (callback) callback();
+            return;
+        }
+
+        var path = config.assetPaths.sfx + filename;
+        var audio = new Audio(path);
+        var originalVolume = state.audio.volume;
+        var duckedVolume = originalVolume * 0.2; // Duck to 20% of original
+
+        // Duck music
+        if (elements.bgMusic) {
+            elements.bgMusic.volume = duckedVolume;
+        }
+
+        // Restore music and call callback when SFX ends
+        var onEnd = function() {
+            if (elements.bgMusic) {
+                elements.bgMusic.volume = originalVolume;
+            }
+            if (callback) callback();
+        };
+
+        audio.addEventListener('ended', onEnd);
+        audio.addEventListener('error', onEnd);
+
+        audio.play().catch(function(e) {
+            console.log('VNEngine: SFX playback failed:', e);
+            onEnd();
         });
     }
 

@@ -14,4 +14,4 @@ Before you can protest, she presses a button on her watch. The hallway lights di
 
 ### Choices
 
-- The long-term employment trap has sprung. → lost_to_coffee
+- The long-term employment trap has sprung. [sfx: chain.ogg] → lost_to_coffee

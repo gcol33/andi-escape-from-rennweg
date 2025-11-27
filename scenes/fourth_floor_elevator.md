@@ -16,4 +16,4 @@ You spend the next two agonizing hours discussing the optimal parameters for a h
 
 ### Choices
 
-- Finally manage to break free and get back on the elevator. → exit_lobby
+- Finally manage to break free and get back on the elevator. [sfx: elevator_ding.ogg] → exit_lobby

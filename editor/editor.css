@@ -1,5 +1,14 @@
 /* Andi VN Scene Editor - Stylesheet */
 
+/* Prevent flash of unstyled content on reload */
+html {
+    visibility: hidden;
+}
+
+html.loaded {
+    visibility: visible;
+}
+
 * {
     margin: 0;
     padding: 0;

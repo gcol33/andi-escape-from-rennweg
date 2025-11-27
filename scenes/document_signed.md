@@ -14,4 +14,4 @@ You are now free to take the stairs down, feeling only slightly heavier.
 
 ### Choices
 
-- Scramble down the main stairs to the entrance. → exit_lobby
+- Scramble down the main stairs to the entrance. [sfx: footstep.ogg] → exit_lobby

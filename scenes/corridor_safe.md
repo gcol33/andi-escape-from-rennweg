@@ -12,4 +12,4 @@ It smells faintly of dust and cleaning supplies. You enjoy the silence of your f
 
 ### Choices
 
-- Continue down to the main entrance. → exit_lobby
+- Continue down to the main entrance. [sfx: footstep.ogg] → exit_lobby

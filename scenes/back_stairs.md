@@ -15,6 +15,6 @@ Two colleagues, Joni and Norbert, step out, looking desperate. Joni is frantical
 
 ### Choices
 
-- Sit at the desk and help them fix the model. → lost_to_PhD
-- Say, "Sorry, guys, I'm out of here. Good luck." → colleague_plea
-- Say, "FUCK OFF." → corridor_safe
+- Sit at the desk and help them fix the model. [sfx: click.ogg] → lost_to_PhD
+- Say, "Sorry, guys, I'm out of here. Good luck." [sfx: negative.ogg] → colleague_plea
+- Say, "FUCK OFF." [sfx: door_slam.ogg] → corridor_safe

@@ -14,4 +14,4 @@ You get a clean run to the main stairs!
 
 ### Choices
 
-- Scramble down the main stairs to the entrance. → exit_lobby
+- Scramble down the main stairs to the entrance. [sfx: footstep.ogg] → exit_lobby

@@ -14,6 +14,6 @@ She holds a single, thick manila envelope and smiles a very thin smile.
 
 ### Choices
 
-- Sign the document without reading it. → document_signed
-- Refuse to sign and ask what it is. → document_refusal
-- Try to walk around Agnes, pretending not to hear. → attempt_pass
+- Sign the document without reading it. [sfx: click.ogg] → document_signed
+- Refuse to sign and ask what it is. [sfx: negative.ogg] → document_refusal
+- Try to walk around Agnes, pretending not to hear. [sfx: footstep.ogg] → attempt_pass

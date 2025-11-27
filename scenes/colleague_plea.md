@@ -13,5 +13,5 @@ Norbert grabs your sleeve.
 
 ### Choices
 
-- Agree: "Fine, five minutes." → lost_to_PhD
-- Refuse again: "No, I really have to go." → corridor_delayed
+- Agree: "Fine, five minutes." [sfx: click.ogg] → lost_to_PhD
+- Refuse again: "No, I really have to go." [sfx: negative.ogg] → corridor_delayed

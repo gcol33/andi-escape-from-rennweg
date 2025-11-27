@@ -14,6 +14,6 @@ Your new job starts Monday, and this chapter is finally closed. Now, you just ne
 
 ### Choices
 
-- Turn right and take the main stairs down to the entrance. → main_stairs
-- Turn left and take the back stairs to the main entrance. → back_stairs
-- Get one last, sentimental cup of coffee in the kitchen near your office. → coffee_kitchen
+- Turn right and take the main stairs down to the entrance. [sfx: footstep.ogg] → main_stairs
+- Turn left and take the back stairs to the main entrance. [sfx: footstep.ogg] → back_stairs
+- Get one last, sentimental cup of coffee in the kitchen near your office. [sfx: door_open.ogg] → coffee_kitchen

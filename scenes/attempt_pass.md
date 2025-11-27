@@ -20,4 +20,4 @@ You are fast, but Agnes is known to have a hidden history as a competitive ballr
 
 ### Choices
 
-- ROLL D20... → _roll
+- ROLL D20... [sfx: dice_roll.ogg] → _roll

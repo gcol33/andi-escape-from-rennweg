@@ -15,5 +15,5 @@ After a few minutes of pleasantries, Ali adds, "Oh, you didn't say bye to the fo
 
 ### Choices
 
-- Agree to take the elevator up to the 4th floor. → fourth_floor_elevator
-- Say "I don't have time!" and run for the stairs. → corridor_safe
+- Agree to take the elevator up to the 4th floor. [sfx: elevator_ding.ogg] → fourth_floor_elevator
+- Say "I don't have time!" and run for the stairs. [sfx: footstep.ogg] → corridor_safe
