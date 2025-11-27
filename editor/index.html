@@ -40,7 +40,14 @@
                     <div id="preview-background"></div>
                     <div id="preview-sprites"></div>
                     <div id="preview-textbox">
-                        <p id="preview-text">Select or create a scene to begin editing...</p>
+                        <div id="text-nav">
+                            <button id="text-prev-btn" class="text-nav-btn" title="Previous block (←)">←</button>
+                            <span id="text-block-indicator">Block 1 / 1</span>
+                            <button id="text-next-btn" class="text-nav-btn" title="Next block (→)">→</button>
+                            <button id="text-add-btn" class="text-nav-btn" title="Add new block">+</button>
+                            <button id="text-delete-btn" class="text-nav-btn" title="Delete this block">×</button>
+                        </div>
+                        <textarea id="preview-text" placeholder="Click here to write your story text..."></textarea>
                     </div>
                 </div>
 
@@ -92,12 +99,6 @@
                     </select>
                     <button id="music-preview-btn" class="btn-icon" title="Preview music">Play</button>
                 </div>
-            </div>
-
-            <div class="panel-section">
-                <h3>Text Blocks</h3>
-                <div id="text-blocks-container"></div>
-                <button id="add-text-block-btn" class="btn-secondary">+ Add Text Block</button>
             </div>
 
             <div class="panel-section">

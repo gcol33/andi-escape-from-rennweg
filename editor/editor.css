@@ -349,15 +349,83 @@ label textarea {
     height: 40%;
     background: rgba(250, 241, 224, 0.95);
     border-top: 3px solid #d3c2a8;
-    padding: 15px 20px;
+    padding: 10px 15px;
     display: flex;
-    align-items: flex-start;
+    flex-direction: column;
 }
 
+/* Text navigation bar */
+#text-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+}
+
+#text-block-indicator {
+    font-size: 0.8rem;
+    color: #8a7a6a;
+    min-width: 80px;
+    text-align: center;
+}
+
+.text-nav-btn {
+    background: #d3c2a8;
+    color: #5c4732;
+    border: none;
+    border-radius: 3px;
+    padding: 4px 10px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.text-nav-btn:hover:not(:disabled) {
+    background: #b08b5a;
+    color: #fff;
+}
+
+.text-nav-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+#text-add-btn {
+    margin-left: auto;
+}
+
+#text-delete-btn {
+    background: transparent;
+    color: #a88;
+}
+
+#text-delete-btn:hover:not(:disabled) {
+    background: #c44;
+    color: #fff;
+}
+
+/* Editable text area */
 #preview-text {
+    flex: 1;
+    width: 100%;
     color: #4b3e2a;
     font-size: 0.95rem;
     line-height: 1.5;
+    background: transparent;
+    border: none;
+    resize: none;
+    padding: 0;
+    font-family: inherit;
+}
+
+#preview-text:focus {
+    outline: none;
+}
+
+#preview-text::placeholder {
+    color: #a09080;
+    font-style: italic;
 }
 
 /* Drop zone overlay */

@@ -72,7 +72,10 @@ const Editor = (function() {
         modifiedScenes: new Set(), // Track which scenes have unsaved changes
         draggedSprite: null,  // Currently dragged sprite element
         selectedSprite: null, // Currently selected sprite on canvas
-        musicPlaying: false
+        musicPlaying: false,
+        // Text block navigation
+        textBlocks: [''],     // Current text blocks array
+        currentTextBlockIndex: 0
     };
 
     // === DOM References ===
@@ -116,10 +119,16 @@ const Editor = (function() {
             musicSelect: document.getElementById('music-select'),
             musicPreviewBtn: document.getElementById('music-preview-btn'),
             musicPlayer: document.getElementById('music-player'),
-            textBlocksContainer: document.getElementById('text-blocks-container'),
-            addTextBlockBtn: document.getElementById('add-text-block-btn'),
             choicesContainer: document.getElementById('choices-container'),
             addChoiceBtn: document.getElementById('add-choice-btn'),
+
+            // Text editing (on canvas)
+            previewTextarea: document.getElementById('preview-text'),
+            textBlockIndicator: document.getElementById('text-block-indicator'),
+            textPrevBtn: document.getElementById('text-prev-btn'),
+            textNextBtn: document.getElementById('text-next-btn'),
+            textAddBtn: document.getElementById('text-add-btn'),
+            textDeleteBtn: document.getElementById('text-delete-btn'),
 
             // Flags
             setFlagsContainer: document.getElementById('set-flags-container'),
@@ -162,8 +171,12 @@ const Editor = (function() {
         elements.musicSelect.addEventListener('change', onSceneModified);
         elements.musicPreviewBtn.addEventListener('click', toggleMusicPreview);
 
-        // Text blocks
-        elements.addTextBlockBtn.addEventListener('click', addTextBlock);
+        // Text block navigation (on canvas)
+        elements.textPrevBtn.addEventListener('click', () => navigateTextBlock(-1));
+        elements.textNextBtn.addEventListener('click', () => navigateTextBlock(1));
+        elements.textAddBtn.addEventListener('click', addNewTextBlock);
+        elements.textDeleteBtn.addEventListener('click', deleteCurrentTextBlock);
+        elements.previewTextarea.addEventListener('input', onTextBlockInput);
 
         // Choices
         elements.addChoiceBtn.addEventListener('click', addChoice);
@@ -263,19 +276,28 @@ const Editor = (function() {
             }
         });
 
-        // Drop on canvas
-        elements.previewSprites.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'copy';
+        // Drop on entire canvas (background + sprites area)
+        elements.canvasPreview.addEventListener('dragover', (e) => {
+            // Only allow sprite drops (not file drops which are for background)
+            if (e.dataTransfer.types.includes('text/plain')) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
+            }
         });
 
-        elements.previewSprites.addEventListener('drop', (e) => {
-            e.preventDefault();
+        elements.canvasPreview.addEventListener('drop', (e) => {
             const spriteFile = e.dataTransfer.getData('text/plain');
             if (spriteFile && spriteFile.endsWith('.svg')) {
+                e.preventDefault();
+                // Calculate position relative to sprite layer
                 const rect = elements.previewSprites.getBoundingClientRect();
-                const x = ((e.clientX - rect.left) / rect.width) * 100;
-                const y = ((e.clientY - rect.top) / rect.height) * 100;
+                let x = ((e.clientX - rect.left) / rect.width) * 100;
+                let y = ((e.clientY - rect.top) / rect.height) * 100;
+
+                // Clamp to reasonable bounds
+                x = Math.max(5, Math.min(95, x));
+                y = Math.max(10, Math.min(95, y));
+
                 addSpriteToCanvas(spriteFile, x, y);
             }
         });
@@ -479,8 +501,12 @@ const Editor = (function() {
             });
         }
 
-        // Text blocks
-        renderTextBlocks(scene.textBlocks || []);
+        // Text blocks - load into state and display first
+        state.textBlocks = scene.textBlocks && scene.textBlocks.length > 0
+            ? [...scene.textBlocks]
+            : [''];
+        state.currentTextBlockIndex = 0;
+        updateTextBlockDisplay();
 
         // Choices
         renderChoices(scene.choices || []);
@@ -494,9 +520,6 @@ const Editor = (function() {
 
         // Incoming references
         updateIncomingScenes(scene.id);
-
-        // Update preview text
-        updatePreviewText(scene.textBlocks);
 
         // Enable buttons
         elements.saveBtn.disabled = false;
@@ -517,120 +540,75 @@ const Editor = (function() {
         }
     }
 
-    function updatePreviewText(textBlocks) {
-        if (textBlocks && textBlocks.length > 0) {
-            elements.previewText.textContent = textBlocks[0].substring(0, 150) + (textBlocks[0].length > 150 ? '...' : '');
-        } else {
-            elements.previewText.textContent = 'No text content';
+    // === Text Block Navigation (on canvas) ===
+    function updateTextBlockDisplay() {
+        const total = state.textBlocks.length;
+        const current = state.currentTextBlockIndex + 1;
+
+        // Update indicator
+        elements.textBlockIndicator.textContent = `Block ${current} / ${total}`;
+
+        // Update textarea content
+        elements.previewTextarea.value = state.textBlocks[state.currentTextBlockIndex] || '';
+
+        // Update button states
+        elements.textPrevBtn.disabled = state.currentTextBlockIndex <= 0;
+        elements.textNextBtn.disabled = state.currentTextBlockIndex >= total - 1;
+        elements.textDeleteBtn.disabled = total <= 1; // Can't delete last block
+    }
+
+    function navigateTextBlock(direction) {
+        // Save current text first
+        saveCurrentTextBlock();
+
+        const newIndex = state.currentTextBlockIndex + direction;
+        if (newIndex >= 0 && newIndex < state.textBlocks.length) {
+            state.currentTextBlockIndex = newIndex;
+            updateTextBlockDisplay();
         }
     }
 
-    // === Text Blocks ===
-    function renderTextBlocks(textBlocks) {
-        elements.textBlocksContainer.innerHTML = '';
-
-        textBlocks.forEach((text, index) => {
-            addTextBlockElement(text, index);
-        });
+    function saveCurrentTextBlock() {
+        state.textBlocks[state.currentTextBlockIndex] = elements.previewTextarea.value;
     }
 
-    function addTextBlockElement(text = '', index = null) {
-        const blockDiv = document.createElement('div');
-        blockDiv.className = 'text-block';
-
-        const header = document.createElement('div');
-        header.className = 'text-block-header';
-
-        const label = document.createElement('span');
-        const blockIndex = index !== null ? index : elements.textBlocksContainer.children.length;
-        label.textContent = `Block ${blockIndex + 1}`;
-
-        const actions = document.createElement('div');
-        actions.className = 'text-block-actions';
-
-        if (blockIndex > 0) {
-            const upBtn = document.createElement('button');
-            upBtn.className = 'btn-icon';
-            upBtn.textContent = '↑';
-            upBtn.title = 'Move up';
-            upBtn.addEventListener('click', () => moveTextBlock(blockDiv, -1));
-            actions.appendChild(upBtn);
-        }
-
-        const downBtn = document.createElement('button');
-        downBtn.className = 'btn-icon';
-        downBtn.textContent = '↓';
-        downBtn.title = 'Move down';
-        downBtn.addEventListener('click', () => moveTextBlock(blockDiv, 1));
-        actions.appendChild(downBtn);
-
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'btn-icon';
-        deleteBtn.textContent = '×';
-        deleteBtn.title = 'Delete block';
-        deleteBtn.addEventListener('click', () => {
-            blockDiv.remove();
-            renumberTextBlocks();
-            onSceneModified();
-        });
-        actions.appendChild(deleteBtn);
-
-        header.appendChild(label);
-        header.appendChild(actions);
-
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.placeholder = 'Enter text for this block...';
-        textarea.addEventListener('input', () => {
-            onSceneModified();
-            updatePreviewText(getTextBlocksFromEditor());
-        });
-
-        blockDiv.appendChild(header);
-        blockDiv.appendChild(textarea);
-        elements.textBlocksContainer.appendChild(blockDiv);
-    }
-
-    function addTextBlock() {
-        addTextBlockElement('');
+    function onTextBlockInput() {
+        saveCurrentTextBlock();
         onSceneModified();
-        // Focus the new textarea
-        const textareas = elements.textBlocksContainer.querySelectorAll('textarea');
-        textareas[textareas.length - 1].focus();
     }
 
-    function moveTextBlock(blockDiv, direction) {
-        const blocks = Array.from(elements.textBlocksContainer.children);
-        const index = blocks.indexOf(blockDiv);
-        const newIndex = index + direction;
+    function addNewTextBlock() {
+        // Save current first
+        saveCurrentTextBlock();
 
-        if (newIndex >= 0 && newIndex < blocks.length) {
-            if (direction === -1) {
-                elements.textBlocksContainer.insertBefore(blockDiv, blocks[newIndex]);
-            } else {
-                elements.textBlocksContainer.insertBefore(blocks[newIndex], blockDiv);
-            }
-            renumberTextBlocks();
-            onSceneModified();
+        // Add new block after current
+        state.currentTextBlockIndex++;
+        state.textBlocks.splice(state.currentTextBlockIndex, 0, '');
+
+        updateTextBlockDisplay();
+        elements.previewTextarea.focus();
+        onSceneModified();
+    }
+
+    function deleteCurrentTextBlock() {
+        if (state.textBlocks.length <= 1) return;
+
+        state.textBlocks.splice(state.currentTextBlockIndex, 1);
+
+        // Adjust index if we deleted the last block
+        if (state.currentTextBlockIndex >= state.textBlocks.length) {
+            state.currentTextBlockIndex = state.textBlocks.length - 1;
         }
-    }
 
-    function renumberTextBlocks() {
-        const blocks = elements.textBlocksContainer.querySelectorAll('.text-block');
-        blocks.forEach((block, index) => {
-            const label = block.querySelector('.text-block-header span');
-            label.textContent = `Block ${index + 1}`;
-        });
+        updateTextBlockDisplay();
+        onSceneModified();
     }
 
     function getTextBlocksFromEditor() {
-        const blocks = [];
-        elements.textBlocksContainer.querySelectorAll('textarea').forEach(textarea => {
-            if (textarea.value.trim()) {
-                blocks.push(textarea.value.trim());
-            }
-        });
-        return blocks;
+        // Make sure current is saved
+        saveCurrentTextBlock();
+        // Return non-empty blocks
+        return state.textBlocks.filter(b => b.trim());
     }
 
     // === Choices ===
@@ -1308,13 +1286,21 @@ const Editor = (function() {
         updateBackgroundPreview(null);
         elements.musicSelect.value = '';
         elements.previewSprites.innerHTML = '';
-        elements.textBlocksContainer.innerHTML = '';
         elements.choicesContainer.innerHTML = '';
         elements.setFlagsContainer.innerHTML = '';
         elements.requireFlagsContainer.innerHTML = '';
         elements.actionsContainer.innerHTML = '';
         elements.incomingScenes.innerHTML = '<span class="placeholder">Save scene to see references</span>';
-        elements.previewText.textContent = 'Select or create a scene to begin editing...';
+
+        // Clear text editor
+        state.textBlocks = [''];
+        state.currentTextBlockIndex = 0;
+        elements.previewTextarea.value = '';
+        elements.textBlockIndicator.textContent = 'Block 1 / 1';
+        elements.textPrevBtn.disabled = true;
+        elements.textNextBtn.disabled = true;
+        elements.textDeleteBtn.disabled = true;
+
         elements.saveBtn.disabled = true;
         elements.deleteSceneBtn.disabled = true;
 
@@ -1614,6 +1600,17 @@ const Editor = (function() {
         // Escape to deselect
         if (e.key === 'Escape') {
             deselectSprite();
+        }
+
+        // Arrow keys for text block navigation (only when not in textarea)
+        if (document.activeElement !== elements.previewTextarea) {
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                navigateTextBlock(-1);
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                navigateTextBlock(1);
+            }
         }
     }
 

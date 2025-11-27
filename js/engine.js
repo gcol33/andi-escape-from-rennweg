@@ -1201,7 +1201,23 @@ const VNEngine = (function() {
 // Auto-initialize when DOM is ready
 // Password screen must be completed before game starts
 document.addEventListener('DOMContentLoaded', function() {
-    // Check if password screen exists
+    // Check for ?scene= parameter (editor preview mode)
+    var urlParams = new URLSearchParams(window.location.search);
+    var previewScene = urlParams.get('scene');
+
+    if (previewScene) {
+        // Preview mode: skip password, hide overlay, load specific scene
+        var passwordOverlay = document.getElementById('password-overlay');
+        if (passwordOverlay) {
+            passwordOverlay.classList.add('hidden');
+        }
+        VNEngine.init();
+        // Override to load the preview scene
+        VNEngine.loadScene(previewScene);
+        return;
+    }
+
+    // Normal mode: check if password screen exists
     var passwordOverlay = document.getElementById('password-overlay');
 
     if (passwordOverlay && typeof PasswordScreen !== 'undefined') {
