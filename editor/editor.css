@@ -267,7 +267,7 @@ label textarea {
 #canvas-preview {
     position: relative;
     width: 100%;
-    max-width: 800px;
+    max-width: 1200px;
     aspect-ratio: 16 / 9;
     background: #2a2a3a;
     border-radius: 8px;
@@ -288,57 +288,77 @@ label textarea {
 
 #preview-sprites {
     position: absolute;
-    bottom: 40%;
+    top: 0;
     left: 0;
     width: 100%;
-    height: 56%;
+    height: 100%;
     pointer-events: none;
+    z-index: 1;
 }
 
 #preview-sprites .sprite {
     position: absolute;
-    max-height: 100%;
     cursor: move;
     pointer-events: auto;
     filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.3));
-    transition: outline 0.15s;
+    transition: filter 0.15s;
+}
+
+#preview-sprites .sprite img {
+    display: block;
+    height: auto;
+    max-width: 300px;
+    object-fit: contain;
 }
 
 #preview-sprites .sprite:hover {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
+    filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.3)) drop-shadow(0 0 8px var(--accent));
 }
 
 #preview-sprites .sprite.dragging {
-    outline: 2px dashed var(--accent);
+    filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.3)) drop-shadow(0 0 12px var(--accent));
     opacity: 0.8;
 }
 
+#preview-sprites .sprite.resizing {
+    filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.3)) drop-shadow(0 0 12px #4a4);
+    cursor: ns-resize;
+}
+
 #preview-sprites .sprite.selected {
-    outline: 3px solid var(--accent);
-    outline-offset: 2px;
+    filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.3)) drop-shadow(0 0 10px var(--accent)) drop-shadow(0 0 20px var(--accent));
 }
 
 .sprite-delete-btn {
     position: absolute;
-    top: -8px;
-    right: -8px;
-    width: 20px;
-    height: 20px;
+    top: -6px;
+    right: -6px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
     background: var(--danger);
-    color: #fff;
-    border: none;
-    font-size: 12px;
-    line-height: 1;
+    border: 1px solid #fff;
     cursor: pointer;
     display: none;
     z-index: 10;
+    padding: 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    font-size: 12px;
+    font-weight: bold;
+    color: #fff;
+    line-height: 1;
+    align-items: center;
+    justify-content: center;
+}
+
+.sprite-delete-btn:hover {
+    background: var(--danger-hover);
+    transform: scale(1.15);
 }
 
 .sprite:hover .sprite-delete-btn,
 .sprite.selected .sprite-delete-btn {
-    display: block;
+    display: flex;
 }
 
 #preview-textbox {
@@ -352,6 +372,7 @@ label textarea {
     padding: 10px 15px;
     display: flex;
     flex-direction: column;
+    z-index: 2;
 }
 
 /* Text navigation bar */
@@ -456,6 +477,105 @@ label textarea {
 .drop-icon {
     font-size: 1.5rem;
     font-weight: 600;
+}
+
+/* === Node Connections Panel === */
+#node-connections-panel {
+    display: flex;
+    align-items: stretch;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border);
+    padding: 10px 20px;
+    gap: 15px;
+    min-height: 70px;
+}
+
+.connections-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.connections-section h4 {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.connections-section:first-child {
+    text-align: left;
+}
+
+.connections-section:last-child {
+    text-align: right;
+}
+
+.connections-section:last-child .connections-list {
+    justify-content: flex-end;
+}
+
+.connections-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.connections-list .placeholder {
+    font-size: 0.75rem;
+}
+
+.connection-node {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.connection-node:hover {
+    background: var(--border);
+    border-color: var(--accent);
+}
+
+.connection-node .connection-type {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    background: var(--bg-primary);
+    padding: 1px 4px;
+    border-radius: 2px;
+}
+
+.current-scene-node {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    min-width: 120px;
+}
+
+.current-scene-node span {
+    background: var(--accent);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-align: center;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* === Sprite Palette === */

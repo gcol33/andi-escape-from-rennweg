@@ -72,6 +72,8 @@ const Editor = (function() {
         modifiedScenes: new Set(), // Track which scenes have unsaved changes
         draggedSprite: null,  // Currently dragged sprite element
         selectedSprite: null, // Currently selected sprite on canvas
+        resizingSprite: null, // Sprite being resized with Shift
+        initialResizeData: null, // Initial data for resize operation
         musicPlaying: false,
         // Text block navigation
         textBlocks: [''],     // Current text blocks array
@@ -93,28 +95,49 @@ const Editor = (function() {
     }
 
     async function autoLoadScenes() {
-        // First, try to load from the compiled story.js
+        // First check if story is already loaded (via script tag)
+        if (typeof story !== 'undefined' && story) {
+            let count = 0;
+            for (const [id, scene] of Object.entries(story)) {
+                state.scenes[id] = scene;
+                count++;
+            }
+            console.log(`Auto-loaded ${count} scenes from global story object`);
+            renderSceneList();
+            saveSenesToStorage();
+            return;
+        }
+
+        // Try to load from the compiled story.js via fetch
         try {
             const response = await fetch('../js/story.js');
             if (response.ok) {
                 const jsContent = await response.text();
                 // Extract the story object from the JS file
-                const match = jsContent.match(/const story = ({[\s\S]*?});/);
-                if (match) {
-                    const storyData = JSON.parse(match[1]);
-                    let count = 0;
-                    for (const [id, scene] of Object.entries(storyData)) {
-                        state.scenes[id] = scene;
-                        count++;
+                // Find start after "const story = " and end at "};" on its own line
+                const startMarker = 'const story = ';
+                const startIdx = jsContent.indexOf(startMarker);
+                if (startIdx !== -1) {
+                    const jsonStart = startIdx + startMarker.length;
+                    // Find the closing }; that ends the object (on its own line or followed by newline)
+                    const endMatch = jsContent.indexOf('\n};', jsonStart);
+                    if (endMatch !== -1) {
+                        const jsonStr = jsContent.substring(jsonStart, endMatch + 2); // +2 to include the }
+                        const storyData = JSON.parse(jsonStr);
+                        let count = 0;
+                        for (const [id, scene] of Object.entries(storyData)) {
+                            state.scenes[id] = scene;
+                            count++;
+                        }
+                        console.log(`Auto-loaded ${count} scenes from story.js via fetch`);
+                        renderSceneList();
+                        saveSenesToStorage();
+                        return;
                     }
-                    console.log(`Auto-loaded ${count} scenes from story.js`);
-                    renderSceneList();
-                    saveSenesToStorage();
-                    return;
                 }
             }
         } catch (e) {
-            console.log('Could not load from story.js:', e.message);
+            console.log('Could not load from story.js via fetch:', e.message);
         }
 
         // Fallback: try to load from localStorage
@@ -171,8 +194,13 @@ const Editor = (function() {
             actionsContainer: document.getElementById('actions-container'),
             addActionBtn: document.getElementById('add-action-btn'),
 
-            // Incoming
+            // Incoming (sidebar)
             incomingScenes: document.getElementById('incoming-scenes'),
+
+            // Node connections panel
+            incomingConnections: document.getElementById('incoming-connections'),
+            outgoingConnections: document.getElementById('outgoing-connections'),
+            nodeCurrentScene: document.getElementById('node-current-scene'),
 
             // Delete
             deleteSceneBtn: document.getElementById('delete-scene-btn'),
@@ -292,16 +320,25 @@ const Editor = (function() {
     function setupSpriteDragDrop() {
         // Drag from gallery
         elements.spriteGallery.addEventListener('dragstart', (e) => {
-            if (e.target.classList.contains('sprite-thumb')) {
-                e.target.classList.add('dragging');
-                e.dataTransfer.setData('text/plain', e.target.dataset.sprite);
+            const thumb = e.target.closest('.sprite-thumb');
+            if (thumb) {
+                thumb.classList.add('dragging');
+                e.dataTransfer.setData('text/plain', thumb.dataset.sprite);
                 e.dataTransfer.effectAllowed = 'copy';
+
+                // Use the image inside the thumb as the drag image
+                const img = thumb.querySelector('img');
+                if (img) {
+                    // Create a smaller drag image
+                    e.dataTransfer.setDragImage(img, img.width / 2, img.height / 2);
+                }
             }
         });
 
         elements.spriteGallery.addEventListener('dragend', (e) => {
-            if (e.target.classList.contains('sprite-thumb')) {
-                e.target.classList.remove('dragging');
+            const thumb = e.target.closest('.sprite-thumb');
+            if (thumb) {
+                thumb.classList.remove('dragging');
             }
         });
 
@@ -321,11 +358,23 @@ const Editor = (function() {
                 // Calculate position relative to sprite layer
                 const rect = elements.previewSprites.getBoundingClientRect();
                 let x = ((e.clientX - rect.left) / rect.width) * 100;
-                let y = ((e.clientY - rect.top) / rect.height) * 100;
+                let yRaw = ((e.clientY - rect.top) / rect.height) * 100;
 
-                // Clamp to reasonable bounds
+                // Snap Y to 4 preset positions based on drop zone
+                // Divide canvas into bands, max Y is 65% to stay above text box
+                let y;
+                if (yRaw < 15) {
+                    y = 10;  // highest
+                } else if (yRaw < 35) {
+                    y = 25;  // high
+                } else if (yRaw < 55) {
+                    y = 45;  // middle
+                } else {
+                    y = 65;  // low (max allowed)
+                }
+
+                // Clamp X to reasonable bounds
                 x = Math.max(5, Math.min(95, x));
-                y = Math.max(10, Math.min(95, y));
 
                 addSpriteToCanvas(spriteFile, x, y);
             }
@@ -337,17 +386,19 @@ const Editor = (function() {
         document.addEventListener('mouseup', onSpriteMouseUp);
     }
 
-    function addSpriteToCanvas(spriteFile, x = 50, y = 80) {
+    function addSpriteToCanvas(spriteFile, x = 50, y = 50, scale = 1, autoSelect = true) {
         const sprite = document.createElement('div');
         sprite.className = 'sprite';
         sprite.dataset.file = spriteFile;
         sprite.dataset.x = x;
         sprite.dataset.y = y;
+        sprite.dataset.scale = scale;
 
-        // Position: x is center, y is bottom of sprite
+        // Position: x/y are center of sprite
         sprite.style.left = x + '%';
-        sprite.style.bottom = (100 - y) + '%';
-        sprite.style.transform = 'translateX(-50%)';
+        sprite.style.top = y + '%';
+        sprite.style.transform = `translate(-50%, -50%) scale(${scale})`;
+        sprite.style.transformOrigin = 'center center';
 
         const img = document.createElement('img');
         img.src = config.assetPaths.char + spriteFile;
@@ -356,7 +407,8 @@ const Editor = (function() {
 
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'sprite-delete-btn';
-        deleteBtn.textContent = '×';
+        deleteBtn.title = 'Remove sprite';
+        deleteBtn.innerHTML = '<svg viewBox="0 0 10 10" width="8" height="8"><line x1="1" y1="1" x2="9" y2="9" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="9" y1="1" x2="1" y2="9" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>';
         deleteBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             sprite.remove();
@@ -371,8 +423,10 @@ const Editor = (function() {
         });
 
         elements.previewSprites.appendChild(sprite);
-        selectSprite(sprite);
-        onSceneModified();
+        if (autoSelect) {
+            selectSprite(sprite);
+            onSceneModified();
+        }
     }
 
     function selectSprite(sprite) {
@@ -391,27 +445,55 @@ const Editor = (function() {
     function onSpriteMouseDown(e) {
         const sprite = e.target.closest('.sprite');
         if (sprite && !e.target.classList.contains('sprite-delete-btn')) {
-            state.draggedSprite = sprite;
-            sprite.classList.add('dragging');
             selectSprite(sprite);
             e.preventDefault();
+
+            if (e.shiftKey) {
+                // Shift+drag = resize
+                state.resizingSprite = sprite;
+                const rect = elements.previewSprites.getBoundingClientRect();
+                state.initialResizeData = {
+                    startY: e.clientY,
+                    startScale: parseFloat(sprite.dataset.scale) || 1
+                };
+                sprite.classList.add('resizing');
+            } else {
+                // Normal drag = move
+                state.draggedSprite = sprite;
+                sprite.classList.add('dragging');
+            }
         }
     }
 
     function onSpriteMouseMove(e) {
         if (state.draggedSprite) {
+            // Moving sprite
             const rect = elements.previewSprites.getBoundingClientRect();
             let x = ((e.clientX - rect.left) / rect.width) * 100;
             let y = ((e.clientY - rect.top) / rect.height) * 100;
 
-            // Clamp to bounds
+            // Clamp to bounds (max Y is 65% to stay above text box)
             x = Math.max(5, Math.min(95, x));
-            y = Math.max(10, Math.min(95, y));
+            y = Math.max(5, Math.min(65, y));
 
             state.draggedSprite.style.left = x + '%';
-            state.draggedSprite.style.bottom = (100 - y) + '%';
+            state.draggedSprite.style.top = y + '%';
             state.draggedSprite.dataset.x = x;
             state.draggedSprite.dataset.y = y;
+        }
+
+        if (state.resizingSprite && state.initialResizeData) {
+            // Resizing sprite - drag up to grow, drag down to shrink
+            const deltaY = state.initialResizeData.startY - e.clientY;
+            const scaleFactor = deltaY / 100; // 100px drag = 1x scale change
+            let newScale = state.initialResizeData.startScale + scaleFactor;
+
+            // Clamp scale between 0.2 and 3
+            newScale = Math.max(0.2, Math.min(3, newScale));
+
+            const currentScale = parseFloat(state.resizingSprite.dataset.scale) || 1;
+            state.resizingSprite.dataset.scale = newScale;
+            state.resizingSprite.style.transform = `translate(-50%, -50%) scale(${newScale})`;
         }
     }
 
@@ -419,6 +501,13 @@ const Editor = (function() {
         if (state.draggedSprite) {
             state.draggedSprite.classList.remove('dragging');
             state.draggedSprite = null;
+            onSceneModified();
+        }
+
+        if (state.resizingSprite) {
+            state.resizingSprite.classList.remove('resizing');
+            state.resizingSprite = null;
+            state.initialResizeData = null;
             onSceneModified();
         }
     }
@@ -458,9 +547,6 @@ const Editor = (function() {
 
     // === Scene Management ===
     function createNewScene() {
-        if (state.modified && !confirm('You have unsaved changes. Create new scene anyway?')) {
-            return;
-        }
 
         const newId = 'new_scene_' + Date.now();
         const scene = {
@@ -487,9 +573,6 @@ const Editor = (function() {
     }
 
     function loadScene(sceneId) {
-        if (state.modified && !confirm('You have unsaved changes. Load different scene anyway?')) {
-            return;
-        }
 
         const scene = state.scenes[sceneId];
         if (!scene) return;
@@ -502,6 +585,9 @@ const Editor = (function() {
     }
 
     function loadSceneIntoEditor(scene) {
+        // Deselect any selected sprite
+        deselectSprite();
+
         // Scene ID
         elements.sceneId.value = scene.id;
         elements.currentSceneName.textContent = scene.id;
@@ -520,12 +606,12 @@ const Editor = (function() {
             scene.chars.forEach((char, index) => {
                 // Handle both old format (string) and new format (object with position)
                 if (typeof char === 'string') {
-                    // Old format: distribute evenly
+                    // Old format: distribute evenly, vertically centered
                     const x = 50 + (index - (scene.chars.length - 1) / 2) * 25;
-                    addSpriteToCanvas(char, x, 85);
+                    addSpriteToCanvas(char, x, 50, 1, false);
                 } else {
-                    // New format with position
-                    addSpriteToCanvas(char.file, char.x || 50, char.y || 85);
+                    // New format with position and optional scale
+                    addSpriteToCanvas(char.file, char.x || 50, char.y || 50, char.scale || 1, false);
                 }
             });
         }
@@ -547,8 +633,11 @@ const Editor = (function() {
         // Actions
         renderActions(scene.actions || []);
 
-        // Incoming references
+        // Incoming references (sidebar)
         updateIncomingScenes(scene.id);
+
+        // Node connections panel
+        updateNodeConnections(scene);
 
         // Enable buttons
         elements.saveBtn.disabled = false;
@@ -1093,6 +1182,143 @@ const Editor = (function() {
         return incoming;
     }
 
+    // === Node Connections Panel ===
+    function updateNodeConnections(scene) {
+        // Update current scene name in center
+        elements.nodeCurrentScene.textContent = scene.id || 'No scene';
+
+        // Update incoming connections
+        updateIncomingConnectionsPanel(scene.id);
+
+        // Update outgoing connections
+        updateOutgoingConnectionsPanel(scene);
+    }
+
+    function updateIncomingConnectionsPanel(sceneId) {
+        elements.incomingConnections.innerHTML = '';
+
+        const incoming = findIncomingScenes(sceneId);
+
+        if (incoming.length === 0) {
+            elements.incomingConnections.innerHTML = '<span class="placeholder">No scenes lead here</span>';
+            return;
+        }
+
+        incoming.forEach(ref => {
+            const node = document.createElement('div');
+            node.className = 'connection-node';
+            node.innerHTML = `
+                <span class="connection-name">${ref.from}</span>
+                <span class="connection-type">${ref.type}</span>
+            `;
+            node.title = `Click to go to ${ref.from}`;
+            node.addEventListener('click', () => loadScene(ref.from));
+            elements.incomingConnections.appendChild(node);
+        });
+    }
+
+    function updateOutgoingConnectionsPanel(scene) {
+        elements.outgoingConnections.innerHTML = '';
+
+        const outgoing = [];
+
+        // Collect choices
+        if (scene.choices && scene.choices.length > 0) {
+            scene.choices.forEach(choice => {
+                if (choice.target) {
+                    outgoing.push({
+                        target: choice.target,
+                        type: 'choice',
+                        label: choice.text ? choice.text.substring(0, 20) : 'choice'
+                    });
+                }
+            });
+        }
+
+        // Collect dice action targets
+        if (scene.actions && scene.actions.length > 0) {
+            scene.actions.forEach(action => {
+                if (action.success_target) {
+                    outgoing.push({
+                        target: action.success_target,
+                        type: 'success',
+                        label: `dice ≥${action.dc || '?'}`
+                    });
+                }
+                if (action.failure_target) {
+                    outgoing.push({
+                        target: action.failure_target,
+                        type: 'failure',
+                        label: `dice <${action.dc || '?'}`
+                    });
+                }
+            });
+        }
+
+        if (outgoing.length === 0) {
+            elements.outgoingConnections.innerHTML = '<span class="placeholder">End scene (no outputs)</span>';
+            return;
+        }
+
+        outgoing.forEach(ref => {
+            const node = document.createElement('div');
+            node.className = 'connection-node';
+
+            // Check if target scene exists
+            const exists = state.scenes[ref.target];
+
+            node.innerHTML = `
+                <span class="connection-name">${ref.target}</span>
+                <span class="connection-type">${ref.type}</span>
+            `;
+            node.title = exists
+                ? `Click to go to ${ref.target}`
+                : `${ref.target} (scene not found - click to create)`;
+
+            if (!exists) {
+                node.style.borderColor = 'var(--warning)';
+            }
+
+            node.addEventListener('click', () => {
+                if (exists) {
+                    loadScene(ref.target);
+                } else {
+                    // Offer to create the scene
+                    if (confirm(`Scene "${ref.target}" doesn't exist. Create it?`)) {
+                        createSceneWithId(ref.target);
+                    }
+                }
+            });
+            elements.outgoingConnections.appendChild(node);
+        });
+    }
+
+    function createSceneWithId(id) {
+        const newScene = {
+            id: id,
+            bg: '',
+            chars: [],
+            textBlocks: [''],
+            choices: [],
+            set_flags: [],
+            require_flags: [],
+            actions: []
+        };
+
+        state.scenes[id] = newScene;
+        state.currentSceneId = id;
+
+        loadSceneIntoEditor(newScene);
+        renderSceneList();
+        onSceneModified();
+    }
+
+    function clearNodeConnections() {
+        elements.nodeCurrentScene.textContent = 'No scene selected';
+        elements.incomingConnections.innerHTML = '<span class="placeholder">No scenes lead here</span>';
+        elements.outgoingConnections.innerHTML = '<span class="placeholder">No outgoing connections</span>';
+    }
+
     // === Save / Export ===
     function onSceneModified() {
         state.modified = true;
@@ -1130,11 +1356,16 @@ const Editor = (function() {
         // Get sprites from canvas
         const sprites = [];
         elements.previewSprites.querySelectorAll('.sprite').forEach(sprite => {
-            sprites.push({
+            const spriteData = {
                 file: sprite.dataset.file,
                 x: parseFloat(sprite.dataset.x),
                 y: parseFloat(sprite.dataset.y)
-            });
+            };
+            const scale = parseFloat(sprite.dataset.scale);
+            if (scale && scale !== 1) {
+                spriteData.scale = scale;
+            }
+            sprites.push(spriteData);
         });
 
         // Build scene object
@@ -1172,12 +1403,28 @@ const Editor = (function() {
     }
 
     function downloadCurrentScene() {
-        if (!state.currentSceneId) return;
+        if (!state.currentSceneId) {
+            alert('No scene selected to download.');
+            return;
+        }
+
+        // Validate scene ID first
+        const sceneIdValue = elements.sceneId.value.trim().toLowerCase().replace(/\s+/g, '_');
+        if (!sceneIdValue) {
+            alert('Scene ID is required before downloading.');
+            elements.sceneId.focus();
+            return;
+        }
 
         // Save first
         saveCurrentScene();
 
         const scene = state.scenes[state.currentSceneId];
+        if (!scene) {
+            alert('Scene could not be saved. Please check your scene data.');
+            return;
+        }
+
         const md = generateMarkdown(scene);
 
         // Download
@@ -1210,10 +1457,13 @@ const Editor = (function() {
                 if (typeof char === 'string') {
                     md += `  - ${char}\n`;
                 } else {
-                    // New format with position
+                    // New format with position and optional scale
                     md += `  - file: ${char.file}\n`;
                     md += `    x: ${Math.round(char.x)}\n`;
                     md += `    y: ${Math.round(char.y)}\n`;
+                    if (char.scale && char.scale !== 1) {
+                        md += `    scale: ${char.scale.toFixed(2)}\n`;
+                    }
                 }
             });
         }

@@ -868,16 +868,18 @@ const VNEngine = (function() {
 
             chars.forEach(function(char) {
                 var img = document.createElement('img');
-                var filename, x, y;
+                var filename, x, y, scale;
 
                 if (typeof char === 'object') {
                     filename = char.file;
                     x = char.x !== undefined ? char.x : 50;
                     y = char.y !== undefined ? char.y : 85;
+                    scale = char.scale !== undefined ? char.scale : 1;
                 } else {
                     filename = char;
                     x = 50;
                     y = 85;
+                    scale = 1;
                 }
 
                 img.src = config.assetPaths.char + filename;
@@ -885,7 +887,8 @@ const VNEngine = (function() {
                 img.style.position = 'absolute';
                 img.style.left = x + '%';
                 img.style.bottom = (100 - y) + '%';
-                img.style.transform = 'translateX(-50%)';
+                img.style.transform = 'translateX(-50%) scale(' + scale + ')';
+                img.style.transformOrigin = 'center bottom';
                 img.style.maxHeight = '100%';
                 img.style.maxWidth = '300px';
 

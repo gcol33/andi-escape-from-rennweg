@@ -59,6 +59,25 @@
                 </div>
             </div>
 
+            <!-- Node Connections Panel -->
+            <div id="node-connections-panel">
+                <div class="connections-section">
+                    <h4>← Incoming</h4>
+                    <div id="incoming-connections" class="connections-list">
+                        <span class="placeholder">No scenes lead here</span>
+                    </div>
+                </div>
+                <div class="current-scene-node">
+                    <span id="node-current-scene">No scene selected</span>
+                </div>
+                <div class="connections-section">
+                    <h4>Outgoing →</h4>
+                    <div id="outgoing-connections" class="connections-list">
+                        <span class="placeholder">No outgoing connections</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Sprite Palette -->
             <div id="sprite-palette">
                 <h3>Sprites <span class="hint">(drag onto canvas)</span></h3>
@@ -86,7 +105,6 @@
                     <select id="bg-select">
                         <option value="">-- None --</option>
                     </select>
-                    <div class="bg-drop-hint">Or drag & drop image</div>
                 </div>
             </div>
 
@@ -168,6 +186,8 @@
     <!-- Audio element for music preview -->
     <audio id="music-player"></audio>
 
+    <!-- Load story data (for file:// protocol support) -->
+    <script src="../js/story.js"></script>
     <script src="editor.js"></script>
 </body>
 </html>
