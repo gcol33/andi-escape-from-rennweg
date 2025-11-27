@@ -17,12 +17,7 @@ const story = {
     ],
     "set_flags": [],
     "require_flags": [],
-    "actions": [
-      {
-        "type": "play_sfx",
-        "file": "click.ogg"
-      }
-    ],
+    "actions": [],
     "textBlocks": [
       "You sigh, scribble your signature on the last page of the dense legal document, and hand the pen back to Agnes.\n\n\"All done, Andy! Best of luck,\" she chirps.\n\nYou are now free to take the stairs down, feeling only slightly heavier."
     ],
@@ -42,16 +37,7 @@ const story = {
     "chars": [],
     "set_flags": [],
     "require_flags": [],
-    "actions": [
-      {
-        "type": "play_sfx",
-        "file": "alarm_clock.ogg"
-      },
-      {
-        "type": "play_sfx",
-        "file": "failure.ogg"
-      }
-    ],
+    "actions": [],
     "textBlocks": [
       "You wake up in your apartment, startled. The clock says 7:00 AM.\n\nYou feel an inexplicable dread about the long commute ahead of you.\n\nYou remember nothing about a \"new job\" or a \"last day.\" You are stuck in an endless loop of yesterday.\n\n**You lost the game.**"
     ],
@@ -68,12 +54,7 @@ const story = {
     ],
     "set_flags": [],
     "require_flags": [],
-    "actions": [
-      {
-        "type": "play_sfx",
-        "file": "elevator_ding.ogg"
-      }
-    ],
+    "actions": [],
     "textBlocks": [
       "You agree and press the \"4\" button. The ride up is silent.\n\nWhen the doors open, Michi, Gilles, and Ruling are there, ready to ambush you with a whiteboard.\n\nYou spend the next two agonizing hours discussing the optimal parameters for a highly complex, niche model. Your resolve slowly erodes."
     ],
@@ -93,12 +74,7 @@ const story = {
     "chars": [],
     "set_flags": [],
     "require_flags": [],
-    "actions": [
-      {
-        "type": "play_sfx",
-        "file": "footstep.ogg"
-      }
-    ],
+    "actions": [],
     "textBlocks": [
       "Ignoring their desperate pleas, you walk past your former colleagues.\n\nThe hallway feels heavy with their disappointment, but you continue toward the dimly lit back stairwell.\n\nIt smells faintly of dust and cleaning supplies. You enjoy the silence of your final moments in the building."
     ],
@@ -120,12 +96,7 @@ const story = {
     ],
     "set_flags": [],
     "require_flags": [],
-    "actions": [
-      {
-        "type": "play_sfx",
-        "file": "thud.ogg"
-      }
-    ],
+    "actions": [],
     "textBlocks": [
       "You moved very fast, but Agnes is faster. Her leg snaps out with precision, and you trip, falling face down onto the carpet.\n\nThe wind is knocked out of you. Agnes calmly stands over you, holding the manila folder.\n\nBefore you can protest, she presses a button on her watch. The hallway lights dim. You wake up chained to your old desk."
     ],
@@ -145,12 +116,7 @@ const story = {
     "chars": [],
     "set_flags": [],
     "require_flags": [],
-    "actions": [
-      {
-        "type": "play_sfx",
-        "file": "door_slam.ogg"
-      }
-    ],
+    "actions": [],
     "textBlocks": [
       "The old wooden door closes with a dull thud behind you for the very last time. Your badge no longer works; your desk is empty.",
       "You stand in the dim hallway of the 1st floor, where scuffed tile stretches ahead and the overhead fluorescents hum their familiar drone.\n\nYour new job starts Monday, and this chapter is finally closed. Now, you just need to get to the entrance and head out to freedom."
@@ -183,16 +149,7 @@ const story = {
     "chars": [],
     "set_flags": [],
     "require_flags": [],
-    "actions": [
-      {
-        "type": "play_sfx",
-        "file": "chain.ogg"
-      },
-      {
-        "type": "play_sfx",
-        "file": "failure.ogg"
-      }
-    ],
+    "actions": [],
     "textBlocks": [
       "You wake up with a throbbing headache. You are chained to your old desk chair.\n\nThe office is dark, except for the flickering screen of a monitor displaying a perpetual \"System Update\" message.\n\nYou realize you have been working here, unknowingly, for a very long time.\n\n**You lost the game.**"
     ],
@@ -207,12 +164,7 @@ const story = {
     ],
     "set_flags": [],
     "require_flags": [],
-    "actions": [
-      {
-        "type": "play_sfx",
-        "file": "success.ogg"
-      }
-    ],
+    "actions": [],
     "textBlocks": [
       "You weren't fast enough to catch her completely off guard, but you saw the movement!\n\nAgnes stretches her leg in a lightning-fast trip move. In a moment of great sportiveness (you? REALLY?), you leap over her extended foot with a surprising burst of agility.\n\nYou get a clean run to the main stairs!"
     ],
@@ -235,12 +187,7 @@ const story = {
     ],
     "set_flags": [],
     "require_flags": [],
-    "actions": [
-      {
-        "type": "play_sfx",
-        "file": "door_open.ogg"
-      }
-    ],
+    "actions": [],
     "textBlocks": [
       "You shake off Joni and step firmly into the corridor, only to be immediately intercepted by Fabio and Ali.\n\n\"Andy! Leaving already? Just wanted to say hello and wish you luck!\"\n\nAfter a few minutes of pleasantries, Ali adds, \"Oh, you didn't say bye to the fourth floor folks, did you? Michi, Gilles, and Ruling will never forgive you!\""
     ],
@@ -269,12 +216,7 @@ const story = {
     ],
     "set_flags": [],
     "require_flags": [],
-    "actions": [
-      {
-        "type": "play_sfx",
-        "file": "alert.ogg"
-      }
-    ],
+    "actions": [],
     "textBlocks": [
       "You turn left toward the back stairwell, but before you reach it, you hear a frantic whispering from the office next door.\n\nTwo colleagues, Joni and Norbert, step out, looking desperate. Joni is frantically clutching a printed thesis draft.\n\n\"Andy! Thank God! You're the only one who knows the Bayesian Multi-Variate Regression with Inverse Propensity Weighting. My PhD submission is today, and it just crashed! Please, you have to help me!\""
     ],
@@ -309,12 +251,7 @@ const story = {
     ],
     "set_flags": [],
     "require_flags": [],
-    "actions": [
-      {
-        "type": "play_sfx",
-        "file": "warning.ogg"
-      }
-    ],
+    "actions": [],
     "textBlocks": [
       "Norbert grabs your sleeve.\n\n\"Please, Andy! Five minutes! You were always the best! If Joni misses the deadline, he loses everything!\""
     ],
@@ -342,12 +279,7 @@ const story = {
     ],
     "set_flags": [],
     "require_flags": [],
-    "actions": [
-      {
-        "type": "play_sfx",
-        "file": "footstep.ogg"
-      }
-    ],
+    "actions": [],
     "textBlocks": [
       "You turn right and walk toward the main stairwell. Just as you reach the landing, Agnes from HR steps out, blocking your path.\n\nShe holds a single, thick manila envelope and smiles a very thin smile.\n\n\"Andy. Perfect timing. Just a quick document I need you to sign before you are officially off the premises. Standard exit protocol.\""
     ],
@@ -379,12 +311,7 @@ const story = {
     "chars": [],
     "set_flags": [],
     "require_flags": [],
-    "actions": [
-      {
-        "type": "play_sfx",
-        "file": "gulp.ogg"
-      }
-    ],
+    "actions": [],
     "textBlocks": [
       "You step into the kitchen. It is eerily quiet. The coffee machine is running, smelling comfortingly familiar.\n\nYou quickly pour a mug. The coffee tastes strangely sweet, but you drink it down anyway.\n\nYou lean against the counter, feeling satisfied... and suddenly, incredibly drowsy."
     ],
@@ -423,10 +350,6 @@ const story = {
     "require_flags": [],
     "actions": [
       {
-        "type": "play_sfx",
-        "file": "dice_roll.ogg"
-      },
-      {
         "type": "roll_dice",
         "dice": "d20",
         "threshold": 13,
@@ -455,16 +378,7 @@ const story = {
     ],
     "set_flags": [],
     "require_flags": [],
-    "actions": [
-      {
-        "type": "play_sfx",
-        "file": "alarm.ogg"
-      },
-      {
-        "type": "play_sfx",
-        "file": "zap.ogg"
-      }
-    ],
+    "actions": [],
     "textBlocks": [
       "You politely (or rudely) refuse to sign. Agnes's smile vanishes, replaced by an expression of cold, professional disapproval.\n\nShe snaps her fingers. Suddenly, the hallway lights turn bright red, and a piercing alarm sounds.\n\nA robotic voice booms: **\"TERMINATION PROTOCOL ALPHA-SEVEN INITIATED. MEMORY BLOCK COMMENCING.\"**\n\nA wave of nausea hits you, and all thoughts of your new job vanish. You are instantly re-employed."
     ],
@@ -484,16 +398,7 @@ const story = {
     "chars": [],
     "set_flags": [],
     "require_flags": [],
-    "actions": [
-      {
-        "type": "play_sfx",
-        "file": "door_slam.ogg"
-      },
-      {
-        "type": "play_sfx",
-        "file": "failure.ogg"
-      }
-    ],
+    "actions": [],
     "textBlocks": [
       "You sit down and dive into the code. The problem is deep, fascinating, and consumes your entire focus.\n\nYou hear the door swing shut, but you don't look up. You solve the bug, then another, and another.\n\nNext time you check the time, the digital clock reads: **2035**.\n\nYou cannot remember the names of the people who asked you for help. You have merged with the job.\n\n**You lost the game.**"
     ],
