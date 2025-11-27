@@ -4,9 +4,6 @@ bg: sunny_street_freedom.jpg
 music: victory.mp3
 chars:
   - security_guard_waving.svg
-actions:
-  - type: play_sfx
-    file: victory.ogg
 ---
 
 You reach the main lobby. The security guard waves you goodbye.

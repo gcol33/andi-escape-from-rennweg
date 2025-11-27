@@ -219,32 +219,31 @@ const PasswordScreen = (function() {
 
         // Pick a random message template
         const messageTemplate = LOCKOUT_MESSAGES[Math.floor(Math.random() * LOCKOUT_MESSAGES.length)];
-        let secondsRemaining = Math.ceil(LOCKOUT_DURATION / 1000);
+        const totalSeconds = Math.ceil(LOCKOUT_DURATION / 1000);
+        let secondsRemaining = totalSeconds;
 
-        // Show initial message with countdown
-        showLockoutMessage(messageTemplate.replace('{s}', secondsRemaining));
-
-        // Update countdown every second
-        const countdownInterval = setInterval(function() {
-            secondsRemaining--;
+        // Update countdown function
+        function updateCountdown() {
             if (secondsRemaining > 0) {
                 showLockoutMessage(messageTemplate.replace('{s}', secondsRemaining));
+                secondsRemaining--;
+                setTimeout(updateCountdown, 1000);
+            } else {
+                // Re-enable inputs
+                isLockedOut = false;
+                failedAttempts = 0;
+
+                inputs.forEach(function(input) {
+                    input.disabled = false;
+                });
+
+                hideLockoutMessage();
+                inputs[0].focus();
             }
-        }, 1000);
+        }
 
-        // Re-enable after lockout duration
-        setTimeout(function() {
-            clearInterval(countdownInterval);
-            isLockedOut = false;
-            failedAttempts = 0;
-
-            inputs.forEach(function(input) {
-                input.disabled = false;
-            });
-
-            hideLockoutMessage();
-            inputs[0].focus();
-        }, LOCKOUT_DURATION);
+        // Start countdown immediately
+        updateCountdown();
     }
 
     /**
