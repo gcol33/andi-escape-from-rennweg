@@ -146,117 +146,131 @@
     { id: "back_stairs", type: "branch", desc: "Joni and Norbert desperately need help with PhD code." },
     { id: "coffee_kitchen", type: "branch", desc: "One last sentimental coffee... but it's drugged!" },
 
-    // Main stairs sub-branches
+    // === MAIN STAIRS PATH (HR Route) ===
     { id: "document_signed", type: "branch", desc: "You sign without reading. What did you agree to?" },
     { id: "document_refusal", type: "branch", desc: "You refuse. Agnes triggers TERMINATION PROTOCOL." },
     { id: "attempt_pass", type: "branch", desc: "Try to run past Agnes. Roll d20 (need ≤13)." },
     { id: "d20_success", type: "branch", desc: "You leap over Agnes's trip attempt!" },
     { id: "d20_failure", type: "branch", desc: "Agnes trips you. Everything goes dark..." },
+    { id: "hr_chase", type: "branch", desc: "Agnes pursues you down the stairs!" },
+    { id: "hr_showdown", type: "branch", desc: "Final confrontation with Agnes in the stairwell." },
 
-    // Back stairs sub-branches
+    // === BACK STAIRS PATH (Colleague Route) ===
     { id: "colleague_plea", type: "branch", desc: "Norbert grabs your sleeve, begging desperately." },
-    { id: "corridor_safe", type: "branch", desc: "You ignore them and head to the back stairwell." },
+    { id: "corridor_safe", type: "branch", desc: "You head to the back stairwell in peace." },
     { id: "corridor_delayed", type: "branch", desc: "Fabio and Ali intercept you. 4th floor guilt trip." },
     { id: "fourth_floor", type: "branch", desc: "2 hours of whiteboard torture with Michi, Gilles, Ruling." },
+    { id: "secret_lab", type: "branch", desc: "You discover a hidden server room on the 4th floor." },
+    { id: "basement_route", type: "branch", desc: "Take the service elevator to the basement." },
 
-    // === ACT 2: Midgame Complications (NEW) ===
-    { id: "lobby_checkpoint", type: "hub", desc: "You reach the lobby. But security has questions..." },
+    // === COFFEE PATH (Secret Route) ===
+    { id: "coffee_resist", type: "branch", desc: "You resist the drowsiness. Something's wrong here..." },
+    { id: "coffee_investigate", type: "branch", desc: "Search the kitchen for clues about the drugged coffee." },
+    { id: "coffee_master", type: "branch", desc: "You find the sacred beans and brew the perfect cup." },
 
-    { id: "security_bribe", type: "branch", desc: "Offer the guard your leftover lunch money." },
-    { id: "security_sneak", type: "branch", desc: "Wait for distraction and slip past." },
-    { id: "security_confront", type: "branch", desc: "Boldly claim you have clearance." },
+    // === CONVERGENCE POINTS (not all-in-one) ===
+    { id: "ground_floor", type: "hub", desc: "Ground floor. Multiple exits visible." },
+    { id: "parking_garage", type: "branch", desc: "The dark parking garage. Your car is somewhere..." },
+    { id: "fire_exit", type: "branch", desc: "Emergency exit. Alarm will sound." },
+    { id: "front_door", type: "branch", desc: "Main entrance. Security guard Hans is watching." },
+    { id: "loading_dock", type: "branch", desc: "Back loading area. Delivery truck leaving soon." },
 
-    { id: "parking_garage", type: "branch", desc: "Alternative exit through the basement garage." },
-    { id: "fire_escape", type: "branch", desc: "Emergency stairs. Alarm might trigger..." },
+    // === BAD ENDINGS (scattered throughout) ===
+    { id: "lost_to_coffee", type: "quickbad", desc: "BAD: Drugged, chained to desk forever." },
+    { id: "lost_to_HR", type: "quickbad", desc: "BAD: Memory erased, stuck in yesterday's loop." },
+    { id: "lost_to_PhD", type: "quickbad", desc: "BAD: Absorbed by code until 2035." },
+    { id: "lost_to_security", type: "quickbad", desc: "BAD: Detained for 'suspicious behavior'." },
+    { id: "lost_to_alarm", type: "quickbad", desc: "BAD: Fire alarm lockdown. Re-employed." },
+    { id: "lost_to_agnes", type: "quickbad", desc: "BAD: Agnes catches you. Eternal contract." },
 
-    // === ACT 3: Final Escape ===
-    { id: "exit_lobby", type: "hub", desc: "The front doors are in sight. Freedom awaits." },
+    // === GOOD ENDINGS (from different paths) ===
+    { id: "pension_escape", type: "ending", desc: "NEUTRAL: Escape but signed away pension." },
+    { id: "clean_escape", type: "ending", desc: "GOOD: Clean getaway via front door." },
+    { id: "garage_escape", type: "ending", desc: "GOOD: Drive off into the sunset." },
+    { id: "truck_escape", type: "ending", desc: "GOOD: Hitch a ride on delivery truck." },
 
-    // === ENDINGS ===
-    // Quick Bad Endings
-    { id: "lost_to_coffee", type: "quickbad", desc: "BAD END: Drugged, chained to desk forever." },
-    { id: "lost_to_HR", type: "quickbad", desc: "BAD END: Memory erased, stuck in yesterday's loop." },
-    { id: "lost_to_PhD", type: "quickbad", desc: "BAD END: Absorbed by code until 2035." },
-    { id: "lost_to_security", type: "quickbad", desc: "BAD END: Detained for 'suspicious behavior'." },
-    { id: "lost_to_alarm", type: "quickbad", desc: "BAD END: Fire alarm lockdown. Re-employed." },
-
-    // Standard Endings
-    { id: "neutral_escape", type: "ending", desc: "NEUTRAL: You escape, but signed away your pension." },
-    { id: "clean_escape", type: "ending", desc: "GOOD: Clean getaway. No strings attached." },
-
-    // Special Endings (require multiple flags)
-    { id: "revenge_ending", type: "ending", desc: "GOOD+: Expose HR's illegal contracts to the press. Requires: refused_document + found_evidence" },
-    { id: "hero_ending", type: "ending", desc: "BEST: Save colleagues AND escape. Requires: helped_secretly + clean_escape" },
-    { id: "coffee_ascension", type: "ending", desc: "SECRET: Transcend via coffee mastery. Requires: resisted_coffee + coffee_beans + perfect_brew" },
-    { id: "true_ending", type: "ending", desc: "TRUE: The perfect run. Requires: all_colleagues_helped + hr_defeated + no_documents_signed + secret_found" }
+    // === SPECIAL ENDINGS (unique paths) ===
+    { id: "revenge_ending", type: "ending", desc: "REVENGE: Expose HR corruption to press. +refused_doc +evidence" },
+    { id: "hero_ending", type: "ending", desc: "HERO: Secretly helped colleagues AND escaped clean." },
+    { id: "coffee_ascension", type: "ending", desc: "SECRET: Transcend via perfect coffee brew." },
+    { id: "true_ending", type: "ending", desc: "TRUE: Defeated Agnes, helped everyone, found all secrets." }
   ];
 
   const links = [
-    // === ACT 1 ===
+    // === FROM START ===
     { source: "start", target: "main_stairs", label: "main_stairs" },
     { source: "start", target: "back_stairs", label: "back_stairs" },
     { source: "start", target: "coffee_kitchen", label: "get_coffee" },
 
-    // Coffee path (instant trap)
+    // === COFFEE PATH ===
     { source: "coffee_kitchen", target: "lost_to_coffee", label: "drink" },
-    { source: "coffee_kitchen", target: "corridor_safe", label: "resist +coffee_resisted" },
+    { source: "coffee_kitchen", target: "coffee_resist", label: "resist" },
+    { source: "coffee_resist", target: "coffee_investigate", label: "investigate" },
+    { source: "coffee_resist", target: "corridor_safe", label: "leave" },
+    { source: "coffee_investigate", target: "coffee_master", label: "brew_perfect" },
+    { source: "coffee_investigate", target: "back_stairs", label: "give_up" },
+    { source: "coffee_master", target: "coffee_ascension", label: "transcend" },
 
-    // Main stairs - HR encounter
+    // === MAIN STAIRS - HR PATH ===
     { source: "main_stairs", target: "document_signed", label: "sign" },
-    { source: "main_stairs", target: "document_refusal", label: "refuse +refused_doc" },
+    { source: "main_stairs", target: "document_refusal", label: "refuse" },
     { source: "main_stairs", target: "attempt_pass", label: "run_past" },
 
-    { source: "document_signed", target: "lobby_checkpoint", label: "signed_away" },
-    { source: "document_refusal", target: "lost_to_HR", label: "protocol_alpha" },
-    { source: "document_refusal", target: "parking_garage", label: "escape_chaos +found_evidence" },
+    { source: "document_signed", target: "ground_floor", label: "+signed_pension" },
+    { source: "document_refusal", target: "lost_to_HR", label: "submit" },
+    { source: "document_refusal", target: "hr_chase", label: "run +evidence" },
 
     { source: "attempt_pass", target: "d20_success", label: "roll≤13" },
     { source: "attempt_pass", target: "d20_failure", label: "roll>13" },
-    { source: "d20_success", target: "lobby_checkpoint", label: "+dodged_hr" },
+    { source: "d20_success", target: "ground_floor", label: "+dodged_hr" },
     { source: "d20_failure", target: "lost_to_coffee", label: "captured" },
 
-    // Back stairs - PhD trap
-    { source: "back_stairs", target: "lost_to_PhD", label: "help_them" },
+    { source: "hr_chase", target: "hr_showdown", label: "cornered" },
+    { source: "hr_chase", target: "parking_garage", label: "lose_her" },
+    { source: "hr_showdown", target: "lost_to_agnes", label: "submit" },
+    { source: "hr_showdown", target: "revenge_ending", label: "defeat +evidence" },
+
+    // === BACK STAIRS - COLLEAGUE PATH ===
+    { source: "back_stairs", target: "lost_to_PhD", label: "help_fully" },
     { source: "back_stairs", target: "colleague_plea", label: "polite_no" },
-    { source: "back_stairs", target: "corridor_safe", label: "fuck_off +rude" },
+    { source: "back_stairs", target: "corridor_safe", label: "ignore" },
 
     { source: "colleague_plea", target: "lost_to_PhD", label: "fine_5min" },
     { source: "colleague_plea", target: "corridor_delayed", label: "refuse_again" },
-    { source: "colleague_plea", target: "corridor_safe", label: "secret_help +helped_secretly" },
+    { source: "colleague_plea", target: "hero_ending", label: "secret_help +helped" },
 
-    { source: "corridor_safe", target: "lobby_checkpoint", label: "" },
+    { source: "corridor_safe", target: "ground_floor", label: "downstairs" },
+    { source: "corridor_safe", target: "basement_route", label: "service_elevator" },
+
     { source: "corridor_delayed", target: "fourth_floor", label: "go_4th" },
     { source: "corridor_delayed", target: "corridor_safe", label: "no_time" },
-    { source: "fourth_floor", target: "lobby_checkpoint", label: "+whiteboard_survivor" },
 
-    // === ACT 2: Lobby complications ===
-    { source: "lobby_checkpoint", target: "security_bribe", label: "bribe" },
-    { source: "lobby_checkpoint", target: "security_sneak", label: "sneak" },
-    { source: "lobby_checkpoint", target: "security_confront", label: "confront" },
-    { source: "lobby_checkpoint", target: "exit_lobby", label: "has:dodged_hr" },
+    { source: "fourth_floor", target: "ground_floor", label: "escape_whiteboard" },
+    { source: "fourth_floor", target: "secret_lab", label: "find_secret" },
+    { source: "secret_lab", target: "true_ending", label: "+all_secrets" },
+    { source: "secret_lab", target: "basement_route", label: "use_elevator" },
 
-    { source: "security_bribe", target: "exit_lobby", label: "+bribed_guard" },
-    { source: "security_bribe", target: "lost_to_security", label: "insulted" },
+    { source: "basement_route", target: "parking_garage", label: "to_garage" },
+    { source: "basement_route", target: "loading_dock", label: "to_dock" },
 
-    { source: "security_sneak", target: "exit_lobby", label: "+stealth" },
-    { source: "security_sneak", target: "fire_escape", label: "spotted" },
+    // === GROUND FLOOR BRANCHES ===
+    { source: "ground_floor", target: "front_door", label: "front" },
+    { source: "ground_floor", target: "fire_exit", label: "emergency" },
+    { source: "ground_floor", target: "parking_garage", label: "garage" },
 
-    { source: "security_confront", target: "exit_lobby", label: "+intimidation" },
-    { source: "security_confront", target: "lost_to_security", label: "failed_bluff" },
+    // === EXIT PATHS ===
+    { source: "front_door", target: "clean_escape", label: "walk_past" },
+    { source: "front_door", target: "lost_to_security", label: "caught" },
+    { source: "front_door", target: "pension_escape", label: "has:signed" },
 
-    { source: "parking_garage", target: "exit_lobby", label: "+garage_route" },
-    { source: "parking_garage", target: "lost_to_security", label: "no_car_keys" },
+    { source: "fire_exit", target: "clean_escape", label: "lucky" },
+    { source: "fire_exit", target: "lost_to_alarm", label: "alarm" },
 
-    { source: "fire_escape", target: "exit_lobby", label: "lucky" },
-    { source: "fire_escape", target: "lost_to_alarm", label: "alarm_triggered" },
+    { source: "parking_garage", target: "garage_escape", label: "find_car" },
+    { source: "parking_garage", target: "lost_to_security", label: "no_keys" },
 
-    // === ACT 3: Endings ===
-    { source: "exit_lobby", target: "neutral_escape", label: "has:signed_away" },
-    { source: "exit_lobby", target: "clean_escape", label: "default" },
-    { source: "exit_lobby", target: "revenge_ending", label: "has:refused_doc+found_evidence" },
-    { source: "exit_lobby", target: "hero_ending", label: "has:helped_secretly+stealth" },
-    { source: "exit_lobby", target: "coffee_ascension", label: "has:coffee_resisted+3_beans" },
-    { source: "exit_lobby", target: "true_ending", label: "has:ALL_FLAGS" }
+    { source: "loading_dock", target: "truck_escape", label: "hitch_ride" },
+    { source: "loading_dock", target: "lost_to_security", label: "spotted" }
   ];
 
   // ------------------------------
