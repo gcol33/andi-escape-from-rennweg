@@ -631,11 +631,6 @@ h1 {
         font-size: 14px !important;
     }
 
-    /* Show volume slider always in portrait (no hover needed on touch) */
-    #volume-slider {
-        opacity: 1 !important;
-        visibility: visible !important;
-    }
 
     /* Switch to text icons in portrait */
     .icon-landscape {
