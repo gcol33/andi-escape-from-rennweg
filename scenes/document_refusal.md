@@ -1,7 +1,7 @@
 ---
 id: document_refusal
 bg: hallway_red_alert.jpg
-music: spooky.mp3
+music: glitch.mp3
 chars:
   - agnes_angry.svg
 actions:

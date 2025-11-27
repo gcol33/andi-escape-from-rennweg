@@ -1,7 +1,7 @@
 ---
 id: lost_to_HR
 bg: bedroom_morning.jpg
-music: spooky.mp3
+music: game_over.mp3
 actions:
   - type: play_sfx
     file: alarm_clock.ogg

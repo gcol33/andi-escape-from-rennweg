@@ -1,7 +1,7 @@
 ---
 id: corridor_delayed
 bg: office_corridor.jpg
-music: default.mp3
+music: i_can_do_it.mp3
 chars:
   - fabio_friendly.svg
   - ali_friendly.svg

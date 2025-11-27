@@ -1,7 +1,7 @@
 ---
 id: back_stairs
 bg: office_corridor.jpg
-music: default.mp3
+music: oh_oh.mp3
 chars:
   - joni_desperate.svg
   - norbert_pleading.svg

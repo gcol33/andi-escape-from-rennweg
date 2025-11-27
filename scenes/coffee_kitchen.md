@@ -1,7 +1,7 @@
 ---
 id: coffee_kitchen
 bg: office_kitchen.jpg
-music: coffee.mp3
+music: too_much_coffee.mp3
 actions:
   - type: play_sfx
     file: gulp.ogg

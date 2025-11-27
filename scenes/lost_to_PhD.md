@@ -1,7 +1,7 @@
 ---
 id: lost_to_PhD
 bg: desk_computer_code.jpg
-music: coding_frenzy.mp3
+music: game_over.mp3
 actions:
   - type: play_sfx
     file: door_slam.ogg

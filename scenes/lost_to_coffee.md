@@ -1,7 +1,7 @@
 ---
 id: lost_to_coffee
 bg: dark_office_desk.jpg
-music: outside.mp3
+music: game_over.mp3
 actions:
   - type: play_sfx
     file: chain.ogg

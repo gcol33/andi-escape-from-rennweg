@@ -1,7 +1,7 @@
 ---
 id: fourth_floor_elevator
 bg: meeting_room_whiteboard.jpg
-music: default.mp3
+music: reading_papers.mp3
 chars:
   - michi_whiteboard.svg
   - gilles_explaining.svg
