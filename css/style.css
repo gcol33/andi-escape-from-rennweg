@@ -604,6 +604,28 @@ h1 {
         font-size: 1.2rem;
     }
 
+    /* Text box needs smaller percentage in tall portrait container */
+    #text-box {
+        min-height: 20%;
+        max-height: 35%;
+        padding: 10px 15px 15px 15px;
+    }
+
+    #text-box.ending-scene {
+        max-height: 45%;
+    }
+
+    /* Sprites positioned for portrait layout */
+    #sprite-layer {
+        bottom: 20%;
+        height: 75%;
+    }
+
+    #sprite-layer img {
+        max-width: 60%;
+        max-height: 80%;
+    }
+
     /* Always show volume slider on touch devices */
     #volume-slider {
         opacity: 1;
