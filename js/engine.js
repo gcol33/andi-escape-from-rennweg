@@ -339,7 +339,7 @@ const VNEngine = (function() {
     }
 
     // === Scene Loading ===
-    function loadScene(sceneId, prependContent) {
+    function loadScene(sceneId, prependContent, entrySfx) {
         prependContent = prependContent || '';
 
         // Check for special roll trigger
@@ -376,8 +376,8 @@ const VNEngine = (function() {
         // Auto-save progress
         saveState();
 
-        // Render the scene
-        renderScene(scene, prependContent);
+        // Render the scene (pass entry SFX if provided)
+        renderScene(scene, prependContent, entrySfx);
     }
 
     // === Text Splitting ===
@@ -491,7 +491,7 @@ const VNEngine = (function() {
     }
 
     // === Rendering ===
-    function renderScene(scene, prependContent) {
+    function renderScene(scene, prependContent, entrySfx) {
         prependContent = prependContent || '';
 
         // Update background if specified
@@ -508,12 +508,9 @@ const VNEngine = (function() {
             clearCharacters();
         }
 
-        // Update music (use scene music, or fall back to default)
-        var musicToPlay = scene.music || config.defaultMusic;
-        setMusic(musicToPlay);
-
-        // Clear choices while showing text
+        // Clear choices and text while transitioning
         elements.choicesContainer.innerHTML = '';
+        elements.storyOutput.innerHTML = '';
 
         // Check if this is an ending (no choices)
         var isEnding = !scene.choices || scene.choices.length === 0;
@@ -532,8 +529,26 @@ const VNEngine = (function() {
             }
         }
 
-        // Show first text block
-        renderCurrentBlock(prependContent);
+        // If there's an entry SFX, play it with music ducking then start text
+        if (entrySfx) {
+            // Small pause before SFX, then play SFX, then pause before text
+            setTimeout(function() {
+                playSfxWithDucking(entrySfx, function() {
+                    // Pause after SFX before starting text
+                    setTimeout(function() {
+                        // Now start music and text
+                        var musicToPlay = scene.music || config.defaultMusic;
+                        setMusic(musicToPlay);
+                        renderCurrentBlock(prependContent);
+                    }, 200); // 200ms pause after SFX
+                });
+            }, 150); // 150ms pause before SFX
+        } else {
+            // No SFX - start music and text immediately
+            var musicToPlay = scene.music || config.defaultMusic;
+            setMusic(musicToPlay);
+            renderCurrentBlock(prependContent);
+        }
     }
 
     function renderCurrentBlock(prependContent) {
@@ -819,15 +834,8 @@ const VNEngine = (function() {
                     if (choice.set_flags && choice.set_flags.length > 0) {
                         setFlags(choice.set_flags);
                     }
-                    // If choice has SFX, play it with ducking then navigate
-                    if (choice.sfx) {
-                        playSfxWithDucking(choice.sfx, function() {
-                            loadScene(choice.target);
-                        });
-                    } else {
-                        // Navigate to target immediately
-                        loadScene(choice.target);
-                    }
+                    // Navigate to target, passing SFX to play on new scene
+                    loadScene(choice.target, '', choice.sfx || null);
                 };
                 elements.choicesContainer.appendChild(button);
             });
