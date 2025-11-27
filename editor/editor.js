@@ -1398,6 +1398,7 @@ const Editor = (function() {
         elements.currentSceneName.textContent = newId;
         renderSceneList();
         updateIncomingScenes(newId);
+        updateNodeConnections(scene);
 
         console.log('Scene saved:', scene);
     }
