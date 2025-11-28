@@ -46,7 +46,29 @@
 
 #password-inputs {
     display: flex;
-    gap: 15px;
+}
+
+/* Fallback spacing for browsers without gap support */
+#password-inputs > * {
+    margin: 0 7.5px;
+}
+
+#password-inputs > *:first-child {
+    margin-left: 0;
+}
+
+#password-inputs > *:last-child {
+    margin-right: 0;
+}
+
+/* Modern browsers: use gap and remove margin fallback */
+@supports (gap: 15px) {
+    #password-inputs {
+        gap: 15px;
+    }
+    #password-inputs > * {
+        margin: 0;
+    }
 }
 
 .password-char {
@@ -204,16 +226,27 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: flex-end;
-    gap: 20px;
     z-index: 2;
     pointer-events: none;
 }
 
+/* Fallback spacing for browsers without gap support */
 #sprite-layer img {
     max-height: 100%;
     max-width: 300px;
     object-fit: contain;
     filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.3));
+    margin: 0 10px;
+}
+
+/* Modern browsers: use gap and remove margin fallback */
+@supports (gap: 20px) {
+    #sprite-layer {
+        gap: 20px;
+    }
+    #sprite-layer img {
+        margin: 0;
+    }
 }
 
 /* === Text Box (auto height with min/max constraints) === */
@@ -251,9 +284,27 @@ h1 {
 /* === Text Speed Controls === */
 #text-controls {
     display: flex;
-    gap: 8px;
     margin-bottom: 8px;
     justify-content: flex-end;
+}
+
+/* Fallback spacing for browsers without gap support */
+#text-controls > * {
+    margin-left: 8px;
+}
+
+#text-controls > *:first-child {
+    margin-left: 0;
+}
+
+/* Modern browsers: use gap and remove margin fallback */
+@supports (gap: 8px) {
+    #text-controls {
+        gap: 8px;
+    }
+    #text-controls > * {
+        margin-left: 0;
+    }
 }
 
 .speed-btn {
@@ -299,7 +350,14 @@ h1 {
     appearance: none;
     background: #d3c2a8;
     border-radius: 2px;
-    clip-path: polygon(0 40%, 100% 0, 100% 100%, 0 60%);
+    /* clip-path creates trapezoid shape; degrades gracefully to rectangle */
+}
+
+/* Modern browsers: use clip-path for trapezoid shape */
+@supports (clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%)) {
+    #volume-slider {
+        clip-path: polygon(0 40%, 100% 0, 100% 100%, 0 60%);
+    }
 }
 
 #volume-slider::-webkit-slider-thumb {
@@ -437,8 +495,26 @@ h1 {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
     margin-top: 12px;
+}
+
+/* Fallback spacing for browsers without gap support */
+#button-area > * {
+    margin-bottom: 10px;
+}
+
+#button-area > *:last-child {
+    margin-bottom: 0;
+}
+
+/* Modern browsers: use gap and remove margin fallback */
+@supports (gap: 10px) {
+    #button-area {
+        gap: 10px;
+    }
+    #button-area > * {
+        margin-bottom: 0;
+    }
 }
 
 /* === Choices Container === */
@@ -626,12 +702,26 @@ h1 {
 @media (orientation: portrait) {
     /* Use 9:16 aspect ratio for portrait screens */
     #vn-container {
+        /* Fallback for older browsers without aspect-ratio/min() */
+        max-width: 56.25vh;
+        height: 0;
+        padding-bottom: 177.78%; /* 16:9 inverted = 9:16 */
+        /* Modern browsers override with aspect-ratio */
+        height: auto;
+        padding-bottom: 0;
         aspect-ratio: 9 / 16;
         max-width: min(100%, 56.25vh); /* Constrain width based on height */
         max-height: 85vh; /* Leave buffer room like landscape */
     }
 
     #password-container {
+        /* Fallback for older browsers without aspect-ratio/min() */
+        max-width: 56.25vh;
+        height: 0;
+        padding-bottom: 177.78%; /* 16:9 inverted = 9:16 */
+        /* Modern browsers override */
+        height: auto;
+        padding-bottom: 0;
         aspect-ratio: 9 / 16;
         max-width: min(100%, 56.25vh);
         max-height: 85vh;
