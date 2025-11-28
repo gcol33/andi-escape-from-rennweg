@@ -169,7 +169,7 @@ const Editor = (function() {
             }
             console.log(`Auto-loaded ${count} scenes from global story object`);
             renderSceneList();
-            saveSenesToStorage();
+            saveScenesToStorage();
             restoreCurrentScene();
             return;
         }
@@ -197,7 +197,7 @@ const Editor = (function() {
                         }
                         console.log(`Auto-loaded ${count} scenes from story.js via fetch`);
                         renderSceneList();
-                        saveSenesToStorage();
+                        saveScenesToStorage();
                         restoreCurrentScene();
                         return;
                     }
@@ -1940,7 +1940,7 @@ const Editor = (function() {
             elements.currentSceneName.textContent = cleanId;
         }
 
-        saveSenesToStorage();
+        saveScenesToStorage();
         renderSceneList();
         renderGraph();
         hideContextMenu();
@@ -2010,7 +2010,7 @@ const Editor = (function() {
             clearNodeConnections();
         }
 
-        saveSenesToStorage();
+        saveScenesToStorage();
         renderSceneList();
         renderGraph();
         hideContextMenu();
@@ -2089,7 +2089,7 @@ const Editor = (function() {
         state.modifiedScenes.delete(newId);
 
         // Save to localStorage
-        saveSenesToStorage();
+        saveScenesToStorage();
 
         // Update UI
         elements.currentSceneName.textContent = newId;
@@ -2405,7 +2405,7 @@ const Editor = (function() {
         state.currentSceneId = null;
         state.modified = false;
 
-        saveSenesToStorage();
+        saveScenesToStorage();
         renderSceneList();
 
         // Clear editor
@@ -2437,7 +2437,7 @@ const Editor = (function() {
     }
 
     // === Storage ===
-    function saveSenesToStorage() {
+    function saveScenesToStorage() {
         try {
             localStorage.setItem('andi_editor_scenes', JSON.stringify(state.scenes));
             // Also save current scene ID
@@ -2501,7 +2501,7 @@ const Editor = (function() {
             }
 
             if (imported > 0) {
-                saveSenesToStorage();
+                saveScenesToStorage();
                 renderSceneList();
                 alert(`Imported ${imported} scene(s)`);
             }

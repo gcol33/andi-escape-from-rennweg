@@ -36,9 +36,37 @@ const VNEngine = (function() {
             auto: 18,    // same as normal, but auto-advances
             skip: 0      // instant (only for read blocks)
         },
-        autoDelay: 1500, // ms to wait before auto-advancing
+        autoDelay: 1500,        // ms to wait before auto-advancing
+        skipModeDelay: 150,     // ms delay between blocks in skip mode
         currentSpeed: 'normal',
-        saveKey: 'andi_vn_save'  // localStorage key for save data
+        saveKey: 'andi_vn_save',  // localStorage key for save data
+        // Audio timing
+        sfxPreDelay: 150,       // ms pause before playing entry SFX
+        sfxPostDelay: 200,      // ms pause after SFX before text starts
+        sfxMinDuration: 620,    // minimum total SFX duration in ms
+        sfxRepeatGap: 150,      // gap between repeated SFX plays in ms
+        sfxDuckVolume: 0.2,     // music volume during SFX (20% of normal)
+        // Text block splitting
+        maxBlockLength: 350     // max characters before auto-splitting text
+    };
+
+    // === Logging Utilities ===
+    // Standardized logging with consistent prefixes
+    var log = {
+        info: function(msg) {
+            console.log('VNEngine: ' + msg);
+        },
+        warn: function(msg) {
+            console.warn('VNEngine: ' + msg);
+        },
+        error: function(msg) {
+            console.error('VNEngine: ' + msg);
+        },
+        debug: function(msg) {
+            if (state.devMode) {
+                console.log('VNEngine [DEBUG]: ' + msg);
+            }
+        }
     };
 
     // === Touch Device Detection ===
@@ -135,7 +163,7 @@ const VNEngine = (function() {
             if (typeof window[handlerName] === 'function') {
                 window[handlerName](params, state);
             } else {
-                console.warn('VNEngine: Custom handler not found:', handlerName);
+                log.warn('Custom handler not found: ' + handlerName);
             }
         }
     };
@@ -220,9 +248,13 @@ const VNEngine = (function() {
                 var speed = this.getAttribute('data-speed');
                 setTextSpeed(speed);
 
-                // Update active state
-                buttons.forEach(function(b) { b.classList.remove('active'); });
+                // Update active state and aria-pressed
+                buttons.forEach(function(b) {
+                    b.classList.remove('active');
+                    b.setAttribute('aria-pressed', 'false');
+                });
                 this.classList.add('active');
+                this.setAttribute('aria-pressed', 'true');
             });
         });
     }
@@ -351,14 +383,14 @@ const VNEngine = (function() {
         var scene = story[sceneId];
 
         if (!scene) {
-            console.error('VNEngine: Scene not found:', sceneId);
+            log.error('Scene not found: ' + sceneId);
             return;
         }
 
         // Check flag requirements
         if (scene.require_flags && scene.require_flags.length > 0) {
             if (!checkFlags(scene.require_flags)) {
-                console.warn('VNEngine: Flag requirements not met for scene:', sceneId);
+                log.warn('Flag requirements not met for scene: ' + sceneId);
                 return;
             }
         }
@@ -381,8 +413,6 @@ const VNEngine = (function() {
     }
 
     // === Text Splitting ===
-    // Maximum characters before auto-splitting (approximate, will split at sentence boundary)
-    var MAX_BLOCK_LENGTH = 350;
 
     function splitTextIntoSentences(text) {
         // Split on sentence endings (. ! ?) followed by space or newline
@@ -401,7 +431,8 @@ const VNEngine = (function() {
         return sentences;
     }
 
-    function balanceSplitText(text, maxLength) {
+    function balanceSplitText(text) {
+        var maxLength = config.maxBlockLength;
         // If text is short enough, return as single block
         if (text.length <= maxLength) {
             return [text];
@@ -479,7 +510,7 @@ const VNEngine = (function() {
             if (hasFormattingMarkers(block)) {
                 processedBlocks.push(block);
             } else {
-                var splitBlocks = balanceSplitText(block, MAX_BLOCK_LENGTH);
+                var splitBlocks = balanceSplitText(block);
 
                 for (var j = 0; j < splitBlocks.length; j++) {
                     processedBlocks.push(splitBlocks[j]);
@@ -530,7 +561,8 @@ const VNEngine = (function() {
         }
 
         // If there's an entry SFX, play it with music ducking then start text
-        if (entrySfx) {
+        // Skip SFX in skip mode for faster navigation
+        if (entrySfx && config.currentSpeed !== 'skip') {
             // Small pause before SFX, then play SFX, then pause before text
             setTimeout(function() {
                 playSfxWithDucking(entrySfx, function() {
@@ -540,11 +572,11 @@ const VNEngine = (function() {
                         var musicToPlay = scene.music || config.defaultMusic;
                         setMusic(musicToPlay);
                         renderCurrentBlock(prependContent);
-                    }, 200); // 200ms pause after SFX
+                    }, config.sfxPostDelay);
                 });
-            }, 150); // 150ms pause before SFX
+            }, config.sfxPreDelay);
         } else {
-            // No SFX - start music and text immediately
+            // No SFX or skip mode - start music and text immediately
             var musicToPlay = scene.music || config.defaultMusic;
             setMusic(musicToPlay);
             renderCurrentBlock(prependContent);
@@ -600,7 +632,7 @@ const VNEngine = (function() {
                 if (config.currentSpeed === 'skip') {
                     state.typewriter.autoAdvanceId = setTimeout(function() {
                         advanceTextBlock();
-                    }, 150); // Short delay for skip mode
+                    }, config.skipModeDelay);
                 }
             }
         });
@@ -879,7 +911,7 @@ const VNEngine = (function() {
         if (handler) {
             handler(action);
         } else {
-            console.warn('VNEngine: Unknown action type:', action.type);
+            log.warn('Unknown action type: ' + action.type);
         }
     }
 
@@ -987,9 +1019,9 @@ const VNEngine = (function() {
         if (!elements.bgMusic || !state.audio.currentMusic) return;
         if (state.audio.muted) return;
 
-        elements.bgMusic.play().catch(function(e) {
+        elements.bgMusic.play().catch(function() {
             // Autoplay blocked - will retry after user interaction
-            console.log('VNEngine: Music autoplay blocked, will retry after interaction');
+            log.info('Music autoplay blocked, will retry after interaction');
         });
     }
 
@@ -1017,8 +1049,8 @@ const VNEngine = (function() {
             audio.addEventListener('error', callback);
         }
 
-        audio.play().catch(function(e) {
-            console.log('VNEngine: SFX playback failed:', e);
+        audio.play().catch(function() {
+            log.info('SFX playback failed (autoplay blocked or file not found)');
             if (callback) callback();
         });
     }
@@ -1026,6 +1058,7 @@ const VNEngine = (function() {
     /**
      * Play SFX with music ducking (VN-style)
      * Ducks music volume, plays SFX, then restores music and calls callback
+     * Short sounds are repeated to avoid jarring quick audio
      */
     function playSfxWithDucking(filename, callback) {
         if (state.audio.muted) {
@@ -1036,28 +1069,72 @@ const VNEngine = (function() {
         var path = config.assetPaths.sfx + filename;
         var audio = new Audio(path);
         var originalVolume = state.audio.volume;
-        var duckedVolume = originalVolume * 0.2; // Duck to 20% of original
+        var duckedVolume = originalVolume * config.sfxDuckVolume;
+        var minDuration = config.sfxMinDuration;
+        var gapBetweenRepeats = config.sfxRepeatGap;
 
         // Duck music
         if (elements.bgMusic) {
             elements.bgMusic.volume = duckedVolume;
         }
 
-        // Restore music and call callback when SFX ends
-        var onEnd = function() {
+        // Restore music and call callback
+        var onComplete = function() {
             if (elements.bgMusic) {
                 elements.bgMusic.volume = originalVolume;
             }
             if (callback) callback();
         };
 
-        audio.addEventListener('ended', onEnd);
-        audio.addEventListener('error', onEnd);
+        // Wait for metadata to get duration, then play (possibly with repeats)
+        audio.addEventListener('loadedmetadata', function() {
+            var durationMs = audio.duration * 1000;
 
-        audio.play().catch(function(e) {
-            console.log('VNEngine: SFX playback failed:', e);
-            onEnd();
+            if (durationMs >= minDuration) {
+                // Long enough, just play once
+                audio.addEventListener('ended', onComplete);
+                audio.addEventListener('error', onComplete);
+                audio.play().catch(function() {
+                    log.info('SFX playback failed');
+                    onComplete();
+                });
+            } else {
+                // Short sound - calculate repeats needed
+                var repeatInterval = durationMs + gapBetweenRepeats;
+                var repeatsNeeded = Math.ceil(minDuration / repeatInterval);
+                var totalTime = repeatsNeeded * repeatInterval;
+                var playsRemaining = repeatsNeeded;
+
+                // Play first instance
+                audio.play().catch(function() {
+                    log.info('SFX playback failed');
+                    onComplete();
+                });
+                playsRemaining--;
+
+                // Schedule additional plays
+                for (var i = 1; i < repeatsNeeded; i++) {
+                    (function(delay) {
+                        setTimeout(function() {
+                            var repeatAudio = new Audio(path);
+                            repeatAudio.play().catch(function() {});
+                        }, delay);
+                    })(i * repeatInterval);
+                }
+
+                // Call callback after total duration
+                setTimeout(onComplete, totalTime);
+            }
         });
+
+        // Handle case where metadata fails to load
+        audio.addEventListener('error', function() {
+            log.warn('SFX load failed: ' + filename);
+            onComplete();
+        });
+
+        // Trigger load
+        audio.load();
     }
 
     function toggleMute() {
@@ -1067,10 +1144,12 @@ const VNEngine = (function() {
             elements.bgMusic.muted = state.audio.muted;
         }
 
-        // Update mute button appearance
+        // Update mute button appearance and accessibility
         if (elements.muteBtn) {
             updateMuteButtonIcon(state.audio.muted);
             elements.muteBtn.title = state.audio.muted ? 'Unmute' : 'Mute';
+            elements.muteBtn.setAttribute('aria-pressed', state.audio.muted ? 'true' : 'false');
+            elements.muteBtn.setAttribute('aria-label', state.audio.muted ? 'Unmute audio' : 'Mute audio');
         }
     }
 
@@ -1124,6 +1203,51 @@ const VNEngine = (function() {
     }
 
     // === Save/Load System ===
+    /**
+     * Validate save data structure to prevent crashes from corrupted saves
+     * @param {Object} saveData - The parsed save data to validate
+     * @returns {boolean} - True if valid, false otherwise
+     */
+    function isValidSaveData(saveData) {
+        if (!saveData || typeof saveData !== 'object') {
+            return false;
+        }
+
+        // currentSceneId must be a string or null
+        if (saveData.currentSceneId !== null &&
+            typeof saveData.currentSceneId !== 'string') {
+            return false;
+        }
+
+        // currentBlockIndex must be a non-negative integer
+        if (typeof saveData.currentBlockIndex !== 'undefined') {
+            if (typeof saveData.currentBlockIndex !== 'number' ||
+                saveData.currentBlockIndex < 0 ||
+                !Number.isInteger(saveData.currentBlockIndex)) {
+                return false;
+            }
+        }
+
+        // flags must be an object (or undefined)
+        if (saveData.flags !== undefined &&
+            (typeof saveData.flags !== 'object' || Array.isArray(saveData.flags))) {
+            return false;
+        }
+
+        // readBlocks must be an object (or undefined)
+        if (saveData.readBlocks !== undefined &&
+            (typeof saveData.readBlocks !== 'object' || Array.isArray(saveData.readBlocks))) {
+            return false;
+        }
+
+        // history must be an array (or undefined)
+        if (saveData.history !== undefined && !Array.isArray(saveData.history)) {
+            return false;
+        }
+
+        return true;
+    }
+
     function saveState() {
         try {
             var saveData = {
@@ -1135,7 +1259,7 @@ const VNEngine = (function() {
             };
             localStorage.setItem(config.saveKey, JSON.stringify(saveData));
         } catch (e) {
-            console.warn('VNEngine: Could not save state:', e);
+            log.warn('Could not save state: ' + e.message);
         }
     }
 
@@ -1145,6 +1269,13 @@ const VNEngine = (function() {
             if (!saved) return false;
 
             var saveData = JSON.parse(saved);
+
+            // Validate save data structure
+            if (!isValidSaveData(saveData)) {
+                log.warn('Invalid save data structure, clearing corrupted save');
+                clearSavedState();
+                return false;
+            }
 
             // Restore state
             state.flags = saveData.flags || {};
@@ -1189,7 +1320,7 @@ const VNEngine = (function() {
                 return true;
             }
         } catch (e) {
-            console.warn('VNEngine: Could not load saved state:', e);
+            log.warn('Could not load saved state: ' + e.message);
         }
         return false;
     }
@@ -1198,7 +1329,7 @@ const VNEngine = (function() {
         try {
             localStorage.removeItem(config.saveKey);
         } catch (e) {
-            console.warn('VNEngine: Could not clear saved state:', e);
+            log.warn('Could not clear saved state: ' + e.message);
         }
     }
 
@@ -1253,30 +1384,39 @@ const VNEngine = (function() {
     }
 
     // === Game Reset ===
-    function reset() {
+    /**
+     * Reset game state and restart from beginning
+     * @param {boolean} clearReadHistory - If true, also clears read blocks and saved state
+     */
+    function resetGame(clearReadHistory) {
+        // Reset core state
         state.currentSceneId = null;
         state.currentBlockIndex = 0;
         state.flags = {};
         state.history = [];
+
+        // Optionally clear read history (for full reset)
+        if (clearReadHistory) {
+            state.readBlocks = {};
+            clearSavedState();
+            updateSkipButtonVisibility();
+        }
+
+        // Clear visuals and audio
         clearBackground();
         clearCharacters();
         stopMusic();
+
+        // Start fresh
         loadScene(config.startScene);
     }
 
+    function reset() {
+        resetGame(false);
+    }
+
     function fullReset() {
-        // Clear everything including read blocks and saved state
-        state.currentSceneId = null;
-        state.currentBlockIndex = 0;
-        state.flags = {};
-        state.history = [];
-        state.readBlocks = {};
-        clearSavedState();
-        updateSkipButtonVisibility();
-        clearBackground();
-        clearCharacters();
-        stopMusic();
-        loadScene(config.startScene);
+        resetGame(true);
     }
 
     // === Public API ===
