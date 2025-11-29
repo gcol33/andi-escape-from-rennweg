@@ -452,8 +452,9 @@ h1 {
     padding: 10px 12px;
     cursor: default;
     user-select: none;
-    background: var(--win-light);
-    border: 2px inset var(--win-dark);
+    /* 90s style: text directly on gray dialog, no white inset box */
+    background: transparent;
+    border: none;
     margin: 0 10px;
 }
 
@@ -526,6 +527,9 @@ h1 {
     flex-direction: column;
     align-items: center;
     margin: 10px;
+    /* Reserve space for buttons to prevent layout shift */
+    min-height: 50px;
+    flex-shrink: 0;
 }
 
 #button-area > * {
@@ -674,6 +678,25 @@ h1 {
     background: #ffffcc;
     border: 2px solid;
     border-color: var(--win-light) var(--win-dark) var(--win-dark) var(--win-light);
+}
+
+/* === Reset Button (override inline styles from engine.js) === */
+#reset-btn {
+    background: var(--win-bg) !important;
+    color: var(--text-color) !important;
+    border: 2px solid !important;
+    border-color: var(--win-light) var(--win-dark) var(--win-dark) var(--win-light) !important;
+    border-radius: 0 !important;
+    font-family: 'MS Sans Serif', 'Segoe UI', Tahoma, sans-serif !important;
+    box-shadow: none !important;
+}
+
+#reset-btn:hover {
+    background: #d4d4d4 !important;
+}
+
+#reset-btn:active {
+    border-color: var(--win-dark) var(--win-light) var(--win-light) var(--win-dark) !important;
 }
 
 /* === Responsive Design === */

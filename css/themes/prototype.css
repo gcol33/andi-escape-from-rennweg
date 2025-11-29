@@ -496,6 +496,9 @@ h1 {
     flex-direction: column;
     align-items: center;
     margin-top: 12px;
+    /* Reserve space for buttons to prevent layout shift */
+    min-height: 50px;
+    flex-shrink: 0;
 }
 
 /* Fallback spacing for browsers without gap support */
