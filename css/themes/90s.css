@@ -897,3 +897,270 @@ h1 {
 #theme-selector input[type="checkbox"] {
     accent-color: var(--win-blue);
 }
+
+/* === Battle System (Windows 3.1 style) === */
+
+/* HP/Mana Containers - Windows dialog box style */
+.hp-container,
+.mana-container {
+    background: var(--win-bg);
+    border: 2px solid;
+    border-color: var(--win-light) var(--win-dark) var(--win-dark) var(--win-light);
+    border-radius: 0;
+    box-shadow: 2px 2px 0 var(--win-darkest);
+}
+
+.hp-label,
+.mana-label {
+    color: var(--text-color);
+    font-family: 'MS Sans Serif', 'Segoe UI', Tahoma, sans-serif;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.65rem;
+}
+
+.hp-bar,
+.mana-bar {
+    background: var(--win-dark);
+    border: 2px solid;
+    border-color: var(--win-dark) var(--win-light) var(--win-light) var(--win-dark);
+    border-radius: 0;
+}
+
+.hp-fill {
+    border-radius: 0;
+}
+
+.hp-fill.hp-high {
+    background: linear-gradient(to bottom, #00aa00, #008800);
+}
+
+.hp-fill.hp-medium {
+    background: linear-gradient(to bottom, #aaaa00, #888800);
+}
+
+.hp-fill.hp-low {
+    background: linear-gradient(to bottom, #aa0000, #880000);
+}
+
+.mana-fill {
+    background: linear-gradient(to bottom, #0000aa, #000088);
+    border-radius: 0;
+}
+
+.hp-text,
+.mana-text {
+    color: var(--text-color);
+    font-family: 'MS Sans Serif', 'Segoe UI', Tahoma, sans-serif;
+}
+
+/* Battle Log - Windows message box style */
+.battle-log {
+    background: #ffffcc;
+    border: 2px solid;
+    border-color: var(--win-light) var(--win-dark) var(--win-dark) var(--win-light);
+    border-left: 3px solid #00aa00;
+    border-radius: 0;
+    color: var(--text-color);
+    font-family: 'MS Sans Serif', 'Segoe UI', Tahoma, sans-serif;
+}
+
+.battle-log.enemy-turn {
+    border-left-color: #aa0000;
+    background: #ffcccc;
+}
+
+/* Battle Result - Windows dialog style */
+.battle-result {
+    background: var(--win-bg);
+    border: 2px solid;
+    border-color: var(--win-light) var(--win-dark) var(--win-dark) var(--win-light);
+    border-radius: 0;
+    font-family: 'MS Sans Serif', 'Segoe UI', Tahoma, sans-serif;
+    box-shadow: 2px 2px 0 var(--win-darkest);
+}
+
+.battle-result.victory {
+    background: #ccffcc;
+    border: 3px solid #00aa00;
+    color: #006600;
+    text-shadow: none;
+}
+
+.battle-result.defeat {
+    background: #ffcccc;
+    border: 3px solid #aa0000;
+    color: #660000;
+    text-shadow: none;
+}
+
+/* Damage Numbers - Bold 90s style */
+.damage-number,
+.battle-damage-number {
+    font-family: 'MS Sans Serif', 'Segoe UI', Tahoma, sans-serif;
+    text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+}
+
+.damage-number.damage,
+.battle-damage-number.damage {
+    color: #ff0000;
+}
+
+.damage-number.heal,
+.battle-damage-number.heal {
+    color: #00ff00;
+}
+
+/* Inventory - Windows toolbar style */
+#inventory-display {
+    background: var(--win-bg);
+    border: 2px solid;
+    border-color: var(--win-light) var(--win-dark) var(--win-dark) var(--win-light);
+    border-radius: 0;
+    box-shadow: 2px 2px 0 var(--win-darkest);
+}
+
+.inventory-label {
+    color: var(--win-blue);
+    font-family: 'MS Sans Serif', 'Segoe UI', Tahoma, sans-serif;
+}
+
+.inventory-item {
+    background: var(--win-light);
+    color: var(--text-color);
+    border: 1px solid var(--win-dark);
+    border-radius: 0;
+    font-family: 'MS Sans Serif', 'Segoe UI', Tahoma, sans-serif;
+}
+
+/* Item Notifications - Windows alert style */
+.item-notification {
+    background: var(--win-bg);
+    border: 2px solid;
+    border-color: var(--win-light) var(--win-dark) var(--win-dark) var(--win-light);
+    border-radius: 0;
+    color: var(--text-color);
+    font-family: 'MS Sans Serif', 'Segoe UI', Tahoma, sans-serif;
+    box-shadow: 4px 4px 0 var(--win-darkest);
+}
+
+.item-notification.item-added {
+    border: 3px solid #00aa00;
+}
+
+.item-notification.item-added .item-icon {
+    color: #00aa00;
+}
+
+.item-notification.item-used {
+    border: 3px solid #aaaa00;
+}
+
+.item-notification.item-used .item-icon {
+    color: #aaaa00;
+}
+
+/* Dice Roll - Windows info box style */
+.dice-roll.dice-success {
+    background: #ccffcc;
+    border: 2px solid #00aa00;
+}
+
+.dice-roll.dice-failure {
+    background: #ffcccc;
+    border: 2px solid #aa0000;
+}
+
+.dice-roll.dice-crit {
+    background: #ffffcc;
+    border: 2px solid #aaaa00;
+}
+
+.dice-roll.dice-fumble {
+    background: #cccccc;
+    border: 2px solid #000000;
+}
+
+.crit-text {
+    color: #aaaa00;
+    text-shadow: none;
+}
+
+.fumble-text {
+    color: #aa0000;
+    text-shadow: none;
+}
+
+/* === BATTLE UI - Windows 3.1 Style === */
+
+/* Battle log panel - Windows 3.1 dialog box */
+.battle-log-panel {
+    background: var(--win-bg);
+    border: 3px solid;
+    border-color: var(--win-light) var(--win-dark) var(--win-dark) var(--win-light);
+    box-shadow: 4px 4px 0 var(--win-darkest);
+}
+
+.battle-log-content {
+    background: var(--win-light);
+    border: 2px inset var(--win-dark);
+    color: var(--text-color);
+    font-family: 'MS Sans Serif', 'Segoe UI', Tahoma, sans-serif;
+}
+
+.battle-log-content .roll-result {
+    color: var(--win-blue);
+    font-weight: bold;
+}
+
+/* Battle choices - Windows 3.1 buttons in 2x2 grid */
+.battle-choices {
+    background: var(--win-bg);
+    padding: 6px;
+    gap: 6px;
+}
+
+.battle-choices .choice-button {
+    background: var(--win-bg);
+    color: var(--text-color);
+    border: 2px solid;
+    border-color: var(--win-light) var(--win-dark) var(--win-dark) var(--win-light);
+    font-family: 'Silkscreen', 'MS Sans Serif', sans-serif;
+    padding: 6px 10px;
+    font-size: 0.75rem;
+}
+
+.battle-choices .choice-button:hover {
+    background: var(--win-light);
+}
+
+.battle-choices .choice-button:active {
+    border-color: var(--win-dark) var(--win-light) var(--win-light) var(--win-dark);
+    background: var(--win-dark);
+    color: #fff;
+}
+
+.battle-choices .choice-button[data-action="defend"] {
+    background: #ccccff;
+}
+
+.battle-choices .choice-button[data-action="flee"] {
+    background: #dddddd;
+}
+
+.battle-choices .choice-button:disabled {
+    background: var(--win-dark);
+    color: var(--win-light);
+    border-color: var(--win-dark);
+}
+
+/* Battle log entries in Windows style */
+.battle-log.crit {
+    background: #ffffcc;
+    border-left-color: #aaaa00;
+}
+
+.battle-log.fumble {
+    background: #cccccc;
+    border-left-color: #000000;
+}

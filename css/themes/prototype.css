@@ -852,3 +852,192 @@ h1 {
         background-color: #b08b5a;
     }
 }
+
+/* === Battle System (Prototype Theme) === */
+
+/* HP/Mana Containers - warm VN style */
+.hp-container,
+.mana-container {
+    background: rgba(75, 62, 42, 0.9);
+    border: 2px solid #d3c2a8;
+    border-radius: 8px;
+}
+
+.hp-label {
+    color: #fffbe9;
+}
+
+.mana-label {
+    color: #a8d4ff;
+}
+
+.hp-bar,
+.mana-bar {
+    background: #3d3225;
+    border-radius: 4px;
+}
+
+.hp-text {
+    color: #fffbe9;
+}
+
+.mana-text {
+    color: #a8d4ff;
+}
+
+/* Battle Log - cream box style */
+.battle-log {
+    background: rgba(250, 241, 224, 0.9);
+    border: 2px solid #d3c2a8;
+    border-left: 4px solid #4caf50;
+    border-radius: 6px;
+    color: #4b3e2a;
+}
+
+.battle-log.enemy-turn {
+    border-left-color: #f44336;
+    background: rgba(255, 235, 230, 0.9);
+}
+
+/* Battle Result - VN announcement style */
+.battle-result {
+    background: rgba(250, 241, 224, 0.95);
+    border: 3px solid #d3c2a8;
+    border-radius: 8px;
+    color: #4b3e2a;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.battle-result.victory {
+    border-color: #4caf50;
+    background: linear-gradient(135deg, rgba(200, 230, 200, 0.95), rgba(250, 241, 224, 0.95));
+    color: #2e7d32;
+}
+
+.battle-result.defeat {
+    border-color: #f44336;
+    background: linear-gradient(135deg, rgba(255, 200, 200, 0.95), rgba(250, 241, 224, 0.95));
+    color: #c62828;
+}
+
+/* Inventory - warm tooltip style */
+#inventory-display {
+    background: rgba(75, 62, 42, 0.9);
+    border: 2px solid #d3c2a8;
+    border-radius: 8px;
+}
+
+.inventory-label {
+    color: #ffd700;
+}
+
+.inventory-item {
+    background: rgba(255, 215, 0, 0.15);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 4px;
+    color: #fffbe9;
+}
+
+/* Item Notifications - VN popup style */
+.item-notification {
+    background: rgba(75, 62, 42, 0.95);
+    border: 2px solid #d3c2a8;
+    border-radius: 8px;
+    color: #fffbe9;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.item-notification.item-added {
+    border-color: #4caf50;
+}
+
+.item-notification.item-used {
+    border-color: #ff9800;
+}
+
+/* === BATTLE UI - Warm VN Style === */
+
+/* Battle log panel - matches text box styling */
+.battle-log-panel {
+    background: rgba(250, 241, 224, 0.95);
+    border: 3px solid #d3c2a8;
+    border-top: 4px solid #b08b5a;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.battle-log-content {
+    background: transparent;
+    color: #4b3e2a;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    line-height: 1.5;
+}
+
+.battle-log-content .roll-result {
+    color: #b08b5a;
+    font-weight: bold;
+}
+
+/* Battle choices - golden brown buttons in 2x2 grid */
+.battle-choices {
+    background: transparent;
+    padding: 8px;
+    gap: 10px;
+}
+
+.battle-choices .choice-button {
+    background: linear-gradient(to bottom, #c69f5e, #b08b5a);
+    color: #fffbe9;
+    border: 2px solid #d3c2a8;
+    border-radius: 6px;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
+}
+
+.battle-choices .choice-button:hover {
+    background: linear-gradient(to bottom, #d4b06e, #c69f5e);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+}
+
+.battle-choices .choice-button:active {
+    background: linear-gradient(to bottom, #9a7545, #b08b5a);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.battle-choices .choice-button[data-action="defend"] {
+    background: linear-gradient(to bottom, #6495ed, #4169e1);
+    border-color: #87ceeb;
+}
+
+.battle-choices .choice-button[data-action="flee"] {
+    background: linear-gradient(to bottom, #888, #666);
+    border-color: #aaa;
+}
+
+.battle-choices .choice-button:disabled {
+    background: #999;
+    color: #ccc;
+    box-shadow: none;
+}
+
+/* Battle log entries - warm style */
+.battle-log {
+    background: rgba(176, 139, 90, 0.15);
+    border-radius: 6px;
+    border-left: 4px solid #4caf50;
+}
+
+.battle-log.enemy-turn {
+    background: rgba(244, 67, 54, 0.1);
+    border-left-color: #f44336;
+}
+
+.battle-log.crit {
+    background: rgba(255, 215, 0, 0.2);
+    border-left-color: #ffd700;
+}
+
+.battle-log.fumble {
+    background: rgba(139, 0, 0, 0.15);
+    border-left-color: #8b0000;
+}

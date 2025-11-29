@@ -1712,7 +1712,7 @@ const Editor = (function() {
             node.className = 'connection-node';
             node.innerHTML = `
                 <span class="connection-name">${ref.from}</span>
-                <span class="connection-type">${ref.type}</span>
+                <span class="connection-type type-${ref.type}">${ref.type}</span>
             `;
             node.title = `Click to go to ${ref.from}`;
             node.addEventListener('click', () => loadScene(ref.from));
@@ -1725,10 +1725,10 @@ const Editor = (function() {
 
         const outgoing = [];
 
-        // Collect choices
+        // Collect choices (skip self-loops like battle action choices)
         if (scene.choices && scene.choices.length > 0) {
             scene.choices.forEach(choice => {
-                if (choice.target) {
+                if (choice.target && choice.target !== scene.id) {
                     outgoing.push({
                         target: choice.target,
                         type: 'choice',
@@ -1738,9 +1738,10 @@ const Editor = (function() {
             });
         }
 
-        // Collect dice action targets
+        // Collect action targets (dice rolls and battles)
         if (scene.actions && scene.actions.length > 0) {
             scene.actions.forEach(action => {
+                // Dice roll targets
                 if (action.success_target) {
                     outgoing.push({
                         target: action.success_target,
@@ -1753,6 +1754,28 @@ const Editor = (function() {
                         target: action.failure_target,
                         type: 'failure',
                         label: `dice <${action.dc || '?'}`
+                    });
+                }
+                // Battle targets
+                if (action.win_target) {
+                    outgoing.push({
+                        target: action.win_target,
+                        type: 'success',
+                        label: 'battle win'
+                    });
+                }
+                if (action.lose_target) {
+                    outgoing.push({
+                        target: action.lose_target,
+                        type: 'failure',
+                        label: 'battle lose'
+                    });
+                }
+                if (action.flee_target) {
+                    outgoing.push({
+                        target: action.flee_target,
+                        type: 'flee',
+                        label: 'flee'
                     });
                 }
             });
@@ -1772,7 +1795,7 @@ const Editor = (function() {
 
             node.innerHTML = `
                 <span class="connection-name">${ref.target}</span>
-                <span class="connection-type">${ref.type}</span>
+                <span class="connection-type type-${ref.type}">${ref.type}</span>
             `;
             node.title = exists
                 ? `Click to go to ${ref.target}`

@@ -238,43 +238,34 @@ const VNEngine = (function() {
 
         /**
          * Start a battle encounter
-         * Sets up enemy HP and battle state
+         * Delegates to BattleEngine module
          */
         start_battle: function(action) {
-            var enemy = action.enemy || {};
-
-            // Initialize player HP if not already set
-            var playerMaxHP = action.player_max_hp || 20;
-            if (state.playerHP === null) {
-                state.playerHP = playerMaxHP;
-                state.playerMaxHP = playerMaxHP;
+            // Initialize BattleEngine if not done yet
+            if (typeof BattleEngine !== 'undefined' && !BattleEngine._initialized) {
+                BattleEngine.init({
+                    loadScene: loadScene,
+                    playSfx: playSfx
+                });
+                BattleEngine._initialized = true;
             }
 
-            // Set up battle state
-            state.battle = {
-                active: true,
-                enemy: {
-                    name: enemy.name || 'Enemy',
-                    hp: enemy.hp || 20,
-                    maxHP: enemy.hp || 20,
-                    ac: enemy.ac || 10,
-                    attackBonus: enemy.attack_bonus || 0,
-                    damage: enemy.damage || 'd6',
-                    sprite: enemy.sprite || null
-                },
-                player: {
-                    ac: action.player_ac || 10,
-                    attackBonus: action.player_attack_bonus || 0,
-                    damage: action.player_damage || 'd6'
-                },
-                winTarget: action.win_target,
-                loseTarget: action.lose_target,
-                fleeTarget: action.flee_target || null
-            };
+            // Start battle using the module
+            if (typeof BattleEngine !== 'undefined') {
+                var battleState = BattleEngine.start(action, state.currentSceneId);
+                // Sync player HP with engine state for saving
+                state.playerHP = battleState.player.hp;
+                state.playerMaxHP = battleState.player.maxHP;
+                state.battle = { active: true }; // Flag for engine to know battle is active
 
-            // Show battle UI
-            showBattleUI();
-            updateBattleDisplay();
+                // Show battle choices after starting
+                var scene = story[state.currentSceneId];
+                if (scene && scene.choices) {
+                    renderChoices(scene.choices);
+                }
+            } else {
+                log.error('BattleEngine module not loaded');
+            }
         }
     };
 
@@ -509,131 +500,39 @@ const VNEngine = (function() {
 
     /**
      * Check if battle is over and handle victory/defeat
+     * Delegates to BattleEngine module
      * @returns {boolean} - True if battle ended
      */
     function checkBattleEnd() {
-        if (!state.battle || !state.battle.active) return false;
-
-        if (state.battle.enemy.hp <= 0) {
-            // Victory!
-            state.battle.active = false;
-            playSfx('victory.ogg');
-
-            setTimeout(function() {
-                hideBattleUI();
-                loadScene(state.battle.winTarget, '<div class="battle-result victory">Victory!</div>');
-                state.battle = null;
-            }, 1000);
-            return true;
+        if (typeof BattleEngine !== 'undefined') {
+            return BattleEngine.checkEnd();
         }
-
-        if (state.playerHP <= 0) {
-            // Defeat
-            state.battle.active = false;
-            playSfx('failure.ogg');
-
-            setTimeout(function() {
-                hideBattleUI();
-                loadScene(state.battle.loseTarget, '<div class="battle-result defeat">Defeated!</div>');
-                state.battle = null;
-            }, 1000);
-            return true;
-        }
-
         return false;
     }
 
     /**
      * Execute a battle action from a choice
-     * @param {string} action - 'attack', 'defend', 'flee', or item use
+     * Delegates to BattleEngine module
+     * @param {string} action - 'attack', 'defend', 'flee', 'item', or 'spell'
      * @param {object} choice - The choice object with additional params
      */
     function executeBattleAction(action, choice) {
-        if (!state.battle || !state.battle.active) return;
+        if (typeof BattleEngine === 'undefined' || !BattleEngine.isActive()) return;
 
-        var resultText = '';
+        // Execute action through BattleEngine
+        BattleEngine.executeAction(action, choice, function(resultText) {
+            // Callback after enemy turn - update UI and show choices
+            var scene = story[state.currentSceneId];
+            if (scene && BattleEngine.isActive()) {
+                elements.storyOutput.innerHTML = resultText;
+                renderBattleChoices(scene.battle_actions || scene.choices);
 
-        switch (action) {
-            case 'attack':
-                var playerResult = playerAttack();
-                if (playerResult.crit) {
-                    resultText = '<div class="battle-log">CRITICAL HIT! You deal <strong>' + playerResult.damage + '</strong> damage!</div>';
-                } else if (playerResult.fumble) {
-                    resultText = '<div class="battle-log">You fumble your attack!</div>';
-                } else if (playerResult.hit) {
-                    resultText = '<div class="battle-log">You hit for <strong>' + playerResult.damage + '</strong> damage!</div>';
-                } else {
-                    resultText = '<div class="battle-log">You miss! (Roll: ' + playerResult.roll + ' vs AC ' + state.battle.enemy.ac + ')</div>';
-                }
-                break;
-
-            case 'defend':
-                // Defending gives temporary AC bonus for enemy's turn
-                state.battle.player.defending = true;
-                state.battle.player.ac += 4;
-                resultText = '<div class="battle-log">You brace for impact (+4 AC this turn).</div>';
-                break;
-
-            case 'flee':
-                // Flee attempt - Athletics check vs DC 14
-                var fleeRoll = Math.floor(Math.random() * 20) + 1;
-                if (fleeRoll >= 14 && state.battle.fleeTarget) {
-                    state.battle.active = false;
-                    hideBattleUI();
-                    loadScene(state.battle.fleeTarget, '<div class="battle-result">You escaped!</div>');
-                    state.battle = null;
-                    return;
-                } else {
-                    resultText = '<div class="battle-log">You failed to escape! (Roll: ' + fleeRoll + ')</div>';
-                }
-                break;
-
-            case 'item':
-                // Use item (heals specified in choice)
-                if (choice && choice.heals) {
-                    healPlayer(choice.heals);
-                    showBattleDamageNumber(choice.heals, 'player', 'heal');
-                    resultText = '<div class="battle-log">You heal for <strong>' + choice.heals + '</strong> HP!</div>';
-                }
-                break;
-        }
-
-        // Check if player won
-        if (checkBattleEnd()) return;
-
-        // Enemy turn (after a short delay)
-        setTimeout(function() {
-            if (!state.battle || !state.battle.active) return;
-
-            var enemyResult = enemyAttack();
-            var enemyText = '';
-
-            if (enemyResult.crit) {
-                enemyText = '<div class="battle-log enemy-turn">' + state.battle.enemy.name + ' lands a CRITICAL HIT for <strong>' + enemyResult.damage + '</strong> damage!</div>';
-            } else if (enemyResult.fumble) {
-                enemyText = '<div class="battle-log enemy-turn">' + state.battle.enemy.name + ' fumbles!</div>';
-            } else if (enemyResult.hit) {
-                enemyText = '<div class="battle-log enemy-turn">' + state.battle.enemy.name + ' hits you for <strong>' + enemyResult.damage + '</strong> damage!</div>';
-            } else {
-                enemyText = '<div class="battle-log enemy-turn">' + state.battle.enemy.name + ' misses!</div>';
+                // Sync HP state
+                var stats = BattleEngine.getPlayerStats();
+                state.playerHP = stats.hp;
+                state.playerMaxHP = stats.maxHP;
             }
-
-            // Reset defending status
-            if (state.battle && state.battle.player.defending) {
-                state.battle.player.ac -= 4;
-                state.battle.player.defending = false;
-            }
-
-            // Check if battle ended
-            if (!checkBattleEnd()) {
-                // Continue battle - update text and show choices again
-                var scene = story[state.currentSceneId];
-                if (scene) {
-                    elements.storyOutput.innerHTML = resultText + enemyText;
-                    renderBattleChoices(scene.battle_actions || scene.choices);
-                }
-            }
-        }, 800);
+        });
     }
 
     /**
@@ -645,10 +544,14 @@ const VNEngine = (function() {
 
         if (!choices || !state.battle || !state.battle.active) return;
 
-        // Filter choices by item requirements
+        // Filter choices by item requirements and items to use
         var availableChoices = choices.filter(function(choice) {
             if (choice.require_items && choice.require_items.length > 0) {
-                return hasItems(choice.require_items);
+                if (!hasItems(choice.require_items)) return false;
+            }
+            // Check items that will be consumed (uses) - must have them to show choice
+            if (choice.uses && choice.uses.length > 0) {
+                if (!hasItems(choice.uses)) return false;
             }
             return true;
         });
@@ -1039,6 +942,13 @@ const VNEngine = (function() {
             return false;
         }
 
+        // Check if we can undo BEFORE stopping typewriter
+        // Can't undo if we're at block 0 of the first scene
+        if (state.currentBlockIndex === 0 && state.history.length <= 1) {
+            flashUndoError();
+            return false;
+        }
+
         // Stop any ongoing typewriter effect
         stopTypewriter();
 
@@ -1070,7 +980,11 @@ const VNEngine = (function() {
         }
 
         // At first block - go to previous scene's LAST text block
+        // Note: The early check at the start of this function should prevent
+        // reaching here with history.length <= 1, but keep this as a safety net
         if (state.history.length <= 1) {
+            // This shouldn't happen, but re-render current block to recover
+            renderCurrentBlock();
             flashUndoError();
             return false;
         }
@@ -1686,7 +1600,7 @@ const VNEngine = (function() {
         hideContinueButton();
 
         if (choices && choices.length > 0) {
-            // Filter choices by required flags AND required items
+            // Filter choices by required flags, required items, AND items to use
             var availableChoices = choices.filter(function(choice) {
                 // Check flag requirements
                 if (choice.require_flags && choice.require_flags.length > 0) {
@@ -1695,6 +1609,10 @@ const VNEngine = (function() {
                 // Check item requirements
                 if (choice.require_items && choice.require_items.length > 0) {
                     if (!hasItems(choice.require_items)) return false;
+                }
+                // Check items that will be consumed (uses) - must have them to show choice
+                if (choice.uses && choice.uses.length > 0) {
+                    if (!hasItems(choice.uses)) return false;
                 }
                 return true;
             });
@@ -1715,6 +1633,23 @@ const VNEngine = (function() {
 
                 button.onclick = function() {
                     tryPlayMusic(); // Retry music on user interaction
+
+                    // Check if this is a battle action or battle item use
+                    var isBattleActive = typeof BattleEngine !== 'undefined' && BattleEngine.isActive();
+                    if (isBattleActive && (choice.battle_action || choice.heals)) {
+                        // Consume items if specified
+                        if (choice.uses && choice.uses.length > 0) {
+                            removeItems(choice.uses);
+                        }
+                        // Play SFX if specified
+                        if (choice.sfx) {
+                            playSfx(choice.sfx);
+                        }
+                        // Execute the battle action (heals count as 'item' action)
+                        var battleAction = choice.battle_action || (choice.heals ? 'item' : 'attack');
+                        executeBattleAction(battleAction, choice);
+                        return;
+                    }
 
                     // Set flags from choice
                     if (choice.set_flags && choice.set_flags.length > 0) {
@@ -2562,10 +2497,21 @@ const VNEngine = (function() {
         state.inventory = [];
         state.playerHP = null;
         state.playerMaxHP = 20;
+        state.battle = null;
         state.history = [];
 
         // Update displays
         updateInventoryDisplay();
+
+        // Hide and remove battle UI
+        hideBattleUI();
+        destroyBattleUI();
+
+        // Reset BattleEngine if available
+        if (typeof BattleEngine !== 'undefined') {
+            BattleEngine.reset();
+            BattleEngine.destroyUI();
+        }
 
         // Optionally clear read history (for full reset)
         if (clearReadHistory) {
@@ -2581,6 +2527,19 @@ const VNEngine = (function() {
 
         // Start fresh
         loadScene(config.startScene);
+    }
+
+    /**
+     * Completely remove battle UI elements from DOM
+     */
+    function destroyBattleUI() {
+        var playerHP = document.getElementById('player-hp-container');
+        var enemyHP = document.getElementById('enemy-hp-container');
+        var playerMana = document.getElementById('player-mana-container');
+
+        if (playerHP && playerHP.parentNode) playerHP.parentNode.removeChild(playerHP);
+        if (enemyHP && enemyHP.parentNode) enemyHP.parentNode.removeChild(enemyHP);
+        if (playerMana && playerMana.parentNode) playerMana.parentNode.removeChild(playerMana);
     }
 
     function reset() {

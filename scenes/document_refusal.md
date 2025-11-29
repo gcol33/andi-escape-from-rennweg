@@ -1,19 +1,25 @@
 ---
 id: document_refusal
 bg: hallway_red_alert.jpg
-music: glitch.mp3
+music: BOSS_TIME.mp3
 chars:
   - agnes_angry.svg
 ---
 
-You politely (or rudely) refuse to sign. Agnes's smile vanishes, replaced by an expression of cold, professional disapproval.
+You politely refuse to sign. Agnes's smile vanishes, replaced by an expression of cold, professional disapproval.
 
-She snaps her fingers. Suddenly, the hallway lights turn bright red, and a piercing alarm sounds.
+"I was hoping you'd cooperate, Andy. But if you insist on doing this the hard way..."
 
-A robotic voice booms: **"TERMINATION PROTOCOL ALPHA-SEVEN INITIATED. MEMORY BLOCK COMMENCING."**
+---
 
-A wave of nausea hits you, and all thoughts of your new job vanish. You are instantly re-employed.
+She cracks her knuckles. The hallway lights flicker to an ominous red.
+
+"Did you know I was the regional ballroom dancing champion three years running? The footwork translates surprisingly well to... *corporate negotiations*."
+
+She assumes a fighting stance that's equal parts waltz and martial arts.
 
 ### Choices
 
-- Collapse into the carpet, your future erased. [sfx: thud.ogg] → lost_to_HR
+- Stand your ground and fight! [sfx: alert.ogg] → agnes_battle
+- Try to run past her! [sfx: footstep.ogg] → attempt_pass
+- Fine, fine! I'll sign it! [sfx: click.ogg] → document_signed

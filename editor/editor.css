@@ -1185,6 +1185,27 @@ label textarea {
     flex-shrink: 0;
 }
 
+/* Colored badges for connection types */
+.connection-node .connection-type.type-choice {
+    background: var(--accent);
+    color: #fff;
+}
+
+.connection-node .connection-type.type-success {
+    background: var(--success);
+    color: #fff;
+}
+
+.connection-node .connection-type.type-failure {
+    background: var(--warning);
+    color: #000;
+}
+
+.connection-node .connection-type.type-flee {
+    background: #888;
+    color: #fff;
+}
+
 .current-scene-node {
     display: flex;
     align-items: center;

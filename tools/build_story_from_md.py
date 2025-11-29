@@ -47,25 +47,38 @@ def parse_frontmatter(content):
     frontmatter_text = content[3:3 + end_match.start()]
     body = content[3 + end_match.end():]
 
-    # Simple YAML parser for our needs
+    # YAML parser that handles nested objects and lists
     frontmatter = {}
     current_key = None
     current_list = None
     current_action = None
+    current_nested = None  # For nested objects like enemy:
+    current_nested_key = None
     current_char = None  # For positioned sprite format
     actions_list = []
     chars_list = []
+
+    def get_indent(line):
+        """Get number of leading spaces."""
+        return len(line) - len(line.lstrip())
 
     for line in frontmatter_text.split('\n'):
         stripped = line.strip()
         if not stripped:
             continue
 
-        # Check for list item in actions
+        indent = get_indent(line)
+
+        # Check for list item in actions (2 spaces = action list item)
         if current_key == 'actions' and stripped.startswith('- type:'):
+            # Save previous action
             if current_action:
+                if current_nested and current_nested_key:
+                    current_action[current_nested_key] = current_nested
                 actions_list.append(current_action)
             current_action = {'type': stripped[7:].strip()}
+            current_nested = None
+            current_nested_key = None
             current_char = None
             continue
 
@@ -75,13 +88,36 @@ def parse_frontmatter(content):
                 chars_list.append(current_char)
             current_char = {'file': stripped[7:].strip()}
             current_action = None
+            current_nested = None
             continue
 
-        # Check for action properties (indented under - type:)
-        if current_action is not None and line.startswith('    ') and ':' in stripped:
+        # Check for nested object properties (6 spaces = nested under nested key like enemy:)
+        if current_nested is not None and indent >= 6 and ':' in stripped:
             key, _, value = stripped.partition(':')
             key = key.strip()
             value = value.strip()
+            # Try to parse as number
+            if value.isdigit():
+                value = int(value)
+            current_nested[key] = value
+            continue
+
+        # Check for action properties or nested object start (4 spaces = action property)
+        if current_action is not None and indent >= 4 and ':' in stripped:
+            key, _, value = stripped.partition(':')
+            key = key.strip()
+            value = value.strip()
+
+            # Check if this starts a nested object (value is empty)
+            if value == '':
+                # Save current nested if any
+                if current_nested and current_nested_key:
+                    current_action[current_nested_key] = current_nested
+                current_nested = {}
+                current_nested_key = key
+                continue
+
+            # Regular action property
             # Try to parse as number
             if value.isdigit():
                 value = int(value)
@@ -89,7 +125,7 @@ def parse_frontmatter(content):
             continue
 
         # Check for char properties (x, y under - file:)
-        if current_char is not None and line.startswith('    ') and ':' in stripped:
+        if current_char is not None and indent >= 4 and ':' in stripped:
             key, _, value = stripped.partition(':')
             key = key.strip()
             value = value.strip()
@@ -113,16 +149,20 @@ def parse_frontmatter(content):
                 current_list.append(item)
             continue
 
-        # Check for key: value
-        if ':' in stripped:
+        # Check for key: value (top-level, indent 0)
+        if indent == 0 and ':' in stripped:
             key, _, value = stripped.partition(':')
             key = key.strip()
             value = value.strip()
 
             # Finish previous action/char if we hit a new top-level key
             if current_action:
+                if current_nested and current_nested_key:
+                    current_action[current_nested_key] = current_nested
                 actions_list.append(current_action)
                 current_action = None
+                current_nested = None
+                current_nested_key = None
             if current_char:
                 chars_list.append(current_char)
                 current_char = None
@@ -150,6 +190,8 @@ def parse_frontmatter(content):
 
     # Finish any remaining action or char
     if current_action:
+        if current_nested and current_nested_key:
+            current_action[current_nested_key] = current_nested
         actions_list.append(current_action)
     if current_char:
         chars_list.append(current_char)
@@ -227,18 +269,25 @@ def parse_choices(text):
             choice['require_items'] = items
             label_part = re.sub(r'\(require_items:\s*[^)]+\)', '', label_part).strip()
 
-        # (uses: Item Name) - consumes item when choice is selected
-        uses_match = re.search(r'\(uses:\s*([^)]+)\)', label_part)
-        if uses_match:
-            items = [i.strip() for i in uses_match.group(1).split(',')]
-            choice['uses'] = items
-            label_part = re.sub(r'\(uses:\s*[^)]+\)', '', label_part).strip()
-
         # (heals: 5) - heals player HP when choice is selected
-        heals_match = re.search(r'\(heals:\s*(\d+)\)', label_part)
+        # Parse heals FIRST since it may appear inside uses: parentheses
+        heals_match = re.search(r'heals:\s*(\d+)', label_part)
         if heals_match:
             choice['heals'] = int(heals_match.group(1))
+            # Remove from label if it was standalone (heals: 5)
             label_part = re.sub(r'\(heals:\s*\d+\)', '', label_part).strip()
+
+        # (uses: Item Name) - consumes item when choice is selected
+        # Handle "uses: Item, heals: 5" format by stripping heals first
+        uses_match = re.search(r'\(uses:\s*([^)]+)\)', label_part)
+        if uses_match:
+            uses_content = uses_match.group(1)
+            # Remove heals from uses content if present
+            uses_content = re.sub(r',?\s*heals:\s*\d+', '', uses_content).strip()
+            uses_content = re.sub(r'heals:\s*\d+,?\s*', '', uses_content).strip()
+            items = [i.strip() for i in uses_content.split(',') if i.strip()]
+            choice['uses'] = items
+            label_part = re.sub(r'\(uses:\s*[^)]+\)', '', label_part).strip()
 
         # (battle: attack|defend|flee|item) - battle action type
         battle_match = re.search(r'\(battle:\s*([^)]+)\)', label_part)
