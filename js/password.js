@@ -163,15 +163,20 @@ const PasswordScreen = (function() {
             // Fade out the overlay
             overlay.classList.add('hidden');
 
-            // Remove from DOM after transition
+            // Wait for fade transition to complete before starting game
+            // This prevents visual flash during transition
             setTimeout(function() {
                 overlay.remove();
+                // Execute success callback to start the game AFTER overlay is gone
+                if (onSuccessCallback) {
+                    onSuccessCallback();
+                }
             }, 500);
-        }
-
-        // Execute success callback to start the game
-        if (onSuccessCallback) {
-            onSuccessCallback();
+        } else {
+            // No overlay, start immediately
+            if (onSuccessCallback) {
+                onSuccessCallback();
+            }
         }
     }
 
