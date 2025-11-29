@@ -16,6 +16,41 @@ const Editor = (function() {
             music: '../assets/music/',
             sfx: '../assets/sfx/'
         },
+        // Sprite positioning defaults
+        sprite: {
+            defaultX: 50,
+            defaultY: 50,
+            defaultScale: 1,
+            minX: 5,
+            maxX: 95,
+            minY: 5,
+            maxY: 65,              // stay above text box
+            ySnapPositions: [10, 25, 45, 65],  // snap positions for Y
+            ySnapThresholds: [15, 35, 55],     // thresholds between snaps
+            scaleDragFactor: 100, // pixels of drag per 1x scale change
+            spacing: 25           // spacing between multiple sprites
+        },
+        // UI timing
+        autocompleteDelay: 150,   // ms delay before hiding autocomplete
+        maxAutocompleteItems: 10,
+        // Graph defaults
+        graph: {
+            nodeWidth: 180,
+            nodeHeight: 80,
+            defaultZoom: 1,
+            zoomStep: 1.2
+        },
+        // Default dice values
+        dice: {
+            defaultType: 'd20',
+            defaultThreshold: 10,
+            maxThreshold: 100
+        },
+        // Storage keys
+        storageKeys: {
+            scenes: 'andi_editor_scenes',
+            currentScene: 'andi_editor_current_scene'
+        },
         // These will be populated by scanning or hardcoded
         assets: {
             backgrounds: [
@@ -128,6 +163,20 @@ const Editor = (function() {
         }
     };
 
+    // === Logging Utilities ===
+    // Standardized logging with consistent prefixes
+    const log = {
+        info: function(msg) {
+            console.log('Editor: ' + msg);
+        },
+        warn: function(msg) {
+            console.warn('Editor: ' + msg);
+        },
+        error: function(msg) {
+            console.error('Editor: ' + msg);
+        }
+    };
+
     // === DOM References ===
     let elements = {};
 
@@ -145,19 +194,19 @@ const Editor = (function() {
     async function autoLoadScenes() {
         // First priority: localStorage (has user's edits)
         try {
-            const saved = localStorage.getItem('andi_editor_scenes');
+            const saved = localStorage.getItem(config.storageKeys.scenes);
             if (saved) {
                 const savedScenes = JSON.parse(saved);
                 if (Object.keys(savedScenes).length > 0) {
                     state.scenes = savedScenes;
-                    console.log(`Loaded ${Object.keys(savedScenes).length} scenes from localStorage`);
+                    log.info('Loaded ' + Object.keys(savedScenes).length + ' scenes from localStorage');
                     renderSceneList();
                     restoreCurrentScene();
                     return;
                 }
             }
         } catch (e) {
-            console.warn('Could not load from localStorage:', e);
+            log.warn('Could not load from localStorage: ' + e.message);
         }
 
         // Second: check if story is already loaded (via script tag)
@@ -167,7 +216,7 @@ const Editor = (function() {
                 state.scenes[id] = scene;
                 count++;
             }
-            console.log(`Auto-loaded ${count} scenes from global story object`);
+            log.info('Auto-loaded ' + count + ' scenes from global story object');
             renderSceneList();
             saveScenesToStorage();
             restoreCurrentScene();
@@ -195,7 +244,7 @@ const Editor = (function() {
                             state.scenes[id] = scene;
                             count++;
                         }
-                        console.log(`Auto-loaded ${count} scenes from story.js via fetch`);
+                        log.info('Auto-loaded ' + count + ' scenes from story.js via fetch');
                         renderSceneList();
                         saveScenesToStorage();
                         restoreCurrentScene();
@@ -204,7 +253,7 @@ const Editor = (function() {
                 }
             }
         } catch (e) {
-            console.log('Could not load from story.js via fetch:', e.message);
+            log.info('Could not load from story.js via fetch: ' + e.message);
         }
     }
 
@@ -462,21 +511,19 @@ const Editor = (function() {
                 let x = ((e.clientX - rect.left) / rect.width) * 100;
                 let yRaw = ((e.clientY - rect.top) / rect.height) * 100;
 
-                // Snap Y to 4 preset positions based on drop zone
-                // Divide canvas into bands, max Y is 65% to stay above text box
-                let y;
-                if (yRaw < 15) {
-                    y = 10;  // highest
-                } else if (yRaw < 35) {
-                    y = 25;  // high
-                } else if (yRaw < 55) {
-                    y = 45;  // middle
-                } else {
-                    y = 65;  // low (max allowed)
+                // Snap Y to preset positions based on drop zone
+                const thresholds = config.sprite.ySnapThresholds;
+                const positions = config.sprite.ySnapPositions;
+                let y = positions[positions.length - 1]; // default to lowest
+                for (let i = 0; i < thresholds.length; i++) {
+                    if (yRaw < thresholds[i]) {
+                        y = positions[i];
+                        break;
+                    }
                 }
 
                 // Clamp X to reasonable bounds
-                x = Math.max(5, Math.min(95, x));
+                x = Math.max(config.sprite.minX, Math.min(config.sprite.maxX, x));
 
                 addSpriteToCanvas(spriteFile, x, y);
             }
@@ -488,7 +535,12 @@ const Editor = (function() {
         document.addEventListener('mouseup', onSpriteMouseUp);
     }
 
-    function addSpriteToCanvas(spriteFile, x = 50, y = 50, scale = 1, autoSelect = true) {
+    function addSpriteToCanvas(spriteFile, x, y, scale, autoSelect) {
+        // Use config defaults if not provided
+        x = x !== undefined ? x : config.sprite.defaultX;
+        y = y !== undefined ? y : config.sprite.defaultY;
+        scale = scale !== undefined ? scale : config.sprite.defaultScale;
+        autoSelect = autoSelect !== undefined ? autoSelect : true;
         const sprite = document.createElement('div');
         sprite.className = 'sprite';
         sprite.dataset.file = spriteFile;
@@ -553,7 +605,6 @@ const Editor = (function() {
             if (e.shiftKey) {
                 // Shift+drag = resize
                 state.resizingSprite = sprite;
-                const rect = elements.previewSprites.getBoundingClientRect();
                 state.initialResizeData = {
                     startY: e.clientY,
                     startScale: parseFloat(sprite.dataset.scale) || 1
@@ -574,9 +625,9 @@ const Editor = (function() {
             let x = ((e.clientX - rect.left) / rect.width) * 100;
             let y = ((e.clientY - rect.top) / rect.height) * 100;
 
-            // Clamp to bounds (max Y is 65% to stay above text box)
-            x = Math.max(5, Math.min(95, x));
-            y = Math.max(5, Math.min(65, y));
+            // Clamp to bounds
+            x = Math.max(config.sprite.minX, Math.min(config.sprite.maxX, x));
+            y = Math.max(config.sprite.minY, Math.min(config.sprite.maxY, y));
 
             state.draggedSprite.style.left = x + '%';
             state.draggedSprite.style.top = y + '%';
@@ -587,13 +638,12 @@ const Editor = (function() {
         if (state.resizingSprite && state.initialResizeData) {
             // Resizing sprite - drag up to grow, drag down to shrink
             const deltaY = state.initialResizeData.startY - e.clientY;
-            const scaleFactor = deltaY / 100; // 100px drag = 1x scale change
+            const scaleFactor = deltaY / config.sprite.scaleDragFactor;
             let newScale = state.initialResizeData.startScale + scaleFactor;
 
             // Clamp scale between 0.2 and 3
             newScale = Math.max(0.2, Math.min(3, newScale));
 
-            const currentScale = parseFloat(state.resizingSprite.dataset.scale) || 1;
             state.resizingSprite.dataset.scale = newScale;
             state.resizingSprite.style.transform = `translate(-50%, -50%) scale(${newScale})`;
         }
@@ -716,11 +766,11 @@ const Editor = (function() {
                 // Handle both old format (string) and new format (object with position)
                 if (typeof char === 'string') {
                     // Old format: distribute evenly, vertically centered
-                    const x = 50 + (index - (scene.chars.length - 1) / 2) * 25;
-                    addSpriteToCanvas(char, x, 50, 1, false);
+                    const x = config.sprite.defaultX + (index - (scene.chars.length - 1) / 2) * config.sprite.spacing;
+                    addSpriteToCanvas(char, x, config.sprite.defaultY, config.sprite.defaultScale, false);
                 } else {
                     // New format with position and optional scale
-                    addSpriteToCanvas(char.file, char.x || 50, char.y || 50, char.scale || 1, false);
+                    addSpriteToCanvas(char.file, char.x || config.sprite.defaultX, char.y || config.sprite.defaultY, char.scale || config.sprite.defaultScale, false);
                 }
             });
         }
@@ -1010,7 +1060,7 @@ const Editor = (function() {
         input.addEventListener('input', () => showAutocomplete(input));
         input.addEventListener('blur', () => {
             // Delay to allow click on dropdown
-            setTimeout(() => hideAutocomplete(), 150);
+            setTimeout(() => hideAutocomplete(), config.autocompleteDelay);
         });
 
         function showAutocomplete(input) {
@@ -1019,7 +1069,7 @@ const Editor = (function() {
             const value = input.value.toLowerCase();
             const matches = Object.keys(state.scenes)
                 .filter(id => id.toLowerCase().includes(value) && id !== state.currentSceneId)
-                .slice(0, 10);
+                .slice(0, config.maxAutocompleteItems);
 
             if (matches.length === 0) return;
 
@@ -1065,7 +1115,7 @@ const Editor = (function() {
         });
     }
 
-    function addFlagTag(container, flag, type) {
+    function addFlagTag(container, flag) {
         const tag = document.createElement('span');
         tag.className = 'flag-tag';
         tag.textContent = flag;
@@ -1107,7 +1157,7 @@ const Editor = (function() {
     // === Actions ===
     function renderActions(actions) {
         elements.actionsContainer.innerHTML = '';
-        actions.forEach((action, index) => {
+        actions.forEach((action) => {
             if (action.type === 'roll_dice') {
                 addActionElement(action);
             }
@@ -1649,7 +1699,7 @@ const Editor = (function() {
 
         // Layout: simple layered layout
         const nodeList = Object.values(nodes);
-        const positions = layoutGraph(nodeList, edges, width, height);
+        const positions = layoutGraph(nodeList, edges);
 
         // Apply any custom positions from dragging
         Object.keys(state.graph.nodePositions).forEach(nodeId => {
@@ -1674,7 +1724,7 @@ const Editor = (function() {
             g.appendChild(path);
 
             // Add arrowhead
-            const arrow = createArrowhead(fromPos, toPos, edge.type);
+            const arrow = createArrowhead(toPos, edge.type);
             g.appendChild(arrow);
         });
 
@@ -1738,7 +1788,7 @@ const Editor = (function() {
         updateGraphTransform();
     }
 
-    function layoutGraph(nodes, edges, width, height) {
+    function layoutGraph(nodes, edges) {
         const positions = {};
 
         // Build adjacency for topological sort
@@ -1813,17 +1863,16 @@ const Editor = (function() {
         return positions;
     }
 
-    function createEdgePath(from, to) {
+    function createEdgePath(fromNode, toNode) {
         const nodeWidth = 100;
-        const nodeHeight = 30;
 
         // Start from right edge of from node
-        const startX = from.x + nodeWidth / 2;
-        const startY = from.y;
+        const startX = fromNode.x + nodeWidth / 2;
+        const startY = fromNode.y;
 
         // End at left edge of to node
-        const endX = to.x - nodeWidth / 2;
-        const endY = to.y;
+        const endX = toNode.x - nodeWidth / 2;
+        const endY = toNode.y;
 
         // Create curved path
         const midX = (startX + endX) / 2;
@@ -1831,10 +1880,10 @@ const Editor = (function() {
         return `M ${startX} ${startY} C ${midX} ${startY}, ${midX} ${endY}, ${endX} ${endY}`;
     }
 
-    function createArrowhead(from, to, type) {
+    function createArrowhead(toNode, type) {
         const nodeWidth = 100;
-        const endX = to.x - nodeWidth / 2;
-        const endY = to.y;
+        const endX = toNode.x - nodeWidth / 2;
+        const endY = toNode.y;
 
         const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
         const size = 6;
@@ -2097,7 +2146,7 @@ const Editor = (function() {
         updateIncomingScenes(newId);
         updateNodeConnections(scene);
 
-        console.log('Scene saved:', scene);
+        log.info('Scene saved: ' + scene.id);
     }
 
     function downloadCurrentScene() {
@@ -2183,7 +2232,7 @@ const Editor = (function() {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
-        console.log(`Exported ${files.length} scenes to scenes.zip`);
+        log.info('Exported ' + files.length + ' scenes to scenes.zip');
     }
 
     // Simple ZIP file creator (no compression, just store)
@@ -2439,39 +2488,24 @@ const Editor = (function() {
     // === Storage ===
     function saveScenesToStorage() {
         try {
-            localStorage.setItem('andi_editor_scenes', JSON.stringify(state.scenes));
+            localStorage.setItem(config.storageKeys.scenes, JSON.stringify(state.scenes));
             // Also save current scene ID
             if (state.currentSceneId) {
-                localStorage.setItem('andi_editor_current_scene', state.currentSceneId);
+                localStorage.setItem(config.storageKeys.currentScene, state.currentSceneId);
             }
         } catch (e) {
-            console.warn('Could not save to localStorage:', e);
-        }
-    }
-
-    function loadScenesFromStorage() {
-        try {
-            const saved = localStorage.getItem('andi_editor_scenes');
-            if (saved) {
-                state.scenes = JSON.parse(saved);
-                renderSceneList();
-                console.log('Loaded', Object.keys(state.scenes).length, 'scenes from storage');
-                // Restore current scene
-                restoreCurrentScene();
-            }
-        } catch (e) {
-            console.warn('Could not load from localStorage:', e);
+            log.warn('Could not save to localStorage: ' + e.message);
         }
     }
 
     function restoreCurrentScene() {
         try {
-            const savedSceneId = localStorage.getItem('andi_editor_current_scene');
+            const savedSceneId = localStorage.getItem(config.storageKeys.currentScene);
             if (savedSceneId && state.scenes[savedSceneId]) {
                 loadScene(savedSceneId);
             }
         } catch (e) {
-            console.warn('Could not restore current scene:', e);
+            log.warn('Could not restore current scene: ' + e.message);
         }
     }
 
@@ -2496,7 +2530,7 @@ const Editor = (function() {
                         imported++;
                     }
                 } catch (err) {
-                    console.error('Error importing', file.name, err);
+                    log.error('Error importing ' + file.name + ': ' + err.message);
                 }
             }
 
