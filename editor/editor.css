@@ -1063,6 +1063,7 @@ label textarea {
     display: flex;
     flex-direction: column;
     min-width: 0;
+    overflow: hidden;
 }
 
 .connections-section h4 {
@@ -1070,6 +1071,7 @@ label textarea {
     color: var(--text-muted);
     margin-bottom: 6px;
     font-weight: 500;
+    flex-shrink: 0;
 }
 
 .connections-section:first-child {
@@ -1087,7 +1089,9 @@ label textarea {
 .connections-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 4px;
+    overflow-y: auto;
+    max-height: 50px;
 }
 
 .connections-list .placeholder {
@@ -1102,13 +1106,11 @@ label textarea {
     border: 1px solid var(--border);
     border-radius: 4px;
     padding: 4px 8px;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     cursor: pointer;
     transition: all 0.15s;
-    max-width: 150px;
-    overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .connection-node:hover {
@@ -1116,12 +1118,19 @@ label textarea {
     border-color: var(--accent);
 }
 
+.connection-node .connection-name {
+    max-width: 90px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .connection-node .connection-type {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     color: var(--text-muted);
     background: var(--bg-primary);
-    padding: 1px 4px;
+    padding: 1px 3px;
     border-radius: 2px;
+    flex-shrink: 0;
 }
 
 .current-scene-node {
