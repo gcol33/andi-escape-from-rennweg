@@ -8,155 +8,64 @@
  */
 
 const story = {
-  "attempt_pass": {
-    "id": "attempt_pass",
+  "document_signed": {
+    "id": "document_signed",
     "bg": "stairwell_landing.jpg",
-    "music": "dicey_decisions.mp3",
+    "music": "legal_trap_stairwell.mp3",
     "chars": [
-      "agnes_blocking.svg"
-    ],
-    "set_flags": [],
-    "require_flags": [],
-    "actions": [
-      {
-        "type": "roll_dice",
-        "dice": "d20",
-        "threshold": 13,
-        "success_target": "d20_success",
-        "failure_target": "d20_failure"
-      }
-    ],
-    "textBlocks": [
-      "You mutter a quick \"Gotta run!\" and try to dart past Agnes.\n\nYou are fast, but Agnes is known to have a hidden history as a competitive ballroom dancer.\n\n**You must roll a d20 (13 or lower to succeed).**"
-    ],
-    "choices": [
-      {
-        "label": "ROLL D20...",
-        "target": "_roll",
-        "require_flags": [],
-        "set_flags": [],
-        "sfx": "dice_roll.ogg"
-      }
-    ]
-  },
-  "back_stairs": {
-    "id": "back_stairs",
-    "bg": "office_corridor.jpg",
-    "music": "oh_oh.mp3",
-    "chars": [
-      "joni_desperate.svg",
-      "norbert_pleading.svg"
+      "agnes_happy.svg"
     ],
     "set_flags": [],
     "require_flags": [],
     "actions": [],
     "textBlocks": [
-      "You turn left toward the back stairwell, but before you reach it, you hear a frantic whispering from the office next door.\n\nTwo colleagues, Joni and Norbert, step out, looking desperate. Joni is frantically clutching a printed thesis draft.\n\n\"Andy! Thank God! You're the only one who knows the Bayesian Multi-Variate Regression with Inverse Propensity Weighting. My PhD submission is today, and it just crashed! Please, you have to help me!\""
+      "You sigh, scribble your signature on the last page of the dense legal document, and hand the pen back to Agnes.\n\n\"All done, Andy! Best of luck,\" she chirps.\n\nYou are now free to take the stairs down, feeling only slightly heavier."
     ],
     "choices": [
       {
-        "label": "Sit at the desk and help them fix the model.",
-        "target": "lost_to_PhD",
+        "label": "Scramble down the main stairs to the entrance.",
+        "target": "exit_lobby",
         "require_flags": [],
         "set_flags": [],
-        "sfx": "click.ogg"
-      },
-      {
-        "label": "Say, \"Sorry, guys, I'm out of here. Good luck.\"",
-        "target": "colleague_plea",
-        "require_flags": [],
-        "set_flags": [],
-        "sfx": "negative.ogg"
-      },
-      {
-        "label": "Say, \"FUCK OFF.\"",
-        "target": "corridor_safe",
-        "require_flags": [],
-        "set_flags": [],
-        "sfx": "door_slam.ogg"
+        "sfx": "footstep.ogg"
       }
     ]
   },
-  "coffee_kitchen": {
-    "id": "coffee_kitchen",
-    "bg": "office_kitchen.jpg",
-    "music": "too_much_coffee.mp3",
+  "lost_to_HR": {
+    "id": "lost_to_HR",
+    "bg": "bedroom_morning.jpg",
+    "music": "game_over.mp3",
     "chars": [],
     "set_flags": [],
     "require_flags": [],
     "actions": [],
     "textBlocks": [
-      "You step into the kitchen. It is eerily quiet. The coffee machine is running, smelling comfortingly familiar.\n\nYou quickly pour a mug. The coffee tastes strangely sweet, but you drink it down anyway.\n\nYou lean against the counter, feeling satisfied... and suddenly, incredibly drowsy."
+      "You wake up in your apartment, startled. The clock says 7:00 AM.\n\nYou feel an inexplicable dread about the long commute ahead of you.\n\nYou remember nothing about a \"new job\" or a \"last day.\" You are stuck in an endless loop of yesterday.\n\n**You lost the game.**"
     ],
-    "choices": [
-      {
-        "label": "The room is spinning. You close your eyes.",
-        "target": "lost_to_coffee",
-        "require_flags": [],
-        "set_flags": [],
-        "sfx": "gulp.ogg"
-      }
-    ]
+    "choices": []
   },
-  "colleague_plea": {
-    "id": "colleague_plea",
-    "bg": "office_corridor.jpg",
-    "music": "questioning.mp3",
+  "fourth_floor_elevator": {
+    "id": "fourth_floor_elevator",
+    "bg": "meeting_room_whiteboard.jpg",
+    "music": "reading_papers.mp3",
     "chars": [
-      "joni_desperate.svg",
-      "norbert_grabbing.svg"
+      "michi_whiteboard.svg",
+      "gilles_explaining.svg",
+      "ruling_pointing.svg"
     ],
     "set_flags": [],
     "require_flags": [],
     "actions": [],
     "textBlocks": [
-      "Norbert grabs your sleeve.\n\n\"Please, Andy! Five minutes! You were always the best! If Joni misses the deadline, he loses everything!\""
+      "You agree and press the \"4\" button. The ride up is silent.\n\nWhen the doors open, Michi, Gilles, and Ruling are there, ready to ambush you with a whiteboard.\n\nYou spend the next two agonizing hours discussing the optimal parameters for a highly complex, niche model. Your resolve slowly erodes."
     ],
     "choices": [
       {
-        "label": "Agree: \"Fine, five minutes.\"",
-        "target": "lost_to_PhD",
-        "require_flags": [],
-        "set_flags": [],
-        "sfx": "click.ogg"
-      },
-      {
-        "label": "Refuse again: \"No, I really have to go.\"",
-        "target": "corridor_delayed",
-        "require_flags": [],
-        "set_flags": [],
-        "sfx": "negative.ogg"
-      }
-    ]
-  },
-  "corridor_delayed": {
-    "id": "corridor_delayed",
-    "bg": "office_corridor.jpg",
-    "music": "i_can_do_it.mp3",
-    "chars": [
-      "fabio_friendly.svg",
-      "ali_friendly.svg"
-    ],
-    "set_flags": [],
-    "require_flags": [],
-    "actions": [],
-    "textBlocks": [
-      "You shake off Joni and step firmly into the corridor, only to be immediately intercepted by Fabio and Ali.\n\n\"Andy! Leaving already? Just wanted to say hello and wish you luck!\"\n\nAfter a few minutes of pleasantries, Ali adds, \"Oh, you didn't say bye to the fourth floor folks, did you? Michi, Gilles, and Ruling will never forgive you!\""
-    ],
-    "choices": [
-      {
-        "label": "Agree to take the elevator up to the 4th floor.",
-        "target": "fourth_floor_elevator",
+        "label": "Finally manage to break free and get back on the elevator.",
+        "target": "exit_lobby",
         "require_flags": [],
         "set_flags": [],
         "sfx": "elevator_ding.ogg"
-      },
-      {
-        "label": "Say \"I don't have time!\" and run for the stairs.",
-        "target": "corridor_safe",
-        "require_flags": [],
-        "set_flags": [],
-        "sfx": "footstep.ogg"
       }
     ]
   },
@@ -204,6 +113,55 @@ const story = {
       }
     ]
   },
+  "start": {
+    "id": "start",
+    "bg": "hallway_fluorescent.jpg",
+    "music": "last_day.mp3",
+    "chars": [],
+    "set_flags": [],
+    "require_flags": [],
+    "actions": [],
+    "textBlocks": [
+      "The old wooden door closes with a dull thud behind you for the very last time. Your badge no longer works; your desk is empty.",
+      "You stand in the dim hallway of the 1st floor, where scuffed tile stretches ahead and the overhead fluorescents hum their familiar drone.\n\nYour new job starts Monday, and this chapter is finally closed. Now, you just need to get to the entrance and head out to freedom."
+    ],
+    "choices": [
+      {
+        "label": "Turn right and take the main stairs down to the entrance.",
+        "target": "main_stairs",
+        "require_flags": [],
+        "set_flags": [],
+        "sfx": "footstep.ogg"
+      },
+      {
+        "label": "Turn left and take the back stairs to the main entrance.",
+        "target": "back_stairs",
+        "require_flags": [],
+        "set_flags": [],
+        "sfx": "footstep.ogg"
+      },
+      {
+        "label": "Get one last, sentimental cup of coffee in the kitchen near your office.",
+        "target": "coffee_kitchen",
+        "require_flags": [],
+        "set_flags": [],
+        "sfx": "door_open.ogg"
+      }
+    ]
+  },
+  "lost_to_coffee": {
+    "id": "lost_to_coffee",
+    "bg": "dark_office_desk.jpg",
+    "music": "game_over.mp3",
+    "chars": [],
+    "set_flags": [],
+    "require_flags": [],
+    "actions": [],
+    "textBlocks": [
+      "You wake up with a throbbing headache. You are chained to your old desk chair.\n\nThe office is dark, except for the flickering screen of a monitor displaying a perpetual \"System Update\" message.\n\nYou realize you have been working here, unknowingly, for a very long time.\n\n**You lost the game.**"
+    ],
+    "choices": []
+  },
   "d20_success": {
     "id": "d20_success",
     "bg": "stairwell_escape.jpg",
@@ -227,130 +185,105 @@ const story = {
       }
     ]
   },
-  "document_refusal": {
-    "id": "document_refusal",
-    "bg": "hallway_red_alert.jpg",
-    "music": "glitch.mp3",
+  "corridor_delayed": {
+    "id": "corridor_delayed",
+    "bg": "office_corridor.jpg",
+    "music": "i_can_do_it.mp3",
     "chars": [
-      "agnes_angry.svg"
+      "fabio_friendly.svg",
+      "ali_friendly.svg"
     ],
     "set_flags": [],
     "require_flags": [],
     "actions": [],
     "textBlocks": [
-      "You politely (or rudely) refuse to sign. Agnes's smile vanishes, replaced by an expression of cold, professional disapproval.\n\nShe snaps her fingers. Suddenly, the hallway lights turn bright red, and a piercing alarm sounds.\n\nA robotic voice booms: **\"TERMINATION PROTOCOL ALPHA-SEVEN INITIATED. MEMORY BLOCK COMMENCING.\"**\n\nA wave of nausea hits you, and all thoughts of your new job vanish. You are instantly re-employed."
+      "You shake off Joni and step firmly into the corridor, only to be immediately intercepted by Fabio and Ali.\n\n\"Andy! Leaving already? Just wanted to say hello and wish you luck!\"\n\nAfter a few minutes of pleasantries, Ali adds, \"Oh, you didn't say bye to the fourth floor folks, did you? Michi, Gilles, and Ruling will never forgive you!\""
     ],
     "choices": [
       {
-        "label": "Collapse into the carpet, your future erased.",
-        "target": "lost_to_HR",
+        "label": "Agree to take the elevator up to the 4th floor.",
+        "target": "fourth_floor_elevator",
         "require_flags": [],
         "set_flags": [],
-        "sfx": "thud.ogg"
-      }
-    ]
-  },
-  "document_signed": {
-    "id": "document_signed",
-    "bg": "stairwell_landing.jpg",
-    "music": "legal_trap_stairwell.mp3",
-    "chars": [
-      "agnes_happy.svg"
-    ],
-    "set_flags": [],
-    "require_flags": [],
-    "actions": [],
-    "textBlocks": [
-      "You sigh, scribble your signature on the last page of the dense legal document, and hand the pen back to Agnes.\n\n\"All done, Andy! Best of luck,\" she chirps.\n\nYou are now free to take the stairs down, feeling only slightly heavier."
-    ],
-    "choices": [
+        "sfx": "elevator_ding.ogg"
+      },
       {
-        "label": "Scramble down the main stairs to the entrance.",
-        "target": "exit_lobby",
+        "label": "Say \"I don't have time!\" and run for the stairs.",
+        "target": "corridor_safe",
         "require_flags": [],
         "set_flags": [],
         "sfx": "footstep.ogg"
       }
     ]
   },
-  "exit_lobby": {
-    "id": "exit_lobby",
-    "bg": "sunny_street_freedom.jpg",
-    "music": "victory.mp3",
+  "back_stairs": {
+    "id": "back_stairs",
+    "bg": "office_corridor.jpg",
+    "music": "oh_oh.mp3",
     "chars": [
-      "security_guard_waving.svg"
+      "joni_desperate.svg",
+      "norbert_pleading.svg"
     ],
     "set_flags": [],
     "require_flags": [],
     "actions": [],
     "textBlocks": [
-      "You reach the main lobby. The security guard waves you goodbye.\n\nYou push open the heavy front doors and step out onto the street.\n\nThe sun is shining. The chapter is closed. **YOU WIN.**"
-    ],
-    "choices": []
-  },
-  "fourth_floor_elevator": {
-    "id": "fourth_floor_elevator",
-    "bg": "meeting_room_whiteboard.jpg",
-    "music": "reading_papers.mp3",
-    "chars": [
-      "michi_whiteboard.svg",
-      "gilles_explaining.svg",
-      "ruling_pointing.svg"
-    ],
-    "set_flags": [],
-    "require_flags": [],
-    "actions": [],
-    "textBlocks": [
-      "You agree and press the \"4\" button. The ride up is silent.\n\nWhen the doors open, Michi, Gilles, and Ruling are there, ready to ambush you with a whiteboard.\n\nYou spend the next two agonizing hours discussing the optimal parameters for a highly complex, niche model. Your resolve slowly erodes."
+      "You turn left toward the back stairwell, but before you reach it, you hear a frantic whispering from the office next door.\n\nTwo colleagues, Joni and Norbert, step out, looking desperate. Joni is frantically clutching a printed thesis draft.\n\n\"Andy! Thank God! You're the only one who knows the Bayesian Multi-Variate Regression with Inverse Propensity Weighting. My PhD submission is today, and it just crashed! Please, you have to help me!\""
     ],
     "choices": [
       {
-        "label": "Finally manage to break free and get back on the elevator.",
-        "target": "exit_lobby",
+        "label": "Sit at the desk and help them fix the model.",
+        "target": "lost_to_PhD",
         "require_flags": [],
         "set_flags": [],
-        "sfx": "elevator_ding.ogg"
+        "sfx": "click.ogg"
+      },
+      {
+        "label": "Say, \"Sorry, guys, I'm out of here. Good luck.\"",
+        "target": "colleague_plea",
+        "require_flags": [],
+        "set_flags": [],
+        "sfx": "negative.ogg"
+      },
+      {
+        "label": "Say, \"FUCK OFF.\"",
+        "target": "corridor_safe",
+        "require_flags": [],
+        "set_flags": [],
+        "sfx": "door_slam.ogg"
       }
     ]
   },
-  "lost_to_coffee": {
-    "id": "lost_to_coffee",
-    "bg": "dark_office_desk.jpg",
-    "music": "game_over.mp3",
-    "chars": [],
+  "colleague_plea": {
+    "id": "colleague_plea",
+    "bg": "office_corridor.jpg",
+    "music": "questioning.mp3",
+    "chars": [
+      "joni_desperate.svg",
+      "norbert_grabbing.svg"
+    ],
     "set_flags": [],
     "require_flags": [],
     "actions": [],
     "textBlocks": [
-      "You wake up with a throbbing headache. You are chained to your old desk chair.\n\nThe office is dark, except for the flickering screen of a monitor displaying a perpetual \"System Update\" message.\n\nYou realize you have been working here, unknowingly, for a very long time.\n\n**You lost the game.**"
+      "Norbert grabs your sleeve.\n\n\"Please, Andy! Five minutes! You were always the best! If Joni misses the deadline, he loses everything!\""
     ],
-    "choices": []
-  },
-  "lost_to_HR": {
-    "id": "lost_to_HR",
-    "bg": "bedroom_morning.jpg",
-    "music": "game_over.mp3",
-    "chars": [],
-    "set_flags": [],
-    "require_flags": [],
-    "actions": [],
-    "textBlocks": [
-      "You wake up in your apartment, startled. The clock says 7:00 AM.\n\nYou feel an inexplicable dread about the long commute ahead of you.\n\nYou remember nothing about a \"new job\" or a \"last day.\" You are stuck in an endless loop of yesterday.\n\n**You lost the game.**"
-    ],
-    "choices": []
-  },
-  "lost_to_PhD": {
-    "id": "lost_to_PhD",
-    "bg": "desk_computer_code.jpg",
-    "music": "game_over.mp3",
-    "chars": [],
-    "set_flags": [],
-    "require_flags": [],
-    "actions": [],
-    "textBlocks": [
-      "You sit down and dive into the code. The problem is deep, fascinating, and consumes your entire focus.\n\nYou hear the door swing shut, but you don't look up. You solve the bug, then another, and another.\n\nNext time you check the time, the digital clock reads: **2035**.\n\nYou cannot remember the names of the people who asked you for help. You have merged with the job.\n\n**You lost the game.**"
-    ],
-    "choices": []
+    "choices": [
+      {
+        "label": "Agree: \"Fine, five minutes.\"",
+        "target": "lost_to_PhD",
+        "require_flags": [],
+        "set_flags": [],
+        "sfx": "click.ogg"
+      },
+      {
+        "label": "Refuse again: \"No, I really have to go.\"",
+        "target": "corridor_delayed",
+        "require_flags": [],
+        "set_flags": [],
+        "sfx": "negative.ogg"
+      }
+    ]
   },
   "main_stairs": {
     "id": "main_stairs",
@@ -389,41 +322,108 @@ const story = {
       }
     ]
   },
-  "start": {
-    "id": "start",
-    "bg": "hallway_fluorescent.jpg",
-    "music": "last_day.mp3",
+  "coffee_kitchen": {
+    "id": "coffee_kitchen",
+    "bg": "office_kitchen.jpg",
+    "music": "too_much_coffee.mp3",
     "chars": [],
     "set_flags": [],
     "require_flags": [],
     "actions": [],
     "textBlocks": [
-      "The old wooden door closes with a dull thud behind you for the very last time. Your badge no longer works; your desk is empty.",
-      "You stand in the dim hallway of the 1st floor, where scuffed tile stretches ahead and the overhead fluorescents hum their familiar drone.\n\nYour new job starts Monday, and this chapter is finally closed. Now, you just need to get to the entrance and head out to freedom."
+      "You step into the kitchen. It is eerily quiet. The coffee machine is running, smelling comfortingly familiar.\n\nYou quickly pour a mug. The coffee tastes strangely sweet, but you drink it down anyway.\n\nYou lean against the counter, feeling satisfied... and suddenly, incredibly drowsy."
     ],
     "choices": [
       {
-        "label": "Turn right and take the main stairs down to the entrance.",
-        "target": "main_stairs",
+        "label": "The room is spinning. You close your eyes.",
+        "target": "lost_to_coffee",
         "require_flags": [],
         "set_flags": [],
-        "sfx": "footstep.ogg"
-      },
-      {
-        "label": "Turn left and take the back stairs to the main entrance.",
-        "target": "back_stairs",
-        "require_flags": [],
-        "set_flags": [],
-        "sfx": "footstep.ogg"
-      },
-      {
-        "label": "Get one last, sentimental cup of coffee in the kitchen near your office.",
-        "target": "coffee_kitchen",
-        "require_flags": [],
-        "set_flags": [],
-        "sfx": "door_open.ogg"
+        "sfx": "gulp.ogg"
       }
     ]
+  },
+  "exit_lobby": {
+    "id": "exit_lobby",
+    "bg": "sunny_street_freedom.jpg",
+    "music": "victory.mp3",
+    "chars": [
+      "security_guard_waving.svg"
+    ],
+    "set_flags": [],
+    "require_flags": [],
+    "actions": [],
+    "textBlocks": [
+      "You reach the main lobby. The security guard waves you goodbye.\n\nYou push open the heavy front doors and step out onto the street.\n\nThe sun is shining. The chapter is closed. **YOU WIN.**"
+    ],
+    "choices": []
+  },
+  "attempt_pass": {
+    "id": "attempt_pass",
+    "bg": "stairwell_landing.jpg",
+    "music": "dicey_decisions.mp3",
+    "chars": [
+      "agnes_blocking.svg"
+    ],
+    "set_flags": [],
+    "require_flags": [],
+    "actions": [
+      {
+        "type": "roll_dice",
+        "dice": "d20",
+        "threshold": 13,
+        "success_target": "d20_success",
+        "failure_target": "d20_failure"
+      }
+    ],
+    "textBlocks": [
+      "You mutter a quick \"Gotta run!\" and try to dart past Agnes.\n\nYou are fast, but Agnes is known to have a hidden history as a competitive ballroom dancer.\n\n**You must roll a d20 (13 or lower to succeed).**"
+    ],
+    "choices": [
+      {
+        "label": "ROLL D20...",
+        "target": "_roll",
+        "require_flags": [],
+        "set_flags": [],
+        "sfx": "dice_roll.ogg"
+      }
+    ]
+  },
+  "document_refusal": {
+    "id": "document_refusal",
+    "bg": "hallway_red_alert.jpg",
+    "music": "glitch.mp3",
+    "chars": [
+      "agnes_angry.svg"
+    ],
+    "set_flags": [],
+    "require_flags": [],
+    "actions": [],
+    "textBlocks": [
+      "You politely (or rudely) refuse to sign. Agnes's smile vanishes, replaced by an expression of cold, professional disapproval.\n\nShe snaps her fingers. Suddenly, the hallway lights turn bright red, and a piercing alarm sounds.\n\nA robotic voice booms: **\"TERMINATION PROTOCOL ALPHA-SEVEN INITIATED. MEMORY BLOCK COMMENCING.\"**\n\nA wave of nausea hits you, and all thoughts of your new job vanish. You are instantly re-employed."
+    ],
+    "choices": [
+      {
+        "label": "Collapse into the carpet, your future erased.",
+        "target": "lost_to_HR",
+        "require_flags": [],
+        "set_flags": [],
+        "sfx": "thud.ogg"
+      }
+    ]
+  },
+  "lost_to_PhD": {
+    "id": "lost_to_PhD",
+    "bg": "desk_computer_code.jpg",
+    "music": "game_over.mp3",
+    "chars": [],
+    "set_flags": [],
+    "require_flags": [],
+    "actions": [],
+    "textBlocks": [
+      "You sit down and dive into the code. The problem is deep, fascinating, and consumes your entire focus.\n\nYou hear the door swing shut, but you don't look up. You solve the bug, then another, and another.\n\nNext time you check the time, the digital clock reads: **2035**.\n\nYou cannot remember the names of the people who asked you for help. You have merged with the job.\n\n**You lost the game.**"
+    ],
+    "choices": []
   }
 };
 
