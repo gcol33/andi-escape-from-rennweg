@@ -1,0 +1,816 @@
+/* Andi VN - Main Stylesheet */
+/* Traditional VN-style layout with original theme */
+
+/* === Password Overlay (styled like a VN scene) === */
+#password-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #f2e7d5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    transition: opacity 0.5s ease-out;
+}
+
+#password-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* VN-style container for password screen */
+#password-container {
+    position: relative;
+    width: 100%;
+    /* Fallbacks for older browsers that don't support min()/aspect-ratio */
+    max-width: 95vw;
+    height: 0;
+    padding-bottom: 56.25%; /* 16:9 ratio fallback via padding trick */
+    /* Modern browsers override with aspect-ratio */
+    max-width: min(95vw, calc(75vh * 16 / 9));
+    height: auto;
+    padding-bottom: 0;
+    aspect-ratio: 16 / 9;
+    background-color: #d3c2a8;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px;
+}
+
+#password-inputs {
+    display: flex;
+}
+
+/* Fallback spacing for browsers without gap support */
+#password-inputs > * {
+    margin: 0 7.5px;
+}
+
+#password-inputs > *:first-child {
+    margin-left: 0;
+}
+
+#password-inputs > *:last-child {
+    margin-right: 0;
+}
+
+/* Modern browsers: use gap and remove margin fallback */
+@supports (gap: 15px) {
+    #password-inputs {
+        gap: 15px;
+    }
+    #password-inputs > * {
+        margin: 0;
+    }
+}
+
+.password-char {
+    width: 60px;
+    height: 72px;
+    font-size: 2.2rem;
+    font-family: 'Arial', sans-serif;
+    font-weight: bold;
+    text-align: center;
+    text-transform: uppercase;
+    background-color: rgba(250, 241, 224, 0.95);
+    border: 3px solid #b08b5a;
+    border-radius: 8px;
+    color: #4b3e2a;
+    outline: none;
+    transition: border-color 0.2s, transform 0.1s, background-color 0.2s, box-shadow 0.2s;
+}
+
+.password-char:focus {
+    border-color: #8f6f46;
+    box-shadow: 0 0 15px rgba(176, 139, 90, 0.6);
+    transform: scale(1.05);
+}
+
+.password-char.filled {
+    background-color: #fffbe9;
+}
+
+/* Error shake animation */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
+    20%, 40%, 60%, 80% { transform: translateX(8px); }
+}
+
+#password-inputs.error .password-char {
+    animation: shake 0.5s ease-in-out;
+    border-color: #c44;
+    background-color: #fdd;
+}
+
+/* Responsive password inputs */
+@media (max-width: 56.25em) {
+    #password-container {
+        margin: 10px;
+    }
+
+    .password-char {
+        width: 50px;
+        height: 60px;
+        font-size: 1.8rem;
+    }
+
+    #password-inputs {
+        gap: 10px;
+    }
+}
+
+@media (max-width: 37.5em) {
+    .password-char {
+        width: 40px;
+        height: 50px;
+        font-size: 1.5rem;
+    }
+
+    #password-inputs {
+        gap: 8px;
+    }
+}
+
+/* === Reset & Base === */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Responsive root font size: scales from 16px to 22px based on viewport */
+html {
+    font-size: 18px; /* Fallback for older browsers */
+    font-size: clamp(16px, 1.2vw, 22px);
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f2e7d5;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+}
+
+/* === VN Wrapper (centers the game) === */
+#vn-wrapper {
+    width: 95vw;
+    max-height: 95vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    overflow: hidden;
+}
+
+/* === Header === */
+h1 {
+    color: #5c4732;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+/* === VN Container (fixed 16:9 aspect ratio, scales to viewport) === */
+#vn-container {
+    position: relative;
+    width: 100%;
+    /* Fallbacks for older browsers that don't support min()/aspect-ratio */
+    max-width: 95vw;
+    height: 0;
+    padding-bottom: 56.25%; /* 16:9 ratio fallback via padding trick */
+    /* Modern browsers override with aspect-ratio */
+    max-width: min(95vw, calc(75vh * 16 / 9));
+    height: auto;
+    padding-bottom: 0;
+    aspect-ratio: 16 / 9;
+    background-color: #4b3e2a;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* === Background Layer === */
+#background-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: #d3c2a8;
+    z-index: 1;
+}
+
+/* === Character Sprite Layer === */
+#sprite-layer {
+    position: absolute;
+    bottom: 40%;
+    left: 0;
+    width: 100%;
+    height: 56%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    z-index: 2;
+    pointer-events: none;
+}
+
+/* Fallback spacing for browsers without gap support */
+#sprite-layer img {
+    max-height: 100%;
+    max-width: 300px;
+    object-fit: contain;
+    filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.3));
+    margin: 0 10px;
+}
+
+/* Modern browsers: use gap and remove margin fallback */
+@supports (gap: 20px) {
+    #sprite-layer {
+        gap: 20px;
+    }
+    #sprite-layer img {
+        margin: 0;
+    }
+}
+
+/* === Text Box (auto height with min/max constraints) === */
+#text-box {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    min-height: 40%;
+    max-height: 50%;
+    background-color: rgba(250, 241, 224, 0.95);
+    border-top: 3px solid #d3c2a8;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 30px 20px 30px;
+    transition: transform 0.3s ease-out;
+    overflow: hidden;
+}
+
+/* Allow more expansion on ending screens (win/lose) */
+#text-box.ending-scene {
+    height: auto;
+    min-height: 40%;
+    max-height: 60%;
+}
+
+/* Hidden text box state for tap-to-hide feature */
+#text-box.hidden-textbox {
+    transform: translateY(100%);
+    pointer-events: none;
+}
+
+/* === Text Speed Controls === */
+#text-controls {
+    display: flex;
+    margin-bottom: 8px;
+    justify-content: flex-end;
+}
+
+/* Fallback spacing for browsers without gap support */
+#text-controls > * {
+    margin-left: 8px;
+}
+
+#text-controls > *:first-child {
+    margin-left: 0;
+}
+
+/* Modern browsers: use gap and remove margin fallback */
+@supports (gap: 8px) {
+    #text-controls {
+        gap: 8px;
+    }
+    #text-controls > * {
+        margin-left: 0;
+    }
+}
+
+.speed-btn {
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    background-color: transparent;
+    color: #8a7a6a;
+    border: 1px solid #d3c2a8;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.speed-btn:hover {
+    background-color: rgba(176, 139, 90, 0.2);
+    border-color: #b08b5a;
+}
+
+.speed-btn.active {
+    background-color: #b08b5a;
+    color: #fffbe9;
+    border-color: #b08b5a;
+}
+
+/* === Volume Control Container === */
+#volume-control {
+    display: flex;
+    align-items: center;
+    margin-left: 8px;
+}
+
+/* === Volume Slider === */
+#volume-slider {
+    width: 60px;
+    height: 12px;
+    margin-left: 6px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    accent-color: #b08b5a;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    background: #d3c2a8;
+    border-radius: 2px;
+    /* clip-path creates trapezoid shape; degrades gracefully to rectangle */
+}
+
+/* Modern browsers: use clip-path for trapezoid shape */
+@supports (clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%)) {
+    #volume-slider {
+        clip-path: polygon(0 40%, 100% 0, 100% 100%, 0 60%);
+    }
+}
+
+#volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 0;
+    height: 0;
+}
+
+#volume-slider::-moz-range-thumb {
+    width: 0;
+    height: 0;
+    border: none;
+}
+
+#volume-control:hover #volume-slider {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* === Icon switching for landscape/portrait (speed buttons only) === */
+.icon-portrait {
+    display: none;
+}
+
+.icon-landscape {
+    display: inline;
+}
+
+/* === SVG icons in mute button === */
+.mute-btn svg {
+    display: block;
+    width: 1em;
+    height: 1em;
+}
+
+/* === Mute Button === */
+.mute-btn {
+    padding: 4px 12px;
+    font-size: 1rem;
+    background-color: transparent;
+    color: #8a7a6a;
+    border: 1px solid #d3c2a8;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mute-btn:hover {
+    background-color: rgba(176, 139, 90, 0.2);
+    border-color: #b08b5a;
+}
+
+/* === Story Output === */
+#story-output {
+    flex: 1;
+    color: #4b3e2a;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    overflow-y: auto;
+    padding-right: 10px;
+    cursor: default;
+    user-select: none;
+}
+
+/* Custom scrollbar for text */
+#story-output::-webkit-scrollbar {
+    width: 6px;
+}
+
+#story-output::-webkit-scrollbar-track {
+    background: rgba(211, 194, 168, 0.3);
+    border-radius: 3px;
+}
+
+#story-output::-webkit-scrollbar-thumb {
+    background: #b08b5a;
+    border-radius: 3px;
+}
+
+/* === Typewriter Effect === */
+.typewriter-text {
+    margin: 0;
+}
+
+.typewriter-text::after {
+    content: '▌';
+    animation: blink 0.7s infinite;
+    color: #b08b5a;
+    margin-left: 2px;
+}
+
+.typewriter-complete::after {
+    content: '';
+    animation: none;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+/* Already-read text indicator */
+.already-read {
+    opacity: 0.85;
+}
+
+/* Fallback: JS adds .has-already-read class to #story-output */
+#story-output.has-already-read::before {
+    content: '(already read)';
+    display: block;
+    font-size: 0.75rem;
+    color: #a09080;
+    font-style: italic;
+    margin-bottom: 5px;
+}
+
+/* Modern browsers: use :has() selector */
+@supports selector(:has(*)) {
+    #story-output:has(.already-read)::before {
+        content: '(already read)';
+        display: block;
+        font-size: 0.75rem;
+        color: #a09080;
+        font-style: italic;
+        margin-bottom: 5px;
+    }
+}
+
+/* === Button Area (contains continue + choices) === */
+#button-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 12px;
+}
+
+/* Fallback spacing for browsers without gap support */
+#button-area > * {
+    margin-bottom: 10px;
+}
+
+#button-area > *:last-child {
+    margin-bottom: 0;
+}
+
+/* Modern browsers: use gap and remove margin fallback */
+@supports (gap: 10px) {
+    #button-area {
+        gap: 10px;
+    }
+    #button-area > * {
+        margin-bottom: 0;
+    }
+}
+
+/* === Choices Container === */
+#choices-container {
+    display: block; /* Fallback for very old browsers */
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    width: 100%;
+}
+
+/* Fallback spacing for browsers without gap support */
+#choices-container > * {
+    margin: 5px;
+}
+
+/* Modern browsers: use gap and remove margin fallback */
+@supports (gap: 10px) {
+    #choices-container {
+        gap: 10px;
+    }
+    #choices-container > * {
+        margin: 0;
+    }
+}
+
+/* === Choice Buttons === */
+.choice-button {
+    display: inline-block; /* Fallback for older browsers */
+    flex: 1 1 0;
+    padding: 10px 15px;
+    background-color: #b08b5a;
+    color: #fffbe9;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    white-space: normal;
+    text-align: center;
+}
+
+.choice-button:hover {
+    background-color: #8f6f46;
+}
+
+/* === Game Over State === */
+.game-over {
+    color: #4b1f0d;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 15px;
+    padding: 10px;
+    border: 2px solid #4b1f0d;
+    border-radius: 5px;
+}
+
+/* Stack game-over message above restart button in landscape */
+/* Fallback: JS adds .has-game-over class to #choices-container */
+#choices-container.has-game-over {
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Modern browsers: use :has() selector */
+@supports selector(:has(*)) {
+    #choices-container:has(.game-over) {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+/* === Restart Button === */
+.restart-button {
+    display: inline-block; /* Fallback for older browsers */
+    flex: 0 0 auto;
+    min-width: 250px;
+    padding: 12px 30px;
+    background-color: #5c4732;
+    color: #fffbe9;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+}
+
+.restart-button:hover {
+    background-color: #4b3e2a;
+    transform: scale(1.02);
+}
+
+/* === Continue Button === */
+.continue-button {
+    display: inline-block; /* Fallback for older browsers */
+    flex: 0 0 auto;
+    min-width: 200px;
+    padding: 10px 30px;
+    background-color: #b08b5a;
+    color: #fffbe9;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+}
+
+.continue-button:hover {
+    background-color: #8f6f46;
+    transform: scale(1.02);
+}
+
+/* === Dice Roll Display === */
+.dice-roll {
+    font-size: 1.1rem;
+    color: #b08b5a;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+/* === Responsive Design === */
+@media (max-width: 56.25em) {
+    #vn-wrapper {
+        padding: 10px;
+    }
+
+    #text-box {
+        height: auto;
+        min-height: 36%;
+        max-height: 55%;
+        padding: 12px 20px 15px 20px;
+    }
+
+    #sprite-layer {
+        bottom: 36%;
+        height: 60%;
+    }
+
+    #story-output {
+        font-size: 1rem;
+    }
+
+    .choice-button {
+        min-width: 150px;
+        font-size: 0.9rem;
+        padding: 8px 15px;
+    }
+
+    #sprite-layer img {
+        max-width: 200px;
+    }
+}
+
+@media (max-width: 37.5em) {
+    #text-box {
+        height: auto;
+        min-height: 40%;
+        max-height: 60%;
+        padding: 10px 15px;
+    }
+
+    #sprite-layer {
+        bottom: 40%;
+        height: 56%;
+    }
+
+    #story-output {
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    .choice-button {
+        min-width: 100%;
+        font-size: 0.85rem;
+    }
+
+    #sprite-layer img {
+        max-width: 140px;
+    }
+}
+
+/* === Portrait Mode (phones held vertically) === */
+/* These rules ONLY apply when screen is taller than wide */
+@media (orientation: portrait) {
+    /* Use 9:16 aspect ratio for portrait screens */
+    #vn-container {
+        /* Fallback for older browsers without aspect-ratio/min() */
+        max-width: 56.25vh;
+        height: 0;
+        padding-bottom: 177.78%; /* 16:9 inverted = 9:16 */
+        /* Modern browsers override with aspect-ratio */
+        height: auto;
+        padding-bottom: 0;
+        aspect-ratio: 9 / 16;
+        max-width: min(100%, 56.25vh); /* Constrain width based on height */
+        max-height: 85vh; /* Leave buffer room like landscape */
+    }
+
+    #password-container {
+        /* Fallback for older browsers without aspect-ratio/min() */
+        max-width: 56.25vh;
+        height: 0;
+        padding-bottom: 177.78%; /* 16:9 inverted = 9:16 */
+        /* Modern browsers override */
+        height: auto;
+        padding-bottom: 0;
+        aspect-ratio: 9 / 16;
+        max-width: min(100%, 56.25vh);
+        max-height: 85vh;
+    }
+
+    /* Ensure wrapper fits in viewport */
+    #vn-wrapper {
+        max-height: 100vh;
+    }
+
+    /* Adjust text box for taller container - larger in portrait */
+    #text-box {
+        height: auto;
+        min-height: 40%;
+        max-height: 75%;
+    }
+
+    /* Center text controls in portrait */
+    #text-controls {
+        justify-content: center;
+    }
+
+    #text-box.ending-scene {
+        height: auto;
+        min-height: 40%;
+        max-height: 90%;
+    }
+
+    /* Adjust sprite positioning for portrait */
+    #sprite-layer {
+        bottom: 40%;
+        height: 55%;
+    }
+
+    #sprite-layer img {
+        max-width: 35%;
+    }
+
+    /* Stack choices vertically in portrait */
+    #choices-container {
+        flex-direction: column;
+        flex-wrap: nowrap;
+        gap: 8px;
+    }
+
+    .choice-button {
+        flex: none;
+        width: 100%;
+        padding: 12px 15px;
+    }
+
+    /* Smaller buttons for portrait */
+    .continue-button,
+    .restart-button {
+        min-width: 180px;
+        padding: 10px 20px;
+    }
+
+    /* Move reset button to top-right on portrait phones */
+    #reset-btn {
+        bottom: auto !important;
+        top: 10px !important;
+        right: 10px !important;
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 16px !important;
+    }
+
+
+    /* Switch to text icons in portrait */
+    .icon-landscape {
+        display: none !important;
+    }
+
+    .icon-portrait {
+        display: inline !important;
+    }
+
+    /* Remove sticky focus/active states on touch */
+    .speed-btn:focus,
+    .mute-btn:focus,
+    .choice-button:focus,
+    .continue-button:focus,
+    .restart-button:focus {
+        outline: none;
+        background-color: transparent;
+    }
+
+    .speed-btn.active:focus {
+        background-color: #b08b5a;
+    }
+}

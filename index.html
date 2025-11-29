@@ -10,7 +10,25 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>Andy's Farewell</title>
-    <link rel="stylesheet" href="css/style.css">
+    <!-- Theme CSS loaded dynamically based on theme.js config -->
+    <link id="theme-css" rel="stylesheet" href="css/themes/90s.css">
+    <script>
+        // Load theme configuration synchronously to prevent FOUC
+        (function() {
+            var script = document.createElement('script');
+            script.src = 'js/theme.js';
+            script.async = false;
+            document.head.appendChild(script);
+            script.onload = function() {
+                if (typeof themeConfig !== 'undefined' && themeConfig.selected) {
+                    var link = document.getElementById('theme-css');
+                    if (link) {
+                        link.href = 'css/themes/' + themeConfig.selected + '.css';
+                    }
+                }
+            };
+        })();
+    </script>
 </head>
 <body>
     <!-- Password overlay - blocks game until correct password entered -->
@@ -72,7 +90,8 @@
     <!-- Audio element for background music -->
     <audio id="bg-music" loop></audio>
 
-    <!-- Scripts: Story data must load before engine -->
+    <!-- Scripts: Theme and story data must load before engine -->
+    <script src="js/theme.js"></script>
     <script src="js/story.js"></script>
     <script src="js/password.js"></script>
     <script src="js/engine.js"></script>

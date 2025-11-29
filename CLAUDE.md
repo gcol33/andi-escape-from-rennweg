@@ -63,12 +63,17 @@ Andi/
 ├─ index.html
 │
 ├─ css/
-│   └─ style.css
+│   └─ themes/
+│       ├─ prototype.css   (original warm beige VN style)
+│       └─ 90s.css         (Windows 3.1 aesthetic)
+│
+├─ theme.md                (theme selection config)
 │
 ├─ js/
 │   ├─ engine.js
 │   ├─ password.js     (password screen logic)
-│   └─ story.js        (generated - do not edit manually)
+│   ├─ story.js        (generated - do not edit manually)
+│   └─ theme.js        (generated - theme configuration)
 │
 ├─ scenes/
 │   └─ *.md            (source of truth for story)
@@ -98,14 +103,27 @@ Contains:
 - links to CSS and JS
 - no story text or logic code allowed
 
-### css/style.css
-Defines:
+### css/themes/*.css
+Theme CSS files define:
 - layout
 - background and sprite positioning
 - text formatting
 - continue button and choice button styling
 - transitions
+- color schemes
+
 No inline styles permitted.
+
+### theme.md
+Configuration file for selecting the active theme:
+```markdown
+prototype [ ]
+90s [x]
+```
+- One line per theme
+- `[x]` marks the selected theme
+- `[ ]` marks available but unselected themes
+- Only one theme can be selected at a time
 
 ### js/engine.js
 Contains VN logic:
@@ -440,6 +458,7 @@ Located in the upper-right of the text box. Uses symbol buttons:
 - Hold **q+w+e+r+t** keys simultaneously to toggle dev mode
 - Dev mode allows skipping any text, even on first read
 - Green "DEV MODE" indicator appears in top-right corner
+- **Theme selector** appears below DEV MODE indicator for live theme switching
 
 ### Dice Roll Mechanics
 - Defined in scene frontmatter via `actions` array
@@ -647,3 +666,66 @@ editor/
 ```
 
 The editor generates Markdown files compatible with `build_story_from_md.py`.
+
+---
+
+## 16. Theme System
+
+The VN supports multiple visual themes that can be switched via configuration or dev mode.
+
+### Available Themes
+
+| Theme | Description |
+|-------|-------------|
+| `prototype` | Original warm beige VN style with cream text box and golden brown buttons |
+| `90s` | Windows 3.1 / Early Mac aesthetic with gray panels, blue titlebars, and teal background |
+
+### Theme Selection
+
+Themes are selected by editing `theme.md` in the project root:
+
+```markdown
+# Theme Configuration
+prototype [ ]
+90s [x]
+```
+
+- Mark the desired theme with `[x]`
+- Mark other themes with `[ ]`
+- Run `python tools/build_story_from_md.py` to apply the change
+
+### Creating New Themes
+
+1. Create a new CSS file in `css/themes/` (e.g., `css/themes/mytheme.css`)
+2. Copy the structure from an existing theme
+3. Modify colors, fonts, borders, and styling
+4. Add the theme name to `theme.md`
+5. Run the build script
+
+### Theme CSS Requirements
+
+Each theme CSS must define styles for:
+- Password overlay (`#password-overlay`, `#password-container`, `.password-char`)
+- Main container (`#vn-wrapper`, `#vn-container`)
+- Background and sprite layers (`#background-layer`, `#sprite-layer`)
+- Text box (`#text-box`, `#story-output`)
+- Controls (`#text-controls`, `.speed-btn`, `.mute-btn`)
+- Buttons (`.choice-button`, `.continue-button`, `.restart-button`)
+- Game over state (`.game-over`)
+- Responsive breakpoints (landscape and portrait)
+
+### Dev Mode Theme Switching
+
+In dev mode (hold q+w+e+r+t), a theme selector dropdown appears allowing live theme switching without rebuilding. This is useful for testing themes during development.
+
+### Generated Files
+
+The build script generates `js/theme.js` containing:
+```javascript
+const themeConfig = {
+  "selected": "90s",
+  "available": ["prototype", "90s"]
+};
+```
+
+This is loaded by `index.html` to dynamically set the correct theme CSS.
