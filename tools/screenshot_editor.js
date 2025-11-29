@@ -35,12 +35,12 @@ async function takeScreenshot() {
     // Wait a bit for any animations/rendering
     await new Promise(r => setTimeout(r, 500));
 
-    // Click on "start" scene to show something interesting
+    // Click on "demo_battle" scene to show battle features
     await page.evaluate(() => {
-        // Find and click the start scene in the list
+        // Find and click the demo_battle scene in the list
         const sceneItems = document.querySelectorAll('#scene-list .scene-item');
         for (const item of sceneItems) {
-            if (item.textContent.includes('start')) {
+            if (item.textContent.includes('demo_battle') && !item.textContent.includes('avoided') && !item.textContent.includes('intro') && !item.textContent.includes('talk')) {
                 item.click();
                 break;
             }
@@ -49,6 +49,32 @@ async function takeScreenshot() {
 
     // Wait for scene to load
     await new Promise(r => setTimeout(r, 800));
+
+    // Expand the Advanced section to show actions
+    await page.evaluate(() => {
+        const advancedHeader = document.querySelector('.collapsible-header');
+        if (advancedHeader) {
+            advancedHeader.click();
+        }
+    });
+
+    // Wait for section to expand
+    await new Promise(r => setTimeout(r, 300));
+
+    // Scroll the properties panel to show the Advanced section with battle config
+    await page.evaluate(() => {
+        const propertiesPanel = document.querySelector('#properties-panel');
+        if (propertiesPanel) {
+            // Scroll to show the actions container
+            const actionsContainer = document.querySelector('#actions-container');
+            if (actionsContainer) {
+                actionsContainer.scrollIntoView({ block: 'center' });
+            }
+        }
+    });
+
+    // Wait for scroll
+    await new Promise(r => setTimeout(r, 200));
 
     console.log('Taking screenshot...');
     await page.screenshot({

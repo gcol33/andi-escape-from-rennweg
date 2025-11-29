@@ -161,7 +161,7 @@ def get_annotated_screenshot():
 '''
 
     # SVG annotations positioned over the screenshot
-    # Based on the actual editor layout from the screenshot
+    # Based on the actual editor layout from the screenshot (showing demo_battle scene with battle config)
     return f'''
 <div class="figure-box">
     <div class="figure-title">Figure 1: Visual Editor (Option A)</div>
@@ -222,29 +222,29 @@ def get_annotated_screenshot():
             <rect x="216" y="794" width="32" height="32" class="annotation-box-inner"/>
             <text x="232" y="817" class="annotation-number">7</text>
 
-            <!-- 8. Scene Info Panel - box far right, line points left to panel -->
-            <line x1="1360" y1="110" x2="1200" y2="110" class="annotation-line"/>
-            <rect x="1360" y="92" width="36" height="36" class="annotation-box"/>
-            <rect x="1362" y="94" width="32" height="32" class="annotation-box-inner"/>
-            <text x="1378" y="117" class="annotation-number">8</text>
+            <!-- 8. Scene Info - box far right, pointing to Input (Coming From) section -->
+            <line x1="1360" y1="70" x2="1200" y2="70" class="annotation-line"/>
+            <rect x="1360" y="52" width="36" height="36" class="annotation-box"/>
+            <rect x="1362" y="54" width="32" height="32" class="annotation-box-inner"/>
+            <text x="1378" y="77" class="annotation-number">8</text>
 
-            <!-- 9. Background Selector - box far right, line points left -->
-            <line x1="1360" y1="300" x2="1200" y2="300" class="annotation-line"/>
-            <rect x="1360" y="282" width="36" height="36" class="annotation-box"/>
-            <rect x="1362" y="284" width="32" height="32" class="annotation-box-inner"/>
-            <text x="1378" y="307" class="annotation-number">9</text>
+            <!-- 9. Flags & Items - box far right, pointing to Set Flags / Add Items area -->
+            <line x1="1360" y1="220" x2="1200" y2="220" class="annotation-line"/>
+            <rect x="1360" y="202" width="36" height="36" class="annotation-box"/>
+            <rect x="1362" y="204" width="32" height="32" class="annotation-box-inner"/>
+            <text x="1378" y="227" class="annotation-number">9</text>
 
-            <!-- 10. Music Selector - box far right, line points left -->
-            <line x1="1360" y1="485" x2="1200" y2="485" class="annotation-line"/>
-            <rect x="1360" y="467" width="46" height="36" class="annotation-box"/>
-            <rect x="1362" y="469" width="42" height="32" class="annotation-box-inner"/>
-            <text x="1383" y="492" class="annotation-number">10</text>
+            <!-- 10. Actions - box far right, pointing to the Battle config panel -->
+            <line x1="1360" y1="520" x2="1220" y2="520" class="annotation-line"/>
+            <rect x="1360" y="502" width="46" height="36" class="annotation-box"/>
+            <rect x="1362" y="504" width="42" height="32" class="annotation-box-inner"/>
+            <text x="1383" y="527" class="annotation-number">10</text>
 
-            <!-- 11. Choices Editor - box far right, line points left -->
-            <line x1="1360" y1="700" x2="1200" y2="700" class="annotation-line"/>
-            <rect x="1360" y="682" width="46" height="36" class="annotation-box"/>
-            <rect x="1362" y="684" width="42" height="32" class="annotation-box-inner"/>
-            <text x="1383" y="707" class="annotation-number">11</text>
+            <!-- 11. Action Buttons - box far right, pointing to + Dice Roll / + Battle buttons -->
+            <line x1="1360" y1="760" x2="1220" y2="760" class="annotation-line"/>
+            <rect x="1360" y="742" width="46" height="36" class="annotation-box"/>
+            <rect x="1362" y="744" width="42" height="32" class="annotation-box-inner"/>
+            <text x="1383" y="767" class="annotation-number">11</text>
 
             <!-- 12. Toolbar - box top right of toolbar, line points left down to buttons -->
             <line x1="1000" y1="32" x2="960" y2="32" class="annotation-line"/>
@@ -266,7 +266,7 @@ def get_annotated_screenshot():
             </tr>
             <tr>
                 <td><span class="legend-num">3</span></td>
-                <td><strong>Canvas Preview</strong> — See how your scene looks! Background fills the area.</td>
+                <td><strong>Canvas Preview</strong> — See how your scene looks! Background fills the area, characters appear in center.</td>
             </tr>
             <tr>
                 <td><span class="legend-num">4</span></td>
@@ -286,19 +286,19 @@ def get_annotated_screenshot():
             </tr>
             <tr>
                 <td><span class="legend-num">8</span></td>
-                <td><strong>Scene ID</strong> — Unique name for this scene. Lowercase, underscores, no spaces!</td>
+                <td><strong>Scene Info</strong> — Shows incoming connections and lets you set background/music (scroll up).</td>
             </tr>
             <tr>
                 <td><span class="legend-num">9</span></td>
-                <td><strong>Background</strong> — Pick a background image from the dropdown.</td>
+                <td><strong>Flags & Items</strong> — Set/require flags, add/remove items when entering this scene.</td>
             </tr>
             <tr>
                 <td><span class="legend-num">10</span></td>
-                <td><strong>Music</strong> — Choose background music. Click Play to preview.</td>
+                <td><strong>Actions</strong> — Configure dice rolls or battles! Shows enemy stats, targets for victory/defeat/flee.</td>
             </tr>
             <tr>
                 <td><span class="legend-num">11</span></td>
-                <td><strong>Choices</strong> — Set up player choices: button text, target scene, sound effects.</td>
+                <td><strong>Action Buttons</strong> — Click "+ Dice Roll" or "+ Battle" to add game mechanics to your scene.</td>
             </tr>
             <tr>
                 <td><span class="legend-num">12</span></td>
