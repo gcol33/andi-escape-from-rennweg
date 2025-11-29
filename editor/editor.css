@@ -1485,6 +1485,25 @@ label textarea {
     font-size: 0.8rem;
 }
 
+/* Battle action styling */
+.battle-item {
+    border: 1px solid #c66;
+    background: rgba(200, 100, 100, 0.1);
+}
+
+.battle-inputs {
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.action-buttons button {
+    flex: 1;
+}
+
 /* Incoming scenes list */
 .incoming-list {
     display: flex;

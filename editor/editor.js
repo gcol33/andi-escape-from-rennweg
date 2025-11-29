@@ -315,6 +315,7 @@ const Editor = (function() {
             // Actions
             actionsContainer: document.getElementById('actions-container'),
             addActionBtn: document.getElementById('add-action-btn'),
+            addBattleBtn: document.getElementById('add-battle-btn'),
 
             // Incoming (sidebar)
             incomingScenes: document.getElementById('incoming-scenes'),
@@ -401,6 +402,7 @@ const Editor = (function() {
 
         // Actions
         elements.addActionBtn.addEventListener('click', addAction);
+        elements.addBattleBtn.addEventListener('click', addBattle);
 
         // Delete
         elements.deleteSceneBtn.addEventListener('click', showDeleteModal);
@@ -1233,6 +1235,8 @@ const Editor = (function() {
         actions.forEach((action) => {
             if (action.type === 'roll_dice') {
                 addActionElement(action);
+            } else if (action.type === 'start_battle') {
+                addBattleElement(action);
             }
         });
     }
@@ -1383,13 +1387,157 @@ const Editor = (function() {
         onSceneModified();
     }
 
+    function addBattleElement(action = null) {
+        const actionDiv = document.createElement('div');
+        actionDiv.className = 'action-item battle-item';
+
+        const header = document.createElement('div');
+        header.className = 'action-item-header';
+
+        const label = document.createElement('span');
+        label.textContent = '⚔️ Battle';
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn-icon';
+        deleteBtn.textContent = '×';
+        deleteBtn.addEventListener('click', () => {
+            actionDiv.remove();
+            onSceneModified();
+        });
+
+        header.appendChild(label);
+        header.appendChild(deleteBtn);
+
+        const inputs = document.createElement('div');
+        inputs.className = 'action-inputs battle-inputs';
+
+        // Enemy name
+        const enemyNameLabel = document.createElement('label');
+        enemyNameLabel.textContent = 'Enemy Name';
+        const enemyNameInput = document.createElement('input');
+        enemyNameInput.type = 'text';
+        enemyNameInput.className = 'battle-enemy-name';
+        enemyNameInput.value = action && action.enemy_name ? action.enemy_name : '';
+        enemyNameInput.placeholder = 'e.g. Agnes';
+        enemyNameInput.addEventListener('input', onSceneModified);
+        enemyNameLabel.appendChild(enemyNameInput);
+
+        // Enemy HP
+        const enemyHPLabel = document.createElement('label');
+        enemyHPLabel.textContent = 'Enemy HP';
+        const enemyHPInput = document.createElement('input');
+        enemyHPInput.type = 'number';
+        enemyHPInput.className = 'battle-enemy-hp';
+        enemyHPInput.min = 1;
+        enemyHPInput.value = action && action.enemy_hp ? action.enemy_hp : 20;
+        enemyHPInput.addEventListener('input', onSceneModified);
+        enemyHPLabel.appendChild(enemyHPInput);
+
+        // Enemy Attack
+        const enemyAtkLabel = document.createElement('label');
+        enemyAtkLabel.textContent = 'Enemy Atk';
+        const enemyAtkInput = document.createElement('input');
+        enemyAtkInput.type = 'number';
+        enemyAtkInput.className = 'battle-enemy-attack';
+        enemyAtkInput.value = action && action.enemy_attack ? action.enemy_attack : 4;
+        enemyAtkInput.addEventListener('input', onSceneModified);
+        enemyAtkLabel.appendChild(enemyAtkInput);
+
+        // Enemy Defense
+        const enemyDefLabel = document.createElement('label');
+        enemyDefLabel.textContent = 'Enemy Def';
+        const enemyDefInput = document.createElement('input');
+        enemyDefInput.type = 'number';
+        enemyDefInput.className = 'battle-enemy-defense';
+        enemyDefInput.value = action && action.enemy_defense ? action.enemy_defense : 10;
+        enemyDefInput.addEventListener('input', onSceneModified);
+        enemyDefLabel.appendChild(enemyDefInput);
+
+        // Player Attack
+        const playerAtkLabel = document.createElement('label');
+        playerAtkLabel.textContent = 'Player Atk';
+        const playerAtkInput = document.createElement('input');
+        playerAtkInput.type = 'number';
+        playerAtkInput.className = 'battle-player-attack';
+        playerAtkInput.value = action && action.player_attack ? action.player_attack : 4;
+        playerAtkInput.addEventListener('input', onSceneModified);
+        playerAtkLabel.appendChild(playerAtkInput);
+
+        // Player Defense
+        const playerDefLabel = document.createElement('label');
+        playerDefLabel.textContent = 'Player Def';
+        const playerDefInput = document.createElement('input');
+        playerDefInput.type = 'number';
+        playerDefInput.className = 'battle-player-defense';
+        playerDefInput.value = action && action.player_defense ? action.player_defense : 10;
+        playerDefInput.addEventListener('input', onSceneModified);
+        playerDefLabel.appendChild(playerDefInput);
+
+        // Victory target
+        const victoryLabel = document.createElement('label');
+        victoryLabel.textContent = 'On victory →';
+        const victoryInput = document.createElement('input');
+        victoryInput.type = 'text';
+        victoryInput.className = 'battle-victory';
+        victoryInput.value = action && action.victory_target ? action.victory_target : '';
+        victoryInput.placeholder = 'victory_scene_id';
+        victoryInput.addEventListener('input', onSceneModified);
+        setupAutocomplete(victoryInput);
+        victoryLabel.appendChild(victoryInput);
+
+        // Defeat target
+        const defeatLabel = document.createElement('label');
+        defeatLabel.textContent = 'On defeat →';
+        const defeatInput = document.createElement('input');
+        defeatInput.type = 'text';
+        defeatInput.className = 'battle-defeat';
+        defeatInput.value = action && action.defeat_target ? action.defeat_target : '';
+        defeatInput.placeholder = 'defeat_scene_id';
+        defeatInput.addEventListener('input', onSceneModified);
+        setupAutocomplete(defeatInput);
+        defeatLabel.appendChild(defeatInput);
+
+        // Flee target
+        const fleeLabel = document.createElement('label');
+        fleeLabel.textContent = 'On flee →';
+        const fleeInput = document.createElement('input');
+        fleeInput.type = 'text';
+        fleeInput.className = 'battle-flee';
+        fleeInput.value = action && action.flee_target ? action.flee_target : '';
+        fleeInput.placeholder = 'flee_scene_id';
+        fleeInput.addEventListener('input', onSceneModified);
+        setupAutocomplete(fleeInput);
+        fleeLabel.appendChild(fleeInput);
+
+        inputs.appendChild(enemyNameLabel);
+        inputs.appendChild(enemyHPLabel);
+        inputs.appendChild(enemyAtkLabel);
+        inputs.appendChild(enemyDefLabel);
+        inputs.appendChild(playerAtkLabel);
+        inputs.appendChild(playerDefLabel);
+        inputs.appendChild(victoryLabel);
+        inputs.appendChild(defeatLabel);
+        inputs.appendChild(fleeLabel);
+
+        actionDiv.appendChild(header);
+        actionDiv.appendChild(inputs);
+        elements.actionsContainer.appendChild(actionDiv);
+    }
+
+    function addBattle() {
+        addBattleElement();
+        onSceneModified();
+    }
+
     function getActionsFromEditor() {
         const actions = [];
-        elements.actionsContainer.querySelectorAll('.action-item').forEach(item => {
-            const dice = item.querySelector('.action-dice').value;
-            const threshold = parseInt(item.querySelector('.action-threshold').value) || 10;
-            const success = item.querySelector('.action-success').value.trim();
-            const failure = item.querySelector('.action-failure').value.trim();
+
+        // Collect dice roll actions
+        elements.actionsContainer.querySelectorAll('.action-item:not(.battle-item)').forEach(item => {
+            const dice = item.querySelector('.action-dice')?.value;
+            const threshold = parseInt(item.querySelector('.action-threshold')?.value) || 10;
+            const success = item.querySelector('.action-success')?.value.trim();
+            const failure = item.querySelector('.action-failure')?.value.trim();
             const modifier = item.querySelector('.action-modifier')?.value || '';
             const skill = item.querySelector('.action-skill')?.value.trim() || '';
             const critText = item.querySelector('.action-crit')?.value.trim() || '';
@@ -1410,6 +1558,37 @@ const Editor = (function() {
                 actions.push(action);
             }
         });
+
+        // Collect battle actions
+        elements.actionsContainer.querySelectorAll('.battle-item').forEach(item => {
+            const enemyName = item.querySelector('.battle-enemy-name')?.value.trim();
+            const enemyHP = parseInt(item.querySelector('.battle-enemy-hp')?.value) || 20;
+            const enemyAttack = parseInt(item.querySelector('.battle-enemy-attack')?.value) || 4;
+            const enemyDefense = parseInt(item.querySelector('.battle-enemy-defense')?.value) || 10;
+            const playerAttack = parseInt(item.querySelector('.battle-player-attack')?.value) || 4;
+            const playerDefense = parseInt(item.querySelector('.battle-player-defense')?.value) || 10;
+            const victory = item.querySelector('.battle-victory')?.value.trim();
+            const defeat = item.querySelector('.battle-defeat')?.value.trim();
+            const flee = item.querySelector('.battle-flee')?.value.trim();
+
+            if (enemyName && victory && defeat) {
+                const action = {
+                    type: 'start_battle',
+                    enemy_name: enemyName,
+                    enemy_hp: enemyHP,
+                    enemy_max_hp: enemyHP,
+                    enemy_attack: enemyAttack,
+                    enemy_defense: enemyDefense,
+                    player_attack: playerAttack,
+                    player_defense: playerDefense,
+                    victory_target: victory,
+                    defeat_target: defeat
+                };
+                if (flee) action.flee_target = flee;
+                actions.push(action);
+            }
+        });
+
         return actions;
     }
 
@@ -2538,6 +2717,7 @@ const Editor = (function() {
             md += 'actions:\n';
             scene.actions.forEach(action => {
                 md += `  - type: ${action.type}\n`;
+                // Dice roll fields
                 if (action.dice) md += `    dice: ${action.dice}\n`;
                 if (action.threshold) md += `    threshold: ${action.threshold}\n`;
                 if (action.modifier) md += `    modifier: ${action.modifier}\n`;
@@ -2546,6 +2726,17 @@ const Editor = (function() {
                 if (action.fumble_text) md += `    fumble_text: "${action.fumble_text}"\n`;
                 if (action.success_target) md += `    success_target: ${action.success_target}\n`;
                 if (action.failure_target) md += `    failure_target: ${action.failure_target}\n`;
+                // Battle fields
+                if (action.enemy_name) md += `    enemy_name: ${action.enemy_name}\n`;
+                if (action.enemy_hp) md += `    enemy_hp: ${action.enemy_hp}\n`;
+                if (action.enemy_max_hp) md += `    enemy_max_hp: ${action.enemy_max_hp}\n`;
+                if (action.enemy_attack) md += `    enemy_attack: ${action.enemy_attack}\n`;
+                if (action.enemy_defense) md += `    enemy_defense: ${action.enemy_defense}\n`;
+                if (action.player_attack) md += `    player_attack: ${action.player_attack}\n`;
+                if (action.player_defense) md += `    player_defense: ${action.player_defense}\n`;
+                if (action.victory_target) md += `    victory_target: ${action.victory_target}\n`;
+                if (action.defeat_target) md += `    defeat_target: ${action.defeat_target}\n`;
+                if (action.flee_target) md += `    flee_target: ${action.flee_target}\n`;
             });
         }
 
