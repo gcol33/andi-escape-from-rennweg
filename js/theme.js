@@ -11,7 +11,24 @@ const themeConfig = {
   "selected": "90s",
   "available": [
     "prototype",
-    "90s"
+    "70s",
+    "80s",
+    "90s",
+    "cyberpunk",
+    "dos",
+    "dragonball",
+    "finalfantasy",
+    "gameboy",
+    "harrypotter",
+    "lotr",
+    "manga",
+    "nes",
+    "snes",
+    "spaceopera",
+    "starwars",
+    "vaporwave",
+    "y2k",
+    "zelda"
   ]
 };
 

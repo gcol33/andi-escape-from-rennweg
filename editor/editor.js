@@ -304,6 +304,14 @@ const Editor = (function() {
             addSetFlagBtn: document.getElementById('add-set-flag-btn'),
             addRequireFlagBtn: document.getElementById('add-require-flag-btn'),
 
+            // Items
+            addItemsContainer: document.getElementById('add-items-container'),
+            removeItemsContainer: document.getElementById('remove-items-container'),
+            newAddItem: document.getElementById('new-add-item'),
+            newRemoveItem: document.getElementById('new-remove-item'),
+            addAddItemBtn: document.getElementById('add-add-item-btn'),
+            addRemoveItemBtn: document.getElementById('add-remove-item-btn'),
+
             // Actions
             actionsContainer: document.getElementById('actions-container'),
             addActionBtn: document.getElementById('add-action-btn'),
@@ -379,6 +387,16 @@ const Editor = (function() {
         });
         elements.newRequireFlag.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') addFlag('require');
+        });
+
+        // Items
+        elements.addAddItemBtn.addEventListener('click', () => addItem('add'));
+        elements.addRemoveItemBtn.addEventListener('click', () => addItem('remove'));
+        elements.newAddItem.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addItem('add');
+        });
+        elements.newRemoveItem.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addItem('remove');
         });
 
         // Actions
@@ -708,6 +726,8 @@ const Editor = (function() {
             chars: [],
             set_flags: [],
             require_flags: [],
+            add_items: [],
+            remove_items: [],
             actions: [],
             textBlocks: ['Enter your story text here...'],
             choices: []
@@ -788,6 +808,10 @@ const Editor = (function() {
         // Flags
         renderFlags('set', scene.set_flags || []);
         renderFlags('require', scene.require_flags || []);
+
+        // Items
+        renderItems('add', scene.add_items || []);
+        renderItems('remove', scene.remove_items || []);
 
         // Actions
         renderActions(scene.actions || []);
@@ -1154,6 +1178,55 @@ const Editor = (function() {
         return flags;
     }
 
+    // === Items ===
+    function renderItems(type, items) {
+        const container = type === 'add' ? elements.addItemsContainer : elements.removeItemsContainer;
+        container.innerHTML = '';
+
+        items.forEach(item => {
+            addItemTag(container, item);
+        });
+    }
+
+    function addItemTag(container, item) {
+        const tag = document.createElement('span');
+        tag.className = 'flag-tag item-tag';
+        tag.textContent = item;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = '×';
+        removeBtn.addEventListener('click', () => {
+            tag.remove();
+            onSceneModified();
+        });
+
+        tag.appendChild(removeBtn);
+        container.appendChild(tag);
+    }
+
+    function addItem(type) {
+        const input = type === 'add' ? elements.newAddItem : elements.newRemoveItem;
+        const container = type === 'add' ? elements.addItemsContainer : elements.removeItemsContainer;
+
+        const item = input.value.trim();
+        if (item) {
+            addItemTag(container, item);
+            input.value = '';
+            onSceneModified();
+        }
+    }
+
+    function getItemsFromEditor(type) {
+        const container = type === 'add' ? elements.addItemsContainer : elements.removeItemsContainer;
+        const items = [];
+        container.querySelectorAll('.flag-tag').forEach(tag => {
+            // Get text content without the × button
+            const text = tag.firstChild.textContent.trim();
+            if (text) items.push(text);
+        });
+        return items;
+    }
+
     // === Actions ===
     function renderActions(actions) {
         elements.actionsContainer.innerHTML = '';
@@ -1215,6 +1288,36 @@ const Editor = (function() {
         thresholdInput.addEventListener('input', onSceneModified);
         thresholdLabel.appendChild(thresholdInput);
 
+        // Modifier (advantage/disadvantage)
+        const modifierLabel = document.createElement('label');
+        modifierLabel.textContent = 'Modifier';
+        const modifierSelect = document.createElement('select');
+        modifierSelect.className = 'action-modifier';
+        [
+            { value: '', text: 'None' },
+            { value: 'advantage', text: 'Advantage (2d20 high)' },
+            { value: 'disadvantage', text: 'Disadvantage (2d20 low)' }
+        ].forEach(opt => {
+            const option = document.createElement('option');
+            option.value = opt.value;
+            option.textContent = opt.text;
+            modifierSelect.appendChild(option);
+        });
+        modifierSelect.value = action && action.modifier ? action.modifier : '';
+        modifierSelect.addEventListener('change', onSceneModified);
+        modifierLabel.appendChild(modifierSelect);
+
+        // Skill name (optional)
+        const skillLabel = document.createElement('label');
+        skillLabel.textContent = 'Skill';
+        const skillInput = document.createElement('input');
+        skillInput.type = 'text';
+        skillInput.className = 'action-skill';
+        skillInput.value = action && action.skill ? action.skill : '';
+        skillInput.placeholder = 'e.g. Stealth';
+        skillInput.addEventListener('input', onSceneModified);
+        skillLabel.appendChild(skillInput);
+
         // Success target
         const successLabel = document.createElement('label');
         successLabel.textContent = 'On success →';
@@ -1239,10 +1342,36 @@ const Editor = (function() {
         setupAutocomplete(failureInput);
         failureLabel.appendChild(failureInput);
 
+        // Crit text (optional)
+        const critLabel = document.createElement('label');
+        critLabel.textContent = 'Crit (nat 20)';
+        const critInput = document.createElement('input');
+        critInput.type = 'text';
+        critInput.className = 'action-crit';
+        critInput.value = action && action.crit_text ? action.crit_text : '';
+        critInput.placeholder = 'Special message on nat 20';
+        critInput.addEventListener('input', onSceneModified);
+        critLabel.appendChild(critInput);
+
+        // Fumble text (optional)
+        const fumbleLabel = document.createElement('label');
+        fumbleLabel.textContent = 'Fumble (nat 1)';
+        const fumbleInput = document.createElement('input');
+        fumbleInput.type = 'text';
+        fumbleInput.className = 'action-fumble';
+        fumbleInput.value = action && action.fumble_text ? action.fumble_text : '';
+        fumbleInput.placeholder = 'Special message on nat 1';
+        fumbleInput.addEventListener('input', onSceneModified);
+        fumbleLabel.appendChild(fumbleInput);
+
         inputs.appendChild(diceLabel);
         inputs.appendChild(thresholdLabel);
+        inputs.appendChild(modifierLabel);
+        inputs.appendChild(skillLabel);
         inputs.appendChild(successLabel);
         inputs.appendChild(failureLabel);
+        inputs.appendChild(critLabel);
+        inputs.appendChild(fumbleLabel);
 
         actionDiv.appendChild(header);
         actionDiv.appendChild(inputs);
@@ -1261,15 +1390,24 @@ const Editor = (function() {
             const threshold = parseInt(item.querySelector('.action-threshold').value) || 10;
             const success = item.querySelector('.action-success').value.trim();
             const failure = item.querySelector('.action-failure').value.trim();
+            const modifier = item.querySelector('.action-modifier')?.value || '';
+            const skill = item.querySelector('.action-skill')?.value.trim() || '';
+            const critText = item.querySelector('.action-crit')?.value.trim() || '';
+            const fumbleText = item.querySelector('.action-fumble')?.value.trim() || '';
 
             if (success && failure) {
-                actions.push({
+                const action = {
                     type: 'roll_dice',
                     dice: dice,
                     threshold: threshold,
                     success_target: success,
                     failure_target: failure
-                });
+                };
+                if (modifier) action.modifier = modifier;
+                if (skill) action.skill = skill;
+                if (critText) action.crit_text = critText;
+                if (fumbleText) action.fumble_text = fumbleText;
+                actions.push(action);
             }
         });
         return actions;
@@ -1488,6 +1626,8 @@ const Editor = (function() {
             choices: [],
             set_flags: [],
             require_flags: [],
+            add_items: [],
+            remove_items: [],
             actions: []
         };
 
@@ -2122,6 +2262,8 @@ const Editor = (function() {
             chars: sprites,
             set_flags: getFlagsFromEditor('set'),
             require_flags: getFlagsFromEditor('require'),
+            add_items: getItemsFromEditor('add'),
+            remove_items: getItemsFromEditor('remove'),
             actions: getActionsFromEditor(),
             textBlocks: getTextBlocksFromEditor(),
             choices: getChoicesFromEditor()
@@ -2378,12 +2520,30 @@ const Editor = (function() {
             });
         }
 
+        if (scene.add_items && scene.add_items.length > 0) {
+            md += 'add_items:\n';
+            scene.add_items.forEach(item => {
+                md += `  - ${item}\n`;
+            });
+        }
+
+        if (scene.remove_items && scene.remove_items.length > 0) {
+            md += 'remove_items:\n';
+            scene.remove_items.forEach(item => {
+                md += `  - ${item}\n`;
+            });
+        }
+
         if (scene.actions && scene.actions.length > 0) {
             md += 'actions:\n';
             scene.actions.forEach(action => {
                 md += `  - type: ${action.type}\n`;
                 if (action.dice) md += `    dice: ${action.dice}\n`;
                 if (action.threshold) md += `    threshold: ${action.threshold}\n`;
+                if (action.modifier) md += `    modifier: ${action.modifier}\n`;
+                if (action.skill) md += `    skill: ${action.skill}\n`;
+                if (action.crit_text) md += `    crit_text: "${action.crit_text}"\n`;
+                if (action.fumble_text) md += `    fumble_text: "${action.fumble_text}"\n`;
                 if (action.success_target) md += `    success_target: ${action.success_target}\n`;
                 if (action.failure_target) md += `    failure_target: ${action.failure_target}\n`;
             });
@@ -2564,6 +2724,8 @@ const Editor = (function() {
             chars: [],
             set_flags: [],
             require_flags: [],
+            add_items: [],
+            remove_items: [],
             actions: [],
             textBlocks: [],
             choices: []
@@ -2595,7 +2757,11 @@ const Editor = (function() {
             if (currentAction && line.startsWith('    ') && stripped.includes(':')) {
                 const [key, ...valueParts] = stripped.split(':');
                 let value = valueParts.join(':').trim();
-                if (!isNaN(value)) value = parseInt(value);
+                // Remove surrounding quotes if present
+                if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+                    value = value.slice(1, -1);
+                }
+                else if (!isNaN(value)) value = parseInt(value);
                 currentAction[key.trim()] = value;
                 return;
             }
@@ -2644,6 +2810,10 @@ const Editor = (function() {
                         currentList = 'set_flags';
                     } else if (key === 'require_flags') {
                         currentList = 'require_flags';
+                    } else if (key === 'add_items') {
+                        currentList = 'add_items';
+                    } else if (key === 'remove_items') {
+                        currentList = 'remove_items';
                     }
                 } else {
                     currentList = null;

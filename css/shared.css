@@ -1,0 +1,547 @@
+/* Andi VN - Shared Theme Settings
+ * This file contains common CSS custom properties and settings
+ * that all themes inherit. Import this before theme-specific styles.
+ *
+ * Usage in themes: @import url('../shared.css');
+ * Or link separately in HTML before theme CSS
+ */
+
+/* === Typography Magic Numbers === */
+:root {
+    /* Base font size - responsive with min/max bounds */
+    --base-font-size-fallback: 18px;
+    --base-font-size: clamp(16px, 1.4vw, 24px);
+
+    /* Story text sizing */
+    --story-font-size: 1.1rem;
+    --story-line-height: 1.6;
+
+    /* UI element sizing */
+    --button-font-size: 0.9rem;
+    --small-font-size: 0.75rem;
+    --label-font-size: 0.85rem;
+
+    /* Spacing */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 12px;
+    --spacing-lg: 16px;
+    --spacing-xl: 20px;
+}
+
+/* Pixel font themes need smaller base sizes */
+.theme-nes,
+.theme-snes {
+    --base-font-size-fallback: 16px;
+    --base-font-size: clamp(14px, 1.15vw, 18px);
+}
+
+/* === Single Choice Button Fix ===
+ * When there's only one choice, don't stretch it across full width.
+ * Use :only-child selector to target single choice scenario.
+ */
+#choices-container .choice-button:only-child {
+    flex: 0 1 auto;
+    min-width: 180px;
+    max-width: 80%;
+}
+
+/* === Theme Selector Base Styles ===
+ * Default styling - individual themes override colors via their CSS files
+ */
+#theme-selector {
+    position: fixed;
+    top: 40px;
+    right: 10px;
+    padding: 8px;
+    z-index: 9999;
+    font-size: 12px;
+    font-family: inherit;
+    display: none;
+}
+
+#theme-selector.visible {
+    display: block;
+}
+
+#theme-selector label {
+    margin-right: 6px;
+}
+
+#theme-selector select {
+    font-family: inherit;
+    font-size: 12px;
+    padding: 4px 8px;
+    cursor: pointer;
+}
+
+/* === Animated Background Video ===
+ * Video element for WebM/MP4 animated backgrounds.
+ * Hidden by default, shown when video background is active.
+ */
+#bg-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+    pointer-events: none;
+}
+
+/* === Ken Burns Effect (Apple-style subtle zoom) ===
+ * Slow, cinematic zoom effect on backgrounds.
+ * Toggled via dev mode checkbox, persists in localStorage.
+ */
+@keyframes ken-burns-zoom {
+    0% {
+        transform: scale(1);
+    }
+    100% {
+        transform: scale(1.04);
+    }
+}
+
+#background-layer.ken-burns {
+    animation: ken-burns-zoom 30s ease-out forwards;
+    /* Slightly larger to prevent edge visibility during zoom */
+    transform-origin: center center;
+}
+
+#bg-video.ken-burns {
+    animation: ken-burns-zoom 30s ease-out forwards;
+    transform-origin: center center;
+}
+
+/* === Text Box Header Band ===
+ * Header band contains the title and speed/volume controls.
+ * Themes style the appearance (colors, fonts, decorations).
+ */
+#text-box-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 4px 12px !important;
+    position: relative;
+}
+
+/* Spacer takes up left side to push controls right */
+#header-spacer {
+    flex: 1;
+}
+
+/* Title is absolutely centered, independent of controls width */
+#text-box-title {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-weight: bold;
+    text-align: center;
+    font-size: var(--label-font-size, 0.85rem);
+    /* Prevent title from overflowing into buttons */
+    max-width: 60%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+#text-controls {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    /* Override theme margins - controls are now inside header band */
+    margin: 0 !important;
+}
+
+/* Remove extra margin from volume control */
+#text-controls #volume-control {
+    margin-left: 0 !important;
+}
+
+/* === Control Button Height Consistency ===
+ * All header buttons (speed-btn and mute-btn) must have same height.
+ * Step 1: Normalize font-size to a common base (use small-font-size variable)
+ * Step 2: Apply consistent height in em units (relative to normalized font)
+ */
+#text-controls .speed-btn,
+#text-controls .mute-btn {
+    font-size: var(--small-font-size, 0.75rem) !important;
+    box-sizing: border-box !important;
+    height: 2em !important;
+    line-height: 1 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 0.6em !important;
+}
+
+/* === Choice Button Overflow Fix ===
+ * Prevent text from overflowing choice buttons.
+ * Buttons should grow as needed but text should wrap.
+ */
+.choice-button {
+    overflow: hidden;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+}
+
+/* === Text Box Layout Fix ===
+ * Priority: Choices must NEVER be cut off.
+ * Strategy:
+ *   1. Text box grows based on content (height: auto)
+ *   2. Text box stops growing at max-height
+ *   3. When max-height is reached, story-output becomes scrollable
+ *   4. Button area never shrinks or gets cut
+ */
+
+#text-box {
+    max-height: 75% !important;
+}
+
+#text-box.ending-scene {
+    max-height: 85% !important;
+}
+
+/* Story output: grows with content, scrolls only when text-box hits max-height */
+#story-output {
+    flex: 1 1 auto !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+/* Button area: never shrink, never cut */
+#button-area {
+    flex-shrink: 0 !important;
+}
+
+/* Responsive: ensure max-height is consistent */
+@media (max-width: 56.25em) {
+    #text-box {
+        max-height: 75% !important;
+    }
+}
+
+@media (max-width: 37.5em) {
+    #text-box {
+        max-height: 75% !important;
+    }
+}
+
+@media (orientation: portrait) {
+    #text-box {
+        max-height: 75% !important;
+    }
+
+    #text-box.ending-scene {
+        max-height: 90% !important;
+    }
+}
+
+/* === GAME MECHANICS STYLES === */
+
+/* === Inventory Display === */
+#inventory-display {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 8px 12px;
+    border-radius: 8px;
+    display: none;
+    z-index: 100;
+    max-width: 200px;
+}
+
+.inventory-label {
+    color: #ffd700;
+    font-size: 0.75rem;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.inventory-item {
+    display: inline-block;
+    background: rgba(255, 215, 0, 0.2);
+    color: #fffbe9;
+    padding: 2px 8px;
+    margin: 2px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    border: 1px solid rgba(255, 215, 0, 0.4);
+}
+
+/* === Item Notifications === */
+.item-notification {
+    position: fixed;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    z-index: 10000;
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+}
+
+.item-notification.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.item-notification.fade-out {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+}
+
+.item-notification.item-added {
+    border: 2px solid #4caf50;
+}
+
+.item-notification.item-added .item-icon {
+    color: #4caf50;
+}
+
+.item-notification.item-used {
+    border: 2px solid #ff9800;
+}
+
+.item-notification.item-used .item-icon {
+    color: #ff9800;
+}
+
+/* === HP Bars === */
+.hp-container {
+    position: absolute;
+    width: 150px;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 6px 10px;
+    border-radius: 6px;
+    display: none;
+}
+
+.hp-container.player-hp {
+    bottom: 35%;
+    left: 10px;
+}
+
+.hp-container.enemy-hp {
+    top: 10px;
+    right: 10px;
+}
+
+.hp-label {
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: bold;
+    margin-bottom: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.hp-bar {
+    width: 100%;
+    height: 12px;
+    background: #333;
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+}
+
+.hp-fill {
+    height: 100%;
+    transition: width 0.3s ease-out;
+    border-radius: 6px;
+}
+
+.hp-fill.hp-high {
+    background: linear-gradient(to bottom, #4caf50, #2e7d32);
+}
+
+.hp-fill.hp-medium {
+    background: linear-gradient(to bottom, #ff9800, #e65100);
+}
+
+.hp-fill.hp-low {
+    background: linear-gradient(to bottom, #f44336, #b71c1c);
+    animation: hp-pulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes hp-pulse {
+    from { opacity: 1; }
+    to { opacity: 0.7; }
+}
+
+.hp-text {
+    color: #fff;
+    font-size: 0.65rem;
+    text-align: right;
+    margin-top: 2px;
+}
+
+/* === Damage Numbers === */
+.damage-number,
+.battle-damage-number {
+    position: absolute;
+    font-size: 1.5rem;
+    font-weight: bold;
+    z-index: 200;
+    pointer-events: none;
+    animation: damage-float 1.5s ease-out forwards;
+}
+
+.damage-number.damage,
+.battle-damage-number.damage {
+    color: #ff4444;
+    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000;
+}
+
+.damage-number.heal,
+.battle-damage-number.heal {
+    color: #44ff44;
+    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000;
+}
+
+@keyframes damage-float {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: translateY(-30px) scale(1.2);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-60px) scale(0.8);
+    }
+}
+
+/* === Damage Flash === */
+.damage-flash {
+    animation: sprite-damage-flash 0.3s ease-out;
+}
+
+@keyframes sprite-damage-flash {
+    0%, 100% {
+        filter: none;
+    }
+    25%, 75% {
+        filter: brightness(0.5) sepia(1) hue-rotate(-50deg) saturate(5);
+    }
+    50% {
+        filter: brightness(2) sepia(1) hue-rotate(-50deg) saturate(3);
+    }
+}
+
+/* === Dice Roll Styles === */
+.dice-roll {
+    padding: 12px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.dice-roll.dice-success {
+    background: rgba(76, 175, 80, 0.2);
+    border: 2px solid #4caf50;
+}
+
+.dice-roll.dice-failure {
+    background: rgba(244, 67, 54, 0.2);
+    border: 2px solid #f44336;
+}
+
+.dice-roll.dice-crit {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 152, 0, 0.3));
+    border: 2px solid #ffd700;
+    animation: crit-glow 0.5s ease-in-out 3;
+}
+
+.dice-roll.dice-fumble {
+    background: linear-gradient(135deg, rgba(139, 0, 0, 0.3), rgba(0, 0, 0, 0.3));
+    border: 2px solid #8b0000;
+}
+
+@keyframes crit-glow {
+    0%, 100% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
+    50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
+}
+
+.skill-check-label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.8;
+    margin-bottom: 4px;
+}
+
+.crit-text {
+    color: #ffd700;
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin-top: 8px;
+    text-shadow: 1px 1px 0 #000;
+}
+
+.fumble-text {
+    color: #ff4444;
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin-top: 8px;
+    text-shadow: 1px 1px 0 #000;
+}
+
+/* === Battle Log === */
+.battle-log {
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.3);
+    border-left: 3px solid #4caf50;
+}
+
+.battle-log.enemy-turn {
+    border-left-color: #f44336;
+    background: rgba(244, 67, 54, 0.1);
+}
+
+/* === Battle Result === */
+.battle-result {
+    text-align: center;
+    padding: 16px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    font-size: 1.4rem;
+    font-weight: bold;
+}
+
+.battle-result.victory {
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.3), rgba(139, 195, 74, 0.3));
+    border: 2px solid #4caf50;
+    color: #4caf50;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.battle-result.defeat {
+    background: linear-gradient(135deg, rgba(244, 67, 54, 0.3), rgba(183, 28, 28, 0.3));
+    border: 2px solid #f44336;
+    color: #f44336;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* === Battle Action Buttons === */
+.choice-button.battle-action {
+    /* Battle buttons can have subtle styling differentiation */
+}
+

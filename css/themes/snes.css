@@ -1,0 +1,913 @@
+/* Andi VN - SNES Theme
+ * 16-bit Super Nintendo aesthetic
+ * Richer colors, more gradients, Mode 7 vibes
+ */
+
+/* === CSS Variables (SNES expanded palette) === */
+:root {
+    --snes-black: #101010;
+    --snes-white: #f8f8f8;
+    --snes-gray: #909090;
+    --snes-dark-gray: #484848;
+    --snes-red: #e01820;
+    --snes-blue: #2038c8;
+    --snes-light-blue: #58a8f8;
+    --snes-green: #38b028;
+    --snes-yellow: #f8d838;
+    --snes-orange: #f88018;
+    --snes-purple: #8858a8;
+    --snes-pink: #f888b8;
+    --snes-cyan: #58d8f8;
+    --snes-tan: #f8d8b0;
+    --snes-brown: #885830;
+    --text-color: #f8f8f8;
+    --page-bg: #181848;
+}
+
+/* === Password Overlay === */
+#password-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, var(--page-bg) 0%, #080830 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    transition: opacity 0.5s ease-out;
+}
+
+#password-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#password-container {
+    position: relative;
+    width: 100%;
+    max-width: 95vw;
+    height: 0;
+    padding-bottom: 56.25%;
+    max-width: min(95vw, calc(75vh * 16 / 9));
+    height: auto;
+    padding-bottom: 0;
+    aspect-ratio: 16 / 9;
+    background: linear-gradient(180deg, #282878, #181848);
+    border: 6px solid;
+    border-color: var(--snes-light-blue) var(--snes-blue) var(--snes-blue) var(--snes-light-blue);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(88, 168, 248, 0.5), inset 0 0 30px rgba(88, 168, 248, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px;
+}
+
+#password-inputs {
+    display: flex;
+}
+
+#password-inputs > * {
+    margin: 0 8px;
+}
+
+#password-inputs > *:first-child {
+    margin-left: 0;
+}
+
+#password-inputs > *:last-child {
+    margin-right: 0;
+}
+
+@supports (gap: 16px) {
+    #password-inputs {
+        gap: 16px;
+    }
+    #password-inputs > * {
+        margin: 0;
+    }
+}
+
+.password-char {
+    width: 56px;
+    height: 68px;
+    font-size: 2rem;
+    font-family: 'SNES', 'Press Start 2P', 'Courier New', monospace;
+    font-weight: normal;
+    text-align: center;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, #383888, #282858);
+    border: 4px solid;
+    border-color: var(--snes-light-blue) var(--snes-blue) var(--snes-blue) var(--snes-light-blue);
+    border-radius: 4px;
+    color: var(--snes-white);
+    outline: none;
+    transition: all 0.15s ease-out;
+    text-shadow: 2px 2px 0 var(--snes-blue);
+}
+
+.password-char:focus {
+    border-color: var(--snes-yellow);
+    background: linear-gradient(180deg, #484888, #383868);
+    box-shadow: 0 0 15px rgba(248, 216, 56, 0.5);
+}
+
+.password-char.filled {
+    background: linear-gradient(180deg, var(--snes-green), #288018);
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
+}
+
+#password-inputs.error .password-char {
+    animation: shake 0.4s ease-out;
+    border-color: var(--snes-red);
+    background: linear-gradient(180deg, #882020, #581818);
+}
+
+@media (max-width: 56.25em) {
+    #password-container {
+        margin: 10px;
+    }
+
+    .password-char {
+        width: 48px;
+        height: 58px;
+        font-size: 1.6rem;
+    }
+
+    #password-inputs {
+        gap: 12px;
+    }
+}
+
+@media (max-width: 37.5em) {
+    .password-char {
+        width: 40px;
+        height: 50px;
+        font-size: 1.3rem;
+    }
+
+    #password-inputs {
+        gap: 8px;
+    }
+}
+
+/* === Reset & Base === */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: var(--base-font-size-fallback);
+    font-size: var(--base-font-size);
+}
+
+body {
+    font-family: 'SNES', 'Press Start 2P', 'Courier New', monospace;
+    background: var(--page-bg);
+    background: linear-gradient(180deg, var(--page-bg) 0%, #080830 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+}
+
+/* Star field effect */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        radial-gradient(1px 1px at 10% 20%, var(--snes-white) 50%, transparent 50%),
+        radial-gradient(1px 1px at 30% 50%, var(--snes-white) 50%, transparent 50%),
+        radial-gradient(1px 1px at 50% 15%, var(--snes-white) 50%, transparent 50%),
+        radial-gradient(1px 1px at 70% 60%, var(--snes-white) 50%, transparent 50%),
+        radial-gradient(1px 1px at 90% 30%, var(--snes-white) 50%, transparent 50%),
+        radial-gradient(1px 1px at 15% 80%, var(--snes-white) 50%, transparent 50%),
+        radial-gradient(1px 1px at 85% 85%, var(--snes-white) 50%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.3;
+}
+
+/* === VN Wrapper === */
+#vn-wrapper {
+    width: 95vw;
+    max-height: 95vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+}
+
+/* === Header === */
+h1 {
+    color: var(--snes-white);
+    text-align: center;
+    margin-bottom: 16px;
+    font-size: 1.4rem;
+    font-family: 'SNES', 'Press Start 2P', 'Courier New', monospace;
+    text-shadow: 3px 3px 0 var(--snes-purple), 6px 6px 0 var(--snes-blue);
+    letter-spacing: 0.05em;
+}
+
+/* === VN Container === */
+#vn-container {
+    position: relative;
+    width: 100%;
+    max-width: 95vw;
+    height: 0;
+    padding-bottom: 56.25%;
+    max-width: min(95vw, calc(75vh * 16 / 9));
+    height: auto;
+    padding-bottom: 0;
+    aspect-ratio: 16 / 9;
+    background: linear-gradient(180deg, #282878, #181848);
+    border: 6px solid;
+    border-color: var(--snes-light-blue) var(--snes-blue) var(--snes-blue) var(--snes-light-blue);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 30px rgba(88, 168, 248, 0.4);
+}
+
+/* === Background Layer === */
+#background-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: #282878;
+    z-index: 1;
+}
+
+/* === Character Sprite Layer === */
+#sprite-layer {
+    position: absolute;
+    bottom: 40%;
+    left: 0;
+    width: 100%;
+    height: 56%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    z-index: 2;
+    pointer-events: none;
+}
+
+#sprite-layer img {
+    max-height: 100%;
+    max-width: 300px;
+    object-fit: contain;
+    filter: drop-shadow(3px 5px 0 rgba(0, 0, 0, 0.5));
+    margin: 0 10px;
+}
+
+@supports (gap: 20px) {
+    #sprite-layer {
+        gap: 20px;
+    }
+    #sprite-layer img {
+        margin: 0;
+    }
+}
+
+/* === Text Box === */
+#text-box {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    min-height: 40%;
+    max-height: 50%;
+    background: linear-gradient(180deg, rgba(24, 24, 72, 0.95), rgba(8, 8, 48, 0.98));
+    border-top: 6px solid;
+    border-color: var(--snes-light-blue);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    transition: transform 0.25s ease-out;
+    overflow: hidden;
+}
+
+#text-box-header {
+    background: linear-gradient(90deg, var(--snes-red), var(--snes-orange), var(--snes-yellow), var(--snes-green), var(--snes-blue), var(--snes-purple));
+    color: var(--snes-white);
+    padding: 4px 10px;
+    font-weight: normal;
+    font-size: 12px;
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+    letter-spacing: 0.15em;
+}
+
+#text-box-title::before {
+    content: '★ STORY ★';
+}
+
+#text-box.ending-scene {
+    height: auto;
+    min-height: 40%;
+    max-height: 60%;
+}
+
+#text-box.hidden-textbox {
+    transform: translateY(100%);
+    pointer-events: none;
+}
+
+/* === Text Speed Controls === */
+#text-controls {
+    display: flex;
+    margin: 8px 10px;
+    justify-content: flex-end;
+}
+
+#text-controls > * {
+    margin-left: 4px;
+}
+
+#text-controls > *:first-child {
+    margin-left: 0;
+}
+
+@supports (gap: 4px) {
+    #text-controls {
+        gap: 4px;
+    }
+    #text-controls > * {
+        margin-left: 0;
+    }
+}
+
+.speed-btn {
+    padding: 4px 10px;
+    font-size: 0.65rem;
+    font-family: 'SNES', 'Press Start 2P', 'Courier New', monospace;
+    background: linear-gradient(180deg, #383888, #282858);
+    color: var(--snes-white);
+    border: 3px solid;
+    border-color: var(--snes-light-blue) var(--snes-blue) var(--snes-blue) var(--snes-light-blue);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease-out;
+    text-shadow: 1px 1px 0 var(--snes-blue);
+}
+
+.speed-btn:hover {
+    background: linear-gradient(180deg, #484898, #383868);
+    box-shadow: 0 0 10px rgba(88, 168, 248, 0.5);
+}
+
+.speed-btn.active {
+    background: linear-gradient(180deg, var(--snes-red), #b01018);
+    border-color: var(--snes-orange);
+    text-shadow: 1px 1px 0 #800808;
+}
+
+/* === Volume Control === */
+#volume-control {
+    display: flex;
+    align-items: center;
+    margin-left: 8px;
+}
+
+#volume-slider {
+    width: 60px;
+    height: 10px;
+    margin-left: 6px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.15s ease-out, visibility 0.15s ease-out;
+    accent-color: var(--snes-red);
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    background: linear-gradient(180deg, #282858, #181838);
+    border: 2px solid var(--snes-light-blue);
+    border-radius: 4px;
+}
+
+#volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 18px;
+    background: linear-gradient(180deg, var(--snes-yellow), var(--snes-orange));
+    border: 2px solid var(--snes-white);
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+#volume-slider::-moz-range-thumb {
+    width: 12px;
+    height: 18px;
+    background: linear-gradient(180deg, var(--snes-yellow), var(--snes-orange));
+    border: 2px solid var(--snes-white);
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+#volume-control:hover #volume-slider {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* === Icon switching === */
+.icon-portrait {
+    display: none;
+}
+
+.icon-landscape {
+    display: inline;
+}
+
+/* === SVG icons === */
+.mute-btn svg {
+    display: block;
+    width: 1em;
+    height: 1em;
+}
+
+.mute-btn {
+    padding: 4px 10px;
+    font-size: 0.9rem;
+    font-family: 'SNES', 'Press Start 2P', 'Courier New', monospace;
+    background: linear-gradient(180deg, #383888, #282858);
+    color: var(--snes-white);
+    border: 3px solid;
+    border-color: var(--snes-light-blue) var(--snes-blue) var(--snes-blue) var(--snes-light-blue);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mute-btn:hover {
+    background: linear-gradient(180deg, #484898, #383868);
+}
+
+/* === Story Output === */
+#story-output {
+    flex: 1;
+    color: var(--text-color);
+    font-size: 0.85rem;
+    line-height: 1.9;
+    overflow-y: auto;
+    padding: 10px 14px;
+    cursor: default;
+    user-select: none;
+    background: transparent;
+    border: none;
+    margin: 0 10px;
+    text-shadow: 1px 1px 0 var(--snes-blue);
+}
+
+#story-output::-webkit-scrollbar {
+    width: 10px;
+}
+
+#story-output::-webkit-scrollbar-track {
+    background: #181838;
+    border-radius: 4px;
+}
+
+#story-output::-webkit-scrollbar-thumb {
+    background: linear-gradient(var(--snes-light-blue), var(--snes-blue));
+    border-radius: 4px;
+}
+
+/* === Typewriter Effect === */
+.typewriter-text {
+    margin: 0;
+}
+
+.typewriter-text::after {
+    content: '▌';
+    animation: blink-snes 0.6s ease-in-out infinite;
+    color: var(--snes-yellow);
+    margin-left: 2px;
+    text-shadow: 0 0 5px var(--snes-yellow);
+}
+
+.typewriter-complete::after {
+    content: '';
+    animation: none;
+}
+
+@keyframes blink-snes {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+.already-read {
+    opacity: 0.8;
+}
+
+#story-output.has-already-read::before {
+    content: '◄ REWIND ►';
+    display: block;
+    font-size: 0.65rem;
+    color: var(--snes-cyan);
+    margin-bottom: 8px;
+    text-shadow: 1px 1px 0 var(--snes-blue);
+}
+
+@supports selector(:has(*)) {
+    #story-output:has(.already-read)::before {
+        content: '◄ REWIND ►';
+        display: block;
+        font-size: 0.65rem;
+        color: var(--snes-cyan);
+        margin-bottom: 8px;
+        text-shadow: 1px 1px 0 var(--snes-blue);
+    }
+}
+
+/* === Button Area === */
+#button-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 10px;
+    min-height: 50px;
+    flex-shrink: 0;
+}
+
+#button-area > * {
+    margin-bottom: 8px;
+}
+
+#button-area > *:last-child {
+    margin-bottom: 0;
+}
+
+@supports (gap: 8px) {
+    #button-area {
+        gap: 8px;
+    }
+    #button-area > * {
+        margin-bottom: 0;
+    }
+}
+
+/* === Choices Container === */
+#choices-container {
+    display: block;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    width: 100%;
+}
+
+#choices-container > * {
+    margin: 4px;
+}
+
+@supports (gap: 8px) {
+    #choices-container {
+        gap: 8px;
+    }
+    #choices-container > * {
+        margin: 0;
+    }
+}
+
+/* === Choice Buttons === */
+.choice-button {
+    display: inline-block;
+    flex: 1 1 0;
+    padding: 10px 12px;
+    font-family: 'SNES', 'Press Start 2P', 'Courier New', monospace;
+    font-size: 0.7rem;
+    background: linear-gradient(180deg, #383888, #282858);
+    color: var(--snes-white);
+    border: 4px solid;
+    border-color: var(--snes-light-blue) var(--snes-blue) var(--snes-blue) var(--snes-light-blue);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease-out;
+    white-space: normal;
+    text-align: center;
+    text-shadow: 1px 1px 0 var(--snes-blue);
+}
+
+.choice-button:hover {
+    background: linear-gradient(180deg, var(--snes-green), #288018);
+    border-color: var(--snes-yellow);
+    box-shadow: 0 0 15px rgba(56, 176, 40, 0.5);
+    transform: scale(1.02);
+}
+
+/* === Game Over State === */
+.game-over {
+    color: var(--snes-red);
+    font-weight: normal;
+    text-align: center;
+    margin-top: 10px;
+    padding: 10px;
+    background: linear-gradient(180deg, #382020, #281818);
+    border: 4px solid var(--snes-red);
+    border-radius: 6px;
+    font-size: 0.8rem;
+    text-shadow: 2px 2px 0 #800808;
+}
+
+#choices-container.has-game-over {
+    flex-direction: column;
+    align-items: center;
+}
+
+@supports selector(:has(*)) {
+    #choices-container:has(.game-over) {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+/* === Restart Button === */
+.restart-button {
+    display: inline-block;
+    flex: 0 0 auto;
+    min-width: 180px;
+    padding: 12px 20px;
+    font-family: 'SNES', 'Press Start 2P', 'Courier New', monospace;
+    font-size: 0.8rem;
+    font-weight: normal;
+    background: linear-gradient(180deg, var(--snes-green), #288018);
+    color: var(--snes-white);
+    border: 4px solid;
+    border-color: #58e838 var(--snes-green) var(--snes-green) #58e838;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease-out;
+    text-shadow: 2px 2px 0 #185810;
+}
+
+.restart-button:hover {
+    background: linear-gradient(180deg, #48c038, var(--snes-green));
+    box-shadow: 0 0 20px rgba(56, 176, 40, 0.6);
+    transform: scale(1.03);
+}
+
+/* === Continue Button === */
+.continue-button {
+    display: inline-block;
+    flex: 0 0 auto;
+    min-width: 160px;
+    padding: 10px 18px;
+    font-family: 'SNES', 'Press Start 2P', 'Courier New', monospace;
+    font-size: 0.75rem;
+    background: linear-gradient(180deg, #383888, #282858);
+    color: var(--snes-white);
+    border: 4px solid;
+    border-color: var(--snes-light-blue) var(--snes-blue) var(--snes-blue) var(--snes-light-blue);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease-out;
+    text-shadow: 1px 1px 0 var(--snes-blue);
+}
+
+.continue-button:hover {
+    background: linear-gradient(180deg, #484898, #383868);
+    box-shadow: 0 0 15px rgba(88, 168, 248, 0.5);
+}
+
+/* === Dice Roll Display === */
+.dice-roll {
+    font-size: 0.8rem;
+    color: var(--snes-yellow);
+    font-weight: normal;
+    margin: 10px 0;
+    padding: 10px;
+    background: linear-gradient(180deg, #484838, #383828);
+    border: 4px solid;
+    border-color: var(--snes-yellow) var(--snes-orange) var(--snes-orange) var(--snes-yellow);
+    border-radius: 6px;
+    text-shadow: 2px 2px 0 #806808;
+}
+
+/* === Reset Button === */
+#reset-btn {
+    background: linear-gradient(180deg, #383888, #282858) !important;
+    color: var(--snes-white) !important;
+    border: 4px solid !important;
+    border-color: var(--snes-light-blue) var(--snes-blue) var(--snes-blue) var(--snes-light-blue) !important;
+    border-radius: 6px !important;
+    font-family: 'SNES', 'Press Start 2P', 'Courier New', monospace !important;
+    box-shadow: none !important;
+}
+
+#reset-btn:hover {
+    background: linear-gradient(180deg, var(--snes-red), #b01018) !important;
+}
+
+/* === Responsive Design === */
+@media (max-width: 56.25em) {
+    #vn-wrapper {
+        padding: 10px;
+    }
+
+    #text-box {
+        height: auto;
+        min-height: 36%;
+        max-height: 55%;
+    }
+
+    #sprite-layer {
+        bottom: 36%;
+        height: 60%;
+    }
+
+    #story-output {
+        font-size: 0.75rem;
+    }
+
+    .choice-button {
+        min-width: 110px;
+        font-size: 0.6rem;
+        padding: 8px 10px;
+    }
+
+    #sprite-layer img {
+        max-width: 200px;
+    }
+}
+
+@media (max-width: 37.5em) {
+    #text-box {
+        height: auto;
+        min-height: 40%;
+        max-height: 60%;
+    }
+
+    #sprite-layer {
+        bottom: 40%;
+        height: 56%;
+    }
+
+    #story-output {
+        font-size: 0.65rem;
+        line-height: 1.7;
+    }
+
+    .choice-button {
+        min-width: 100%;
+        font-size: 0.55rem;
+    }
+
+    #sprite-layer img {
+        max-width: 140px;
+    }
+}
+
+/* === Portrait Mode === */
+@media (orientation: portrait) {
+    #vn-container {
+        max-width: 56.25vh;
+        height: 0;
+        padding-bottom: 177.78%;
+        height: auto;
+        padding-bottom: 0;
+        aspect-ratio: 9 / 16;
+        max-width: min(100%, 56.25vh);
+        max-height: 85vh;
+    }
+
+    #password-container {
+        max-width: 56.25vh;
+        height: 0;
+        padding-bottom: 177.78%;
+        height: auto;
+        padding-bottom: 0;
+        aspect-ratio: 9 / 16;
+        max-width: min(100%, 56.25vh);
+        max-height: 85vh;
+    }
+
+    #vn-wrapper {
+        max-height: 100vh;
+    }
+
+    #text-box {
+        height: auto;
+        min-height: 40%;
+        max-height: 75%;
+    }
+
+    #text-controls {
+        justify-content: center;
+    }
+
+    #text-box.ending-scene {
+        height: auto;
+        min-height: 40%;
+        max-height: 90%;
+    }
+
+    #sprite-layer {
+        bottom: 40%;
+        height: 55%;
+    }
+
+    #sprite-layer img {
+        max-width: 35%;
+    }
+
+    #choices-container {
+        flex-direction: column;
+        flex-wrap: nowrap;
+        gap: 6px;
+    }
+
+    .choice-button {
+        flex: none;
+        width: 100%;
+        padding: 10px 10px;
+    }
+
+    .continue-button,
+    .restart-button {
+        min-width: 150px;
+        padding: 8px 14px;
+    }
+
+    #reset-btn {
+        bottom: auto !important;
+        top: 10px !important;
+        right: 10px !important;
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 14px !important;
+    }
+
+    .icon-landscape {
+        display: none !important;
+    }
+
+    .icon-portrait {
+        display: inline !important;
+    }
+
+    .speed-btn:focus,
+    .mute-btn:focus,
+    .choice-button:focus,
+    .continue-button:focus,
+    .restart-button:focus {
+        outline: none;
+    }
+}
+
+/* === Theme Selector (Dev Mode) === */
+#theme-selector {
+    background: linear-gradient(180deg, #282878, #181848);
+    border: 4px solid;
+    border-color: #58a8f8 #2038c8 #2038c8 #58a8f8;
+    border-radius: 6px;
+    color: #f8f8f8;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    font-size: 10px;
+}
+
+#theme-selector label {
+    color: #f8f8f8;
+}
+
+#theme-selector select {
+    font-family: inherit;
+    font-size: 10px;
+    background: #181848;
+    border: 2px solid #58a8f8;
+    border-radius: 3px;
+    color: #f8f8f8;
+}
+
+#theme-selector select option {
+    background: #181848;
+    color: #f8f8f8;
+}

@@ -153,6 +153,444 @@ body.theme-90s ::-webkit-scrollbar-thumb {
     border-color: #fff #808080 #808080 #fff;
 }
 
+/* ============================================ */
+/* Vaporwave Theme - A E S T H E T I C */
+/* ============================================ */
+body.theme-vaporwave {
+    --bg-primary: #1a0a2e;
+    --bg-secondary: #16213e;
+    --bg-tertiary: #2a1a4e;
+    --text-primary: #ffffff;
+    --text-secondary: #01cdfe;
+    --text-muted: #b967ff;
+    --accent: #ff71ce;
+    --accent-hover: #ff9de0;
+    --accent-dark: #cc5aa5;
+    --border: #b967ff;
+    --danger: #ff0000;
+    --danger-hover: #ff3333;
+    --success: #05ffa1;
+    --warning: #fffb96;
+    --btn-radius: 0;
+    --input-radius: 0;
+    font-family: 'VT323', 'Courier New', monospace;
+}
+
+body.theme-vaporwave .panel-header {
+    background: linear-gradient(90deg, #b967ff, #ff71ce, #01cdfe);
+}
+
+body.theme-vaporwave button {
+    border: 2px solid var(--border);
+    box-shadow: 0 0 10px var(--border);
+}
+
+body.theme-vaporwave button:hover:not(:disabled) {
+    box-shadow: 0 0 20px var(--accent);
+}
+
+body.theme-vaporwave input,
+body.theme-vaporwave select,
+body.theme-vaporwave textarea {
+    border: 2px solid var(--border);
+    box-shadow: 0 0 5px var(--border);
+}
+
+/* ============================================ */
+/* 80s Theme - Synthwave Neon */
+/* ============================================ */
+body.theme-80s {
+    --bg-primary: #0d0221;
+    --bg-secondary: #1a0533;
+    --bg-tertiary: #2a0844;
+    --text-primary: #ffffff;
+    --text-secondary: #00d4ff;
+    --text-muted: #9d00ff;
+    --accent: #ff1493;
+    --accent-hover: #ff69b4;
+    --accent-dark: #c01070;
+    --border: #00d4ff;
+    --danger: #ff0000;
+    --danger-hover: #ff4444;
+    --success: #00ff00;
+    --warning: #ffff00;
+    --btn-radius: 0;
+    --input-radius: 0;
+    font-family: 'Orbitron', 'Arial Black', sans-serif;
+}
+
+body.theme-80s .panel-header {
+    background: linear-gradient(90deg, #ff1493, #9d00ff, #00d4ff);
+}
+
+body.theme-80s button {
+    border: 3px solid var(--border);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    box-shadow: 0 0 15px var(--border);
+}
+
+body.theme-80s button:hover:not(:disabled) {
+    box-shadow: 0 0 25px var(--accent);
+}
+
+body.theme-80s input,
+body.theme-80s select,
+body.theme-80s textarea {
+    border: 2px solid var(--border);
+}
+
+/* Scanlines effect for 80s */
+body.theme-80s::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, 0.1) 2px, rgba(0, 0, 0, 0.1) 4px);
+    pointer-events: none;
+    z-index: 9998;
+}
+
+/* ============================================ */
+/* 70s Theme - Retro Disco */
+/* ============================================ */
+body.theme-70s {
+    --bg-primary: #2d1810;
+    --bg-secondary: #4a2c1a;
+    --bg-tertiary: #6b4423;
+    --text-primary: #faf0dc;
+    --text-secondary: #f7c548;
+    --text-muted: #d2b48c;
+    --accent: #ff6b35;
+    --accent-hover: #ff8c5a;
+    --accent-dark: #cc5629;
+    --border: #8b4513;
+    --danger: #b7410e;
+    --danger-hover: #d95012;
+    --success: #568203;
+    --warning: #f7c548;
+    --btn-radius: 10px;
+    --input-radius: 8px;
+    font-family: 'Georgia', 'Times New Roman', serif;
+}
+
+body.theme-70s .panel-header {
+    background: linear-gradient(90deg, #ff6b35, #f7c548, #568203);
+    color: #2d1810;
+}
+
+body.theme-70s .panel-header h2 {
+    color: #2d1810;
+    text-shadow: 1px 1px 0 #faf0dc;
+}
+
+body.theme-70s button {
+    border: 3px solid var(--border);
+    box-shadow: 3px 3px 0 #1a0a05;
+}
+
+body.theme-70s button:hover:not(:disabled) {
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 #1a0a05;
+}
+
+body.theme-70s button:active:not(:disabled) {
+    transform: translate(1px, 1px);
+    box-shadow: 2px 2px 0 #1a0a05;
+}
+
+body.theme-70s input,
+body.theme-70s select,
+body.theme-70s textarea {
+    border: 3px solid var(--border);
+    border-radius: 8px;
+}
+
+/* ============================================ */
+/* NES Theme - 8-bit Pixel */
+/* ============================================ */
+body.theme-nes {
+    --bg-primary: #000000;
+    --bg-secondary: #101010;
+    --bg-tertiary: #202020;
+    --text-primary: #fcfcfc;
+    --text-secondary: #7c7c7c;
+    --text-muted: #505050;
+    --accent: #a81000;
+    --accent-hover: #e81000;
+    --accent-dark: #780800;
+    --border: #fcfcfc;
+    --danger: #a81000;
+    --danger-hover: #e81000;
+    --success: #00a800;
+    --warning: #f8d878;
+    --btn-radius: 0;
+    --input-radius: 0;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    font-size: 0.8rem;
+}
+
+body.theme-nes .panel-header {
+    background: #0058f8;
+}
+
+body.theme-nes button {
+    border: 4px solid var(--border);
+    text-transform: uppercase;
+}
+
+body.theme-nes input,
+body.theme-nes select,
+body.theme-nes textarea {
+    border: 4px solid var(--border);
+}
+
+body.theme-nes label,
+body.theme-nes .hint,
+body.theme-nes .placeholder {
+    font-size: 0.65rem;
+}
+
+/* ============================================ */
+/* SNES Theme - 16-bit Enhanced */
+/* ============================================ */
+body.theme-snes {
+    --bg-primary: #181848;
+    --bg-secondary: #282878;
+    --bg-tertiary: #383888;
+    --text-primary: #f8f8f8;
+    --text-secondary: #58a8f8;
+    --text-muted: #909090;
+    --accent: #e01820;
+    --accent-hover: #f82830;
+    --accent-dark: #b01018;
+    --border: #58a8f8;
+    --danger: #e01820;
+    --danger-hover: #f82830;
+    --success: #38b028;
+    --warning: #f8d838;
+    --btn-radius: 4px;
+    --input-radius: 4px;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    font-size: 0.75rem;
+}
+
+body.theme-snes .panel-header {
+    background: linear-gradient(90deg, #e01820, #f88018, #f8d838, #38b028, #2038c8, #8858a8);
+}
+
+body.theme-snes button {
+    border: 4px solid;
+    border-color: #58a8f8 #2038c8 #2038c8 #58a8f8;
+    background: linear-gradient(180deg, #383888, #282858);
+    text-shadow: 1px 1px 0 #101030;
+}
+
+body.theme-snes button:hover:not(:disabled) {
+    background: linear-gradient(180deg, #484898, #383868);
+    box-shadow: 0 0 10px rgba(88, 168, 248, 0.5);
+}
+
+body.theme-snes .btn-primary {
+    background: linear-gradient(180deg, #e01820, #b01018);
+    border-color: #f82830 #a01010 #a01010 #f82830;
+}
+
+body.theme-snes input,
+body.theme-snes select,
+body.theme-snes textarea {
+    border: 3px solid;
+    border-color: #2038c8 #58a8f8 #58a8f8 #2038c8;
+    background: linear-gradient(180deg, #181848, #101038);
+}
+
+body.theme-snes label,
+body.theme-snes .hint,
+body.theme-snes .placeholder {
+    font-size: 0.6rem;
+}
+
+/* ============================================ */
+/* Manga Theme - Junji Ito Horror Aesthetic */
+/* ============================================ */
+body.theme-manga {
+    --bg-primary: #0a0a0a;
+    --bg-secondary: #1a1a1a;
+    --bg-tertiary: #2a2a2a;
+    --text-primary: #f0ebe0;
+    --text-secondary: #d0d0d0;
+    --text-muted: #808080;
+    --accent: #404040;
+    --accent-hover: #505050;
+    --accent-dark: #303030;
+    --border: #3a3a3a;
+    --danger: #3a3a3a;
+    --danger-hover: #4a4a4a;
+    --success: #606060;
+    --warning: #707070;
+    --btn-radius: 0;
+    --input-radius: 0;
+    font-family: 'Courier New', 'Georgia', serif;
+}
+
+body.theme-manga .panel-header {
+    background: #1a1a1a;
+    border-bottom: 3px solid #f0ebe0;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+body.theme-manga button {
+    border: 2px solid #f0ebe0;
+    background: #1a1a1a;
+    color: #f0ebe0;
+    font-weight: bold;
+}
+
+body.theme-manga button:hover:not(:disabled) {
+    background: #2a2a2a;
+    box-shadow: 3px 3px 0 #f0ebe0;
+    transform: translate(-1px, -1px);
+}
+
+body.theme-manga .btn-primary {
+    background: #f0ebe0;
+    color: #0a0a0a;
+    border: 2px solid #f0ebe0;
+}
+
+body.theme-manga .btn-primary:hover:not(:disabled) {
+    background: #d0d0d0;
+}
+
+body.theme-manga input,
+body.theme-manga select,
+body.theme-manga textarea {
+    border: 2px solid #f0ebe0;
+    background: #0a0a0a;
+    color: #f0ebe0;
+}
+
+body.theme-manga label,
+body.theme-manga .hint,
+body.theme-manga .placeholder {
+    color: #d0d0d0;
+}
+
+/* ============================================ */
+/* Dragon Ball Theme - Anime Power-up Style */
+/* ============================================ */
+body.theme-dragonball {
+    --bg-primary: #0f0f1a;
+    --bg-secondary: #1a1a3e;
+    --bg-tertiary: #2a2a4e;
+    --text-primary: #ffffff;
+    --text-secondary: #ffcc00;
+    --text-muted: #66ccff;
+    --accent: #ff6600;
+    --accent-hover: #ff8833;
+    --accent-dark: #cc5500;
+    --border: #0066ff;
+    --danger: #cc0000;
+    --danger-hover: #ff0000;
+    --success: #00cc00;
+    --warning: #ffcc00;
+    --btn-radius: 0;
+    --input-radius: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+body.theme-dragonball .panel-header {
+    background: linear-gradient(90deg, #ff6600, #0066ff);
+}
+
+body.theme-dragonball button {
+    border: 2px solid #0066ff;
+    background: linear-gradient(180deg, #2a2a4e, #1a1a3e);
+    box-shadow: 0 0 10px rgba(0, 102, 255, 0.3);
+}
+
+body.theme-dragonball button:hover:not(:disabled) {
+    background: linear-gradient(180deg, #ff6600, #cc5500);
+    border-color: #ffcc00;
+    box-shadow: 0 0 15px rgba(255, 102, 0, 0.5);
+}
+
+body.theme-dragonball .btn-primary {
+    background: linear-gradient(180deg, #ff6600, #cc5500);
+    border-color: #ffcc00;
+}
+
+body.theme-dragonball input,
+body.theme-dragonball select,
+body.theme-dragonball textarea {
+    border: 2px solid #0066ff;
+    background: #1a1a3e;
+    color: #ffffff;
+}
+
+/* ============================================ */
+/* Star Wars Theme - Space Opera Style */
+/* ============================================ */
+body.theme-starwars {
+    --bg-primary: #000000;
+    --bg-secondary: #0a0a12;
+    --bg-tertiary: #0d1b2a;
+    --text-primary: #ffe81f;
+    --text-secondary: #ffffff;
+    --text-muted: #8a8a8a;
+    --accent: #ffe81f;
+    --accent-hover: #fff44f;
+    --accent-dark: #ccba18;
+    --border: #ffe81f;
+    --danger: #ff0000;
+    --danger-hover: #ff4444;
+    --success: #00ff00;
+    --warning: #ffe81f;
+    --btn-radius: 0;
+    --input-radius: 0;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+body.theme-starwars .panel-header {
+    background: #000000;
+    border-bottom: 2px solid #ffe81f;
+}
+
+body.theme-starwars button {
+    border: 1px solid #ffe81f;
+    background: transparent;
+    color: #ffe81f;
+}
+
+body.theme-starwars button:hover:not(:disabled) {
+    background: #ffe81f;
+    color: #000000;
+    box-shadow: 0 0 15px rgba(255, 232, 31, 0.4);
+}
+
+body.theme-starwars .btn-primary {
+    background: #ffe81f;
+    color: #000000;
+    border-color: #ffe81f;
+}
+
+body.theme-starwars input,
+body.theme-starwars select,
+body.theme-starwars textarea {
+    border: 1px solid #ffe81f;
+    background: #000000;
+    color: #ffe81f;
+}
+
+body.theme-starwars label,
+body.theme-starwars .hint,
+body.theme-starwars .placeholder {
+    color: #8a8a8a;
+}
+
 body {
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     background-color: var(--bg-primary);

@@ -1,0 +1,918 @@
+/* Andi VN - Dragon Ball Theme
+ * Inspired by Dragon Ball Z aesthetic
+ * Bold orange/blue energy, power-up auras, anime action style
+ */
+
+/* === CSS Variables === */
+:root {
+    --db-orange: #ff6600;
+    --db-blue: #0066ff;
+    --db-yellow: #ffcc00;
+    --db-gold: #ffd700;
+    --db-red: #cc0000;
+    --db-dark: #1a1a2e;
+    --db-darker: #0f0f1a;
+    --db-white: #ffffff;
+    --db-light-blue: #66ccff;
+    --db-ki: #ffff66;
+    --text-color: #ffffff;
+    --page-bg: #0f0f1a;
+}
+
+/* === Password Overlay (Power-up style) === */
+#password-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(ellipse at center, #1a1a3e 0%, #0f0f1a 70%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    transition: opacity 0.5s ease-out;
+}
+
+#password-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#password-container {
+    position: relative;
+    width: 100%;
+    max-width: 95vw;
+    height: 0;
+    padding-bottom: 56.25%;
+    max-width: min(95vw, calc(75vh * 16 / 9));
+    height: auto;
+    padding-bottom: 0;
+    aspect-ratio: 16 / 9;
+    background: linear-gradient(180deg, #1a1a3e, #0f0f1a);
+    border: 4px solid var(--db-orange);
+    box-shadow:
+        0 0 30px rgba(255, 102, 0, 0.5),
+        0 0 60px rgba(255, 102, 0, 0.3),
+        inset 0 0 50px rgba(0, 102, 255, 0.1);
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px;
+}
+
+#password-inputs {
+    display: flex;
+}
+
+#password-inputs > * {
+    margin: 0 10px;
+}
+
+#password-inputs > *:first-child {
+    margin-left: 0;
+}
+
+#password-inputs > *:last-child {
+    margin-right: 0;
+}
+
+@supports (gap: 20px) {
+    #password-inputs {
+        gap: 20px;
+    }
+    #password-inputs > * {
+        margin: 0;
+    }
+}
+
+.password-char {
+    width: 65px;
+    height: 80px;
+    font-size: 2.5rem;
+    font-family: 'Impact', 'Arial Black', sans-serif;
+    font-weight: bold;
+    text-align: center;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, #2a2a4e, #1a1a3e);
+    border: 3px solid var(--db-orange);
+    box-shadow: 0 0 15px rgba(255, 102, 0, 0.4);
+    color: var(--db-yellow);
+    outline: none;
+    transition: all 0.2s;
+}
+
+.password-char:focus {
+    border-color: var(--db-yellow);
+    box-shadow:
+        0 0 20px rgba(255, 204, 0, 0.6),
+        0 0 40px rgba(255, 204, 0, 0.3);
+    background: linear-gradient(180deg, #3a3a5e, #2a2a4e);
+}
+
+.password-char.filled {
+    background: linear-gradient(180deg, #3a3a5e, #2a2a4e);
+    color: var(--db-gold);
+}
+
+/* Power-up shake animation */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-6px); }
+    20%, 40%, 60%, 80% { transform: translateX(6px); }
+}
+
+@keyframes power-flash {
+    0%, 100% { box-shadow: 0 0 15px rgba(255, 0, 0, 0.5); }
+    50% { box-shadow: 0 0 30px rgba(255, 0, 0, 0.8); }
+}
+
+#password-inputs.error .password-char {
+    animation: shake 0.5s ease-in-out, power-flash 0.5s ease-in-out;
+    border-color: var(--db-red);
+}
+
+@media (max-width: 56.25em) {
+    #password-container {
+        margin: 10px;
+    }
+
+    .password-char {
+        width: 55px;
+        height: 68px;
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 37.5em) {
+    .password-char {
+        width: 45px;
+        height: 56px;
+        font-size: 1.6rem;
+    }
+
+    #password-inputs {
+        gap: 12px;
+    }
+}
+
+/* === Reset & Base === */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: var(--base-font-size-fallback);
+    font-size: var(--base-font-size);
+}
+
+body {
+    font-family: 'Segoe UI', 'Arial', sans-serif;
+    background: var(--page-bg);
+    background: radial-gradient(ellipse at center, #1a1a3e 0%, #0f0f1a 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+}
+
+/* === VN Wrapper === */
+#vn-wrapper {
+    width: 95vw;
+    max-height: 95vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    overflow: hidden;
+}
+
+/* === Header === */
+h1 {
+    color: var(--db-orange);
+    text-align: center;
+    margin-bottom: 15px;
+    font-family: 'Impact', 'Arial Black', sans-serif;
+    font-size: 1.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    text-shadow:
+        0 0 10px var(--db-orange),
+        2px 2px 0 var(--db-dark);
+}
+
+/* === VN Container === */
+#vn-container {
+    position: relative;
+    width: 100%;
+    max-width: 95vw;
+    height: 0;
+    padding-bottom: 56.25%;
+    max-width: min(95vw, calc(75vh * 16 / 9));
+    height: auto;
+    padding-bottom: 0;
+    aspect-ratio: 16 / 9;
+    background: linear-gradient(180deg, #1a1a3e, #0f0f1a);
+    border: 4px solid var(--db-orange);
+    box-shadow:
+        0 0 30px rgba(255, 102, 0, 0.4),
+        inset 0 0 30px rgba(0, 102, 255, 0.1);
+    overflow: hidden;
+}
+
+/* Energy aura effect */
+#vn-container::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, var(--db-orange), var(--db-blue), var(--db-orange));
+    z-index: -1;
+    opacity: 0.3;
+    filter: blur(10px);
+}
+
+/* === Background Layer === */
+#background-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: var(--db-dark);
+    z-index: 1;
+}
+
+/* === Character Sprite Layer === */
+#sprite-layer {
+    position: absolute;
+    bottom: 40%;
+    left: 0;
+    width: 100%;
+    height: 56%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    z-index: 2;
+    pointer-events: none;
+}
+
+#sprite-layer img {
+    max-height: 100%;
+    max-width: 300px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 10px rgba(255, 102, 0, 0.5));
+    margin: 0 10px;
+}
+
+@supports (gap: 20px) {
+    #sprite-layer {
+        gap: 20px;
+    }
+    #sprite-layer img {
+        margin: 0;
+    }
+}
+
+/* === Text Box === */
+#text-box {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    min-height: 40%;
+    max-height: 50%;
+    background: linear-gradient(180deg, rgba(26, 26, 62, 0.95), rgba(15, 15, 26, 0.98));
+    border-top: 3px solid var(--db-orange);
+    box-shadow: 0 -5px 30px rgba(255, 102, 0, 0.3);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    transition: transform 0.3s ease-out;
+    overflow: hidden;
+}
+
+/* DBZ uses an energy bar header */
+#text-box-header {
+    background: linear-gradient(90deg, var(--db-orange), var(--db-yellow), var(--db-orange));
+    color: var(--db-dark);
+    padding: 4px 10px;
+    font-weight: bold;
+    font-size: 12px;
+    font-family: 'Bangers', 'Impact', cursive;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+#text-box-title::before {
+    content: '⚡ POWER LEVEL ⚡';
+}
+
+#text-box.ending-scene {
+    height: auto;
+    min-height: 40%;
+    max-height: 60%;
+}
+
+#text-box.hidden-textbox {
+    transform: translateY(100%);
+    pointer-events: none;
+}
+
+/* === Text Speed Controls === */
+#text-controls {
+    display: flex;
+    margin: 8px 10px;
+    justify-content: flex-end;
+}
+
+#text-controls > * {
+    margin-left: 4px;
+}
+
+#text-controls > *:first-child {
+    margin-left: 0;
+}
+
+@supports (gap: 4px) {
+    #text-controls {
+        gap: 4px;
+    }
+    #text-controls > * {
+        margin-left: 0;
+    }
+}
+
+.speed-btn {
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-weight: bold;
+    background: linear-gradient(180deg, #2a2a4e, #1a1a3e);
+    color: var(--db-white);
+    border: 2px solid var(--db-blue);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.speed-btn:hover {
+    background: linear-gradient(180deg, #3a3a5e, #2a2a4e);
+    box-shadow: 0 0 10px rgba(0, 102, 255, 0.5);
+}
+
+.speed-btn.active {
+    background: linear-gradient(180deg, var(--db-orange), #cc5500);
+    border-color: var(--db-yellow);
+    box-shadow: 0 0 15px rgba(255, 102, 0, 0.6);
+}
+
+/* === Volume Control Container === */
+#volume-control {
+    display: flex;
+    align-items: center;
+    margin-left: 8px;
+}
+
+/* === Volume Slider === */
+#volume-slider {
+    width: 60px;
+    height: 12px;
+    margin-left: 6px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    accent-color: var(--db-orange);
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--db-dark);
+    border: 2px solid var(--db-blue);
+}
+
+#volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 18px;
+    background: linear-gradient(180deg, var(--db-orange), #cc5500);
+    border: 2px solid var(--db-yellow);
+    cursor: pointer;
+}
+
+#volume-slider::-moz-range-thumb {
+    width: 14px;
+    height: 18px;
+    background: linear-gradient(180deg, var(--db-orange), #cc5500);
+    border: 2px solid var(--db-yellow);
+    cursor: pointer;
+}
+
+#volume-control:hover #volume-slider {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* === Icon switching === */
+.icon-portrait {
+    display: none;
+}
+
+.icon-landscape {
+    display: inline;
+}
+
+.mute-btn svg {
+    display: block;
+    width: 1em;
+    height: 1em;
+}
+
+/* === Mute Button === */
+.mute-btn {
+    padding: 4px 12px;
+    font-size: 1rem;
+    background: linear-gradient(180deg, #2a2a4e, #1a1a3e);
+    color: var(--db-white);
+    border: 2px solid var(--db-blue);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mute-btn:hover {
+    box-shadow: 0 0 10px rgba(0, 102, 255, 0.5);
+}
+
+/* === Story Output === */
+#story-output {
+    flex: 1;
+    color: var(--db-white);
+    font-size: 1rem;
+    line-height: 1.6;
+    overflow-y: auto;
+    padding: 12px 16px;
+    cursor: default;
+    user-select: none;
+    background: transparent;
+    border: none;
+    margin: 0 10px;
+}
+
+#story-output::-webkit-scrollbar {
+    width: 10px;
+}
+
+#story-output::-webkit-scrollbar-track {
+    background: var(--db-dark);
+    border: 1px solid var(--db-blue);
+}
+
+#story-output::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--db-orange), #cc5500);
+    border: 1px solid var(--db-yellow);
+}
+
+/* === Typewriter Effect === */
+.typewriter-text {
+    margin: 0;
+}
+
+.typewriter-text::after {
+    content: '▌';
+    animation: blink 0.6s infinite;
+    color: var(--db-yellow);
+    margin-left: 2px;
+}
+
+.typewriter-complete::after {
+    content: '';
+    animation: none;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+.already-read {
+    opacity: 0.8;
+}
+
+#story-output.has-already-read::before {
+    content: '(already read)';
+    display: block;
+    font-size: 0.75rem;
+    color: var(--db-light-blue);
+    font-style: italic;
+    margin-bottom: 5px;
+}
+
+@supports selector(:has(*)) {
+    #story-output:has(.already-read)::before {
+        content: '(already read)';
+        display: block;
+        font-size: 0.75rem;
+        color: var(--db-light-blue);
+        font-style: italic;
+        margin-bottom: 5px;
+    }
+}
+
+/* === Button Area === */
+#button-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 10px;
+    min-height: 50px;
+    flex-shrink: 0;
+}
+
+#button-area > * {
+    margin-bottom: 8px;
+}
+
+#button-area > *:last-child {
+    margin-bottom: 0;
+}
+
+@supports (gap: 8px) {
+    #button-area {
+        gap: 8px;
+    }
+    #button-area > * {
+        margin-bottom: 0;
+    }
+}
+
+/* === Choices Container === */
+#choices-container {
+    display: block;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    width: 100%;
+}
+
+#choices-container > * {
+    margin: 4px;
+}
+
+@supports (gap: 10px) {
+    #choices-container {
+        gap: 10px;
+    }
+    #choices-container > * {
+        margin: 0;
+    }
+}
+
+/* === Choice Buttons (Ki blast style) === */
+.choice-button {
+    display: inline-block;
+    flex: 1 1 0;
+    padding: 10px 14px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 0.9rem;
+    font-weight: bold;
+    background: linear-gradient(180deg, #2a2a4e, #1a1a3e);
+    color: var(--db-white);
+    border: 3px solid var(--db-blue);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: normal;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.choice-button:hover {
+    background: linear-gradient(180deg, var(--db-orange), #cc5500);
+    border-color: var(--db-yellow);
+    box-shadow: 0 0 20px rgba(255, 102, 0, 0.6);
+    transform: scale(1.02);
+}
+
+.choice-button:active {
+    transform: scale(0.98);
+}
+
+/* === Game Over State === */
+.game-over {
+    color: var(--db-red);
+    font-weight: bold;
+    text-align: center;
+    margin-top: 10px;
+    padding: 12px;
+    background: linear-gradient(180deg, #2a1a1a, #1a0f0f);
+    border: 3px solid var(--db-red);
+    box-shadow: 0 0 20px rgba(204, 0, 0, 0.5);
+    font-family: 'Impact', 'Arial Black', sans-serif;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+}
+
+#choices-container.has-game-over {
+    flex-direction: column;
+    align-items: center;
+}
+
+@supports selector(:has(*)) {
+    #choices-container:has(.game-over) {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+/* === Restart Button === */
+.restart-button {
+    display: inline-block;
+    flex: 0 0 auto;
+    min-width: 200px;
+    padding: 12px 28px;
+    font-family: 'Impact', 'Arial Black', sans-serif;
+    font-size: 1.1rem;
+    font-weight: bold;
+    background: linear-gradient(180deg, var(--db-orange), #cc5500);
+    color: var(--db-white);
+    border: 3px solid var(--db-yellow);
+    box-shadow: 0 0 20px rgba(255, 102, 0, 0.5);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.restart-button:hover {
+    box-shadow: 0 0 30px rgba(255, 204, 0, 0.7);
+    transform: scale(1.05);
+}
+
+/* === Continue Button === */
+.continue-button {
+    display: inline-block;
+    flex: 0 0 auto;
+    min-width: 180px;
+    padding: 10px 24px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 1rem;
+    font-weight: bold;
+    background: linear-gradient(180deg, var(--db-blue), #0055cc);
+    color: var(--db-white);
+    border: 3px solid var(--db-light-blue);
+    box-shadow: 0 0 15px rgba(0, 102, 255, 0.4);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+}
+
+.continue-button:hover {
+    box-shadow: 0 0 25px rgba(0, 102, 255, 0.7);
+    transform: scale(1.02);
+}
+
+/* === Dice Roll Display === */
+.dice-roll {
+    font-size: 1.1rem;
+    color: var(--db-yellow);
+    font-weight: bold;
+    font-family: 'Impact', 'Arial Black', sans-serif;
+    margin: 10px 0;
+    padding: 12px;
+    background: linear-gradient(180deg, #2a2a4e, #1a1a3e);
+    border: 3px solid var(--db-orange);
+    box-shadow: 0 0 15px rgba(255, 102, 0, 0.4);
+    text-align: center;
+    text-transform: uppercase;
+}
+
+/* === Reset Button === */
+#reset-btn {
+    background: linear-gradient(180deg, #2a2a4e, #1a1a3e) !important;
+    color: var(--db-white) !important;
+    border: 2px solid var(--db-blue) !important;
+    border-radius: 0 !important;
+    font-family: 'Segoe UI', Arial, sans-serif !important;
+    box-shadow: 0 0 10px rgba(0, 102, 255, 0.3) !important;
+}
+
+#reset-btn:hover {
+    background: linear-gradient(180deg, var(--db-orange), #cc5500) !important;
+    border-color: var(--db-yellow) !important;
+    box-shadow: 0 0 15px rgba(255, 102, 0, 0.5) !important;
+}
+
+/* === Responsive Design === */
+@media (max-width: 56.25em) {
+    #vn-wrapper {
+        padding: 10px;
+    }
+
+    #text-box {
+        height: auto;
+        min-height: 36%;
+        max-height: 55%;
+    }
+
+    #sprite-layer {
+        bottom: 36%;
+        height: 60%;
+    }
+
+    #story-output {
+        font-size: 0.95rem;
+    }
+
+    .choice-button {
+        min-width: 120px;
+        font-size: 0.85rem;
+        padding: 8px 10px;
+    }
+
+    #sprite-layer img {
+        max-width: 200px;
+    }
+}
+
+@media (max-width: 37.5em) {
+    #text-box {
+        height: auto;
+        min-height: 40%;
+        max-height: 60%;
+    }
+
+    #sprite-layer {
+        bottom: 40%;
+        height: 56%;
+    }
+
+    #story-output {
+        font-size: 0.85rem;
+        line-height: 1.5;
+    }
+
+    .choice-button {
+        min-width: 100%;
+        font-size: 0.8rem;
+    }
+
+    #sprite-layer img {
+        max-width: 140px;
+    }
+}
+
+/* === Portrait Mode === */
+@media (orientation: portrait) {
+    #vn-container {
+        max-width: 56.25vh;
+        height: 0;
+        padding-bottom: 177.78%;
+        height: auto;
+        padding-bottom: 0;
+        aspect-ratio: 9 / 16;
+        max-width: min(100%, 56.25vh);
+        max-height: 85vh;
+    }
+
+    #password-container {
+        max-width: 56.25vh;
+        height: 0;
+        padding-bottom: 177.78%;
+        height: auto;
+        padding-bottom: 0;
+        aspect-ratio: 9 / 16;
+        max-width: min(100%, 56.25vh);
+        max-height: 85vh;
+    }
+
+    #vn-wrapper {
+        max-height: 100vh;
+    }
+
+    #text-box {
+        height: auto;
+        min-height: 40%;
+        max-height: 75%;
+    }
+
+    #text-controls {
+        justify-content: center;
+    }
+
+    #text-box.ending-scene {
+        height: auto;
+        min-height: 40%;
+        max-height: 90%;
+    }
+
+    #sprite-layer {
+        bottom: 40%;
+        height: 55%;
+    }
+
+    #sprite-layer img {
+        max-width: 35%;
+    }
+
+    #choices-container {
+        flex-direction: column;
+        flex-wrap: nowrap;
+        gap: 8px;
+    }
+
+    .choice-button {
+        flex: none;
+        width: 100%;
+        padding: 12px 14px;
+    }
+
+    .continue-button,
+    .restart-button {
+        min-width: 160px;
+        padding: 10px 18px;
+    }
+
+    #reset-btn {
+        bottom: auto !important;
+        top: 10px !important;
+        right: 10px !important;
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 16px !important;
+    }
+
+    .icon-landscape {
+        display: none !important;
+    }
+
+    .icon-portrait {
+        display: inline !important;
+    }
+
+    .speed-btn:focus,
+    .mute-btn:focus,
+    .choice-button:focus,
+    .continue-button:focus,
+    .restart-button:focus {
+        outline: none;
+    }
+}
+
+/* === Theme Selector (Dev Mode) === */
+#theme-selector {
+    position: fixed;
+    top: 40px;
+    right: 10px;
+    background: linear-gradient(180deg, #2a2a4e, #1a1a3e);
+    border: 3px solid var(--db-orange);
+    box-shadow: 0 0 15px rgba(255, 102, 0, 0.4);
+    padding: 8px;
+    z-index: 9999;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 12px;
+    display: none;
+}
+
+#theme-selector.visible {
+    display: block;
+}
+
+#theme-selector select {
+    font-family: inherit;
+    font-size: 12px;
+    background: var(--db-dark);
+    border: 2px solid var(--db-blue);
+    color: var(--db-white);
+    padding: 4px 8px;
+    cursor: pointer;
+}
+
+#theme-selector select option {
+    background: var(--db-dark);
+    color: var(--db-white);
+}
+
+#theme-selector label {
+    color: var(--db-white);
+    font-family: 'Bangers', 'Impact', cursive;
+    text-transform: uppercase;
+}
+
+#theme-selector input[type="checkbox"] {
+    accent-color: var(--db-orange);
+}

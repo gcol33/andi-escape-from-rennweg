@@ -1,0 +1,872 @@
+/* Andi VN - NES Theme
+ * 8-bit Nintendo Entertainment System aesthetic
+ * Limited color palette, pixel fonts, chunky borders
+ */
+
+/* === CSS Variables (NES color palette) === */
+:root {
+    --nes-black: #000000;
+    --nes-white: #fcfcfc;
+    --nes-gray: #7c7c7c;
+    --nes-red: #a81000;
+    --nes-blue: #0058f8;
+    --nes-green: #00a800;
+    --nes-yellow: #f8d878;
+    --nes-orange: #f83800;
+    --nes-cyan: #00e8d8;
+    --nes-purple: #6844fc;
+    --nes-pink: #f878f8;
+    --nes-tan: #fce4a0;
+    --text-color: #fcfcfc;
+    --page-bg: #000000;
+}
+
+/* === Password Overlay === */
+#password-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--page-bg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    transition: opacity 0.5s ease-out;
+}
+
+#password-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#password-container {
+    position: relative;
+    width: 100%;
+    max-width: 95vw;
+    height: 0;
+    padding-bottom: 56.25%;
+    max-width: min(95vw, calc(75vh * 16 / 9));
+    height: auto;
+    padding-bottom: 0;
+    aspect-ratio: 16 / 9;
+    background: var(--nes-black);
+    border: 8px solid var(--nes-white);
+    overflow: hidden;
+    box-shadow: 0 0 0 4px var(--nes-gray);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px;
+    image-rendering: pixelated;
+}
+
+#password-inputs {
+    display: flex;
+}
+
+#password-inputs > * {
+    margin: 0 8px;
+}
+
+#password-inputs > *:first-child {
+    margin-left: 0;
+}
+
+#password-inputs > *:last-child {
+    margin-right: 0;
+}
+
+@supports (gap: 16px) {
+    #password-inputs {
+        gap: 16px;
+    }
+    #password-inputs > * {
+        margin: 0;
+    }
+}
+
+.password-char {
+    width: 56px;
+    height: 64px;
+    font-size: 2rem;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    font-weight: normal;
+    text-align: center;
+    text-transform: uppercase;
+    background: var(--nes-black);
+    border: 4px solid var(--nes-white);
+    color: var(--nes-white);
+    outline: none;
+    transition: all 0.1s step-end;
+    image-rendering: pixelated;
+}
+
+.password-char:focus {
+    border-color: var(--nes-yellow);
+    color: var(--nes-yellow);
+    background: var(--nes-black);
+}
+
+.password-char.filled {
+    background: #003050;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+}
+
+#password-inputs.error .password-char {
+    animation: shake 0.3s step-end;
+    border-color: var(--nes-red);
+    color: var(--nes-red);
+}
+
+@media (max-width: 56.25em) {
+    #password-container {
+        margin: 10px;
+    }
+
+    .password-char {
+        width: 48px;
+        height: 56px;
+        font-size: 1.5rem;
+    }
+
+    #password-inputs {
+        gap: 12px;
+    }
+}
+
+@media (max-width: 37.5em) {
+    .password-char {
+        width: 40px;
+        height: 48px;
+        font-size: 1.2rem;
+    }
+
+    #password-inputs {
+        gap: 8px;
+    }
+}
+
+/* === Reset & Base === */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: var(--base-font-size-fallback);
+    font-size: var(--base-font-size);
+}
+
+body {
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    background: var(--page-bg);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+}
+
+/* Scanline effect for CRT feel */
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.3) 2px,
+        rgba(0, 0, 0, 0.3) 4px
+    );
+    pointer-events: none;
+    z-index: 9998;
+}
+
+/* === VN Wrapper === */
+#vn-wrapper {
+    width: 95vw;
+    max-height: 95vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+}
+
+/* === Header === */
+h1 {
+    color: var(--nes-white);
+    text-align: center;
+    margin-bottom: 16px;
+    font-size: 1.2rem;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    text-shadow: 4px 4px 0 var(--nes-blue);
+}
+
+/* === VN Container === */
+#vn-container {
+    position: relative;
+    width: 100%;
+    max-width: 95vw;
+    height: 0;
+    padding-bottom: 56.25%;
+    max-width: min(95vw, calc(75vh * 16 / 9));
+    height: auto;
+    padding-bottom: 0;
+    aspect-ratio: 16 / 9;
+    background: var(--nes-black);
+    border: 8px solid var(--nes-white);
+    overflow: hidden;
+    box-shadow: 0 0 0 4px var(--nes-gray);
+}
+
+/* === Background Layer === */
+#background-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: #003078;
+    z-index: 1;
+    image-rendering: pixelated;
+}
+
+/* === Character Sprite Layer === */
+#sprite-layer {
+    position: absolute;
+    bottom: 40%;
+    left: 0;
+    width: 100%;
+    height: 56%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    z-index: 2;
+    pointer-events: none;
+}
+
+#sprite-layer img {
+    max-height: 100%;
+    max-width: 300px;
+    object-fit: contain;
+    filter: drop-shadow(4px 4px 0 var(--nes-black));
+    margin: 0 10px;
+    image-rendering: pixelated;
+}
+
+@supports (gap: 20px) {
+    #sprite-layer {
+        gap: 20px;
+    }
+    #sprite-layer img {
+        margin: 0;
+    }
+}
+
+/* === Text Box === */
+#text-box {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    min-height: 40%;
+    max-height: 50%;
+    background: var(--nes-black);
+    border-top: 8px solid var(--nes-white);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    transition: transform 0.2s step-end;
+    overflow: hidden;
+}
+
+#text-box-header {
+    background: var(--nes-blue);
+    color: var(--nes-white);
+    padding: 6px 10px;
+    font-weight: normal;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+}
+
+#text-box-title::before {
+    content: '* STORY *';
+}
+
+#text-box.ending-scene {
+    height: auto;
+    min-height: 40%;
+    max-height: 60%;
+}
+
+#text-box.hidden-textbox {
+    transform: translateY(100%);
+    pointer-events: none;
+}
+
+/* === Text Speed Controls === */
+#text-controls {
+    display: flex;
+    margin: 8px 10px;
+    justify-content: flex-end;
+}
+
+#text-controls > * {
+    margin-left: 4px;
+}
+
+#text-controls > *:first-child {
+    margin-left: 0;
+}
+
+@supports (gap: 4px) {
+    #text-controls {
+        gap: 4px;
+    }
+    #text-controls > * {
+        margin-left: 0;
+    }
+}
+
+.speed-btn {
+    padding: 4px 8px;
+    font-size: 0.6rem;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    background: var(--nes-black);
+    color: var(--nes-white);
+    border: 4px solid var(--nes-white);
+    cursor: pointer;
+    transition: all 0.1s step-end;
+}
+
+.speed-btn:hover {
+    background: var(--nes-gray);
+}
+
+.speed-btn.active {
+    background: var(--nes-red);
+    color: var(--nes-white);
+}
+
+/* === Volume Control === */
+#volume-control {
+    display: flex;
+    align-items: center;
+    margin-left: 8px;
+}
+
+#volume-slider {
+    width: 50px;
+    height: 8px;
+    margin-left: 6px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.1s step-end, visibility 0.1s step-end;
+    accent-color: var(--nes-red);
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--nes-gray);
+    border: 2px solid var(--nes-white);
+}
+
+#volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 16px;
+    background: var(--nes-white);
+    border: none;
+    cursor: pointer;
+}
+
+#volume-slider::-moz-range-thumb {
+    width: 12px;
+    height: 16px;
+    background: var(--nes-white);
+    border: none;
+    cursor: pointer;
+}
+
+#volume-control:hover #volume-slider {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* === Icon switching === */
+.icon-portrait {
+    display: none;
+}
+
+.icon-landscape {
+    display: inline;
+}
+
+/* === SVG icons === */
+.mute-btn svg {
+    display: block;
+    width: 1em;
+    height: 1em;
+}
+
+.mute-btn {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    background: var(--nes-black);
+    color: var(--nes-white);
+    border: 4px solid var(--nes-white);
+    cursor: pointer;
+    transition: all 0.1s step-end;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mute-btn:hover {
+    background: var(--nes-gray);
+}
+
+/* === Story Output === */
+#story-output {
+    flex: 1;
+    color: var(--text-color);
+    font-size: 0.75rem;
+    line-height: 2;
+    overflow-y: auto;
+    padding: 10px 12px;
+    cursor: default;
+    user-select: none;
+    background: transparent;
+    border: none;
+    margin: 0 8px;
+}
+
+#story-output::-webkit-scrollbar {
+    width: 8px;
+}
+
+#story-output::-webkit-scrollbar-track {
+    background: var(--nes-black);
+}
+
+#story-output::-webkit-scrollbar-thumb {
+    background: var(--nes-white);
+}
+
+/* === Typewriter Effect === */
+.typewriter-text {
+    margin: 0;
+}
+
+.typewriter-text::after {
+    content: '_';
+    animation: blink-nes 0.5s step-end infinite;
+    color: var(--nes-white);
+    margin-left: 2px;
+}
+
+.typewriter-complete::after {
+    content: '';
+    animation: none;
+}
+
+@keyframes blink-nes {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+.already-read {
+    opacity: 0.7;
+}
+
+#story-output.has-already-read::before {
+    content: '[REPLAY]';
+    display: block;
+    font-size: 0.6rem;
+    color: var(--nes-gray);
+    margin-bottom: 8px;
+}
+
+@supports selector(:has(*)) {
+    #story-output:has(.already-read)::before {
+        content: '[REPLAY]';
+        display: block;
+        font-size: 0.6rem;
+        color: var(--nes-gray);
+        margin-bottom: 8px;
+    }
+}
+
+/* === Button Area === */
+#button-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 10px;
+    min-height: 50px;
+    flex-shrink: 0;
+}
+
+#button-area > * {
+    margin-bottom: 8px;
+}
+
+#button-area > *:last-child {
+    margin-bottom: 0;
+}
+
+@supports (gap: 8px) {
+    #button-area {
+        gap: 8px;
+    }
+    #button-area > * {
+        margin-bottom: 0;
+    }
+}
+
+/* === Choices Container === */
+#choices-container {
+    display: block;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    width: 100%;
+}
+
+#choices-container > * {
+    margin: 4px;
+}
+
+@supports (gap: 8px) {
+    #choices-container {
+        gap: 8px;
+    }
+    #choices-container > * {
+        margin: 0;
+    }
+}
+
+/* === Choice Buttons === */
+.choice-button {
+    display: inline-block;
+    flex: 1 1 0;
+    padding: 8px 10px;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    font-size: 0.6rem;
+    background: var(--nes-black);
+    color: var(--nes-white);
+    border: 4px solid var(--nes-white);
+    cursor: pointer;
+    transition: all 0.1s step-end;
+    white-space: normal;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.choice-button:hover {
+    background: var(--nes-red);
+    border-color: var(--nes-yellow);
+    color: var(--nes-yellow);
+}
+
+/* === Game Over State === */
+.game-over {
+    color: var(--nes-red);
+    font-weight: normal;
+    text-align: center;
+    margin-top: 8px;
+    padding: 8px;
+    background: var(--nes-black);
+    border: 4px solid var(--nes-red);
+    text-transform: uppercase;
+    font-size: 0.7rem;
+}
+
+#choices-container.has-game-over {
+    flex-direction: column;
+    align-items: center;
+}
+
+@supports selector(:has(*)) {
+    #choices-container:has(.game-over) {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+/* === Restart Button === */
+.restart-button {
+    display: inline-block;
+    flex: 0 0 auto;
+    min-width: 180px;
+    padding: 10px 16px;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    font-size: 0.7rem;
+    font-weight: normal;
+    background: var(--nes-green);
+    color: var(--nes-white);
+    border: 4px solid var(--nes-white);
+    cursor: pointer;
+    transition: all 0.1s step-end;
+    text-transform: uppercase;
+}
+
+.restart-button:hover {
+    background: var(--nes-cyan);
+    color: var(--nes-black);
+}
+
+/* === Continue Button === */
+.continue-button {
+    display: inline-block;
+    flex: 0 0 auto;
+    min-width: 160px;
+    padding: 8px 16px;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    font-size: 0.7rem;
+    background: var(--nes-black);
+    color: var(--nes-white);
+    border: 4px solid var(--nes-white);
+    cursor: pointer;
+    transition: all 0.1s step-end;
+    text-transform: uppercase;
+}
+
+.continue-button:hover {
+    background: var(--nes-blue);
+}
+
+/* === Dice Roll Display === */
+.dice-roll {
+    font-size: 0.7rem;
+    color: var(--nes-yellow);
+    font-weight: normal;
+    margin: 8px 0;
+    padding: 8px;
+    background: var(--nes-black);
+    border: 4px solid var(--nes-yellow);
+    text-transform: uppercase;
+}
+
+/* === Reset Button === */
+#reset-btn {
+    background: var(--nes-black) !important;
+    color: var(--nes-white) !important;
+    border: 4px solid var(--nes-white) !important;
+    border-radius: 0 !important;
+    font-family: 'Press Start 2P', 'Courier New', monospace !important;
+    box-shadow: none !important;
+}
+
+#reset-btn:hover {
+    background: var(--nes-red) !important;
+}
+
+/* === Responsive Design === */
+@media (max-width: 56.25em) {
+    #vn-wrapper {
+        padding: 10px;
+    }
+
+    #text-box {
+        height: auto;
+        min-height: 36%;
+        max-height: 55%;
+    }
+
+    #sprite-layer {
+        bottom: 36%;
+        height: 60%;
+    }
+
+    #story-output {
+        font-size: 0.65rem;
+    }
+
+    .choice-button {
+        min-width: 100px;
+        font-size: 0.55rem;
+        padding: 6px 8px;
+    }
+
+    #sprite-layer img {
+        max-width: 200px;
+    }
+}
+
+@media (max-width: 37.5em) {
+    #text-box {
+        height: auto;
+        min-height: 40%;
+        max-height: 60%;
+    }
+
+    #sprite-layer {
+        bottom: 40%;
+        height: 56%;
+    }
+
+    #story-output {
+        font-size: 0.55rem;
+        line-height: 1.8;
+    }
+
+    .choice-button {
+        min-width: 100%;
+        font-size: 0.5rem;
+    }
+
+    #sprite-layer img {
+        max-width: 140px;
+    }
+}
+
+/* === Portrait Mode === */
+@media (orientation: portrait) {
+    #vn-container {
+        max-width: 56.25vh;
+        height: 0;
+        padding-bottom: 177.78%;
+        height: auto;
+        padding-bottom: 0;
+        aspect-ratio: 9 / 16;
+        max-width: min(100%, 56.25vh);
+        max-height: 85vh;
+    }
+
+    #password-container {
+        max-width: 56.25vh;
+        height: 0;
+        padding-bottom: 177.78%;
+        height: auto;
+        padding-bottom: 0;
+        aspect-ratio: 9 / 16;
+        max-width: min(100%, 56.25vh);
+        max-height: 85vh;
+    }
+
+    #vn-wrapper {
+        max-height: 100vh;
+    }
+
+    #text-box {
+        height: auto;
+        min-height: 40%;
+        max-height: 75%;
+    }
+
+    #text-controls {
+        justify-content: center;
+    }
+
+    #text-box.ending-scene {
+        height: auto;
+        min-height: 40%;
+        max-height: 90%;
+    }
+
+    #sprite-layer {
+        bottom: 40%;
+        height: 55%;
+    }
+
+    #sprite-layer img {
+        max-width: 35%;
+    }
+
+    #choices-container {
+        flex-direction: column;
+        flex-wrap: nowrap;
+        gap: 6px;
+    }
+
+    .choice-button {
+        flex: none;
+        width: 100%;
+        padding: 10px 8px;
+    }
+
+    .continue-button,
+    .restart-button {
+        min-width: 140px;
+        padding: 8px 12px;
+    }
+
+    #reset-btn {
+        bottom: auto !important;
+        top: 10px !important;
+        right: 10px !important;
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 12px !important;
+    }
+
+    .icon-landscape {
+        display: none !important;
+    }
+
+    .icon-portrait {
+        display: inline !important;
+    }
+
+    .speed-btn:focus,
+    .mute-btn:focus,
+    .choice-button:focus,
+    .continue-button:focus,
+    .restart-button:focus {
+        outline: none;
+    }
+}
+
+/* === Theme Selector (Dev Mode) === */
+#theme-selector {
+    background: #000000;
+    border: 4px solid #fcfcfc;
+    color: #fcfcfc;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    font-size: 10px;
+}
+
+#theme-selector label {
+    color: #fcfcfc;
+}
+
+#theme-selector select {
+    font-family: inherit;
+    font-size: 10px;
+    background: #000000;
+    border: 2px solid #fcfcfc;
+    color: #fcfcfc;
+}
+
+#theme-selector select option {
+    background: #000000;
+    color: #fcfcfc;
+}

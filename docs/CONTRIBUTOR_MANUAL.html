@@ -4,26 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Andi VN - Contributor Manual</title>
-    <script>
-        // Load theme configuration and apply theme class before body renders
-        (function() {
-            var script = document.createElement('script');
-            script.src = '../js/theme.js';
-            script.async = false;
-            document.head.appendChild(script);
-            script.onload = function() {
-                if (typeof themeConfig !== 'undefined' && themeConfig.selected === 'prototype') {
-                    document.body.classList.add('theme-prototype');
-                }
-            };
-        })();
-    </script>
     <style>
 
 /* ============================================
-   MANUAL STYLESHEET - Theme Support
-   Default: 90s Windows 3.1 Aesthetic
-   Alternative: Prototype (warm beige)
+   90s MANUAL STYLESHEET
+   Windows 3.1 / Early Mac Aesthetic
    ============================================ */
 
 @font-face {
@@ -31,7 +16,6 @@
     src: local('MS Sans Serif'), local('Segoe UI'), local('Tahoma');
 }
 
-/* Default (90s) theme variables */
 :root {
     --win-bg: #c0c0c0;
     --win-dark: #808080;
@@ -41,32 +25,6 @@
     --win-cyan: #008080;
     --text-color: #000000;
     --page-bg: #008080;
-}
-
-/* Prototype theme - warm beige VN style */
-body.theme-prototype {
-    --win-bg: #f2e7d5;
-    --win-dark: #d3c2a8;
-    --win-light: #fffbe9;
-    --win-darkest: #4b3e2a;
-    --win-blue: #b08b5a;
-    --win-cyan: #c9a066;
-    --text-color: #4b3e2a;
-    --page-bg: #f2e7d5;
-    font-family: 'Georgia', 'Times New Roman', serif;
-}
-
-body.theme-prototype .win-titlebar {
-    background: linear-gradient(90deg, #b08b5a, #c9a066);
-}
-
-body.theme-prototype .win-window {
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(75, 62, 42, 0.2);
-}
-
-body.theme-prototype .win-buttons span {
-    border-radius: 3px;
 }
 
 * {
@@ -1959,7 +1917,7 @@ Third block. Add as many as you need!
                 <div class="asset-path">📁 assets/music/</div>
                 <p class="asset-hint">Add MP3 files here. Use in scenes with <code>music: filename.mp3</code></p>
                 <ul class="asset-list">
-                    <li>BOSS_TIME.mp3</li><li>OH_SHIT.mp3</li><li>coding.mp3</li><li>coding_frenzy.mp3</li><li>coffee.mp3</li><li>default.mp3</li><li>dicey_decisions.mp3</li><li>game_over.mp3</li><li>glitch.mp3</li><li>i_can_do_it.mp3</li><li>last_day.mp3</li><li>legal_trap_stairwell.mp3</li><li>oh_oh.mp3</li><li>outside.mp3</li><li>questioning.mp3</li><li>reading_papers.mp3</li><li>rooftop.mp3</li><li>running_escape.mp3</li><li>spooky.mp3</li><li>too_much_coffee.mp3</li><li>victory.mp3</li><li>zen.mp3</li>
+                    <li>BOSS_TIME.mp3</li><li>OH_SHIT.mp3</li><li>coding.mp3</li><li>coding_frenzy.mp3</li><li>coffee.mp3</li><li>default.mp3</li><li>dicey_decisions.mp3</li><li>fight.mp3</li><li>game_over.mp3</li><li>glitch.mp3</li><li>i_can_do_it.mp3</li><li>last_day.mp3</li><li>legal_trap_stairwell.mp3</li><li>oh_oh.mp3</li><li>outside.mp3</li><li>questioning.mp3</li><li>reading_papers.mp3</li><li>rooftop.mp3</li><li>running_escape.mp3</li><li>spooky.mp3</li><li>too_much_coffee.mp3</li><li>victory.mp3</li><li>zen.mp3</li>
                 </ul>
             </div>
 
@@ -2002,15 +1960,107 @@ actions:
   - type: roll_dice
     dice: d20
     threshold: 13
+    skill: Stealth
+    modifier: advantage
+    crit_text: "You're invisible!"
+    fumble_text: "You trip on a banana peel!"
     success_target: escape_success
     failure_target: escape_failure
 ---
 
 You try to sneak past the guard...
-Roll for stealth!</pre>
+
+### Choices
+
+- Roll for stealth! [sfx: dice_roll.ogg] → _roll</pre>
             <div class="tip-box">
                 <span class="tip-icon">🎲</span>
                 <span>Available dice: d4, d6, d8, d10, d12, d20, d100</span>
+            </div>
+            <p><strong>Dice Roll Options:</strong></p>
+            <ul>
+                <li><code>modifier: advantage</code> — Roll 2d20, take the higher result</li>
+                <li><code>modifier: disadvantage</code> — Roll 2d20, take the lower result</li>
+                <li><code>skill: Stealth</code> — Shows "Stealth Check" above the roll</li>
+                <li><code>crit_text: "..."</code> — Special message on natural 20</li>
+                <li><code>fumble_text: "..."</code> — Special message on natural 1</li>
+            </ul>
+            <div class="tip-box">
+                <span class="tip-icon">💡</span>
+                <span>Use <code>→ _roll</code> as the choice target to trigger the dice roll!</span>
+            </div>
+        </div>
+
+        <div class="advanced-box">
+            <h4>🎒 Inventory System</h4>
+            <p>Give players items they can collect and use!</p>
+            <pre class="code-box">---
+id: find_key
+bg: office_corridor.jpg
+add_items:
+  - Secret Key
+  - Coffee
+---
+
+You found a key and some coffee!
+
+### Choices
+
+- Use the key (require_items: Secret Key) → locked_door
+- Drink coffee (uses: Coffee) (heals: 5) → energized</pre>
+            <p><strong>Frontmatter:</strong></p>
+            <ul>
+                <li><code>add_items:</code> — Items given when entering the scene</li>
+                <li><code>remove_items:</code> — Items removed when entering</li>
+            </ul>
+            <p><strong>Choice Modifiers:</strong></p>
+            <ul>
+                <li><code>(require_items: Item Name)</code> — Choice only visible if player has item</li>
+                <li><code>(uses: Item Name)</code> — Consumes item when choice is selected</li>
+                <li><code>(heals: 5)</code> — Heals player HP (used in battles)</li>
+            </ul>
+        </div>
+
+        <div class="advanced-box">
+            <h4>⚔️ Battle System</h4>
+            <p>Turn-based combat! Player can attack, defend, flee, or use items:</p>
+            <pre class="code-box">---
+id: boss_fight
+bg: office_corridor.jpg
+chars:
+  - agnes_angry.svg
+actions:
+  - type: start_battle
+    enemy_name: Agnes
+    enemy_hp: 30
+    enemy_max_hp: 30
+    enemy_attack: 6
+    enemy_defense: 12
+    player_attack: 4
+    player_defense: 10
+    victory_target: you_win
+    defeat_target: game_over
+    flee_target: escaped
+---
+
+Agnes is ready to fight!
+
+### Choices
+
+- Attack! [sfx: thud.ogg] (battle: attack) → _battle
+- Defend [sfx: click.ogg] (battle: defend) → _battle
+- Try to Flee (battle: flee) → _battle
+- Use Coffee (uses: Coffee) (heals: 5) (battle: item) → _battle</pre>
+            <p><strong>Battle Actions:</strong></p>
+            <ul>
+                <li><code>(battle: attack)</code> — Roll d20 + attack bonus vs enemy defense</li>
+                <li><code>(battle: defend)</code> — Reduce damage, guaranteed counter-attack</li>
+                <li><code>(battle: flee)</code> — 50% chance to escape the battle</li>
+                <li><code>(battle: item)</code> — Use item (combine with <code>uses:</code> and <code>heals:</code>)</li>
+            </ul>
+            <div class="tip-box">
+                <span class="tip-icon">💡</span>
+                <span>Use <code>→ _battle</code> as target to stay in the battle loop!</span>
             </div>
         </div>
 
@@ -2036,7 +2086,7 @@ Roll for stealth!</pre>
 
         <footer class="manual-footer">
             <p>🎮 <strong>ANDI VN</strong> — A Visual Novel for Andy's PhD Farewell</p>
-            <p>Manual generated 2025-11-29 01:00</p>
+            <p>Manual generated 2025-11-29 14:04</p>
         </footer>
 
     </div>

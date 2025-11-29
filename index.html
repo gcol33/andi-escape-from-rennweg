@@ -10,21 +10,35 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>Andy's Farewell</title>
+    <!-- Web fonts for themed typography -->
+    <link rel="stylesheet" href="css/fonts.css">
+    <!-- Shared theme settings (magic numbers) -->
+    <link rel="stylesheet" href="css/shared.css">
     <!-- Theme CSS loaded dynamically based on theme.js config -->
     <link id="theme-css" rel="stylesheet" href="css/themes/90s.css">
     <script>
         // Load theme configuration synchronously to prevent FOUC
         (function() {
+            // Check localStorage first for user's saved preference
+            var savedTheme = null;
+            try {
+                savedTheme = localStorage.getItem('andi_vn_theme');
+            } catch (e) {}
+
             var script = document.createElement('script');
             script.src = 'js/theme.js';
             script.async = false;
             document.head.appendChild(script);
             script.onload = function() {
-                if (typeof themeConfig !== 'undefined' && themeConfig.selected) {
-                    var link = document.getElementById('theme-css');
-                    if (link) {
-                        link.href = 'css/themes/' + themeConfig.selected + '.css';
-                    }
+                var link = document.getElementById('theme-css');
+                if (!link) return;
+
+                // Use saved theme if valid, otherwise fall back to config
+                if (savedTheme && typeof themeConfig !== 'undefined' &&
+                    themeConfig.available && themeConfig.available.indexOf(savedTheme) !== -1) {
+                    link.href = 'css/themes/' + savedTheme + '.css';
+                } else if (typeof themeConfig !== 'undefined' && themeConfig.selected) {
+                    link.href = 'css/themes/' + themeConfig.selected + '.css';
                 }
             };
         })();
@@ -53,19 +67,28 @@
         <!-- Fixed aspect ratio game container -->
         <div id="vn-container" role="main" aria-label="Visual novel game area">
             <!-- Background Layer -->
-            <div id="background-layer" role="img" aria-label="Scene background"></div>
+            <div id="background-layer" role="img" aria-label="Scene background">
+                <!-- Video element for animated backgrounds (WebM/MP4) -->
+                <video id="bg-video" muted playsinline loop aria-hidden="true"></video>
+            </div>
 
             <!-- Character Sprite Layer -->
             <div id="sprite-layer" aria-hidden="true"></div>
 
+            <!-- Inventory Display (shown when player has items) -->
+            <div id="inventory-display" role="status" aria-label="Your inventory"></div>
+
             <!-- Text Box (lower third) -->
             <div id="text-box" role="region" aria-label="Story text and controls">
-                <!-- Text Speed Controls -->
-                <div id="text-controls" role="toolbar" aria-label="Text speed controls">
+                <!-- Header band with title and controls -->
+                <div id="text-box-header">
+                    <div id="header-spacer" aria-hidden="true"></div>
+                    <span id="text-box-title"></span>
+                    <div id="text-controls" role="toolbar" aria-label="Text speed controls">
                     <button class="speed-btn active" data-speed="normal" title="Normal speed" aria-label="Normal text speed" aria-pressed="true"><span class="icon-landscape" aria-hidden="true">▶</span><span class="icon-portrait" aria-hidden="true">1x</span></button>
                     <button class="speed-btn" data-speed="auto" title="Auto" aria-label="Auto-advance text" aria-pressed="false"><span class="icon-landscape" aria-hidden="true">▶|</span><span class="icon-portrait" aria-hidden="true">A</span></button>
                     <button class="speed-btn" data-speed="fast" title="Fast" aria-label="Fast text speed" aria-pressed="false"><span class="icon-landscape" aria-hidden="true">▶▶</span><span class="icon-portrait" aria-hidden="true">2x</span></button>
-                    <button class="speed-btn" data-speed="skip" title="Skip read text" id="skip-btn" style="display: none;" aria-label="Skip already-read text" aria-pressed="false"><span class="icon-landscape" aria-hidden="true">⏭</span><span class="icon-portrait" aria-hidden="true">Skip</span></button>
+                    <button class="speed-btn" data-speed="skip" title="Skip read text" id="skip-btn" aria-label="Skip already-read text" aria-pressed="false"><span class="icon-landscape" aria-hidden="true">⏭</span><span class="icon-portrait" aria-hidden="true">Skip</span></button>
                     <div id="volume-control" role="group" aria-label="Volume controls">
                         <button id="mute-btn" class="mute-btn" title="Mute" aria-label="Toggle mute" aria-pressed="false">
                             <svg class="sound-on" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -76,6 +99,7 @@
                             </svg>
                         </button>
                         <input type="range" id="volume-slider" min="0" max="100" value="40" title="Volume" aria-label="Volume level">
+                    </div>
                     </div>
                 </div>
                 <div id="story-output" role="log" aria-live="polite" aria-label="Story text"></div>

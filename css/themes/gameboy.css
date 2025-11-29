@@ -1,0 +1,829 @@
+/* Andi VN - Game Boy Theme
+ * Original Game Boy green monochrome palette
+ * 4 shades of green, chunky pixels
+ */
+
+/* === CSS Variables === */
+:root {
+    --gb-lightest: #9bbc0f;
+    --gb-light: #8bac0f;
+    --gb-dark: #306230;
+    --gb-darkest: #0f380f;
+    --gb-screen: #9bbc0f;
+}
+
+/* === Password Overlay === */
+#password-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--gb-darkest);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    transition: opacity 0.5s ease-out;
+}
+
+#password-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#password-container {
+    position: relative;
+    width: 100%;
+    max-width: 95vw;
+    height: 0;
+    padding-bottom: 56.25%;
+    max-width: min(95vw, calc(75vh * 16 / 9));
+    height: auto;
+    padding-bottom: 0;
+    aspect-ratio: 16 / 9;
+    background: var(--gb-lightest);
+    border: 8px solid var(--gb-dark);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px;
+}
+
+#password-inputs {
+    display: flex;
+}
+
+#password-inputs > * {
+    margin: 0 7.5px;
+}
+
+#password-inputs > *:first-child {
+    margin-left: 0;
+}
+
+#password-inputs > *:last-child {
+    margin-right: 0;
+}
+
+@supports (gap: 15px) {
+    #password-inputs {
+        gap: 15px;
+    }
+    #password-inputs > * {
+        margin: 0;
+    }
+}
+
+.password-char {
+    width: 60px;
+    height: 72px;
+    font-size: 2rem;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    text-align: center;
+    text-transform: uppercase;
+    background: var(--gb-light);
+    border: 4px solid var(--gb-darkest);
+    color: var(--gb-darkest);
+    outline: none;
+    transition: all 0.1s ease;
+}
+
+.password-char:focus {
+    background: var(--gb-lightest);
+    border-color: var(--gb-dark);
+}
+
+.password-char.filled {
+    background: var(--gb-dark);
+    color: var(--gb-lightest);
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
+    20%, 40%, 60%, 80% { transform: translateX(8px); }
+}
+
+#password-inputs.error .password-char {
+    animation: shake 0.5s ease-in-out;
+}
+
+@media (max-width: 56.25em) {
+    #password-container {
+        margin: 10px;
+    }
+
+    .password-char {
+        width: 50px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+
+    #password-inputs {
+        gap: 10px;
+    }
+}
+
+@media (max-width: 37.5em) {
+    .password-char {
+        width: 40px;
+        height: 50px;
+        font-size: 1.2rem;
+    }
+
+    #password-inputs {
+        gap: 8px;
+    }
+}
+
+/* === Reset & Base === */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 14px;
+    font-size: clamp(12px, 1.1vw, 16px);
+}
+
+body {
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    background: var(--gb-darkest);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+}
+
+/* === VN Wrapper === */
+#vn-wrapper {
+    width: 95vw;
+    max-height: 95vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+}
+
+/* === Header === */
+h1 {
+    color: var(--gb-lightest);
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    text-transform: uppercase;
+}
+
+/* === VN Container === */
+#vn-container {
+    position: relative;
+    width: 100%;
+    max-width: 95vw;
+    height: 0;
+    padding-bottom: 56.25%;
+    max-width: min(95vw, calc(75vh * 16 / 9));
+    height: auto;
+    padding-bottom: 0;
+    aspect-ratio: 16 / 9;
+    background: var(--gb-lightest);
+    border: 8px solid var(--gb-dark);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: inset 0 0 40px rgba(15, 56, 15, 0.3);
+}
+
+/* === Background Layer === */
+#background-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: var(--gb-light);
+    z-index: 1;
+    filter: grayscale(100%) sepia(100%) hue-rotate(50deg) saturate(400%) brightness(0.9);
+}
+
+/* === Character Sprite Layer === */
+#sprite-layer {
+    position: absolute;
+    bottom: 40%;
+    left: 0;
+    width: 100%;
+    height: 56%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    z-index: 2;
+    pointer-events: none;
+}
+
+#sprite-layer img {
+    max-height: 100%;
+    max-width: 300px;
+    object-fit: contain;
+    filter: grayscale(100%) sepia(100%) hue-rotate(50deg) saturate(400%) brightness(0.8);
+    margin: 0 10px;
+    image-rendering: pixelated;
+}
+
+@supports (gap: 20px) {
+    #sprite-layer {
+        gap: 20px;
+    }
+    #sprite-layer img {
+        margin: 0;
+    }
+}
+
+/* === Text Box === */
+#text-box {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    min-height: 40%;
+    max-height: 50%;
+    background: var(--gb-dark);
+    border-top: 4px solid var(--gb-darkest);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    transition: transform 0.3s ease-out;
+    overflow: hidden;
+}
+
+#text-box-header {
+    background: var(--gb-darkest);
+    color: var(--gb-lightest);
+    padding: 6px 10px;
+    font-size: 0.7rem;
+}
+
+#text-box-title::before {
+    content: '▼ TEXT';
+}
+
+#text-box.ending-scene {
+    height: auto;
+    min-height: 40%;
+    max-height: 60%;
+}
+
+#text-box.hidden-textbox {
+    transform: translateY(100%);
+    pointer-events: none;
+}
+
+/* === Text Speed Controls === */
+#text-controls {
+    display: flex;
+    margin: 6px 8px;
+    justify-content: flex-end;
+}
+
+#text-controls > * {
+    margin-left: 4px;
+}
+
+#text-controls > *:first-child {
+    margin-left: 0;
+}
+
+@supports (gap: 4px) {
+    #text-controls {
+        gap: 4px;
+    }
+    #text-controls > * {
+        margin-left: 0;
+    }
+}
+
+.speed-btn {
+    padding: 2px 8px;
+    font-size: 0.6rem;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    background: var(--gb-light);
+    color: var(--gb-darkest);
+    border: 2px solid var(--gb-darkest);
+    cursor: pointer;
+    transition: all 0.1s ease;
+}
+
+.speed-btn:hover {
+    background: var(--gb-lightest);
+}
+
+.speed-btn.active {
+    background: var(--gb-darkest);
+    color: var(--gb-lightest);
+}
+
+/* === Volume Control === */
+#volume-control {
+    display: flex;
+    align-items: center;
+    margin-left: 8px;
+}
+
+#volume-slider {
+    width: 50px;
+    height: 10px;
+    margin-left: 6px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    accent-color: var(--gb-darkest);
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--gb-light);
+    border: 2px solid var(--gb-darkest);
+}
+
+#volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 8px;
+    height: 14px;
+    background: var(--gb-darkest);
+    border: none;
+    cursor: pointer;
+}
+
+#volume-slider::-moz-range-thumb {
+    width: 8px;
+    height: 14px;
+    background: var(--gb-darkest);
+    border: none;
+    cursor: pointer;
+}
+
+#volume-control:hover #volume-slider {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* === Icon switching === */
+.icon-portrait {
+    display: none;
+}
+
+.icon-landscape {
+    display: inline;
+}
+
+/* === SVG icons === */
+.mute-btn svg {
+    display: block;
+    width: 1em;
+    height: 1em;
+}
+
+.mute-btn {
+    padding: 2px 8px;
+    font-size: 0.8rem;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    background: var(--gb-light);
+    color: var(--gb-darkest);
+    border: 2px solid var(--gb-darkest);
+    cursor: pointer;
+    transition: all 0.1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mute-btn:hover {
+    background: var(--gb-lightest);
+}
+
+/* === Story Output === */
+#story-output {
+    flex: 1;
+    color: var(--gb-lightest);
+    font-size: 0.8rem;
+    line-height: 1.8;
+    overflow-y: auto;
+    padding: 8px 10px;
+    cursor: default;
+    user-select: none;
+    background: transparent;
+    border: none;
+    margin: 0 8px;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+}
+
+#story-output::-webkit-scrollbar {
+    width: 8px;
+}
+
+#story-output::-webkit-scrollbar-track {
+    background: var(--gb-dark);
+}
+
+#story-output::-webkit-scrollbar-thumb {
+    background: var(--gb-lightest);
+}
+
+/* === Typewriter Effect === */
+.typewriter-text {
+    margin: 0;
+}
+
+.typewriter-text::after {
+    content: '▌';
+    animation: blink 0.5s infinite;
+    color: var(--gb-lightest);
+    margin-left: 2px;
+}
+
+.typewriter-complete::after {
+    content: '';
+    animation: none;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+.already-read {
+    opacity: 0.7;
+}
+
+#story-output.has-already-read::before {
+    content: '(SEEN)';
+    display: block;
+    font-size: 0.6rem;
+    color: var(--gb-light);
+    margin-bottom: 4px;
+}
+
+@supports selector(:has(*)) {
+    #story-output:has(.already-read)::before {
+        content: '(SEEN)';
+        display: block;
+        font-size: 0.6rem;
+        color: var(--gb-light);
+        margin-bottom: 4px;
+    }
+}
+
+/* === Button Area === */
+#button-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 8px;
+    min-height: 40px;
+    flex-shrink: 0;
+}
+
+#button-area > * {
+    margin-bottom: 6px;
+}
+
+#button-area > *:last-child {
+    margin-bottom: 0;
+}
+
+@supports (gap: 6px) {
+    #button-area {
+        gap: 6px;
+    }
+    #button-area > * {
+        margin-bottom: 0;
+    }
+}
+
+/* === Choices Container === */
+#choices-container {
+    display: block;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    width: 100%;
+}
+
+#choices-container > * {
+    margin: 3px;
+}
+
+@supports (gap: 6px) {
+    #choices-container {
+        gap: 6px;
+    }
+    #choices-container > * {
+        margin: 0;
+    }
+}
+
+/* === Choice Buttons === */
+.choice-button {
+    display: inline-block;
+    flex: 1 1 0;
+    padding: 6px 10px;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    font-size: 0.65rem;
+    background: var(--gb-light);
+    color: var(--gb-darkest);
+    border: 3px solid var(--gb-darkest);
+    cursor: pointer;
+    transition: all 0.1s ease;
+    white-space: normal;
+    text-align: center;
+}
+
+.choice-button::before {
+    content: '► ';
+}
+
+.choice-button:hover {
+    background: var(--gb-lightest);
+    transform: scale(1.02);
+}
+
+/* === Game Over State === */
+.game-over {
+    color: var(--gb-lightest);
+    font-weight: bold;
+    text-align: center;
+    margin-top: 8px;
+    padding: 6px;
+    background: var(--gb-darkest);
+    border: 3px solid var(--gb-light);
+}
+
+#choices-container.has-game-over {
+    flex-direction: column;
+    align-items: center;
+}
+
+@supports selector(:has(*)) {
+    #choices-container:has(.game-over) {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+/* === Restart Button === */
+.restart-button {
+    display: inline-block;
+    flex: 0 0 auto;
+    min-width: 180px;
+    padding: 8px 20px;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    font-size: 0.8rem;
+    background: var(--gb-darkest);
+    color: var(--gb-lightest);
+    border: 3px solid var(--gb-lightest);
+    cursor: pointer;
+    transition: all 0.1s ease;
+}
+
+.restart-button:hover {
+    background: var(--gb-dark);
+}
+
+/* === Continue Button === */
+.continue-button {
+    display: inline-block;
+    flex: 0 0 auto;
+    min-width: 160px;
+    padding: 6px 20px;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    font-size: 0.7rem;
+    background: var(--gb-light);
+    color: var(--gb-darkest);
+    border: 3px solid var(--gb-darkest);
+    cursor: pointer;
+    transition: all 0.1s ease;
+}
+
+.continue-button:hover {
+    background: var(--gb-lightest);
+}
+
+/* === Dice Roll Display === */
+.dice-roll {
+    font-size: 0.7rem;
+    color: var(--gb-lightest);
+    margin: 8px 0;
+    padding: 6px;
+    background: var(--gb-darkest);
+    border: 3px solid var(--gb-light);
+}
+
+/* === Reset Button === */
+#reset-btn {
+    background: var(--gb-light) !important;
+    color: var(--gb-darkest) !important;
+    border: 3px solid var(--gb-darkest) !important;
+    border-radius: 0 !important;
+    font-family: 'Press Start 2P', monospace !important;
+}
+
+#reset-btn:hover {
+    background: var(--gb-lightest) !important;
+}
+
+/* === Responsive Design === */
+@media (max-width: 56.25em) {
+    #vn-wrapper {
+        padding: 10px;
+    }
+
+    #text-box {
+        height: auto;
+        min-height: 36%;
+        max-height: 55%;
+    }
+
+    #sprite-layer {
+        bottom: 36%;
+        height: 60%;
+    }
+
+    #story-output {
+        font-size: 0.7rem;
+    }
+
+    .choice-button {
+        min-width: 100px;
+        font-size: 0.55rem;
+        padding: 5px 8px;
+    }
+
+    #sprite-layer img {
+        max-width: 180px;
+    }
+}
+
+@media (max-width: 37.5em) {
+    #text-box {
+        height: auto;
+        min-height: 40%;
+        max-height: 60%;
+    }
+
+    #sprite-layer {
+        bottom: 40%;
+        height: 56%;
+    }
+
+    #story-output {
+        font-size: 0.6rem;
+        line-height: 1.6;
+    }
+
+    .choice-button {
+        min-width: 100%;
+        font-size: 0.5rem;
+    }
+
+    #sprite-layer img {
+        max-width: 120px;
+    }
+}
+
+/* === Portrait Mode === */
+@media (orientation: portrait) {
+    #vn-container {
+        max-width: 56.25vh;
+        height: 0;
+        padding-bottom: 177.78%;
+        height: auto;
+        padding-bottom: 0;
+        aspect-ratio: 9 / 16;
+        max-width: min(100%, 56.25vh);
+        max-height: 85vh;
+    }
+
+    #password-container {
+        max-width: 56.25vh;
+        height: 0;
+        padding-bottom: 177.78%;
+        height: auto;
+        padding-bottom: 0;
+        aspect-ratio: 9 / 16;
+        max-width: min(100%, 56.25vh);
+        max-height: 85vh;
+    }
+
+    #vn-wrapper {
+        max-height: 100vh;
+    }
+
+    #text-box {
+        height: auto;
+        min-height: 40%;
+        max-height: 75%;
+    }
+
+    #text-controls {
+        justify-content: center;
+    }
+
+    #text-box.ending-scene {
+        height: auto;
+        min-height: 40%;
+        max-height: 90%;
+    }
+
+    #sprite-layer {
+        bottom: 40%;
+        height: 55%;
+    }
+
+    #sprite-layer img {
+        max-width: 35%;
+    }
+
+    #choices-container {
+        flex-direction: column;
+        flex-wrap: nowrap;
+        gap: 5px;
+    }
+
+    .choice-button {
+        flex: none;
+        width: 100%;
+        padding: 8px 10px;
+    }
+
+    .continue-button,
+    .restart-button {
+        min-width: 140px;
+        padding: 6px 14px;
+    }
+
+    #reset-btn {
+        bottom: auto !important;
+        top: 10px !important;
+        right: 10px !important;
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 14px !important;
+    }
+
+    .icon-landscape {
+        display: none !important;
+    }
+
+    .icon-portrait {
+        display: inline !important;
+    }
+
+    .speed-btn:focus,
+    .mute-btn:focus,
+    .choice-button:focus,
+    .continue-button:focus,
+    .restart-button:focus {
+        outline: none;
+    }
+}
+
+/* === Theme Selector (Dev Mode) === */
+#theme-selector {
+    background: var(--gb-dark);
+    border: 3px solid var(--gb-darkest);
+    color: var(--gb-lightest);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+}
+
+#theme-selector label {
+    color: var(--gb-lightest);
+}
+
+#theme-selector select {
+    font-family: inherit;
+    font-size: inherit;
+    background: var(--gb-light);
+    border: 2px solid var(--gb-darkest);
+    color: var(--gb-darkest);
+}
+
+#theme-selector select option {
+    background: var(--gb-light);
+    color: var(--gb-darkest);
+}

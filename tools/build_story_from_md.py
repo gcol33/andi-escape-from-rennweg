@@ -177,13 +177,20 @@ def parse_choices(text):
         # Parse: Label text → target_id
         # Or: Label text (requires: flag) → target_id
         # Or: Label text (sets: flag) → target_id
+        # Or: Label text (uses: Item Name) → target_id
+        # Or: Label text (heals: 5) → target_id
+        # Or: Label text (battle: attack) → target_id
 
         choice = {
             'label': '',
             'target': '',
             'require_flags': [],
             'set_flags': [],
-            'sfx': None
+            'require_items': [],
+            'uses': [],
+            'sfx': None,
+            'heals': None,
+            'battle_action': None
         }
 
         # Split by arrow
@@ -213,6 +220,32 @@ def parse_choices(text):
             choice['set_flags'] = flags
             label_part = re.sub(r'\(sets:\s*[^)]+\)', '', label_part).strip()
 
+        # (require_items: Item Name, Another Item)
+        require_items_match = re.search(r'\(require_items:\s*([^)]+)\)', label_part)
+        if require_items_match:
+            items = [i.strip() for i in require_items_match.group(1).split(',')]
+            choice['require_items'] = items
+            label_part = re.sub(r'\(require_items:\s*[^)]+\)', '', label_part).strip()
+
+        # (uses: Item Name) - consumes item when choice is selected
+        uses_match = re.search(r'\(uses:\s*([^)]+)\)', label_part)
+        if uses_match:
+            items = [i.strip() for i in uses_match.group(1).split(',')]
+            choice['uses'] = items
+            label_part = re.sub(r'\(uses:\s*[^)]+\)', '', label_part).strip()
+
+        # (heals: 5) - heals player HP when choice is selected
+        heals_match = re.search(r'\(heals:\s*(\d+)\)', label_part)
+        if heals_match:
+            choice['heals'] = int(heals_match.group(1))
+            label_part = re.sub(r'\(heals:\s*\d+\)', '', label_part).strip()
+
+        # (battle: attack|defend|flee|item) - battle action type
+        battle_match = re.search(r'\(battle:\s*([^)]+)\)', label_part)
+        if battle_match:
+            choice['battle_action'] = battle_match.group(1).strip()
+            label_part = re.sub(r'\(battle:\s*[^)]+\)', '', label_part).strip()
+
         # [sfx: filename.ogg]
         sfx_match = re.search(r'\[sfx:\s*([^\]]+)\]', label_part)
         if sfx_match:
@@ -220,6 +253,23 @@ def parse_choices(text):
             label_part = re.sub(r'\[sfx:\s*[^\]]+\]', '', label_part).strip()
 
         choice['label'] = label_part
+
+        # Clean up empty arrays to reduce output size
+        if not choice['require_flags']:
+            del choice['require_flags']
+        if not choice['set_flags']:
+            del choice['set_flags']
+        if not choice['require_items']:
+            del choice['require_items']
+        if not choice['uses']:
+            del choice['uses']
+        if choice['heals'] is None:
+            del choice['heals']
+        if choice['battle_action'] is None:
+            del choice['battle_action']
+        if choice['sfx'] is None:
+            del choice['sfx']
+
         choices.append(choice)
 
     return choices
@@ -268,10 +318,30 @@ def parse_scene_file(filepath):
         'chars': frontmatter.get('chars', []),
         'set_flags': frontmatter.get('set_flags', []),
         'require_flags': frontmatter.get('require_flags', []),
+        'add_items': frontmatter.get('add_items', []),
+        'remove_items': frontmatter.get('remove_items', []),
         'actions': frontmatter.get('actions', []),
         'textBlocks': text_blocks,
         'choices': choices
     }
+
+    # Clean up empty arrays to reduce output size
+    if not scene['set_flags']:
+        del scene['set_flags']
+    if not scene['require_flags']:
+        del scene['require_flags']
+    if not scene['add_items']:
+        del scene['add_items']
+    if not scene['remove_items']:
+        del scene['remove_items']
+    if not scene['actions']:
+        del scene['actions']
+    if not scene['chars']:
+        del scene['chars']
+    if scene['bg'] is None:
+        del scene['bg']
+    if scene['music'] is None:
+        del scene['music']
 
     return scene
 
@@ -374,15 +444,23 @@ def validate_scenes(scenes):
         # Check choice targets
         for choice in scene['choices']:
             target = choice['target']
-            if target != '_roll':  # _roll is a special target for dice rolls
+            # _roll and _battle are special targets handled by the engine
+            if target not in ('_roll', '_battle'):
                 referenced_ids.add(target)
                 if target not in scene_ids:
                     errors.append(f"Scene '{scene['id']}': choice target '{target}' does not exist")
 
         # Check action targets
-        for action in scene['actions']:
+        for action in scene.get('actions', []):
             if action.get('type') == 'roll_dice':
                 for key in ['success_target', 'failure_target']:
+                    target = action.get(key)
+                    if target:
+                        referenced_ids.add(target)
+                        if target not in scene_ids:
+                            errors.append(f"Scene '{scene['id']}': action {key} '{target}' does not exist")
+            elif action.get('type') == 'start_battle':
+                for key in ['victory_target', 'defeat_target', 'flee_target']:
                     target = action.get(key)
                     if target:
                         referenced_ids.add(target)

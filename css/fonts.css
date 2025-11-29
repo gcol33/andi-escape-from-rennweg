@@ -1,0 +1,50 @@
+/* Andi VN - Web Font Definitions
+ * Local font files for offline/USB stick support
+ */
+
+/* === Press Start 2P - NES/SNES themes (8-bit/16-bit pixel font) === */
+@font-face {
+    font-family: 'Press Start 2P';
+    src: url('../assets/fonts/Press_Start_2P/PressStart2P-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* === VT323 - Vaporwave theme (retro terminal font) === */
+@font-face {
+    font-family: 'VT323';
+    src: url('../assets/fonts/VT323/VT323-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* === Orbitron - 80s theme (synthwave/futuristic font) === */
+@font-face {
+    font-family: 'Orbitron';
+    src: url('../assets/fonts/Orbitron/static/Orbitron-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Orbitron';
+    src: url('../assets/fonts/Orbitron/static/Orbitron-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* === Font Family Fallback Stacks ===
+ *
+ * Use these in theme CSS files:
+ *
+ * Vaporwave:    'VT323', 'Courier New', monospace
+ * 80s:          'Orbitron', 'Arial Black', sans-serif
+ * NES/SNES:     'Press Start 2P', 'Courier New', monospace
+ * 90s:          'MS Sans Serif', 'Segoe UI', Tahoma, sans-serif
+ * 70s:          'Cooper Black', 'Georgia', serif
+ * Prototype:    'Georgia', 'Times New Roman', serif
+ */

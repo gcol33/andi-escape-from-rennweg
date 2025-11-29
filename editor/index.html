@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Andi VN - Scene Editor</title>
+    <link rel="stylesheet" href="../css/fonts.css">
     <link rel="stylesheet" href="editor.css">
     <script>
         // Load theme configuration and apply theme class before body renders
@@ -13,8 +14,8 @@
             script.async = false;
             document.head.appendChild(script);
             script.onload = function() {
-                if (typeof themeConfig !== 'undefined' && themeConfig.selected === '90s') {
-                    document.body.classList.add('theme-90s');
+                if (typeof themeConfig !== 'undefined' && themeConfig.selected) {
+                    document.body.classList.add('theme-' + themeConfig.selected);
                 }
             };
         })();
@@ -171,6 +172,26 @@
                             <input type="text" id="new-require-flag" placeholder="flag_name">
                             <button id="add-require-flag-btn" class="btn-icon">+</button>
                         </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h4>Add Items</h4>
+                        <div id="add-items-container"></div>
+                        <div class="flag-input-row">
+                            <input type="text" id="new-add-item" placeholder="Item Name">
+                            <button id="add-add-item-btn" class="btn-icon">+</button>
+                        </div>
+                        <span class="hint">Items given when entering this scene</span>
+                    </div>
+
+                    <div class="subsection">
+                        <h4>Remove Items</h4>
+                        <div id="remove-items-container"></div>
+                        <div class="flag-input-row">
+                            <input type="text" id="new-remove-item" placeholder="Item Name">
+                            <button id="add-remove-item-btn" class="btn-icon">+</button>
+                        </div>
+                        <span class="hint">Items removed when entering this scene</span>
                     </div>
 
                     <div class="subsection">

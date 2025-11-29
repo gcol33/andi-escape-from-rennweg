@@ -81,6 +81,7 @@ Andi/
 ├─ assets/
 │   ├─ bg/
 │   ├─ char/
+│   ├─ fonts/        (local font files for offline use)
 │   ├─ music/
 │   └─ sfx/
 │
@@ -206,11 +207,13 @@ After this, choices are shown (or actions execute).
 | Field | Required | Description |
 |-------|----------|-------------|
 | `id` | Yes | Unique scene identifier |
-| `bg` | No | Background image filename (in `assets/bg/`) |
+| `bg` | No | Background filename (in `assets/bg/`). Supports static (.jpg, .png) and animated (.gif, .webp, .webm, .mp4) formats |
 | `chars` | No | Array of character sprite filenames (in `assets/char/`) |
 | `music` | No | Background music filename (in `assets/music/`), or `none` to stop |
 | `set_flags` | No | Array of flags to set when entering this scene |
 | `require_flags` | No | Array of flags required to enter this scene |
+| `add_items` | No | Array of item names to add to player inventory |
+| `remove_items` | No | Array of item names to remove from player inventory |
 | `actions` | No | Array of action objects (see Actions section) |
 
 ### Text Blocks
@@ -227,17 +230,35 @@ After this, choices are shown (or actions execute).
 - Each choice is a list item: `- Label text → target_id`
 - Optional flag requirements: `- Label (requires: flag_name) → target_id`
 - Optional flag setting: `- Label (sets: flag_name) → target_id`
+- Optional item requirements: `- Label (require_items: Item Name) → target_id`
+- Optional item consumption: `- Label (uses: Item Name) → target_id`
+- Optional healing: `- Label (heals: 5) → target_id`
+- Optional battle action: `- Label (battle: attack) → target_id`
 - Optional sound effect: `- Label [sfx: filename.ogg] → target_id`
 - Choices only appear after all text blocks are shown
 - If no choices and no actions, scene is a game over / ending
 
-**Choice SFX Example:**
+**Choice Modifiers:**
+
+| Modifier | Syntax | Description |
+|----------|--------|-------------|
+| `requires` | `(requires: flag_name)` | Only show if player has flag |
+| `sets` | `(sets: flag_name)` | Set flag when choice selected |
+| `require_items` | `(require_items: Item)` | Only show if player has item |
+| `uses` | `(uses: Item Name)` | Consume item when selected |
+| `heals` | `(heals: 5)` | Heal player HP when selected |
+| `battle` | `(battle: attack)` | Battle action type (see Battle System) |
+| `sfx` | `[sfx: sound.ogg]` | Play sound effect on selection |
+
+**Choice Examples:**
 ```markdown
 ### Choices
 
 - Take the stairs [sfx: footstep.ogg] → main_stairs
 - Use the elevator [sfx: elevator_ding.ogg] → elevator
-- Sign the document [sfx: click.ogg] → document_signed
+- Unlock the door (uses: Master Key) → secret_room
+- Drink coffee (uses: Coffee Mug, heals: 5) → refreshed
+- Fight! (battle: attack) → battle_continue
 ```
 
 ---
@@ -249,13 +270,17 @@ Actions are special behaviors that execute after all text blocks are shown (but 
 ### Supported Action Types
 
 #### `roll_dice`
-Performs a dice roll and navigates based on result.
+Performs a dice roll and navigates based on result. Supports advantage/disadvantage, skill names, and critical hit/fumble text.
 
 ```yaml
 actions:
   - type: roll_dice
     dice: d20
     threshold: 13
+    modifier: advantage      # optional: advantage, disadvantage, or normal (default)
+    skill: Persuasion        # optional: display name for the check
+    crit_text: "Perfect!"    # optional: custom text on natural 20
+    fumble_text: "Disaster!" # optional: custom text on natural 1
     success_target: success_scene
     failure_target: failure_scene
 ```
@@ -263,8 +288,54 @@ actions:
 Parameters:
 - `dice`: Dice type (d4, d6, d8, d10, d12, d20, d100)
 - `threshold`: Number to roll at or below to succeed
+- `modifier`: `advantage` (roll 2, take highest), `disadvantage` (roll 2, take lowest), or `normal` (default)
+- `skill`: Display name shown above roll result (e.g., "Persuasion Check")
+- `crit_text`: Custom text displayed on natural 20 (d20 only)
+- `fumble_text`: Custom text displayed on natural 1 (d20 only)
 - `success_target`: Scene ID to go to on success
 - `failure_target`: Scene ID to go to on failure
+
+**Critical Hits & Fumbles (d20 only):**
+- Natural 20: Always succeeds, shows crit_text or "CRITICAL SUCCESS!"
+- Natural 1: Always fails, shows fumble_text or "CRITICAL FAILURE!"
+
+#### `start_battle`
+Initiates a turn-based battle encounter with HP bars and combat actions.
+
+```yaml
+actions:
+  - type: start_battle
+    player_max_hp: 20
+    player_ac: 10
+    player_attack_bonus: 2
+    player_damage: d8
+    enemy:
+      name: Agnes
+      hp: 30
+      ac: 12
+      attack_bonus: 3
+      damage: d6
+    win_target: victory_scene
+    lose_target: defeat_scene
+    flee_target: escaped_scene  # optional
+```
+
+Parameters:
+- `player_max_hp`: Player's maximum HP (initializes on first battle)
+- `player_ac`: Player's armor class
+- `player_attack_bonus`: Bonus to player's attack rolls
+- `player_damage`: Player's damage dice (e.g., d6, 2d8, d10+2)
+- `enemy`: Enemy stats object (see below)
+- `win_target`: Scene to go to when enemy HP reaches 0
+- `lose_target`: Scene to go to when player HP reaches 0
+- `flee_target`: Optional scene for successful escape
+
+Enemy object:
+- `name`: Enemy display name (shown on HP bar)
+- `hp`: Enemy hit points
+- `ac`: Enemy armor class
+- `attack_bonus`: Bonus to enemy attack rolls
+- `damage`: Enemy damage dice
 
 #### `play_sfx`
 Plays a one-shot sound effect.
@@ -297,6 +368,8 @@ The engine maintains an `actionHandlers` object that maps action types to handle
 ```javascript
 const actionHandlers = {
     roll_dice: (action, state) => { /* ... */ },
+    start_battle: (action, state) => { /* ... */ },
+    play_sfx: (action, state) => { /* ... */ },
     custom: (action, state) => { /* ... */ }
 };
 ```
@@ -601,6 +674,23 @@ This creates the classic VN feel where audio feedback follows player actions.
 ## 14. Asset Inventory
 
 ### Backgrounds (`assets/bg/`)
+
+**Supported formats:**
+- **Static**: `.jpg`, `.png` (best for most scenes)
+- **Animated CSS**: `.gif`, `.webp` (uses CSS background-image, good browser support)
+- **Animated Video**: `.webm`, `.mp4` (uses `<video>` element, best quality/compression)
+
+**Fallback for older browsers:**
+For animated backgrounds, provide a static `.jpg` fallback with the same base name. The engine will automatically use the animated version on modern browsers.
+
+**Example usage:**
+```yaml
+bg: spooky_forest.webm      # Video background
+bg: glitch_effect.gif       # Animated GIF
+bg: hallway_fluorescent.jpg # Static image
+```
+
+**Current static backgrounds:**
 - hallway_fluorescent.jpg
 - stairwell_landing.jpg
 - hallway_red_alert.jpg
@@ -675,10 +765,27 @@ The VN supports multiple visual themes that can be switched via configuration or
 
 ### Available Themes
 
-| Theme | Description |
-|-------|-------------|
-| `prototype` | Original warm beige VN style with cream text box and golden brown buttons |
-| `90s` | Windows 3.1 / Early Mac aesthetic with gray panels, blue titlebars, and teal background |
+| Theme | Description | Font |
+|-------|-------------|------|
+| `prototype` | Original warm beige VN style with cream text box and golden brown buttons | System serif |
+| `70s` | Retro disco (orange, brown, gold, avocado green) | Righteous |
+| `80s` | Synthwave neon (hot pink, electric blue, chrome, scanlines) | Orbitron |
+| `90s` | Windows 3.1 / Early Mac aesthetic (gray panels, blue titlebars) | Silkscreen |
+| `cyberpunk` | Neon city (yellow/cyan on black, grid patterns, tech noir) | Share Tech Mono |
+| `dos` | MS-DOS terminal (green on black, CRT scanlines, command prompt) | VT323 |
+| `dragonball` | Dragon Ball Z inspired (orange/blue energy, power-up auras) | Bangers |
+| `finalfantasy` | Classic JRPG menu (blue gradients, white text, crystal motifs) | Press Start 2P |
+| `gameboy` | Original Game Boy (4-shade green palette, pixelated filter) | Press Start 2P |
+| `harrypotter` | Wizarding World (burgundy/gold, magical sparkles, parchment) | Cinzel |
+| `lotr` | Lord of the Rings (parchment, gold, forest green, elvish elegance) | Cinzel |
+| `manga` | Junji Ito horror manga (stark black & white, high contrast) | Permanent Marker |
+| `nes` | 8-bit NES (limited palette, pixel font, chunky borders) | Press Start 2P |
+| `snes` | 16-bit SNES (richer colors, gradients, star field) | Press Start 2P |
+| `spaceopera` | Epic sci-fi (deep space, nebula colors, starfield, hologram cyan) | Orbitron |
+| `starwars` | Star Wars inspired (space black, yellow crawl text, starfield) | Bebas Neue |
+| `vaporwave` | A E S T H E T I C pink/cyan/purple with grid patterns | VT323 |
+| `y2k` | Millennium aesthetic (chrome silver, translucent, tech optimism) | Audiowide |
+| `zelda` | Legend of Zelda (forest green, Triforce gold, adventure RPG) | Press Start 2P |
 
 ### Theme Selection
 
@@ -729,3 +836,288 @@ const themeConfig = {
 ```
 
 This is loaded by `index.html` to dynamically set the correct theme CSS.
+
+### Theme Persistence
+
+The selected theme is saved to `localStorage` (key: `andi_vn_theme`) so it persists across page reloads.
+
+---
+
+## 17. Font Library (`assets/fonts/`)
+
+All fonts are stored locally for offline USB deployment. Fonts are organized by family in subfolders.
+
+### Display & Theme Fonts
+
+| Font | Style | Theme Usage | File |
+|------|-------|-------------|------|
+| **Orbitron** | Sci-fi geometric | 80s synthwave | `Orbitron/Orbitron-VariableFont_wght.ttf` |
+| **VT323** | CRT terminal | Vaporwave | `VT323/VT323-Regular.ttf` |
+| **Press Start 2P** | 8-bit pixel | NES, SNES | `Press_Start_2P/PressStart2P-Regular.ttf` |
+| **Bangers** | Comic/anime | Dragon Ball | `Bangers/Bangers-Regular.ttf` |
+| **Bebas Neue** | Condensed display | Star Wars | `Bebas_Neue/BebasNeue-Regular.ttf` |
+| **Righteous** | 70s groovy | 70s disco | `Righteous/Righteous-Regular.ttf` |
+| **Silkscreen** | Pixel bitmap | 90s Windows | `Silkscreen/Silkscreen-Regular.ttf` |
+| **Permanent Marker** | Hand-drawn | Manga | `Permanent_Marker/PermanentMarker-Regular.ttf` |
+| **Special Elite** | Typewriter | Prototype alt | `Special_Elite/SpecialElite-Regular.ttf` |
+
+### Sci-Fi & Futuristic Fonts
+
+| Font | Style | File |
+|------|-------|------|
+| **Audiowide** | Wide sci-fi | `Audiowide/Audiowide-Regular.ttf` |
+| **Staatliches** | Bold condensed | `Staatliches/Staatliches-Regular.ttf` |
+| **Zen Dots** | Futuristic pixel | `Zen_Dots/ZenDots-Regular.ttf` |
+| **Teko** | Tech condensed | `Teko/Teko-VariableFont_wght.ttf` |
+| **Share Tech Mono** | Monospace terminal | `Share_Tech_Mono/ShareTechMono-Regular.ttf` |
+
+### Bold & Action Fonts
+
+| Font | Style | File |
+|------|-------|------|
+| **Black Ops One** | Military stencil | `Black_Ops_One/BlackOpsOne-Regular.ttf` |
+| **Russo One** | Bold slavic | `Russo_One/RussoOne-Regular.ttf` |
+| **Bungee** | Bold display | `Bungee/Bungee-Regular.ttf` |
+| **Faster One** | Speed/racing | `Faster_One/FasterOne-Regular.ttf` |
+| **Rubik Mono One** | Chunky mono | `Rubik_Mono_One/RubikMonoOne-Regular.ttf` |
+| **Wallpoet** | Stencil graffiti | `Wallpoet/Wallpoet-Regular.ttf` |
+
+### Horror & Decorative Fonts
+
+| Font | Style | File |
+|------|-------|------|
+| **Creepster** | Horror dripping | `Creepster/Creepster-Regular.ttf` |
+| **Nosifer** | Horror blood | `Nosifer/Nosifer-Regular.ttf` |
+| **Monoton** | Retro outline | `Monoton/Monoton-Regular.ttf` |
+
+### Alien & Sci-Fi Language Fonts
+
+| Font | Style | File |
+|------|-------|------|
+| **Iceberg** | Angular alien | `Iceberg/Iceberg-Regular.ttf` |
+| **Megrim** | Thin futuristic | `Megrim/Megrim-Regular.ttf` |
+| **Nova Square** | Geometric alien | `Nova_Square/NovaSquare-Regular.ttf` |
+| **Xanh Mono** | Quirky alien-ish | `Xanh_Mono/XanhMono-Regular.ttf` |
+
+### Cipher/Symbol Fonts (Unreadable Alien Languages)
+
+| Font | Maps To | Best For | File |
+|------|---------|----------|------|
+| **Aurebesh** | Latin alphabet | Star Wars alien text | `Aurebesh.otf` |
+| **Galactic Basic** | Latin alphabet | Star Wars (alternate) | `galbasic.ttf` |
+| **Klingon** | Latin alphabet | Star Trek alien text | `klingon font.ttf` |
+| **Elvish Ring** | Latin alphabet | Fantasy/LOTR text | `elvish ring nfi.ttf` |
+| **Alien Encounters** | Latin alphabet | Generic sci-fi alien | `Alien-Encounters-Regular.ttf` |
+| **Noto Sans Symbols 2** | Unicode symbols | Decorative symbols | `Noto_Sans_Symbols_2/NotoSansSymbols2-Regular.ttf` |
+
+### Using Fonts in Theme CSS
+
+```css
+/* Load font at top of theme CSS */
+@font-face {
+    font-family: 'Orbitron';
+    src: url('../assets/fonts/Orbitron/static/Orbitron-Regular.ttf') format('truetype');
+    font-weight: 400;
+}
+
+/* Apply to body */
+body {
+    font-family: 'Orbitron', 'Arial Black', sans-serif;
+}
+
+---
+
+## 18. Inventory System
+
+The VN supports a simple item-based inventory system for key items and consumables.
+
+### Adding Items to Inventory
+
+Use `add_items` in scene frontmatter:
+
+```yaml
+---
+id: find_key
+add_items:
+  - Master Key
+  - Coffee Mug
+---
+
+You found a Master Key and a Coffee Mug!
+```
+
+### Removing Items from Inventory
+
+Use `remove_items` in scene frontmatter:
+
+```yaml
+---
+id: lose_key
+remove_items:
+  - Master Key
+---
+
+The key breaks in the lock!
+```
+
+### Using Items in Choices
+
+**Require an item to show a choice:**
+```markdown
+- Open the locked door (require_items: Master Key) → secret_room
+```
+
+**Consume an item when selecting a choice:**
+```markdown
+- Use the key (uses: Master Key) → unlocked_door
+```
+
+### Inventory Display
+
+- Items appear in a floating panel in the top-left corner
+- Panel only shows when player has at least one item
+- Adding/removing items shows a floating notification
+
+### Engine API
+
+```javascript
+// Add an item
+VNEngine.addItem('Master Key');
+
+// Remove an item
+VNEngine.removeItem('Master Key');
+
+// Check if player has an item
+VNEngine.hasItem('Master Key');  // returns true/false
+
+// Get all items
+VNEngine.getInventory();  // returns ['Master Key', ...]
+```
+
+---
+
+## 19. Battle System
+
+The VN includes a DnD-inspired turn-based battle system for boss fights.
+
+### Starting a Battle
+
+Use the `start_battle` action in scene frontmatter:
+
+```yaml
+---
+id: boss_fight
+bg: office_corridor.jpg
+music: BOSS_TIME.mp3
+chars:
+  - agnes_angry.svg
+actions:
+  - type: start_battle
+    player_max_hp: 20
+    player_ac: 10
+    player_attack_bonus: 2
+    player_damage: d8
+    enemy:
+      name: Agnes
+      hp: 30
+      ac: 12
+      attack_bonus: 3
+      damage: d6
+    win_target: agnes_defeated
+    lose_target: game_over_agnes
+    flee_target: ran_away
+---
+
+Agnes blocks your path!
+
+"You're not leaving without signing those papers!"
+```
+
+### Battle Choices
+
+Define battle actions in the choices section:
+
+```markdown
+### Choices
+
+- Attack! (battle: attack) → battle_continue
+- Defend (battle: defend) → battle_continue
+- Drink Coffee (uses: Coffee Mug, heals: 5, battle: item) → battle_continue
+- Run Away (battle: flee) → battle_continue
+```
+
+Battle action types:
+- `attack`: Roll attack vs enemy AC, deal damage on hit
+- `defend`: Gain +4 AC until next turn
+- `flee`: Roll DC 14, escape to flee_target on success
+- `item`: Use item (with `heals` for HP restoration)
+
+### Combat Mechanics
+
+**Attack Rolls:**
+- Roll d20 + attack bonus vs target AC
+- Natural 20: Critical hit (double damage, always hits)
+- Natural 1: Critical fumble (always misses)
+
+**Damage:**
+- Supports dice notation: `d6`, `2d8`, `d10+2`
+- Critical hits double the damage rolled
+
+**Turn Order:**
+1. Player selects action
+2. Player action resolves (with visual feedback)
+3. Short delay
+4. Enemy attacks (auto-roll)
+5. Battle continues or ends
+
+### Visual Feedback
+
+- **HP Bars**: Player HP (bottom-left), Enemy HP (top-right, shows name)
+- **Damage Numbers**: Float up from target when hit
+- **Damage Flash**: Sprites flash red when hit
+- **HP Colors**: Green (>50%), Orange (25-50%), Red (<25%, pulses)
+- **Battle Log**: Shows hit/miss/damage text
+
+### HP Persistence
+
+- Player HP persists across scenes (saved to localStorage)
+- HP only initializes on first battle encounter
+- HP can be restored via `heals` modifier on choices
+
+### Engine API
+
+```javascript
+// Get current HP
+VNEngine.getHP();     // returns number or null
+VNEngine.getMaxHP();  // returns max HP
+
+// Heal the player
+VNEngine.heal(10);
+
+// Damage the player
+VNEngine.damage(5);   // returns true if still alive
+
+// Initialize HP (usually automatic)
+VNEngine.initHP(20);
+```
+
+---
+
+## 20. Game State Persistence
+
+The engine automatically saves game state to localStorage:
+
+### Saved Data
+- Current scene and text block position
+- All flags
+- Inventory items
+- Player HP (if initialized)
+- Scene history (for undo in dev mode)
+- Read blocks (for skip button)
+
+### Save Key
+Default: `andi_vn_save`
+
+### Reset Options
+- **Play Again** (game over): Resets flags, inventory, HP, but keeps read history
+- **Reset Progress** (↺ button): Full reset including read history

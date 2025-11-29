@@ -775,15 +775,107 @@ actions:
   - type: roll_dice
     dice: d20
     threshold: 13
+    skill: Stealth
+    modifier: advantage
+    crit_text: "You're invisible!"
+    fumble_text: "You trip on a banana peel!"
     success_target: escape_success
     failure_target: escape_failure
 ---
 
 You try to sneak past the guard...
-Roll for stealth!</pre>
+
+### Choices
+
+- Roll for stealth! [sfx: dice_roll.ogg] → _roll</pre>
             <div class="tip-box">
                 <span class="tip-icon">🎲</span>
                 <span>Available dice: d4, d6, d8, d10, d12, d20, d100</span>
+            </div>
+            <p><strong>Dice Roll Options:</strong></p>
+            <ul>
+                <li><code>modifier: advantage</code> — Roll 2d20, take the higher result</li>
+                <li><code>modifier: disadvantage</code> — Roll 2d20, take the lower result</li>
+                <li><code>skill: Stealth</code> — Shows "Stealth Check" above the roll</li>
+                <li><code>crit_text: "..."</code> — Special message on natural 20</li>
+                <li><code>fumble_text: "..."</code> — Special message on natural 1</li>
+            </ul>
+            <div class="tip-box">
+                <span class="tip-icon">💡</span>
+                <span>Use <code>→ _roll</code> as the choice target to trigger the dice roll!</span>
+            </div>
+        </div>
+
+        <div class="advanced-box">
+            <h4>🎒 Inventory System</h4>
+            <p>Give players items they can collect and use!</p>
+            <pre class="code-box">---
+id: find_key
+bg: office_corridor.jpg
+add_items:
+  - Secret Key
+  - Coffee
+---
+
+You found a key and some coffee!
+
+### Choices
+
+- Use the key (require_items: Secret Key) → locked_door
+- Drink coffee (uses: Coffee) (heals: 5) → energized</pre>
+            <p><strong>Frontmatter:</strong></p>
+            <ul>
+                <li><code>add_items:</code> — Items given when entering the scene</li>
+                <li><code>remove_items:</code> — Items removed when entering</li>
+            </ul>
+            <p><strong>Choice Modifiers:</strong></p>
+            <ul>
+                <li><code>(require_items: Item Name)</code> — Choice only visible if player has item</li>
+                <li><code>(uses: Item Name)</code> — Consumes item when choice is selected</li>
+                <li><code>(heals: 5)</code> — Heals player HP (used in battles)</li>
+            </ul>
+        </div>
+
+        <div class="advanced-box">
+            <h4>⚔️ Battle System</h4>
+            <p>Turn-based combat! Player can attack, defend, flee, or use items:</p>
+            <pre class="code-box">---
+id: boss_fight
+bg: office_corridor.jpg
+chars:
+  - agnes_angry.svg
+actions:
+  - type: start_battle
+    enemy_name: Agnes
+    enemy_hp: 30
+    enemy_max_hp: 30
+    enemy_attack: 6
+    enemy_defense: 12
+    player_attack: 4
+    player_defense: 10
+    victory_target: you_win
+    defeat_target: game_over
+    flee_target: escaped
+---
+
+Agnes is ready to fight!
+
+### Choices
+
+- Attack! [sfx: thud.ogg] (battle: attack) → _battle
+- Defend [sfx: click.ogg] (battle: defend) → _battle
+- Try to Flee (battle: flee) → _battle
+- Use Coffee (uses: Coffee) (heals: 5) (battle: item) → _battle</pre>
+            <p><strong>Battle Actions:</strong></p>
+            <ul>
+                <li><code>(battle: attack)</code> — Roll d20 + attack bonus vs enemy defense</li>
+                <li><code>(battle: defend)</code> — Reduce damage, guaranteed counter-attack</li>
+                <li><code>(battle: flee)</code> — 50% chance to escape the battle</li>
+                <li><code>(battle: item)</code> — Use item (combine with <code>uses:</code> and <code>heals:</code>)</li>
+            </ul>
+            <div class="tip-box">
+                <span class="tip-icon">💡</span>
+                <span>Use <code>→ _battle</code> as target to stay in the battle loop!</span>
             </div>
         </div>
 
