@@ -1658,37 +1658,20 @@ var BattleEngine = (function() {
      * Update limit break meter display
      */
     function updateLimitDisplay() {
-        var limitContainer = document.getElementById('limit-container');
-        var limitBar = document.getElementById('limit-bar');
-        var limitText = document.getElementById('limit-text');
-
-        if (!limitContainer && elements.playerMana && elements.container) {
-            // Create limit container below mana
-            limitContainer = document.createElement('div');
-            limitContainer.id = 'limit-container';
-            limitContainer.className = 'limit-container';
-            limitContainer.innerHTML =
-                '<div class="limit-label">LIMIT</div>' +
-                '<div class="limit-bar-outer"><div id="limit-bar" class="limit-bar"></div></div>' +
-                '<div id="limit-text" class="limit-text">0%</div>';
-
-            // Insert after mana container
-            elements.playerMana.parentNode.insertBefore(limitContainer, elements.playerMana.nextSibling);
-
-            limitBar = document.getElementById('limit-bar');
-            limitText = document.getElementById('limit-text');
-        }
+        // Use cached elements from the unified stats panel
+        var limitBar = elements.limitBar || document.getElementById('limit-bar');
+        var limitText = elements.limitText || document.getElementById('limit-text');
 
         if (limitBar) {
             var percent = state.player.limitCharge;
             limitBar.style.width = percent + '%';
 
             if (percent >= 100) {
-                limitBar.className = 'limit-bar limit-ready';
+                limitBar.className = 'stat-bar limit-bar limit-ready';
             } else if (percent >= 75) {
-                limitBar.className = 'limit-bar limit-high';
+                limitBar.className = 'stat-bar limit-bar limit-high';
             } else {
-                limitBar.className = 'limit-bar';
+                limitBar.className = 'stat-bar limit-bar';
             }
         }
 
@@ -2068,6 +2051,11 @@ var BattleEngine = (function() {
 
             // Trigger battle start dialogue
             triggerDialogue('battle_start');
+
+            // Trigger callback to render choices (engine registers this)
+            if (typeof state.onBattleReady === 'function') {
+                state.onBattleReady();
+            }
         });
 
         return state;
@@ -2370,35 +2358,46 @@ var BattleEngine = (function() {
             terrainIndicator.id = 'terrain-indicator';
             terrainIndicator.className = 'terrain-indicator';
 
-            // Player HP bar (bottom left)
-            var playerHP = document.createElement('div');
-            playerHP.id = 'player-hp-container';
-            playerHP.className = 'hp-container player-hp battle-hp';
-            playerHP.innerHTML =
-                '<div class="hp-label">' + state.player.name + '</div>' +
-                '<div class="hp-bar"><div id="player-hp-bar" class="hp-fill hp-high"></div></div>' +
-                '<div id="player-hp-text" class="hp-text"></div>' +
-                '<div id="player-stagger-bar" class="stagger-bar"><div id="player-stagger-fill" class="stagger-fill"></div></div>' +
+            // === PLAYER STATS PANEL (unified HP/MP/Limit/Status) ===
+            var playerStats = document.createElement('div');
+            playerStats.id = 'player-stats-panel';
+            playerStats.className = 'battle-stats-panel player-stats';
+            playerStats.innerHTML =
+                '<div class="stats-header">' + state.player.name + '</div>' +
+                '<div class="stat-row hp-row">' +
+                    '<span class="stat-label">HP</span>' +
+                    '<div class="stat-bar-outer"><div id="player-hp-bar" class="stat-bar hp-bar hp-high"></div></div>' +
+                    '<span id="player-hp-text" class="stat-value"></span>' +
+                '</div>' +
+                '<div class="stat-row mp-row">' +
+                    '<span class="stat-label">MP</span>' +
+                    '<div class="stat-bar-outer"><div id="player-mana-bar" class="stat-bar mana-bar"></div></div>' +
+                    '<span id="player-mana-text" class="stat-value"></span>' +
+                '</div>' +
+                '<div class="stat-row limit-row">' +
+                    '<span class="stat-label limit-label">LB</span>' +
+                    '<div class="stat-bar-outer"><div id="limit-bar" class="stat-bar limit-bar"></div></div>' +
+                    '<span id="limit-text" class="stat-value">0%</span>' +
+                '</div>' +
+                '<div id="player-stagger-container" class="stagger-container">' +
+                    '<div id="player-stagger-bar" class="stagger-bar"><div id="player-stagger-fill" class="stagger-fill"></div></div>' +
+                '</div>' +
                 '<div id="player-statuses" class="status-icons"></div>';
 
-            // Player Mana bar (below HP)
-            var playerMana = document.createElement('div');
-            playerMana.id = 'player-mana-container';
-            playerMana.className = 'mana-container player-mana battle-mana';
-            playerMana.innerHTML =
-                '<div class="mana-label">MP</div>' +
-                '<div class="mana-bar"><div id="player-mana-bar" class="mana-fill"></div></div>' +
-                '<div id="player-mana-text" class="mana-text"></div>';
-
-            // Enemy HP bar (top right)
-            var enemyHP = document.createElement('div');
-            enemyHP.id = 'enemy-hp-container';
-            enemyHP.className = 'hp-container enemy-hp battle-hp';
-            enemyHP.innerHTML =
-                '<div id="enemy-hp-label" class="hp-label">' + state.enemy.name + '</div>' +
-                '<div class="hp-bar"><div id="enemy-hp-bar" class="hp-fill hp-high"></div></div>' +
-                '<div id="enemy-hp-text" class="hp-text"></div>' +
-                '<div id="enemy-stagger-bar" class="stagger-bar"><div id="enemy-stagger-fill" class="stagger-fill"></div></div>' +
+            // === ENEMY STATS PANEL ===
+            var enemyStats = document.createElement('div');
+            enemyStats.id = 'enemy-stats-panel';
+            enemyStats.className = 'battle-stats-panel enemy-stats';
+            enemyStats.innerHTML =
+                '<div id="enemy-hp-label" class="stats-header">' + state.enemy.name + '</div>' +
+                '<div class="stat-row hp-row">' +
+                    '<span class="stat-label">HP</span>' +
+                    '<div class="stat-bar-outer"><div id="enemy-hp-bar" class="stat-bar hp-bar hp-high"></div></div>' +
+                    '<span id="enemy-hp-text" class="stat-value"></span>' +
+                '</div>' +
+                '<div id="enemy-stagger-container" class="stagger-container">' +
+                    '<div id="enemy-stagger-bar" class="stagger-bar"><div id="enemy-stagger-fill" class="stagger-fill"></div></div>' +
+                '</div>' +
                 '<div id="enemy-statuses" class="status-icons"></div>';
 
             // Battle log panel (bottom, replaces text box)
@@ -2410,9 +2409,8 @@ var BattleEngine = (function() {
                 '<div id="battle-choices" class="battle-choices"></div>';
 
             battleUI.appendChild(terrainIndicator);
-            battleUI.appendChild(playerHP);
-            battleUI.appendChild(playerMana);
-            battleUI.appendChild(enemyHP);
+            battleUI.appendChild(playerStats);
+            battleUI.appendChild(enemyStats);
             battleUI.appendChild(battleLog);
             elements.container.appendChild(battleUI);
         }
@@ -2425,27 +2423,30 @@ var BattleEngine = (function() {
 
         // Show UI
         if (elements.battleUI) elements.battleUI.style.display = 'block';
-        if (elements.playerHP) elements.playerHP.style.display = 'block';
-        if (elements.playerMana) elements.playerMana.style.display = 'block';
-        if (elements.enemyHP) elements.enemyHP.style.display = 'block';
     }
 
     function cacheElements() {
         elements.battleUI = document.getElementById('battle-ui');
-        elements.playerHP = document.getElementById('player-hp-container');
+        // New unified panels
+        elements.playerStats = document.getElementById('player-stats-panel');
+        elements.enemyStats = document.getElementById('enemy-stats-panel');
+        // HP/Mana/Limit bars
         elements.playerHPBar = document.getElementById('player-hp-bar');
         elements.playerHPText = document.getElementById('player-hp-text');
-        elements.playerMana = document.getElementById('player-mana-container');
         elements.playerManaBar = document.getElementById('player-mana-bar');
         elements.playerManaText = document.getElementById('player-mana-text');
+        elements.limitBar = document.getElementById('limit-bar');
+        elements.limitText = document.getElementById('limit-text');
+        // Status and stagger
         elements.playerStatuses = document.getElementById('player-statuses');
         elements.playerStaggerFill = document.getElementById('player-stagger-fill');
-        elements.enemyHP = document.getElementById('enemy-hp-container');
+        // Enemy elements
         elements.enemyHPBar = document.getElementById('enemy-hp-bar');
         elements.enemyHPText = document.getElementById('enemy-hp-text');
         elements.enemyLabel = document.getElementById('enemy-hp-label');
         elements.enemyStatuses = document.getElementById('enemy-statuses');
         elements.enemyStaggerFill = document.getElementById('enemy-stagger-fill');
+        // Other
         elements.terrainIndicator = document.getElementById('terrain-indicator');
         elements.battleLog = document.getElementById('battle-log-content');
     }
@@ -2588,10 +2589,11 @@ var BattleEngine = (function() {
 
         var percent = (state.player.hp / state.player.maxHP) * 100;
         elements.playerHPBar.style.width = percent + '%';
-        elements.playerHPText.textContent = state.player.hp + ' / ' + state.player.maxHP;
+        elements.playerHPText.textContent = state.player.hp + '/' + state.player.maxHP;
 
-        elements.playerHPBar.className = 'hp-fill ' +
-            (percent > 50 ? 'hp-high' : percent > 25 ? 'hp-medium' : 'hp-low');
+        // Use new unified class names
+        var hpState = percent > 50 ? 'hp-high' : percent > 25 ? 'hp-medium' : 'hp-low';
+        elements.playerHPBar.className = 'stat-bar hp-bar ' + hpState;
     }
 
     function updatePlayerManaDisplay() {
@@ -2602,7 +2604,7 @@ var BattleEngine = (function() {
 
         var percent = (state.player.mana / state.player.maxMana) * 100;
         elements.playerManaBar.style.width = percent + '%';
-        elements.playerManaText.textContent = state.player.mana + ' / ' + state.player.maxMana;
+        elements.playerManaText.textContent = state.player.mana + '/' + state.player.maxMana;
     }
 
     function updateEnemyHPDisplay() {
@@ -2617,10 +2619,11 @@ var BattleEngine = (function() {
 
         var percent = (state.enemy.hp / state.enemy.maxHP) * 100;
         elements.enemyHPBar.style.width = percent + '%';
-        elements.enemyHPText.textContent = state.enemy.hp + ' / ' + state.enemy.maxHP;
+        elements.enemyHPText.textContent = state.enemy.hp + '/' + state.enemy.maxHP;
 
-        elements.enemyHPBar.className = 'hp-fill ' +
-            (percent > 50 ? 'hp-high' : percent > 25 ? 'hp-medium' : 'hp-low');
+        // Use new unified class names
+        var hpState = percent > 50 ? 'hp-high' : percent > 25 ? 'hp-medium' : 'hp-low';
+        elements.enemyHPBar.className = 'stat-bar hp-bar ' + hpState;
     }
 
     function updateBattleLog(html) {
@@ -3768,6 +3771,7 @@ var BattleEngine = (function() {
 
         // === Item System ===
         getAvailableItems: getAvailableBattleItems,
+        getBattleItems: getAvailableBattleItems,  // Alias for engine.js
         useItem: useBattleItem,
         battleItems: battleItems,
 

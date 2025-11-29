@@ -900,58 +900,106 @@ h1 {
 
 /* === Battle System (Windows 3.1 style) === */
 
-/* HP/Mana Containers - Windows dialog box style */
-.hp-container,
-.mana-container {
+/* Battle Stats Panel - Windows 3.1 dialog box */
+.battle-stats-panel {
     background: var(--win-bg);
-    border: 2px solid;
+    border: 3px solid;
     border-color: var(--win-light) var(--win-dark) var(--win-dark) var(--win-light);
     border-radius: 0;
-    box-shadow: 2px 2px 0 var(--win-darkest);
+    box-shadow: 3px 3px 0 var(--win-darkest);
+    padding: 8px;
 }
 
-.hp-label,
-.mana-label {
+/* Panel header - Windows title bar style */
+.stats-header {
+    background: var(--win-blue);
+    color: #fff;
+    font-family: 'Silkscreen', 'MS Sans Serif', sans-serif;
+    font-size: 0.6rem;
+    padding: 2px 4px;
+    margin: -8px -8px 6px -8px;
+    border-bottom: 2px solid var(--win-dark);
+}
+
+/* Stat labels */
+.stat-label {
     color: var(--text-color);
     font-family: 'MS Sans Serif', 'Segoe UI', Tahoma, sans-serif;
     font-weight: bold;
-    text-transform: uppercase;
-    font-size: 0.65rem;
+    font-size: 0.55rem;
 }
 
-.hp-bar,
-.mana-bar {
+.stat-label.limit-label {
+    color: #aa8800;
+}
+
+/* Stat bar containers - inset look */
+.stat-bar-outer {
     background: var(--win-dark);
     border: 2px solid;
     border-color: var(--win-dark) var(--win-light) var(--win-light) var(--win-dark);
     border-radius: 0;
 }
 
-.hp-fill {
+/* HP bar colors - Windows palette */
+.stat-bar.hp-bar {
     border-radius: 0;
 }
 
-.hp-fill.hp-high {
-    background: linear-gradient(to bottom, #00aa00, #008800);
+.stat-bar.hp-bar.hp-high {
+    background: #00aa00;
 }
 
-.hp-fill.hp-medium {
-    background: linear-gradient(to bottom, #aaaa00, #888800);
+.stat-bar.hp-bar.hp-medium {
+    background: #aaaa00;
 }
 
-.hp-fill.hp-low {
-    background: linear-gradient(to bottom, #aa0000, #880000);
+.stat-bar.hp-bar.hp-low {
+    background: #aa0000;
 }
 
-.mana-fill {
-    background: linear-gradient(to bottom, #0000aa, #000088);
+/* Mana bar - Windows blue */
+.stat-bar.mana-bar {
+    background: #0000aa;
     border-radius: 0;
 }
 
-.hp-text,
-.mana-text {
+/* Limit bar - Windows gold */
+.stat-bar.limit-bar {
+    background: #aa8800;
+    border-radius: 0;
+}
+
+.stat-bar.limit-bar.limit-high {
+    background: #aaaa00;
+}
+
+.stat-bar.limit-bar.limit-ready {
+    background: #ffff00;
+}
+
+/* Stat values */
+.stat-value {
     color: var(--text-color);
     font-family: 'MS Sans Serif', 'Segoe UI', Tahoma, sans-serif;
+    font-size: 0.5rem;
+}
+
+/* Stagger bar - simplified */
+.stagger-bar {
+    background: var(--win-dark);
+    border: 1px solid;
+    border-color: var(--win-dark) var(--win-light) var(--win-light) var(--win-dark);
+    border-radius: 0;
+}
+
+.stagger-fill {
+    background: #ff8800;
+    border-radius: 0;
+}
+
+.stagger-fill.stagger-danger {
+    background: #ff0000;
 }
 
 /* Battle Log - Windows message box style */
@@ -1163,4 +1211,41 @@ h1 {
 .battle-log.fumble {
     background: #cccccc;
     border-left-color: #000000;
+}
+
+/* Battle intro/outro - Windows 3.1 style */
+.battle-intro-overlay {
+    background: rgba(0, 0, 128, 0.9);
+}
+
+.battle-intro-text {
+    font-family: 'Silkscreen', 'MS Sans Serif', sans-serif;
+    color: #ffff00;
+    text-shadow: 3px 3px 0 #000;
+    letter-spacing: 2px;
+    background: var(--win-blue);
+    padding: 8px 20px;
+    border: 3px solid;
+    border-color: var(--win-light) var(--win-dark) var(--win-dark) var(--win-light);
+}
+
+.battle-outro-text {
+    font-family: 'Silkscreen', 'MS Sans Serif', sans-serif;
+    text-shadow: 2px 2px 0 #000;
+}
+
+.battle-outro-text.victory {
+    color: #00ff00;
+}
+
+.battle-outro-text.defeat {
+    color: #ff0000;
+}
+
+.battle-outro-overlay.victory {
+    background: rgba(0, 128, 0, 0.8);
+}
+
+.battle-outro-overlay.defeat {
+    background: rgba(128, 0, 0, 0.8);
 }

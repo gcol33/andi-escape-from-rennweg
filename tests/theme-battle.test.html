@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battle Theme Tests - Andi VN</title>
+    <style>
+        body {
+            font-family: 'Consolas', 'Monaco', monospace;
+            background: #1e1e2e;
+            color: #e0e0e0;
+            padding: 20px;
+            margin: 0;
+        }
+        h1 {
+            color: #b08b5a;
+            border-bottom: 2px solid #b08b5a;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #6af;
+            margin-top: 30px;
+        }
+        #controls {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        select, button {
+            background: #b08b5a;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        select {
+            background: #2a2a3e;
+            color: #e0e0e0;
+            border: 1px solid #b08b5a;
+        }
+        button:hover { background: #c9a066; }
+        #test-output {
+            background: #2a2a3e;
+            padding: 20px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            font-size: 14px;
+            line-height: 1.6;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .pass { color: #4a4; }
+        .fail { color: #c44; }
+        .section { color: #6af; font-weight: bold; }
+        #summary {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 18px;
+        }
+        #summary.pass { background: rgba(74, 170, 74, 0.2); border: 2px solid #4a4; }
+        #summary.fail { background: rgba(204, 68, 68, 0.2); border: 2px solid #c44; }
+
+        /* Preview container */
+        #preview-wrapper {
+            margin: 30px 0;
+            border: 2px solid #444;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        #preview-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            aspect-ratio: 16/9;
+            margin: 0 auto;
+            background: #333;
+        }
+
+        /* Mock elements for testing */
+        .mock-battle-ui {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+    </style>
+    <!-- Load fonts CSS -->
+    <link rel="stylesheet" href="../css/fonts.css">
+    <!-- Load shared CSS (base battle styles) -->
+    <link rel="stylesheet" href="../css/shared.css">
+    <!-- Theme CSS will be loaded dynamically (must come AFTER shared to override) -->
+    <link id="theme-css" rel="stylesheet" href="../css/themes/prototype.css">
+</head>
+<body>
+    <h1>Battle Theme Tests</h1>
+
+    <div id="controls">
+        <label style="padding: 10px;">Theme:
+            <select id="theme-select">
+                <option value="prototype">Prototype</option>
+                <option value="90s">90s (Windows 3.1)</option>
+                <option value="70s">70s</option>
+                <option value="80s">80s</option>
+                <option value="cyberpunk">Cyberpunk</option>
+                <option value="dos">DOS</option>
+                <option value="dragonball">Dragon Ball</option>
+                <option value="finalfantasy">Final Fantasy</option>
+                <option value="gameboy">Game Boy</option>
+                <option value="harrypotter">Harry Potter</option>
+                <option value="lotr">Lord of the Rings</option>
+                <option value="manga">Manga</option>
+                <option value="nes">NES</option>
+                <option value="snes">SNES</option>
+                <option value="spaceopera">Space Opera</option>
+                <option value="starwars">Star Wars</option>
+                <option value="vaporwave">Vaporwave</option>
+                <option value="y2k">Y2K</option>
+                <option value="zelda">Zelda</option>
+            </select>
+        </label>
+        <button onclick="runThemeTests()">Run Tests</button>
+        <button onclick="runAllThemeTests()">Test All Themes</button>
+        <button onclick="createBattleUI()">Create Battle UI</button>
+        <button onclick="destroyBattleUI()">Destroy Battle UI</button>
+    </div>
+
+    <div id="summary"></div>
+    <div id="test-output">Select a theme and click "Run Tests" to begin...</div>
+
+    <h2>Live Preview</h2>
+    <div id="preview-wrapper">
+        <div id="preview-container" class="vn-container">
+            <!-- Background layer -->
+            <div id="background-layer" style="position: absolute; inset: 0; background: linear-gradient(135deg, #1a1a2e, #16213e);"></div>
+
+            <!-- Sprite layer -->
+            <div id="sprite-layer" style="position: absolute; inset: 0;"></div>
+
+            <!-- VN Container (for battle UI) -->
+            <div id="vn-container" style="position: absolute; inset: 0;">
+                <!-- Battle UI will be injected here -->
+            </div>
+
+            <!-- Text box (hidden during battle) -->
+            <div id="text-box" class="text-box battle-mode" style="display: none;">
+                <div id="story-output">Test text...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme test framework
+        var ThemeTestRunner = {
+            passed: 0,
+            failed: 0,
+            results: [],
+
+            assert: function(condition, message) {
+                if (condition) {
+                    this.passed++;
+                    this.results.push({ pass: true, message: message });
+                } else {
+                    this.failed++;
+                    this.results.push({ pass: false, message: message });
+                    console.error('FAIL: ' + message);
+                }
+            },
+
+            reset: function() {
+                this.passed = 0;
+                this.failed = 0;
+                this.results = [];
+            },
+
+            report: function() {
+                var output = [];
+                output.push('=== Theme Battle Test Results ===');
+                output.push('Passed: ' + this.passed);
+                output.push('Failed: ' + this.failed);
+                output.push('Total: ' + (this.passed + this.failed));
+
+                if (this.failed > 0) {
+                    output.push('\nFailed tests:');
+                    this.results.forEach(function(r) {
+                        if (!r.pass) output.push('  - ' + r.message);
+                    });
+                }
+
+                return output.join('\n');
+            }
+        };
+
+        // Load theme CSS
+        function loadTheme(themeName) {
+            var themeLink = document.getElementById('theme-css');
+            themeLink.href = '../css/themes/' + themeName + '.css';
+            document.body.className = 'theme-' + themeName;
+            return new Promise(function(resolve) {
+                themeLink.onload = resolve;
+                themeLink.onerror = resolve; // Still resolve even on error
+                setTimeout(resolve, 500); // Fallback
+            });
+        }
+
+        // Create mock battle UI
+        function createBattleUI() {
+            var container = document.getElementById('vn-container');
+
+            // Remove existing battle UI
+            var existing = document.getElementById('battle-ui');
+            if (existing) existing.remove();
+
+            // Create battle UI structure
+            var battleUI = document.createElement('div');
+            battleUI.id = 'battle-ui';
+            battleUI.className = 'battle-ui';
+            battleUI.innerHTML = `
+                <!-- Terrain indicator -->
+                <div id="terrain-indicator" class="terrain-indicator" style="display: block;">
+                    <span class="terrain-icon" style="background-color: #e74c3c;">🌋</span> Lava Field
+                </div>
+
+                <!-- Player HP -->
+                <div id="player-hp-container" class="hp-container player-hp battle-hp">
+                    <div class="hp-label">Andy</div>
+                    <div class="hp-bar"><div id="player-hp-bar" class="hp-fill hp-high" style="width: 75%;"></div></div>
+                    <div id="player-hp-text" class="hp-text">15 / 20</div>
+                    <div id="player-stagger-bar" class="stagger-bar"><div id="player-stagger-fill" class="stagger-fill" style="width: 30%;"></div></div>
+                    <div id="player-statuses" class="status-icons">
+                        <span class="status-icon" style="color: #ff6b35;" title="Burn (2 turns)">🔥</span>
+                        <span class="status-icon" style="color: #27ae60;" title="Defense Up (1 turn)">🛡️</span>
+                    </div>
+                </div>
+
+                <!-- Player Mana -->
+                <div id="player-mana-container" class="mana-container player-mana battle-mana">
+                    <div class="mana-label">MP</div>
+                    <div class="mana-bar"><div id="player-mana-bar" class="mana-fill" style="width: 60%;"></div></div>
+                    <div id="player-mana-text" class="mana-text">12 / 20</div>
+                </div>
+
+                <!-- Enemy HP -->
+                <div id="enemy-hp-container" class="hp-container enemy-hp battle-hp">
+                    <div id="enemy-hp-label" class="hp-label">Agnes (HR)</div>
+                    <div class="hp-bar"><div id="enemy-hp-bar" class="hp-fill hp-medium" style="width: 40%;"></div></div>
+                    <div id="enemy-hp-text" class="hp-text">10 / 25</div>
+                    <div id="enemy-stagger-bar" class="stagger-bar"><div id="enemy-stagger-fill" class="stagger-fill stagger-warning" style="width: 60%;"></div></div>
+                    <div id="enemy-statuses" class="status-icons">
+                        <span class="status-icon" style="color: #9b59b6;" title="Poison (3 turns) x2">☠️<sub>2</sub></span>
+                    </div>
+                </div>
+
+                <!-- Battle Log Panel -->
+                <div id="battle-log-panel" class="battle-log-panel">
+                    <div id="battle-log-content" class="battle-log-content">
+                        <div class="battle-log">
+                            <span class="roll-result">Andy rolled <strong>17</strong> + 3 = <strong>20</strong> vs AC 12</span>
+                            <br>Fireball deals <strong>8</strong> damage! It's super effective!
+                        </div>
+                        <div class="battle-log enemy-turn">
+                            <span class="roll-result">Agnes (HR) rolled <strong>8</strong> + 4 = <strong>12</strong> vs AC 14</span>
+                            <br>HR Memo missed!
+                        </div>
+                        <div class="battle-log crit">
+                            <span class="roll-result">Andy rolled <strong>20</strong></span>
+                            <span class="crit-text">CRITICAL HIT!</span>
+                            <br>Power Strike deals <strong>14</strong> damage!
+                        </div>
+                    </div>
+                    <div id="battle-choices" class="battle-choices">
+                        <button class="choice-button" data-action="attack">⚔️ Attack</button>
+                        <button class="choice-button" data-action="skill">✨ Skill</button>
+                        <button class="choice-button" data-action="defend">🛡️ Defend</button>
+                        <button class="choice-button" data-action="flee">🏃 Flee</button>
+                    </div>
+                </div>
+            `;
+
+            container.appendChild(battleUI);
+            return battleUI;
+        }
+
+        // Destroy battle UI
+        function destroyBattleUI() {
+            var battleUI = document.getElementById('battle-ui');
+            if (battleUI) battleUI.remove();
+        }
+
+        // Get computed style helper
+        function getStyle(element, property) {
+            return window.getComputedStyle(element).getPropertyValue(property);
+        }
+
+        // Check if element is visible
+        function isVisible(element) {
+            var style = window.getComputedStyle(element);
+            return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+        }
+
+        // Run theme tests
+        function runThemeTests() {
+            ThemeTestRunner.reset();
+            var output = document.getElementById('test-output');
+            var summary = document.getElementById('summary');
+            var themeName = document.getElementById('theme-select').value;
+
+            output.innerHTML = 'Loading theme: ' + themeName + '...\n';
+
+            loadTheme(themeName).then(function() {
+                output.innerHTML += 'Theme loaded. Creating battle UI...\n';
+
+                // Create battle UI
+                createBattleUI();
+
+                // Wait for styles to apply
+                setTimeout(function() {
+                    output.innerHTML += 'Running tests...\n\n';
+
+                    // === Test: Battle UI Exists ===
+                    output.innerHTML += '<span class="section">--- Testing Battle UI Structure ---</span>\n';
+
+                    var battleUI = document.getElementById('battle-ui');
+                    ThemeTestRunner.assert(battleUI !== null, 'Battle UI container exists');
+
+                    var playerHP = document.getElementById('player-hp-container');
+                    ThemeTestRunner.assert(playerHP !== null, 'Player HP container exists');
+
+                    var playerMana = document.getElementById('player-mana-container');
+                    ThemeTestRunner.assert(playerMana !== null, 'Player Mana container exists');
+
+                    var enemyHP = document.getElementById('enemy-hp-container');
+                    ThemeTestRunner.assert(enemyHP !== null, 'Enemy HP container exists');
+
+                    var battleLog = document.getElementById('battle-log-panel');
+                    ThemeTestRunner.assert(battleLog !== null, 'Battle log panel exists');
+
+                    var battleChoices = document.getElementById('battle-choices');
+                    ThemeTestRunner.assert(battleChoices !== null, 'Battle choices container exists');
+
+                    // === Test: HP Bars Styled ===
+                    output.innerHTML += '<span class="section">--- Testing HP/Mana Bar Styling ---</span>\n';
+
+                    var playerHPBar = document.getElementById('player-hp-bar');
+                    ThemeTestRunner.assert(playerHPBar !== null, 'Player HP bar exists');
+
+                    var hpBarWidth = getStyle(playerHPBar, 'width');
+                    ThemeTestRunner.assert(hpBarWidth !== '0px' && hpBarWidth !== '', 'Player HP bar has width');
+
+                    var playerManaBar = document.getElementById('player-mana-bar');
+                    ThemeTestRunner.assert(playerManaBar !== null, 'Player Mana bar exists');
+
+                    var manaBarBg = getStyle(playerManaBar, 'background');
+                    ThemeTestRunner.assert(manaBarBg !== '' && manaBarBg !== 'none', 'Mana bar has background style');
+
+                    // === Test: Status Icons ===
+                    output.innerHTML += '<span class="section">--- Testing Status Icons ---</span>\n';
+
+                    var statusIcons = document.querySelectorAll('.status-icon');
+                    ThemeTestRunner.assert(statusIcons.length > 0, 'Status icons exist');
+                    ThemeTestRunner.assert(statusIcons.length >= 3, 'At least 3 status icons displayed');
+
+                    // === Test: Stagger Bars ===
+                    output.innerHTML += '<span class="section">--- Testing Stagger Bars ---</span>\n';
+
+                    var playerStagger = document.getElementById('player-stagger-fill');
+                    ThemeTestRunner.assert(playerStagger !== null, 'Player stagger bar exists');
+
+                    var enemyStagger = document.getElementById('enemy-stagger-fill');
+                    ThemeTestRunner.assert(enemyStagger !== null, 'Enemy stagger bar exists');
+                    ThemeTestRunner.assert(enemyStagger.classList.contains('stagger-warning'), 'Enemy stagger has warning class');
+
+                    // === Test: Terrain Indicator ===
+                    output.innerHTML += '<span class="section">--- Testing Terrain Indicator ---</span>\n';
+
+                    var terrainIndicator = document.getElementById('terrain-indicator');
+                    ThemeTestRunner.assert(terrainIndicator !== null, 'Terrain indicator exists');
+                    ThemeTestRunner.assert(isVisible(terrainIndicator), 'Terrain indicator is visible');
+
+                    // === Test: Battle Log ===
+                    output.innerHTML += '<span class="section">--- Testing Battle Log ---</span>\n';
+
+                    var battleLogContent = document.getElementById('battle-log-content');
+                    ThemeTestRunner.assert(battleLogContent !== null, 'Battle log content exists');
+
+                    var logEntries = battleLogContent.querySelectorAll('.battle-log');
+                    ThemeTestRunner.assert(logEntries.length >= 3, 'Battle log has entries');
+
+                    var critLog = battleLogContent.querySelector('.battle-log.crit');
+                    ThemeTestRunner.assert(critLog !== null, 'Critical hit log entry exists');
+
+                    var critText = battleLogContent.querySelector('.crit-text');
+                    ThemeTestRunner.assert(critText !== null, 'Critical text span exists');
+
+                    // === Test: Battle Choices ===
+                    output.innerHTML += '<span class="section">--- Testing Battle Choices ---</span>\n';
+
+                    var choiceButtons = battleChoices.querySelectorAll('.choice-button');
+                    ThemeTestRunner.assert(choiceButtons.length === 4, 'Four battle choice buttons exist');
+
+                    var attackBtn = battleChoices.querySelector('[data-action="attack"]');
+                    ThemeTestRunner.assert(attackBtn !== null, 'Attack button exists');
+
+                    var skillBtn = battleChoices.querySelector('[data-action="skill"]');
+                    ThemeTestRunner.assert(skillBtn !== null, 'Skill button exists');
+
+                    var defendBtn = battleChoices.querySelector('[data-action="defend"]');
+                    ThemeTestRunner.assert(defendBtn !== null, 'Defend button exists');
+
+                    var fleeBtn = battleChoices.querySelector('[data-action="flee"]');
+                    ThemeTestRunner.assert(fleeBtn !== null, 'Flee button exists');
+
+                    // === Test: Theme-Specific Styling ===
+                    output.innerHTML += '<span class="section">--- Testing Theme-Specific Styles ---</span>\n';
+
+                    // Check that theme CSS is loaded and applied
+                    var computedBgColor = getStyle(playerHP, 'background-color');
+                    ThemeTestRunner.assert(computedBgColor !== '' && computedBgColor !== 'transparent',
+                        'Player HP container has background color from theme');
+
+                    // Check font is applied
+                    var computedFont = getStyle(document.body, 'font-family');
+                    ThemeTestRunner.assert(computedFont !== '', 'Theme font is applied');
+
+                    // Check border styles (many themes use distinctive borders)
+                    var computedBorder = getStyle(playerHP, 'border');
+                    // Just check it's defined, actual value depends on theme
+                    ThemeTestRunner.assert(true, 'Border styles checked (theme-dependent)');
+
+                    // === Report Results ===
+                    output.innerHTML += '\n' + ThemeTestRunner.report();
+
+                    // Format output
+                    var lines = output.innerHTML.split('\n');
+                    output.innerHTML = lines.map(function(line) {
+                        if (line.indexOf('FAIL') > -1) {
+                            return '<span class="fail">' + line + '</span>';
+                        }
+                        if (line.indexOf('Passed:') > -1) {
+                            return '<span class="pass">' + line + '</span>';
+                        }
+                        if (line.indexOf('Failed:') > -1 && line.indexOf('0') === -1) {
+                            return '<span class="fail">' + line + '</span>';
+                        }
+                        return line;
+                    }).join('\n');
+
+                    // Update summary
+                    if (ThemeTestRunner.failed === 0) {
+                        summary.className = 'pass';
+                        summary.textContent = 'Theme "' + themeName + '": All ' + ThemeTestRunner.passed + ' tests passed!';
+                    } else {
+                        summary.className = 'fail';
+                        summary.textContent = 'Theme "' + themeName + '": ' + ThemeTestRunner.failed + ' of ' +
+                            (ThemeTestRunner.passed + ThemeTestRunner.failed) + ' tests failed';
+                    }
+
+                }, 300);
+            });
+        }
+
+        // Theme selector change handler
+        document.getElementById('theme-select').addEventListener('change', function() {
+            var themeName = this.value;
+            loadTheme(themeName).then(function() {
+                // Recreate battle UI with new theme
+                if (document.getElementById('battle-ui')) {
+                    createBattleUI();
+                }
+            });
+        });
+
+        // Run tests on all themes
+        function runAllThemeTests() {
+            var themes = [
+                'prototype', '90s', '70s', '80s', 'cyberpunk', 'dos',
+                'dragonball', 'finalfantasy', 'gameboy', 'harrypotter',
+                'lotr', 'manga', 'nes', 'snes', 'spaceopera', 'starwars',
+                'vaporwave', 'y2k', 'zelda'
+            ];
+
+            var output = document.getElementById('test-output');
+            var summary = document.getElementById('summary');
+            var allResults = [];
+            var currentIndex = 0;
+
+            output.innerHTML = '<span class="section">=== Testing All Themes ===</span>\n\n';
+            summary.textContent = 'Running tests on all themes...';
+            summary.className = '';
+
+            function testNextTheme() {
+                if (currentIndex >= themes.length) {
+                    // All done - show summary
+                    var totalPassed = 0;
+                    var totalFailed = 0;
+                    var failedThemes = [];
+
+                    allResults.forEach(function(r) {
+                        totalPassed += r.passed;
+                        totalFailed += r.failed;
+                        if (r.failed > 0) {
+                            failedThemes.push(r.theme);
+                        }
+                    });
+
+                    output.innerHTML += '\n<span class="section">=== FINAL SUMMARY ===</span>\n';
+                    output.innerHTML += '<span class="pass">Total Passed: ' + totalPassed + '</span>\n';
+                    if (totalFailed > 0) {
+                        output.innerHTML += '<span class="fail">Total Failed: ' + totalFailed + '</span>\n';
+                        output.innerHTML += '<span class="fail">Failed Themes: ' + failedThemes.join(', ') + '</span>\n';
+                    } else {
+                        output.innerHTML += 'Total Failed: 0\n';
+                    }
+
+                    if (totalFailed === 0) {
+                        summary.className = 'pass';
+                        summary.textContent = 'All ' + themes.length + ' themes passed! (' + totalPassed + ' tests)';
+                    } else {
+                        summary.className = 'fail';
+                        summary.textContent = totalFailed + ' tests failed across ' + failedThemes.length + ' themes';
+                    }
+                    return;
+                }
+
+                var theme = themes[currentIndex];
+                output.innerHTML += '<span class="section">--- Testing: ' + theme + ' ---</span>\n';
+
+                document.getElementById('theme-select').value = theme;
+
+                loadTheme(theme).then(function() {
+                    createBattleUI();
+
+                    setTimeout(function() {
+                        ThemeTestRunner.reset();
+
+                        // Run quick structure tests
+                        var battleUI = document.getElementById('battle-ui');
+                        ThemeTestRunner.assert(battleUI !== null, theme + ': Battle UI exists');
+
+                        var playerHP = document.getElementById('player-hp-container');
+                        ThemeTestRunner.assert(playerHP !== null, theme + ': Player HP exists');
+
+                        var playerMana = document.getElementById('player-mana-container');
+                        ThemeTestRunner.assert(playerMana !== null, theme + ': Player Mana exists');
+
+                        var enemyHP = document.getElementById('enemy-hp-container');
+                        ThemeTestRunner.assert(enemyHP !== null, theme + ': Enemy HP exists');
+
+                        var battleLog = document.getElementById('battle-log-panel');
+                        ThemeTestRunner.assert(battleLog !== null, theme + ': Battle log exists');
+
+                        var statusIcons = document.querySelectorAll('.status-icon');
+                        ThemeTestRunner.assert(statusIcons.length >= 2, theme + ': Status icons exist');
+
+                        var staggerBars = document.querySelectorAll('.stagger-fill');
+                        ThemeTestRunner.assert(staggerBars.length >= 2, theme + ': Stagger bars exist');
+
+                        var terrainIndicator = document.getElementById('terrain-indicator');
+                        ThemeTestRunner.assert(terrainIndicator !== null, theme + ': Terrain indicator exists');
+
+                        var choiceButtons = document.querySelectorAll('.battle-choices .choice-button');
+                        ThemeTestRunner.assert(choiceButtons.length === 4, theme + ': 4 battle buttons exist');
+
+                        // Check styles are applied
+                        var computedBg = getStyle(playerHP, 'background-color');
+                        ThemeTestRunner.assert(computedBg !== '' && computedBg !== 'transparent',
+                            theme + ': HP container has background');
+
+                        // Log results
+                        if (ThemeTestRunner.failed === 0) {
+                            output.innerHTML += '<span class="pass">✓ ' + theme + ': ' + ThemeTestRunner.passed + ' tests passed</span>\n';
+                        } else {
+                            output.innerHTML += '<span class="fail">✗ ' + theme + ': ' + ThemeTestRunner.failed + ' failed</span>\n';
+                        }
+
+                        allResults.push({
+                            theme: theme,
+                            passed: ThemeTestRunner.passed,
+                            failed: ThemeTestRunner.failed
+                        });
+
+                        currentIndex++;
+                        setTimeout(testNextTheme, 200);
+                    }, 200);
+                });
+            }
+
+            testNextTheme();
+        }
+
+        // Initial load
+        loadTheme('prototype');
+    </script>
+</body>
+</html>

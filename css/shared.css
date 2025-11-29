@@ -372,61 +372,109 @@
     color: #ff9800;
 }
 
-/* === HP Bars === */
-.hp-container {
+/* === BATTLE STATS PANELS (Unified HP/Mana/Limit) === */
+/* Clean, theme-aware stat panels for battle UI */
+
+.battle-stats-panel {
     position: absolute;
-    width: 150px;
+    width: 170px;
     z-index: 100;
-    background: rgba(0, 0, 0, 0.7);
-    padding: 6px 10px;
+    padding: 10px 12px;
+    /* Base styling - themes SHOULD override these */
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: 6px;
-    display: none;
 }
 
-.hp-container.player-hp {
-    bottom: 35%;
+.battle-stats-panel.player-stats {
+    bottom: 34%;
     left: 10px;
 }
 
-.hp-container.enemy-hp {
+.battle-stats-panel.enemy-stats {
     top: 10px;
     right: 10px;
 }
 
-.hp-label {
-    color: #fff;
+/* Panel header (character name) */
+.stats-header {
     font-size: 0.7rem;
     font-weight: bold;
-    margin-bottom: 2px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
 }
 
-.hp-bar {
-    width: 100%;
-    height: 12px;
-    background: #333;
-    border-radius: 6px;
+/* Stat row layout: [Label] [Bar] [Value] */
+.stat-row {
+    display: block;
+    display: -webkit-flex;
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+/* Fallback spacing for browsers without gap */
+.stat-row > * {
+    margin-right: 6px;
+}
+.stat-row > *:last-child {
+    margin-right: 0;
+}
+
+@supports (gap: 6px) {
+    .stat-row {
+        gap: 6px;
+    }
+    .stat-row > * {
+        margin-right: 0;
+    }
+}
+
+.stat-label {
+    font-size: 0.55rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    min-width: 18px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.stat-bar-outer {
+    flex: 1;
+    height: 8px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 4px;
     overflow: hidden;
-    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.hp-fill {
+.stat-bar {
     height: 100%;
     transition: width 0.3s ease-out;
-    border-radius: 6px;
+    border-radius: 3px;
 }
 
-.hp-fill.hp-high {
-    background: linear-gradient(to bottom, #4caf50, #2e7d32);
+.stat-value {
+    font-size: 0.5rem;
+    min-width: 28px;
+    text-align: right;
+    color: rgba(255, 255, 255, 0.8);
 }
 
-.hp-fill.hp-medium {
-    background: linear-gradient(to bottom, #ff9800, #e65100);
+/* HP bar colors */
+.stat-bar.hp-bar.hp-high {
+    background: linear-gradient(to right, #4caf50, #66bb6a);
 }
 
-.hp-fill.hp-low {
-    background: linear-gradient(to bottom, #f44336, #b71c1c);
+.stat-bar.hp-bar.hp-medium {
+    background: linear-gradient(to right, #ff9800, #ffb74d);
+}
+
+.stat-bar.hp-bar.hp-low {
+    background: linear-gradient(to right, #f44336, #ef5350);
     animation: hp-pulse 0.5s ease-in-out infinite alternate;
 }
 
@@ -435,59 +483,107 @@
     to { opacity: 0.7; }
 }
 
-.hp-text {
-    color: #fff;
-    font-size: 0.65rem;
-    text-align: right;
-    margin-top: 2px;
+/* Mana bar color */
+.stat-bar.mana-bar {
+    background: linear-gradient(to right, #2196f3, #64b5f6);
 }
 
-/* === Mana/MP Bars === */
-.mana-container {
-    position: absolute;
-    width: 150px;
-    z-index: 100;
-    background: rgba(0, 0, 0, 0.7);
-    padding: 6px 10px;
-    border-radius: 6px;
-    display: none;
+/* Limit bar colors */
+.stat-bar.limit-bar {
+    background: linear-gradient(to right, #ff8c00, #ffc107);
 }
 
-.mana-container.player-mana {
-    bottom: calc(35% - 40px);
-    left: 10px;
+.stat-bar.limit-bar.limit-high {
+    background: linear-gradient(to right, #ffc107, #ffeb3b);
+    animation: limit-pulse 1s infinite;
 }
 
-.mana-label {
-    color: #7dd3fc;
-    font-size: 0.7rem;
-    font-weight: bold;
-    margin-bottom: 2px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+.stat-bar.limit-bar.limit-ready {
+    background: linear-gradient(to right, #ffd700, #ffff00);
+    animation: limit-ready-pulse 0.5s infinite;
 }
 
-.mana-bar {
+@keyframes limit-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+@keyframes limit-ready-pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 4px #ffd700; }
+    50% { opacity: 0.9; box-shadow: 0 0 10px #ffff00; }
+}
+
+/* Special styling for limit label */
+.stat-label.limit-label {
+    color: #ffd700;
+}
+
+/* Stagger bar (thin bar below stats) */
+.stagger-container {
+    margin-top: 4px;
+}
+
+.stagger-bar {
     width: 100%;
-    height: 10px;
-    background: #1e3a5f;
-    border-radius: 5px;
+    height: 3px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 2px;
     overflow: hidden;
-    position: relative;
 }
 
-.mana-fill {
+.stagger-fill {
     height: 100%;
-    background: linear-gradient(to bottom, #60a5fa, #2563eb);
-    transition: width 0.3s ease-out;
-    border-radius: 5px;
+    background: #ff9800;
+    transition: width 0.2s ease-out;
+    border-radius: 2px;
 }
 
-.mana-text {
-    color: #7dd3fc;
-    font-size: 0.65rem;
-    text-align: right;
-    margin-top: 2px;
+.stagger-fill.stagger-warning {
+    background: #ff5722;
+}
+
+.stagger-fill.stagger-danger {
+    background: #f44336;
+    animation: stagger-pulse 0.3s infinite;
+}
+
+@keyframes stagger-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* Status icons row */
+.status-icons {
+    display: block;
+    display: -webkit-flex;
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+
+.status-icons > * {
+    margin: 2px;
+}
+
+@supports (gap: 4px) {
+    .status-icons {
+        gap: 4px;
+    }
+    .status-icons > * {
+        margin: 0;
+    }
+}
+
+.status-icon {
+    font-size: 0.85rem;
+    cursor: help;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* === LEGACY COMPATIBILITY (for non-battle HP displays) === */
+.hp-container,
+.mana-container {
+    display: none;
 }
 
 /* === Damage Numbers === */
@@ -692,11 +788,15 @@
 
 .battle-log-content {
     flex: 1;
-    overflow-y: auto;
+    overflow: hidden;  /* No scrolling - show latest message only */
     padding: 8px;
     font-size: 0.95rem;
     line-height: 1.4;
     color: #fff;
+    display: flex;
+    display: -webkit-flex;
+    flex-direction: column;
+    justify-content: flex-end;  /* Align content to bottom */
 }
 
 .battle-log-content .roll-result {
@@ -714,20 +814,21 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr 1fr;
-    padding: 8px;
+    padding: 12px;
     flex-shrink: 0;
-    max-height: 50%;
+    flex: 1;
+    min-height: 100px;
 }
 
 /* Fallback spacing for browsers without gap support */
 .battle-choices > * {
-    margin: 4px;
+    margin: 6px;
 }
 
 /* Modern browsers: use gap and remove margin fallback */
-@supports (gap: 8px) {
+@supports (gap: 12px) {
     .battle-choices {
-        gap: 8px;
+        gap: 12px;
     }
     .battle-choices > * {
         margin: 0;
@@ -735,22 +836,16 @@
 }
 
 .battle-choices .choice-button {
-    padding: 10px 16px;
-    font-size: 0.9rem;
-    min-height: 40px;
+    padding: 14px 20px;
+    font-size: 1rem;
+    font-weight: bold;
+    min-height: 50px;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
-}
-
-/* Make defend and flee buttons visually distinct */
-.battle-choices .choice-button[data-action="defend"] {
-    background: rgba(100, 149, 237, 0.8);
-}
-
-.battle-choices .choice-button[data-action="flee"] {
-    background: rgba(169, 169, 169, 0.8);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .battle-choices .choice-button:disabled {
@@ -894,37 +989,6 @@
     50% { opacity: 0.7; }
 }
 
-/* === Stagger Bars === */
-.stagger-bar {
-    width: 100%;
-    height: 4px;
-    background: #222;
-    border-radius: 2px;
-    overflow: hidden;
-    margin-top: 4px;
-}
-
-.stagger-fill {
-    height: 100%;
-    background: linear-gradient(to right, #f39c12, #e67e22);
-    transition: width 0.3s ease-out;
-    border-radius: 2px;
-}
-
-.stagger-fill.stagger-warning {
-    background: linear-gradient(to right, #e67e22, #d35400);
-}
-
-.stagger-fill.stagger-danger {
-    background: linear-gradient(to right, #e74c3c, #c0392b);
-    animation: stagger-danger-pulse 0.5s ease-in-out infinite alternate;
-}
-
-@keyframes stagger-danger-pulse {
-    from { opacity: 1; }
-    to { opacity: 0.6; }
-}
-
 /* === Terrain Indicator === */
 .terrain-indicator {
     position: absolute;
@@ -1063,10 +1127,9 @@
     border-color: #2471a3;
 }
 
-.battle-choices .choice-button[data-action="item"],
-.battle-choices .choice-button[data-action="flee"] {
-    background: linear-gradient(to bottom, #7f8c8d, #6c7a89);
-    border-color: #5d6d7e;
+.battle-choices .choice-button[data-action="item"] {
+    background: linear-gradient(to bottom, #f39c12, #d68910);
+    border-color: #b9770e;
 }
 
 .battle-choices .choice-button:hover {
@@ -1113,94 +1176,6 @@
 .effectiveness-immune {
     color: #9e9e9e;
     font-style: italic;
-}
-
-/* === Limit Break System === */
-
-.limit-container {
-    display: block;
-    display: -webkit-flex;
-    display: flex;
-    align-items: center;
-    padding: 4px 8px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 4px;
-    margin-top: 4px;
-}
-
-/* Fallback spacing for browsers without gap support */
-.limit-container > * {
-    margin: 0 3px;
-}
-
-.limit-container > *:first-child {
-    margin-left: 0;
-}
-
-.limit-container > *:last-child {
-    margin-right: 0;
-}
-
-/* Modern browsers: use gap and remove margin fallback */
-@supports (gap: 6px) {
-    .limit-container {
-        gap: 6px;
-    }
-    .limit-container > * {
-        margin: 0;
-    }
-}
-
-.limit-label {
-    font-size: 0.6rem;
-    font-weight: bold;
-    color: #ffd700;
-    text-transform: uppercase;
-    min-width: 35px;
-}
-
-.limit-bar-outer {
-    flex: 1;
-    height: 8px;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 4px;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.limit-bar {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(to right, #ff8c00, #ffd700);
-    border-radius: 3px;
-    transition: width 0.3s ease;
-}
-
-.limit-bar.limit-high {
-    background: linear-gradient(to right, #ffa500, #ffff00);
-    animation: limit-pulse 1s infinite;
-}
-
-.limit-bar.limit-ready {
-    background: linear-gradient(to right, #ffd700, #ffff00, #ffffff);
-    animation: limit-ready-pulse 0.5s infinite;
-}
-
-.limit-text {
-    font-size: 0.6rem;
-    color: #ffd700;
-    min-width: 25px;
-    text-align: right;
-}
-
-@keyframes limit-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.8; }
-}
-
-@keyframes limit-ready-pulse {
-    0%, 100% { opacity: 1; box-shadow: 0 0 5px #ffd700; }
-    50% { opacity: 0.9; box-shadow: 0 0 15px #ffff00; }
 }
 
 /* Limit Break Animation Effect */

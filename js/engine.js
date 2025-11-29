@@ -258,11 +258,14 @@ const VNEngine = (function() {
                 state.playerMaxHP = battleState.player.maxHP;
                 state.battle = { active: true }; // Flag for engine to know battle is active
 
-                // Show battle choices in the battle UI panel (not normal choices container)
-                var scene = story[state.currentSceneId];
-                if (scene && scene.choices) {
-                    renderBattleChoices(scene.choices);
-                }
+                // Register callback for when battle UI is ready (after intro animation)
+                battleState.onBattleReady = function() {
+                    // Show battle choices in the battle UI panel (not normal choices container)
+                    var scene = story[state.currentSceneId];
+                    if (scene && scene.choices) {
+                        renderBattleChoices(scene.choices);
+                    }
+                };
             } else {
                 log.error('BattleEngine module not loaded');
             }
@@ -560,11 +563,14 @@ const VNEngine = (function() {
             return;
         }
 
+        // Ensure container is visible (may have been hidden by skill submenu)
+        battleChoicesContainer.style.display = '';
+
         battleChoicesContainer.innerHTML = '';
 
         // Remove any existing skill submenu
         var existingSubmenu = document.getElementById('skill-submenu');
-        if (existingSubmenu) {
+        if (existingSubmenu && existingSubmenu.parentNode) {
             existingSubmenu.parentNode.removeChild(existingSubmenu);
         }
 
@@ -608,6 +614,12 @@ const VNEngine = (function() {
                 // Special handling for skill action - show skill menu
                 if (action === 'skill') {
                     showSkillSubmenu(battleChoicesContainer, choices);
+                    return;
+                }
+
+                // Special handling for item action - show item menu
+                if (action === 'item') {
+                    showItemSubmenu(battleChoicesContainer, choices);
                     return;
                 }
 
@@ -698,6 +710,91 @@ const VNEngine = (function() {
         }
 
         // Hide main choices while showing skills
+        container.style.display = 'none';
+    }
+
+    /**
+     * Show item selection submenu
+     */
+    function showItemSubmenu(container, originalChoices) {
+        if (typeof BattleEngine === 'undefined') return;
+
+        // Create submenu
+        var submenu = document.createElement('div');
+        submenu.id = 'skill-submenu';
+        submenu.className = 'skill-submenu active';
+
+        var title = document.createElement('div');
+        title.className = 'skill-submenu-title';
+        title.textContent = 'Use Item';
+        submenu.appendChild(title);
+
+        var itemList = document.createElement('div');
+        itemList.className = 'skill-list';
+
+        // Get battle items from BattleEngine
+        var battleItems = BattleEngine.getBattleItems ? BattleEngine.getBattleItems() : [];
+        var hasItems = false;
+
+        battleItems.forEach(function(item) {
+            if (item.quantity <= 0) return;
+            hasItems = true;
+
+            var itemRow = document.createElement('div');
+            itemRow.className = 'skill-item';
+
+            var itemName = document.createElement('span');
+            itemName.className = 'skill-name';
+            itemName.textContent = item.name;
+
+            var itemQty = document.createElement('span');
+            itemQty.className = 'skill-cost';
+            itemQty.textContent = 'x' + item.quantity;
+
+            itemRow.appendChild(itemName);
+            itemRow.appendChild(itemQty);
+
+            itemRow.onclick = function() {
+                // Remove submenu
+                var menu = document.getElementById('skill-submenu');
+                if (menu) menu.parentNode.removeChild(menu);
+
+                // Execute item action
+                executeBattleAction('item', { itemId: item.id });
+            };
+
+            itemRow.title = item.description || '';
+            itemList.appendChild(itemRow);
+        });
+
+        // If no items, show empty message
+        if (!hasItems) {
+            var emptyMsg = document.createElement('div');
+            emptyMsg.className = 'skill-item disabled';
+            emptyMsg.innerHTML = '<span class="skill-name">No items available</span>';
+            itemList.appendChild(emptyMsg);
+        }
+
+        submenu.appendChild(itemList);
+
+        // Back button
+        var backBtn = document.createElement('button');
+        backBtn.className = 'skill-back-btn';
+        backBtn.textContent = '← Back';
+        backBtn.onclick = function() {
+            var menu = document.getElementById('skill-submenu');
+            if (menu) menu.parentNode.removeChild(menu);
+            renderBattleChoices(originalChoices);
+        };
+        submenu.appendChild(backBtn);
+
+        // Add to battle log panel (above choices)
+        var logPanel = document.getElementById('battle-log-panel');
+        if (logPanel) {
+            logPanel.insertBefore(submenu, container);
+        }
+
+        // Hide main choices while showing items
         container.style.display = 'none';
     }
 

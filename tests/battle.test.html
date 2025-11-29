@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battle System Tests - Andi VN</title>
+    <style>
+        body {
+            font-family: 'Consolas', 'Monaco', monospace;
+            background: #1e1e2e;
+            color: #e0e0e0;
+            padding: 20px;
+            margin: 0;
+        }
+        h1 {
+            color: #b08b5a;
+            border-bottom: 2px solid #b08b5a;
+            padding-bottom: 10px;
+        }
+        #test-output {
+            background: #2a2a3e;
+            padding: 20px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .pass { color: #4a4; }
+        .fail { color: #c44; }
+        .section { color: #6af; font-weight: bold; }
+        #summary {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 18px;
+        }
+        #summary.pass { background: rgba(74, 170, 74, 0.2); border: 2px solid #4a4; }
+        #summary.fail { background: rgba(204, 68, 68, 0.2); border: 2px solid #c44; }
+        button {
+            background: #b08b5a;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        button:hover { background: #c9a066; }
+
+        /* Mock VN container for UI tests */
+        #vn-container {
+            display: none;
+            width: 800px;
+            height: 450px;
+            background: #333;
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <h1>Battle System Tests</h1>
+    <button onclick="runAndDisplay()">Run Tests</button>
+    <div id="summary"></div>
+    <div id="test-output">Click "Run Tests" to begin...</div>
+
+    <!-- Mock VN container for battle UI -->
+    <div id="vn-container"></div>
+    <div id="sprite-layer"></div>
+
+    <!-- Load battle engine -->
+    <script src="../js/battle.js"></script>
+
+    <!-- Load tests -->
+    <script src="battle.test.js"></script>
+
+    <!-- Auto-run option -->
+    <script>
+        // Check if auto-run flag is set in URL
+        if (window.location.search.indexOf('autorun') > -1) {
+            window.onload = function() {
+                setTimeout(runAndDisplay, 500);
+            };
+        }
+    </script>
+
+    <script>
+        var originalLog = console.log;
+        var originalError = console.error;
+        var output = [];
+
+        function runAndDisplay() {
+            output = [];
+            document.getElementById('test-output').innerHTML = 'Running tests...\n';
+
+            // Capture console output
+            console.log = function() {
+                var args = Array.prototype.slice.call(arguments);
+                var text = args.join(' ');
+                output.push(text);
+                originalLog.apply(console, arguments);
+            };
+            console.error = function() {
+                var args = Array.prototype.slice.call(arguments);
+                var text = args.join(' ');
+                output.push('<span class="fail">' + text + '</span>');
+                originalError.apply(console, arguments);
+            };
+
+            // Run tests
+            runTests();
+
+            // Wait for async tests then display
+            setTimeout(function() {
+                // Format output
+                var formatted = output.map(function(line) {
+                    if (line.indexOf('---') === 0) {
+                        return '<span class="section">' + line + '</span>';
+                    }
+                    if (line.indexOf('FAIL') > -1) {
+                        return '<span class="fail">' + line + '</span>';
+                    }
+                    if (line.indexOf('Passed:') > -1) {
+                        return '<span class="pass">' + line + '</span>';
+                    }
+                    if (line.indexOf('Failed:') > -1 && line.indexOf('0') === -1) {
+                        return '<span class="fail">' + line + '</span>';
+                    }
+                    return line;
+                }).join('\n');
+
+                document.getElementById('test-output').innerHTML = formatted;
+
+                // Update summary
+                var summary = document.getElementById('summary');
+                if (TestRunner.failed === 0) {
+                    summary.className = 'pass';
+                    summary.textContent = 'All ' + TestRunner.passed + ' tests passed!';
+                } else {
+                    summary.className = 'fail';
+                    summary.textContent = TestRunner.failed + ' of ' + (TestRunner.passed + TestRunner.failed) + ' tests failed';
+                }
+
+                // Restore console
+                console.log = originalLog;
+                console.error = originalError;
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

@@ -57,7 +57,7 @@ Agnes lunges forward with surprising speed, her HR badge glinting under the red 
 
 ### Choices
 
-- Attack with your briefcase! (battle: attack) [sfx: thud.ogg] → agnes_battle
-- Use a skill! (battle: skill) [sfx: click.ogg] → agnes_battle
-- Defend yourself! (battle: defend) [sfx: click.ogg] → agnes_battle
-- Try to flee! (battle: flee) [sfx: footstep.ogg] → agnes_battle
+- Attack! (battle: attack) [sfx: thud.ogg] → agnes_battle
+- Skills (battle: skill) [sfx: click.ogg] → agnes_battle
+- Defend (battle: defend) [sfx: click.ogg] → agnes_battle
+- Item (battle: item) [sfx: click.ogg] → agnes_battle
