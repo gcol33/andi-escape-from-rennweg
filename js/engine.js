@@ -524,6 +524,18 @@ const VNEngine = (function() {
             // Callback after enemy turn - re-render choices for next turn
             var scene = story[state.currentSceneId];
             if (scene && BattleEngine.isActive()) {
+                // Remove any skill submenu that might be open
+                var existingSubmenu = document.getElementById('skill-submenu');
+                if (existingSubmenu) {
+                    existingSubmenu.parentNode.removeChild(existingSubmenu);
+                }
+
+                // Restore choices container display
+                var battleChoicesContainer = document.getElementById('battle-choices');
+                if (battleChoicesContainer) {
+                    battleChoicesContainer.style.display = '';
+                }
+
                 // Note: Battle log is updated by BattleEngine.updateBattleLog()
                 // We just need to re-render the choices
                 renderBattleChoices(scene.battle_actions || scene.choices);
@@ -549,6 +561,12 @@ const VNEngine = (function() {
         }
 
         battleChoicesContainer.innerHTML = '';
+
+        // Remove any existing skill submenu
+        var existingSubmenu = document.getElementById('skill-submenu');
+        if (existingSubmenu) {
+            existingSubmenu.parentNode.removeChild(existingSubmenu);
+        }
 
         if (!choices) return;
 
@@ -587,6 +605,12 @@ const VNEngine = (function() {
                     playSfx(choice.sfx);
                 }
 
+                // Special handling for skill action - show skill menu
+                if (action === 'skill') {
+                    showSkillSubmenu(battleChoicesContainer, choices);
+                    return;
+                }
+
                 // Consume items if specified
                 if (choice.uses && choice.uses.length > 0) {
                     removeItems(choice.uses);
@@ -598,6 +622,83 @@ const VNEngine = (function() {
 
             battleChoicesContainer.appendChild(button);
         });
+    }
+
+    /**
+     * Show skill selection submenu
+     */
+    function showSkillSubmenu(container, originalChoices) {
+        if (typeof BattleEngine === 'undefined') return;
+
+        // Create submenu
+        var submenu = document.createElement('div');
+        submenu.id = 'skill-submenu';
+        submenu.className = 'skill-submenu active';
+
+        var title = document.createElement('div');
+        title.className = 'skill-submenu-title';
+        title.textContent = 'Select Skill';
+        submenu.appendChild(title);
+
+        var skillList = document.createElement('div');
+        skillList.className = 'skill-list';
+
+        // Get available skills from BattleEngine
+        var playerSkills = BattleEngine.getPlayerSkills();
+        var battleState = BattleEngine.getState();
+        var currentMana = battleState.player.mana;
+
+        playerSkills.forEach(function(skill) {
+            var skillItem = document.createElement('div');
+            skillItem.className = 'skill-item' + (skill.canUse ? '' : ' disabled');
+
+            var skillName = document.createElement('span');
+            skillName.className = 'skill-name';
+            skillName.textContent = skill.name;
+
+            var skillCost = document.createElement('span');
+            skillCost.className = 'skill-cost' + (skill.canUse ? '' : ' insufficient');
+            skillCost.textContent = skill.manaCost + ' MP';
+
+            skillItem.appendChild(skillName);
+            skillItem.appendChild(skillCost);
+
+            if (skill.canUse) {
+                skillItem.onclick = function() {
+                    // Remove submenu
+                    var menu = document.getElementById('skill-submenu');
+                    if (menu) menu.parentNode.removeChild(menu);
+
+                    // Execute skill action
+                    executeBattleAction('skill', { skillId: skill.id });
+                };
+            }
+
+            skillItem.title = skill.description || '';
+            skillList.appendChild(skillItem);
+        });
+
+        submenu.appendChild(skillList);
+
+        // Back button
+        var backBtn = document.createElement('button');
+        backBtn.className = 'skill-back-btn';
+        backBtn.textContent = '← Back';
+        backBtn.onclick = function() {
+            var menu = document.getElementById('skill-submenu');
+            if (menu) menu.parentNode.removeChild(menu);
+            renderBattleChoices(originalChoices);
+        };
+        submenu.appendChild(backBtn);
+
+        // Add to battle log panel (above choices)
+        var logPanel = document.getElementById('battle-log-panel');
+        if (logPanel) {
+            logPanel.insertBefore(submenu, container);
+        }
+
+        // Hide main choices while showing skills
+        container.style.display = 'none';
     }
 
     // === DOM References ===
@@ -809,10 +910,15 @@ const VNEngine = (function() {
                 indicator.textContent = 'DEV MODE';
                 indicator.style.cssText = 'position: fixed; top: 10px; right: 10px; background: #00ff00; color: #000; padding: 5px 10px; font-size: 12px; font-weight: bold; border-radius: 3px; z-index: 9999;';
                 document.body.appendChild(indicator);
+
+                // Add click handler for portrait mode toggle
+                indicator.addEventListener('click', function() {
+                    toggleDevPanelPortrait();
+                });
             }
             indicator.style.display = 'block';
 
-            // Show theme selector in dev mode
+            // Show theme selector in dev mode (landscape only, portrait uses toggle)
             if (!themeSelector) {
                 createThemeSelector();
             } else {
@@ -824,14 +930,35 @@ const VNEngine = (function() {
         } else {
             if (indicator) {
                 indicator.style.display = 'none';
+                indicator.classList.remove('expanded');
             }
             // Hide theme selector
             if (themeSelector) {
                 themeSelector.classList.remove('visible');
+                themeSelector.classList.remove('portrait-expanded');
             }
 
             // Remove undo button from text controls
             removeUndoButton();
+        }
+    }
+
+    function toggleDevPanelPortrait() {
+        // Only toggle in portrait mode
+        if (window.matchMedia('(orientation: portrait)').matches) {
+            var indicator = document.getElementById('dev-mode-indicator');
+            var themeSelector = document.getElementById('theme-selector');
+
+            if (indicator && themeSelector) {
+                var isExpanded = indicator.classList.contains('expanded');
+                if (isExpanded) {
+                    indicator.classList.remove('expanded');
+                    themeSelector.classList.remove('portrait-expanded');
+                } else {
+                    indicator.classList.add('expanded');
+                    themeSelector.classList.add('portrait-expanded');
+                }
+            }
         }
     }
 

@@ -71,6 +71,7 @@ Andi/
 │
 ├─ js/
 │   ├─ engine.js
+│   ├─ battle.js       (battle system module)
 │   ├─ password.js     (password screen logic)
 │   ├─ story.js        (generated - do not edit manually)
 │   └─ theme.js        (generated - theme configuration)
@@ -998,7 +999,19 @@ VNEngine.getInventory();  // returns ['Master Key', ...]
 
 ## 19. Battle System
 
-The VN includes a DnD-inspired turn-based battle system for boss fights.
+The VN includes a Pokemon-style turn-based battle system with DnD d20 mechanics.
+
+### Features Overview
+
+- **Turn-based combat**: Player action → Enemy action → Repeat
+- **D20 attack rolls**: Roll + bonus vs AC, nat 20 crit, nat 1 fumble
+- **Mana system**: 20-40 MP pool for skills, Defend recovers MP
+- **Status effects**: Burn, Poison, Stun, Frozen, Bleed, Buffs
+- **Type advantages**: D&D-style vulnerabilities (2x) and resistances (0.5x)
+- **Smart Enemy AI**: Health-based decision making
+- **Stagger system**: Build up stagger to stun enemies
+- **Terrain effects**: Map modifiers that affect combat
+- **Skills**: Mana-cost abilities with status effects
 
 ### Starting a Battle
 
@@ -1014,24 +1027,64 @@ chars:
 actions:
   - type: start_battle
     player_max_hp: 20
+    player_max_mana: 20
     player_ac: 10
     player_attack_bonus: 2
-    player_damage: d8
+    player_damage: d6
+    player_skills:
+      - power_strike
+      - fireball
+      - heal
+      - fortify
+    terrain: none
     enemy:
       name: Agnes
       hp: 30
       ac: 12
       attack_bonus: 3
-      damage: d6
+      damage: d8
+      type: physical
+      ai: aggressive
+      stagger_threshold: 60
+      moves:
+        - name: Attack
+          damage: d8
+          type: physical
+        - name: Fire Breath
+          damage: 2d6
+          type: fire
+          statusEffect:
+            type: burn
+            chance: 0.3
     win_target: agnes_defeated
     lose_target: game_over_agnes
     flee_target: ran_away
 ---
-
-Agnes blocks your path!
-
-"You're not leaving without signing those papers!"
 ```
+
+### Battle Configuration Fields
+
+| Field | Required | Default | Description |
+|-------|----------|---------|-------------|
+| `player_max_hp` | No | 20 | Player starting HP |
+| `player_max_mana` | No | 20 | Player starting MP |
+| `player_ac` | No | 10 | Player Armor Class |
+| `player_attack_bonus` | No | 2 | Bonus to player attack rolls |
+| `player_damage` | No | d6 | Player base damage dice |
+| `player_skills` | No | power_strike, fireball, heal | Array of skill IDs |
+| `terrain` | No | none | Terrain type for battle |
+| `enemy.name` | Yes | Enemy | Enemy display name |
+| `enemy.hp` | No | 20 | Enemy HP |
+| `enemy.ac` | No | 12 | Enemy Armor Class |
+| `enemy.attack_bonus` | No | 3 | Enemy attack bonus |
+| `enemy.damage` | No | d6 | Enemy base damage |
+| `enemy.type` | No | physical | Enemy elemental type |
+| `enemy.ai` | No | default | AI behavior type |
+| `enemy.stagger_threshold` | No | 80 | Stagger needed to stun |
+| `enemy.moves` | No | basic attack | Array of enemy moves |
+| `win_target` | Yes | - | Scene ID on victory |
+| `lose_target` | Yes | - | Scene ID on defeat |
+| `flee_target` | No | null | Scene ID on successful flee |
 
 ### Battle Choices
 
@@ -1041,64 +1094,168 @@ Define battle actions in the choices section:
 ### Choices
 
 - Attack! (battle: attack) → battle_continue
+- Use a skill! (battle: skill) → battle_continue
 - Defend (battle: defend) → battle_continue
-- Drink Coffee (uses: Coffee Mug, heals: 5, battle: item) → battle_continue
 - Run Away (battle: flee) → battle_continue
 ```
 
 Battle action types:
-- `attack`: Roll attack vs enemy AC, deal damage on hit
-- `defend`: Gain +4 AC until next turn
-- `flee`: Roll DC 14, escape to flee_target on success
+- `attack`: Roll d20 + bonus vs enemy AC, deal damage on hit
+- `skill`: Opens skill selection submenu (uses mana)
+- `defend`: Gain +4 AC until next turn, recover 2-4 MP
+- `flee`: Roll d20, need 10+ to escape to flee_target
 - `item`: Use item (with `heals` for HP restoration)
 
 ### Combat Mechanics
 
 **Attack Rolls:**
 - Roll d20 + attack bonus vs target AC
+- Add status effect bonuses (attack_up: +2)
+- Subtract terrain penalties (darkness: -2)
 - Natural 20: Critical hit (double damage, always hits)
 - Natural 1: Critical fumble (always misses)
 
-**Damage:**
-- Supports dice notation: `d6`, `2d8`, `d10+2`
-- Critical hits double the damage rolled
+**Damage Calculation:**
+1. Roll damage dice (e.g., 2d6)
+2. Add status damage bonus (attack_up: +2)
+3. Apply type multiplier (2x, 1x, 0.5x, or 0x)
+4. Apply terrain multiplier (e.g., lava boosts fire 25%)
+5. Double on critical hit
+6. Minimum 1 damage
 
 **Turn Order:**
-1. Player selects action
-2. Player action resolves (with visual feedback)
-3. Short delay
-4. Enemy attacks (auto-roll)
-5. Battle continues or ends
+1. Player status effects tick (DOT damage, duration -1)
+2. Check if player can act (not stunned/frozen)
+3. Player selects and executes action
+4. Check if enemy defeated
+5. Enemy status effects tick
+6. Check if enemy can act
+7. Enemy AI selects and executes action
+8. Check if player defeated
+9. Next turn
+
+### Available Skills
+
+| Skill ID | Name | MP | Type | Effect |
+|----------|------|-----|------|--------|
+| power_strike | Power Strike | 3 | physical | 2d6 damage, +1 attack |
+| whirlwind | Whirlwind | 5 | physical | 1d8 damage |
+| fireball | Fireball | 4 | fire | 2d6 damage, 30% burn |
+| flame_burst | Flame Burst | 6 | fire | 3d4 damage, 50% burn |
+| ice_shard | Ice Shard | 3 | ice | 1d8 damage, 20% freeze |
+| blizzard | Blizzard | 7 | ice | 2d6 damage, 40% freeze |
+| shock | Shock | 3 | lightning | 1d10 damage, 25% stun |
+| thunderbolt | Thunderbolt | 6 | lightning | 2d8 damage, 35% stun |
+| toxic_strike | Toxic Strike | 2 | poison | 1d4 damage, 60% poison |
+| venom_spray | Venom Spray | 4 | poison | 1d6 damage, 80% 2x poison |
+| smite | Smite | 4 | holy | 2d6 holy damage |
+| heal | Heal | 4 | - | Heal 2d4+2 HP |
+| regenerate | Regenerate | 5 | - | Apply regen buff |
+| fortify | Fortify | 3 | - | +2 AC for 2 turns |
+| empower | Empower | 3 | - | +2 attack/damage for 3 turns |
+
+### Status Effects
+
+| Status | Icon | Duration | Effect |
+|--------|------|----------|--------|
+| Burn | 🔥 | 3 turns | 2 damage/turn |
+| Poison | ☠️ | 4 turns | 1 damage/turn (stacks) |
+| Stun | ⚡ | 1 turn | Skip turn |
+| Frozen | ❄️ | 2 turns | Skip turn, -2 AC |
+| Bleed | 🩸 | 3 turns | 1 damage/turn, +1 when attacking |
+| Defense Up | 🛡️ | 2 turns | +2 AC |
+| Attack Up | ⚔️ | 3 turns | +2 attack and damage |
+| Regen | 💚 | 3 turns | Heal 2 HP/turn |
+
+### Type Chart
+
+| Attack ↓ / Defender → | Physical | Fire | Ice | Lightning | Poison | Psychic | Holy | Dark |
+|----------------------|----------|------|-----|-----------|--------|---------|------|------|
+| Physical | 1x | 1x | 1x | 1x | 1x | 1x | 1x | 1x |
+| Fire | 1x | 0.5x | 2x | 1x | 1x | 1x | 1x | 1x |
+| Ice | 1x | 0.5x | 0.5x | 2x | 1x | 1x | 1x | 1x |
+| Lightning | 1x | 1x | 0.5x | 0.5x | 1x | 1x | 1x | 1x |
+| Poison | 1x | 1x | 1x | 1x | 0.5x | 2x | 1x | 1x |
+| Psychic | 1x | 1x | 1x | 1x | 1x | 0.5x | 1x | 0x |
+| Holy | 1x | 1x | 1x | 1x | 1x | 1x | 0.5x | 2x |
+| Dark | 1x | 1x | 1x | 1x | 1x | 2x | 0.5x | 0.5x |
+
+### Terrain Types
+
+| Terrain | Icon | Effect |
+|---------|------|--------|
+| none | - | No effects |
+| lava | 🌋 | Fire +25%, Ice -25%, +20% burn chance |
+| ice | 🧊 | Ice +25%, Fire -25%, +20% freeze chance |
+| swamp | 🐸 | Poison +25%, +30% poison chance |
+| storm | ⛈️ | Lightning +25%, +15% stun chance |
+| holy_ground | ✨ | Holy +50%, Dark -50%, 1 HP regen/turn |
+| darkness | 🌑 | Dark +50%, Holy -50%, -2 accuracy |
+
+### Enemy AI Types
+
+| AI Type | Behavior |
+|---------|----------|
+| default | Smart: heal when low (<25%), buff when high (>75%), go for kill when player low |
+| aggressive | Always attacks, prefers high-damage moves |
+| defensive | Heals when <30% HP, buffs when >70% HP |
+| support | 50% chance to use status moves, heals when <40% HP |
+
+### Stagger System
+
+- Each hit adds stagger to target (damage / 2)
+- When stagger reaches threshold, target is stunned
+- Stagger decays 10-20 per turn
+- Defending reduces stagger by 15
 
 ### Visual Feedback
 
-- **HP Bars**: Player HP (bottom-left), Enemy HP (top-right, shows name)
-- **Damage Numbers**: Float up from target when hit
-- **Damage Flash**: Sprites flash red when hit
-- **HP Colors**: Green (>50%), Orange (25-50%), Red (<25%, pulses)
-- **Battle Log**: Shows hit/miss/damage text
+- **HP/MP Bars**: Player (bottom-left), Enemy (top-right)
+- **Stagger Bar**: Orange bar below HP, turns red when high
+- **Status Icons**: Displayed next to HP with duration tooltips
+- **Terrain Indicator**: Shows at top-center when active
+- **Damage Numbers**: Float up from target (red damage, green heal, purple DOT)
+- **Attack Effects**: Type-colored flash overlay on hit
+- **Damage Flash**: Sprites flash when hit
+- **Screen Shake**: Container shakes when player hit
+- **Battle Log**: Shows rolls, damage, status messages
 
-### HP Persistence
+### HP/MP Persistence
 
-- Player HP persists across scenes (saved to localStorage)
-- HP only initializes on first battle encounter
+- Player HP/MP persist across scenes (saved to localStorage)
+- HP/MP only initializes on first battle encounter
 - HP can be restored via `heals` modifier on choices
+- MP recovers 2-4 when defending
 
-### Engine API
+### BattleEngine API
 
 ```javascript
-// Get current HP
-VNEngine.getHP();     // returns number or null
-VNEngine.getMaxHP();  // returns max HP
+// Check if battle active
+BattleEngine.isActive();
 
-// Heal the player
-VNEngine.heal(10);
+// Get player stats
+BattleEngine.getPlayerStats();  // { hp, maxHP, mana, maxMana }
+BattleEngine.getPlayerSkills(); // [{ id, name, manaCost, canUse }]
 
-// Damage the player
-VNEngine.damage(5);   // returns true if still alive
+// Execute action
+BattleEngine.executeAction('attack', { move: {...} }, callback);
+BattleEngine.executeAction('skill', { skillId: 'fireball' }, callback);
+BattleEngine.executeAction('defend', {}, callback);
+BattleEngine.executeAction('item', { heals: 5 }, callback);
+BattleEngine.executeAction('flee', {}, callback);
 
-// Initialize HP (usually automatic)
-VNEngine.initHP(20);
+// Status effects
+BattleEngine.applyStatusTo('player', 'burn', 1);
+BattleEngine.applyStatusTo('enemy', 'poison', 2);
+
+// Healing
+BattleEngine.healPlayer(10);
+BattleEngine.restoreMana(5);
+
+// Get definitions
+BattleEngine.skills;         // All skill definitions
+BattleEngine.statusEffects;  // All status effect definitions
+BattleEngine.terrainTypes;   // All terrain definitions
 ```
 
 ---
@@ -1121,3 +1278,129 @@ Default: `andi_vn_save`
 ### Reset Options
 - **Play Again** (game over): Resets flags, inventory, HP, but keeps read history
 - **Reset Progress** (↺ button): Full reset including read history
+
+---
+
+## 21. Testing & Quality Assurance
+
+### Automated Tests
+
+Run tests from the project root:
+
+```bash
+# Run battle system tests (177 tests)
+node tests/run-tests.js
+
+# Run theme CSS validation tests (126 tests)
+node tests/run-theme-tests.js
+```
+
+### Manual Testing Checklist
+
+#### Core VN Functionality
+- [ ] Password screen accepts correct password
+- [ ] Password screen shows errors on wrong attempts
+- [ ] Text blocks display with typewriter effect
+- [ ] Continue button advances text
+- [ ] Choice buttons appear after final text block
+- [ ] Choices navigate to correct scenes
+- [ ] Backgrounds load and transition smoothly
+- [ ] Character sprites display correctly
+- [ ] Music plays and loops
+- [ ] Sound effects play on choices (with `[sfx: ...]`)
+- [ ] Mute button works
+- [ ] Speed controls work (Normal, Fast, Auto, Skip)
+
+#### Battle System
+- [ ] Battle intro transition plays (screen dim, "Battle Start!" text, flash)
+- [ ] HP bars display for player and enemy
+- [ ] Mana bar displays and updates correctly
+- [ ] Attack action: roll shows, hit/miss feedback, damage numbers float up
+- [ ] Skill menu opens and shows available skills with mana costs
+- [ ] Skills consume mana correctly
+- [ ] Defend action: shows +4 AC message, recovers MP
+- [ ] Flee action: shows roll, success/failure result
+- [ ] Status effects: icons display, duration ticks down
+- [ ] Stagger bar fills on damage
+- [ ] Limit Break bar fills over battle
+- [ ] Victory outro: screen effect, "Victory!" text, sparkles
+- [ ] Defeat outro: screen effect, "Defeated" text
+- [ ] Battle transitions to correct win/lose/flee scenes
+
+#### Sound Cues (Battle)
+- [ ] Battle start alert sound plays
+- [ ] Dice roll sound on attacks
+- [ ] Hit sound (thud) on successful attacks
+- [ ] Miss sound on failed attacks
+- [ ] Critical hit sound (success)
+- [ ] Fumble sound (failure)
+- [ ] Heal sound (success) on healing
+- [ ] Defend click sound
+- [ ] Victory fanfare on win
+- [ ] Defeat sound on loss
+- [ ] Type-specific sounds (fire=zap, ice=chain, etc.)
+
+#### Theme Testing
+- [ ] Each theme loads without CSS errors
+- [ ] Theme selector (dev mode) switches themes live
+- [ ] Battle UI renders correctly in each theme
+- [ ] HP/MP bars visible in all themes
+- [ ] Choice buttons readable in all themes
+- [ ] Text box visible and readable in all themes
+
+#### Browser Compatibility
+- [ ] Chrome (latest) - full functionality
+- [ ] Firefox (latest) - full functionality
+- [ ] Safari (latest) - full functionality
+- [ ] Edge (latest) - full functionality
+- [ ] Mobile Safari (iOS) - touch, audio autoplay policy
+- [ ] Chrome Mobile (Android) - touch, audio autoplay policy
+
+#### Edge Cases
+- [ ] Rapid clicking during transitions doesn't break state
+- [ ] Refreshing during battle resumes correctly (or resets gracefully)
+- [ ] Very long text blocks scroll within text box
+- [ ] Multiple status effects stack correctly
+- [ ] Mana can't go negative
+- [ ] HP can't exceed max HP
+- [ ] Empty inventory doesn't show inventory panel
+
+### Battle Balance Testing
+
+Test the Agnes (HR) battle specifically:
+
+| Metric | Target | Method |
+|--------|--------|--------|
+| Win rate | ~60-70% | Play 10 times with varied strategies |
+| Turns to win | 5-8 | Track average fight length |
+| Near-death moments | 1-2 per fight | Exciting but not frustrating |
+| Skill variety | Use all skills | All skills should be situationally useful |
+| Flee success | ~50% | Roll-based, feels fair |
+
+### Performance Testing
+
+- [ ] Initial load time < 3 seconds
+- [ ] Scene transitions < 500ms
+- [ ] No memory leaks during long sessions
+- [ ] Battle animations run at 60fps
+- [ ] Audio doesn't clip or lag
+
+### Accessibility
+
+- [ ] Text readable at default font size
+- [ ] Sufficient color contrast
+- [ ] Buttons have clear hover/focus states
+- [ ] Game playable with keyboard (arrow keys, enter)
+
+### Pre-Release Checklist
+
+1. [ ] Run `python tools/build_story_from_md.py` to generate story.js
+2. [ ] Run `node tests/run-tests.js` - all 177 tests pass
+3. [ ] Run `node tests/run-theme-tests.js` - all 126 tests pass
+4. [ ] Test password (correct + 5 wrong attempts)
+5. [ ] Play through main story path
+6. [ ] Test at least one battle encounter
+7. [ ] Test on mobile device
+8. [ ] Verify all assets load (no 404 errors in console)
+9. [ ] Remove any debug console.log statements
+10. [ ] Verify dev mode is hidden by default
