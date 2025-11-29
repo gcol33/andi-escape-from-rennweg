@@ -258,10 +258,10 @@ const VNEngine = (function() {
                 state.playerMaxHP = battleState.player.maxHP;
                 state.battle = { active: true }; // Flag for engine to know battle is active
 
-                // Show battle choices after starting
+                // Show battle choices in the battle UI panel (not normal choices container)
                 var scene = story[state.currentSceneId];
                 if (scene && scene.choices) {
-                    renderChoices(scene.choices);
+                    renderBattleChoices(scene.choices);
                 }
             } else {
                 log.error('BattleEngine module not loaded');
@@ -521,10 +521,11 @@ const VNEngine = (function() {
 
         // Execute action through BattleEngine
         BattleEngine.executeAction(action, choice, function(resultText) {
-            // Callback after enemy turn - update UI and show choices
+            // Callback after enemy turn - re-render choices for next turn
             var scene = story[state.currentSceneId];
             if (scene && BattleEngine.isActive()) {
-                elements.storyOutput.innerHTML = resultText;
+                // Note: Battle log is updated by BattleEngine.updateBattleLog()
+                // We just need to re-render the choices
                 renderBattleChoices(scene.battle_actions || scene.choices);
 
                 // Sync HP state
@@ -536,13 +537,20 @@ const VNEngine = (function() {
     }
 
     /**
-     * Render battle action choices
+     * Render battle action choices into the battle UI panel
      * @param {array} choices - Battle choices from scene
      */
     function renderBattleChoices(choices) {
-        elements.choicesContainer.innerHTML = '';
+        // Get the battle choices container (inside battle UI)
+        var battleChoicesContainer = document.getElementById('battle-choices');
+        if (!battleChoicesContainer) {
+            log.warn('Battle choices container not found');
+            return;
+        }
 
-        if (!choices || !state.battle || !state.battle.active) return;
+        battleChoicesContainer.innerHTML = '';
+
+        if (!choices) return;
 
         // Filter choices by item requirements and items to use
         var availableChoices = choices.filter(function(choice) {
@@ -560,6 +568,10 @@ const VNEngine = (function() {
             var button = document.createElement('button');
             button.className = 'choice-button battle-action';
 
+            // Determine action type: explicit battle_action, or 'item' if heals, otherwise 'attack'
+            var action = choice.battle_action || (choice.heals ? 'item' : 'attack');
+            button.setAttribute('data-action', action);
+
             var labelText = choice.label;
             if (choice.uses && choice.uses.length > 0) {
                 labelText += ' [Uses: ' + choice.uses.join(', ') + ']';
@@ -570,17 +582,21 @@ const VNEngine = (function() {
             button.textContent = labelText;
 
             button.onclick = function() {
+                // Play SFX if specified
+                if (choice.sfx) {
+                    playSfx(choice.sfx);
+                }
+
                 // Consume items if specified
                 if (choice.uses && choice.uses.length > 0) {
                     removeItems(choice.uses);
                 }
 
-                // Execute the battle action
-                var action = choice.battle_action || 'attack';
+                // Execute the battle action (pass choice for heals/damage info)
                 executeBattleAction(action, choice);
             };
 
-            elements.choicesContainer.appendChild(button);
+            battleChoicesContainer.appendChild(button);
         });
     }
 
