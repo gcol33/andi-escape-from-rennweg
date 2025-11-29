@@ -26,107 +26,6 @@ const story = {
       }
     ]
   },
-  "demo_dice_fail": {
-    "id": "demo_dice_fail",
-    "bg": "hallway_fluorescent.jpg",
-    "music": "oh_oh.mp3",
-    "textBlocks": [
-      "**Failed!**\n\nThe door remains stubbornly closed. Better luck next time!",
-      "Don't worry - you can always try again with a different approach."
-    ],
-    "choices": [
-      {
-        "label": "Try a different approach",
-        "target": "demo_dice_choice",
-        "sfx": "footstep.ogg"
-      },
-      {
-        "label": "Go back to the hub",
-        "target": "demo_start",
-        "sfx": "footstep.ogg"
-      }
-    ]
-  },
-  "demo_battle_talk_fail": {
-    "id": "demo_battle_talk_fail",
-    "bg": "office_corridor.jpg",
-    "music": "OH_SHIT.mp3",
-    "chars": [
-      "agnes_angry.svg"
-    ],
-    "textBlocks": [
-      "Your words fall flat. Agnes's eye twitches.\n\n\"Did you just... did you really just say that?!\"",
-      "She cracks her knuckles ominously.\n\n\"That's IT. We're doing this the HARD way!\"",
-      "**Diplomacy failed!** Prepare for battle!"
-    ],
-    "choices": [
-      {
-        "label": "Brace yourself!",
-        "target": "demo_battle",
-        "sfx": "alert.ogg"
-      }
-    ]
-  },
-  "demo_defeat": {
-    "id": "demo_defeat",
-    "bg": "office_corridor.jpg",
-    "music": "game_over.mp3",
-    "chars": [
-      "agnes_victorious.svg"
-    ],
-    "textBlocks": [
-      "**DEFEAT!**\n\nYou collapse to the ground, exhausted.\n\nAgnes stands over you triumphantly.",
-      "\"Maybe next time you'll think twice before crossing me!\"\n\nShe walks away, leaving you to recover.",
-      "**Game Over** - But don't worry, this is just a demo!\n\nIn the real game, defeat scenes can lead to different story paths."
-    ],
-    "choices": [
-      {
-        "label": "Try the battle again",
-        "target": "demo_battle_intro",
-        "sfx": "click.ogg"
-      },
-      {
-        "label": "Return to demo hub",
-        "target": "demo_start",
-        "sfx": "footstep.ogg"
-      }
-    ]
-  },
-  "demo_use_key": {
-    "id": "demo_use_key",
-    "bg": "hallway_dim.jpg",
-    "music": "spooky.mp3",
-    "remove_items": [
-      "Secret Key"
-    ],
-    "textBlocks": [
-      "**Secret Key Used!**\n\nYou insert the Secret Key into a hidden panel. It clicks open!\n\nThe key crumbles to dust after use (removed from inventory).",
-      "This demonstrates **require_items** (choice only appeared because you had the key) and **remove_items** (scene removes item on entry)."
-    ],
-    "choices": [
-      {
-        "label": "Interesting!",
-        "target": "demo_inventory",
-        "sfx": "click.ogg"
-      }
-    ]
-  },
-  "demo_eat_snack": {
-    "id": "demo_eat_snack",
-    "bg": "office_kitchen.jpg",
-    "music": "coffee.mp3",
-    "textBlocks": [
-      "**Snack Eaten!**\n\nYou munch on the snack bar. Not bad for office food!",
-      "Another item consumed. In a battle, you could use items like this to heal!"
-    ],
-    "choices": [
-      {
-        "label": "Continue",
-        "target": "demo_inventory",
-        "sfx": "click.ogg"
-      }
-    ]
-  },
   "lost_to_HR": {
     "id": "lost_to_HR",
     "bg": "bedroom_morning.jpg",
@@ -135,37 +34,6 @@ const story = {
       "You wake up in your apartment, startled. The clock says 7:00 AM.\n\nYou feel an inexplicable dread about the long commute ahead of you.\n\nYou remember nothing about a \"new job\" or a \"last day.\" You are stuck in an endless loop of yesterday.\n\n**You lost the game.**"
     ],
     "choices": []
-  },
-  "demo_battle_talk": {
-    "id": "demo_battle_talk",
-    "bg": "office_corridor.jpg",
-    "music": "questioning.mp3",
-    "chars": [
-      "agnes_angry.svg"
-    ],
-    "actions": [
-      {
-        "type": "roll_dice",
-        "dice": "d20",
-        "threshold": 15,
-        "modifier": "disadvantage",
-        "skill": "Persuasion",
-        "crit_text": "\"Your words are so moving, Agnes tears up!\"",
-        "fumble_text": "\"You accidentally insult her mother!\"",
-        "success_target": "demo_battle_avoided",
-        "failure_target": "demo_battle_talk_fail"
-      }
-    ],
-    "textBlocks": [
-      "You try to calm Agnes down with words...\n\n\"Look, I'm sure we can work this out...\"\n\n**Persuasion Check with Disadvantage** - Agnes is VERY angry!"
-    ],
-    "choices": [
-      {
-        "label": "Attempt persuasion",
-        "target": "_roll",
-        "sfx": "click.ogg"
-      }
-    ]
   },
   "fourth_floor_elevator": {
     "id": "fourth_floor_elevator",
@@ -187,22 +55,6 @@ const story = {
       }
     ]
   },
-  "demo_drink_coffee": {
-    "id": "demo_drink_coffee",
-    "bg": "office_kitchen.jpg",
-    "music": "coffee.mp3",
-    "textBlocks": [
-      "**Coffee Consumed!**\n\nYou drink the coffee. It's lukewarm but still hits the spot.\n\nNotice the floating notification showing the item was used, and check your inventory - the Coffee Mug is gone!",
-      "The **uses:** modifier consumed the item when you selected that choice."
-    ],
-    "choices": [
-      {
-        "label": "Continue",
-        "target": "demo_inventory",
-        "sfx": "click.ogg"
-      }
-    ]
-  },
   "corridor_safe": {
     "id": "corridor_safe",
     "bg": "back_stairwell_dim.jpg",
@@ -215,84 +67,6 @@ const story = {
         "label": "Continue down to the main entrance.",
         "target": "exit_lobby",
         "sfx": "footstep.ogg"
-      }
-    ]
-  },
-  "demo_victory": {
-    "id": "demo_victory",
-    "bg": "office_corridor.jpg",
-    "music": "victory.mp3",
-    "chars": [
-      "agnes_surprised.svg"
-    ],
-    "add_items": [
-      "Trophy of Victory"
-    ],
-    "textBlocks": [
-      "**VICTORY!**\n\nAgnes staggers back, defeated.\n\n\"Okay, okay! I give up! You win!\"",
-      "She dusts herself off, looking impressed despite herself.\n\n\"I have to admit... you're tougher than you look.\"",
-      "You obtained a **Trophy of Victory**!\n\n(Check your inventory - battle rewards work just like regular items!)"
-    ],
-    "choices": [
-      {
-        "label": "Return to demo hub",
-        "target": "demo_start",
-        "sfx": "success.ogg"
-      },
-      {
-        "label": "Try the battle again",
-        "target": "demo_battle_intro",
-        "sfx": "click.ogg"
-      }
-    ]
-  },
-  "demo_fled": {
-    "id": "demo_fled",
-    "bg": "hallway_dim.jpg",
-    "music": "running_escape.mp3",
-    "textBlocks": [
-      "**ESCAPED!**\n\nYou turn and run as fast as your legs can carry you!",
-      "Agnes's angry shouts echo behind you, but you're already gone.\n\n\"GET BACK HERE, COWARD!\"",
-      "Sometimes discretion is the better part of valor...\n\n(Fleeing lets you avoid battles, but you won't get victory rewards!)"
-    ],
-    "choices": [
-      {
-        "label": "Return to demo hub",
-        "target": "demo_start",
-        "sfx": "footstep.ogg"
-      },
-      {
-        "label": "Go back and fight",
-        "target": "demo_battle_intro",
-        "sfx": "click.ogg"
-      }
-    ]
-  },
-  "demo_dice_disadvantage": {
-    "id": "demo_dice_disadvantage",
-    "bg": "hallway_fluorescent.jpg",
-    "music": "dicey_decisions.mp3",
-    "actions": [
-      {
-        "type": "roll_dice",
-        "dice": "d20",
-        "threshold": 10,
-        "modifier": "disadvantage",
-        "skill": "Hacking",
-        "crit_text": "\"Against all odds, you're in!\"",
-        "fumble_text": "\"The system locks you out permanently!\"",
-        "success_target": "demo_dice_success",
-        "failure_target": "demo_dice_fail"
-      }
-    ],
-    "textBlocks": [
-      "The keypad looks ancient and glitchy. This won't be easy...\n\n**Roll with Disadvantage**: Rolling 2d20 and taking the LOWEST result.\n\nThis makes success much harder (and fumbles more likely)!"
-    ],
-    "choices": [
-      {
-        "label": "Attempt the hack",
-        "target": "_roll",
-        "sfx": "click.ogg"
       }
     ]
   },
@@ -311,75 +85,6 @@ const story = {
         "label": "The long-term employment trap has sprung.",
         "target": "lost_to_coffee",
         "sfx": "chain.ogg"
-      }
-    ]
-  },
-  "demo_battle_intro": {
-    "id": "demo_battle_intro",
-    "bg": "office_corridor.jpg",
-    "music": "oh_oh.mp3",
-    "chars": [
-      "agnes_angry.svg"
-    ],
-    "textBlocks": [
-      "**Battle Demo**\n\nOh no! Agnes is blocking your path!\n\nShe looks furious about some missing paperwork...",
-      "**Battle System Features:**\n- HP bars for you and the enemy\n- Attack, Defend, Flee, and Item actions\n- D&D-style combat (d20 + bonus vs AC)\n- Critical hits (nat 20) and fumbles (nat 1)\n- Items can heal you mid-battle"
-    ],
-    "choices": [
-      {
-        "label": "Face her in battle!",
-        "target": "demo_battle",
-        "sfx": "alert.ogg"
-      },
-      {
-        "label": "Maybe try to talk first?",
-        "target": "demo_battle_talk",
-        "sfx": "click.ogg"
-      }
-    ]
-  },
-  "demo_inventory": {
-    "id": "demo_inventory",
-    "bg": "office_kitchen.jpg",
-    "music": "coffee.mp3",
-    "textBlocks": [
-      "**Inventory Demo**\n\nYou're in the break room. Your current items are shown in the top-left.\n\nLet's test the inventory system:\n\n- **require_items**: Some choices only appear if you have specific items\n- **uses**: Some choices consume items when selected",
-      "Try the options below. Notice how some choices appear or disappear based on your inventory!"
-    ],
-    "choices": [
-      {
-        "label": "Drink the coffee",
-        "target": "demo_drink_coffee",
-        "uses": [
-          "Coffee Mug"
-        ],
-        "sfx": "gulp.ogg"
-      },
-      {
-        "label": "Eat the snack",
-        "target": "demo_eat_snack",
-        "uses": [
-          "Snack Bar"
-        ],
-        "sfx": "gulp.ogg"
-      },
-      {
-        "label": "Use the Secret Key",
-        "target": "demo_use_key",
-        "require_items": [
-          "Secret Key"
-        ],
-        "sfx": "click.ogg"
-      },
-      {
-        "label": "Find more items",
-        "target": "demo_find_items",
-        "sfx": "footstep.ogg"
-      },
-      {
-        "label": "Go back",
-        "target": "demo_start",
-        "sfx": "footstep.ogg"
       }
     ]
   },
@@ -436,26 +141,6 @@ const story = {
       }
     ]
   },
-  "demo_battle_avoided": {
-    "id": "demo_battle_avoided",
-    "bg": "office_corridor.jpg",
-    "music": "zen.mp3",
-    "chars": [
-      "agnes_surprised.svg"
-    ],
-    "textBlocks": [
-      "Agnes pauses, her anger melting away.\n\n\"You know what... you're right. I've been so stressed about the deadline.\"",
-      "She takes a deep breath.\n\n\"I'm sorry for snapping at you. Let's just... start over?\"",
-      "**Crisis averted!** Sometimes words are mightier than the sword.\n\n(You avoided the battle entirely through diplomacy!)"
-    ],
-    "choices": [
-      {
-        "label": "Return to demo hub",
-        "target": "demo_start",
-        "sfx": "footstep.ogg"
-      }
-    ]
-  },
   "corridor_delayed": {
     "id": "corridor_delayed",
     "bg": "office_corridor.jpg",
@@ -477,34 +162,6 @@ const story = {
         "label": "Say \"I don't have time!\" and run for the stairs.",
         "target": "corridor_safe",
         "sfx": "footstep.ogg"
-      }
-    ]
-  },
-  "demo_dice_advantage": {
-    "id": "demo_dice_advantage",
-    "bg": "hallway_fluorescent.jpg",
-    "music": "dicey_decisions.mp3",
-    "actions": [
-      {
-        "type": "roll_dice",
-        "dice": "d20",
-        "threshold": 14,
-        "modifier": "advantage",
-        "skill": "Athletics",
-        "crit_text": "\"The door flies off its hinges!\"",
-        "fumble_text": "\"You hurt your shoulder badly!\"",
-        "success_target": "demo_dice_success",
-        "failure_target": "demo_dice_fail"
-      }
-    ],
-    "textBlocks": [
-      "You take a few steps back and prepare to shoulder-charge the door!\n\n**Roll with Advantage**: Rolling 2d20 and taking the HIGHEST result.\n\nThis gives you a better chance of success (and crits)!"
-    ],
-    "choices": [
-      {
-        "label": "CHARGE!",
-        "target": "_roll",
-        "sfx": "thud.ogg"
       }
     ]
   },
@@ -534,60 +191,6 @@ const story = {
         "label": "Say, \"FUCK OFF.\"",
         "target": "corridor_safe",
         "sfx": "door_slam.ogg"
-      }
-    ]
-  },
-  "demo_dice_success": {
-    "id": "demo_dice_success",
-    "bg": "hallway_dim.jpg",
-    "music": "i_can_do_it.mp3",
-    "add_items": [
-      "Secret Key"
-    ],
-    "textBlocks": [
-      "**Success!**\n\nThe door swings open, revealing a hidden storage room.\n\nYou find a **Secret Key** inside! (Check your inventory)",
-      "This key might come in handy later..."
-    ],
-    "choices": [
-      {
-        "label": "Continue exploring",
-        "target": "demo_start",
-        "sfx": "footstep.ogg"
-      },
-      {
-        "label": "Try the battle demo",
-        "target": "demo_battle_intro",
-        "sfx": "click.ogg"
-      }
-    ]
-  },
-  "demo_start": {
-    "id": "demo_start",
-    "bg": "office_kitchen.jpg",
-    "music": "coffee.mp3",
-    "add_items": [
-      "Coffee Mug",
-      "Snack Bar"
-    ],
-    "textBlocks": [
-      "**DEMO: Game Mechanics Showcase**\n\nWelcome to the game mechanics demo! This mini-quest will show you:\n\n- **Inventory System** - You just picked up a Coffee Mug and Snack Bar!\n- **Enhanced Dice Rolls** - With advantage, disadvantage, and crits\n- **Battle System** - Turn-based combat with HP bars",
-      "Look at the top-left corner - you can see your inventory panel.\n\nLet's test these systems out!"
-    ],
-    "choices": [
-      {
-        "label": "Test the dice roll system",
-        "target": "demo_dice_choice",
-        "sfx": "click.ogg"
-      },
-      {
-        "label": "Jump straight to battle",
-        "target": "demo_battle_intro",
-        "sfx": "click.ogg"
-      },
-      {
-        "label": "Test inventory mechanics",
-        "target": "demo_inventory",
-        "sfx": "click.ogg"
       }
     ]
   },
@@ -639,36 +242,6 @@ const story = {
       {
         "label": "Try to walk around Agnes, pretending not to hear.",
         "target": "attempt_pass",
-        "sfx": "footstep.ogg"
-      }
-    ]
-  },
-  "demo_dice_choice": {
-    "id": "demo_dice_choice",
-    "bg": "hallway_fluorescent.jpg",
-    "music": "dicey_decisions.mp3",
-    "textBlocks": [
-      "**Dice Roll Demo**\n\nYou approach a locked door. There are several ways to get through...\n\nChoose your approach to see different dice roll mechanics:"
-    ],
-    "choices": [
-      {
-        "label": "Pick the lock (normal roll)",
-        "target": "demo_dice_normal",
-        "sfx": "click.ogg"
-      },
-      {
-        "label": "Force it open (roll with advantage)",
-        "target": "demo_dice_advantage",
-        "sfx": "click.ogg"
-      },
-      {
-        "label": "Try to hack the keypad (roll with disadvantage)",
-        "target": "demo_dice_disadvantage",
-        "sfx": "click.ogg"
-      },
-      {
-        "label": "Go back",
-        "target": "demo_start",
         "sfx": "footstep.ogg"
       }
     ]
@@ -727,57 +300,6 @@ const story = {
       }
     ]
   },
-  "demo_find_items": {
-    "id": "demo_find_items",
-    "bg": "office_kitchen.jpg",
-    "music": "coffee.mp3",
-    "add_items": [
-      "Energy Drink",
-      "Bandage"
-    ],
-    "textBlocks": [
-      "**Items Found!**\n\nYou rummage through the cabinets and find an **Energy Drink** and a **Bandage**!\n\nThese will be useful in battle - you can use them to heal."
-    ],
-    "choices": [
-      {
-        "label": "Nice! Back to inventory demo",
-        "target": "demo_inventory",
-        "sfx": "click.ogg"
-      },
-      {
-        "label": "Head to battle!",
-        "target": "demo_battle_intro",
-        "sfx": "click.ogg"
-      }
-    ]
-  },
-  "demo_dice_normal": {
-    "id": "demo_dice_normal",
-    "bg": "hallway_fluorescent.jpg",
-    "music": "dicey_decisions.mp3",
-    "actions": [
-      {
-        "type": "roll_dice",
-        "dice": "d20",
-        "threshold": 12,
-        "skill": "Sleight of Hand",
-        "crit_text": "\"The lock practically opens itself!\"",
-        "fumble_text": "\"You break your lockpick AND set off an alarm!\"",
-        "success_target": "demo_dice_success",
-        "failure_target": "demo_dice_fail"
-      }
-    ],
-    "textBlocks": [
-      "You pull out your lockpicking tools and get to work...\n\n**Normal Roll**: Rolling a d20 against DC 12.\n\nWatch for critical hits (nat 20) and fumbles (nat 1)!"
-    ],
-    "choices": [
-      {
-        "label": "Roll the dice!",
-        "target": "_roll",
-        "sfx": "dice_roll.ogg"
-      }
-    ]
-  },
   "document_refusal": {
     "id": "document_refusal",
     "bg": "hallway_red_alert.jpg",
@@ -804,73 +326,6 @@ const story = {
       "You sit down and dive into the code. The problem is deep, fascinating, and consumes your entire focus.\n\nYou hear the door swing shut, but you don't look up. You solve the bug, then another, and another.\n\nNext time you check the time, the digital clock reads: **2035**.\n\nYou cannot remember the names of the people who asked you for help. You have merged with the job.\n\n**You lost the game.**"
     ],
     "choices": []
-  },
-  "demo_battle": {
-    "id": "demo_battle",
-    "bg": "office_corridor.jpg",
-    "music": "BOSS_TIME.mp3",
-    "chars": [
-      "agnes_angry.svg"
-    ],
-    "actions": [
-      {
-        "type": "start_battle",
-        "enemy_name": "Agnes",
-        "enemy_hp": 30,
-        "enemy_max_hp": 30,
-        "enemy_attack": 6,
-        "enemy_defense": 12,
-        "player_attack": 4,
-        "player_defense": 10,
-        "victory_target": "demo_victory",
-        "defeat_target": "demo_defeat",
-        "flee_target": "demo_fled"
-      }
-    ],
-    "textBlocks": [
-      "**BATTLE START!**\n\nAgnes assumes a fighting stance!\n\n\"You asked for this!\"",
-      "Choose your action wisely. Attack to deal damage, Defend to reduce incoming damage, or try to Flee!\n\nIf you picked up healing items earlier, you can use them too!"
-    ],
-    "choices": [
-      {
-        "label": "Attack!",
-        "target": "_battle",
-        "sfx": "thud.ogg",
-        "battle_action": "attack"
-      },
-      {
-        "label": "Defend",
-        "target": "_battle",
-        "sfx": "click.ogg",
-        "battle_action": "defend"
-      },
-      {
-        "label": "Try to Flee",
-        "target": "_battle",
-        "sfx": "footstep.ogg",
-        "battle_action": "flee"
-      },
-      {
-        "label": "Use Coffee",
-        "target": "_battle",
-        "uses": [
-          "Coffee"
-        ],
-        "sfx": "gulp.ogg",
-        "heals": 5,
-        "battle_action": "item"
-      },
-      {
-        "label": "Use Energy Bar",
-        "target": "_battle",
-        "uses": [
-          "Energy Bar"
-        ],
-        "sfx": "gulp.ogg",
-        "heals": 8,
-        "battle_action": "item"
-      }
-    ]
   }
 };
 
