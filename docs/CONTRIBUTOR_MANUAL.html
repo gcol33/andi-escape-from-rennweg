@@ -4,11 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Andi VN - Contributor Manual</title>
+    <script>
+        // Load theme configuration and apply theme class before body renders
+        (function() {
+            var script = document.createElement('script');
+            script.src = '../js/theme.js';
+            script.async = false;
+            document.head.appendChild(script);
+            script.onload = function() {
+                if (typeof themeConfig !== 'undefined' && themeConfig.selected === 'prototype') {
+                    document.body.classList.add('theme-prototype');
+                }
+            };
+        })();
+    </script>
     <style>
 
 /* ============================================
-   90s MANUAL STYLESHEET
-   Windows 3.1 / Early Mac Aesthetic
+   MANUAL STYLESHEET - Theme Support
+   Default: 90s Windows 3.1 Aesthetic
+   Alternative: Prototype (warm beige)
    ============================================ */
 
 @font-face {
@@ -16,6 +31,7 @@
     src: local('MS Sans Serif'), local('Segoe UI'), local('Tahoma');
 }
 
+/* Default (90s) theme variables */
 :root {
     --win-bg: #c0c0c0;
     --win-dark: #808080;
@@ -25,6 +41,32 @@
     --win-cyan: #008080;
     --text-color: #000000;
     --page-bg: #008080;
+}
+
+/* Prototype theme - warm beige VN style */
+body.theme-prototype {
+    --win-bg: #f2e7d5;
+    --win-dark: #d3c2a8;
+    --win-light: #fffbe9;
+    --win-darkest: #4b3e2a;
+    --win-blue: #b08b5a;
+    --win-cyan: #c9a066;
+    --text-color: #4b3e2a;
+    --page-bg: #f2e7d5;
+    font-family: 'Georgia', 'Times New Roman', serif;
+}
+
+body.theme-prototype .win-titlebar {
+    background: linear-gradient(90deg, #b08b5a, #c9a066);
+}
+
+body.theme-prototype .win-window {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(75, 62, 42, 0.2);
+}
+
+body.theme-prototype .win-buttons span {
+    border-radius: 3px;
 }
 
 * {

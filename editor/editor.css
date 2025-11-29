@@ -15,6 +15,7 @@ html.loaded {
     box-sizing: border-box;
 }
 
+/* Default theme (prototype - dark mode for editor) */
 :root {
     --bg-primary: #1e1e2e;
     --bg-secondary: #2a2a3e;
@@ -30,6 +31,126 @@ html.loaded {
     --danger-hover: #d55;
     --success: #4a4;
     --warning: #ca4;
+    --btn-radius: 4px;
+    --input-radius: 4px;
+}
+
+/* 90s Theme - Windows 3.1 aesthetic */
+body.theme-90s {
+    --bg-primary: #008080;
+    --bg-secondary: #c0c0c0;
+    --bg-tertiary: #d4d4d4;
+    --text-primary: #000000;
+    --text-secondary: #404040;
+    --text-muted: #808080;
+    --accent: #000080;
+    --accent-hover: #0000a0;
+    --accent-dark: #000060;
+    --border: #808080;
+    --danger: #aa0000;
+    --danger-hover: #cc0000;
+    --success: #008000;
+    --warning: #808000;
+    --btn-radius: 0;
+    --input-radius: 0;
+    font-family: 'MS Sans Serif', 'Segoe UI', Tahoma, sans-serif;
+}
+
+/* 90s button styling */
+body.theme-90s button {
+    border-radius: 0;
+    border: 2px solid;
+    border-color: #fff #808080 #808080 #fff;
+}
+
+body.theme-90s button:active:not(:disabled) {
+    border-color: #808080 #fff #fff #808080;
+}
+
+body.theme-90s .btn-primary {
+    background: #c0c0c0;
+    color: #000;
+}
+
+body.theme-90s .btn-primary:hover:not(:disabled) {
+    background: #d4d4d4;
+}
+
+body.theme-90s .btn-secondary {
+    background: #c0c0c0;
+    color: #000;
+}
+
+body.theme-90s input,
+body.theme-90s select,
+body.theme-90s textarea {
+    border-radius: 0;
+    border: 2px solid;
+    border-color: #808080 #fff #fff #808080;
+    background: #fff;
+    color: #000;
+}
+
+/* 90s panel headers look like title bars */
+body.theme-90s .panel-header {
+    background: linear-gradient(90deg, #000080, #008080);
+    color: #fff;
+}
+
+body.theme-90s .panel-header h2 {
+    color: #fff;
+}
+
+body.theme-90s #canvas-toolbar {
+    background: #c0c0c0;
+    border-bottom: 2px solid;
+    border-color: #fff #808080 #808080 #fff;
+}
+
+body.theme-90s .panel-section {
+    border-bottom: 2px solid;
+    border-color: #fff #808080 #808080 #fff;
+}
+
+body.theme-90s #preview-textbox {
+    background: #c0c0c0;
+    border-top: 2px solid #fff;
+}
+
+body.theme-90s .text-nav-btn {
+    background: #c0c0c0;
+    color: #000;
+    border: 2px solid;
+    border-color: #fff #808080 #808080 #fff;
+    border-radius: 0;
+}
+
+body.theme-90s .text-nav-btn:hover:not(:disabled) {
+    background: #d4d4d4;
+}
+
+body.theme-90s #preview-text {
+    color: #000;
+}
+
+body.theme-90s #text-block-indicator {
+    color: #000;
+}
+
+/* 90s scrollbars */
+body.theme-90s ::-webkit-scrollbar {
+    width: 16px;
+    height: 16px;
+}
+
+body.theme-90s ::-webkit-scrollbar-track {
+    background: #c0c0c0;
+}
+
+body.theme-90s ::-webkit-scrollbar-thumb {
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #fff #808080 #808080 #fff;
 }
 
 body {

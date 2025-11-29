@@ -5,6 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Andi VN - Scene Editor</title>
     <link rel="stylesheet" href="editor.css">
+    <script>
+        // Load theme configuration and apply theme class before body renders
+        (function() {
+            var script = document.createElement('script');
+            script.src = '../js/theme.js';
+            script.async = false;
+            document.head.appendChild(script);
+            script.onload = function() {
+                if (typeof themeConfig !== 'undefined' && themeConfig.selected === '90s') {
+                    document.body.classList.add('theme-90s');
+                }
+            };
+        })();
+    </script>
 </head>
 <body>
     <div id="app">
