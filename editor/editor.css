@@ -137,6 +137,58 @@ body.theme-90s #text-block-indicator {
     color: #000;
 }
 
+/* 90s scene list panel */
+body.theme-90s #scene-list-panel {
+    background: #c0c0c0;
+}
+
+body.theme-90s #scene-search input {
+    background: #fff;
+    color: #000;
+}
+
+body.theme-90s #scene-search input::placeholder {
+    color: #808080;
+}
+
+body.theme-90s .scene-item {
+    color: #000;
+}
+
+body.theme-90s .scene-item .scene-icon {
+    color: #404040;
+}
+
+body.theme-90s .scene-item:hover {
+    background: #d4d4d4;
+}
+
+body.theme-90s .scene-item.active {
+    background: #d4d4d4;
+}
+
+/* 90s properties panel */
+body.theme-90s #properties-panel {
+    background: #c0c0c0;
+}
+
+body.theme-90s .panel-section h3,
+body.theme-90s .panel-section h4 {
+    color: #000;
+}
+
+body.theme-90s label {
+    color: #000;
+}
+
+body.theme-90s .hint {
+    color: #404040;
+}
+
+body.theme-90s .placeholder {
+    color: #606060;
+}
+
 /* 90s scrollbars */
 body.theme-90s ::-webkit-scrollbar {
     width: 16px;

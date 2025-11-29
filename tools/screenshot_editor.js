@@ -35,12 +35,12 @@ async function takeScreenshot() {
     // Wait a bit for any animations/rendering
     await new Promise(r => setTimeout(r, 500));
 
-    // Click on "demo_battle" scene to show battle features
+    // Click on "agnes_battle" scene to show battle features
     await page.evaluate(() => {
-        // Find and click the demo_battle scene in the list
+        // Find and click the agnes_battle scene in the list
         const sceneItems = document.querySelectorAll('#scene-list .scene-item');
         for (const item of sceneItems) {
-            if (item.textContent.includes('demo_battle') && !item.textContent.includes('avoided') && !item.textContent.includes('intro') && !item.textContent.includes('talk')) {
+            if (item.textContent.includes('agnes_battle') && !item.textContent.includes('defeated')) {
                 item.click();
                 break;
             }
