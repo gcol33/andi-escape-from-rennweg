@@ -2631,7 +2631,19 @@ var BattleEngine = (function() {
             elements.battleLog = document.getElementById('battle-log-content');
         }
         if (elements.battleLog) {
-            elements.battleLog.innerHTML = html;
+            // Only show the LAST battle-log message (extract last one from accumulated HTML)
+            var temp = document.createElement('div');
+            temp.innerHTML = html;
+            var allLogs = temp.querySelectorAll('.battle-log');
+            if (allLogs.length > 0) {
+                // Get only the last log entry
+                var lastLog = allLogs[allLogs.length - 1];
+                elements.battleLog.innerHTML = '';
+                elements.battleLog.appendChild(lastLog.cloneNode(true));
+            } else {
+                // Fallback - show all if no battle-log divs found
+                elements.battleLog.innerHTML = html;
+            }
         }
     }
 

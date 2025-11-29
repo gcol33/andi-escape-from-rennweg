@@ -375,14 +375,28 @@
 /* === BATTLE STATS PANELS (Unified HP/Mana/Limit) === */
 /* Clean, theme-aware stat panels for battle UI */
 
+/* Theme-aware color variables - themes can override these */
+:root {
+    --battle-hp-high: #4caf50;
+    --battle-hp-medium: #ff9800;
+    --battle-hp-low: #f44336;
+    --battle-mana: #2196f3;
+    --battle-limit: #ff8c00;
+    --battle-limit-ready: #ffd700;
+    --battle-panel-bg: rgba(0, 0, 0, 0.85);
+    --battle-panel-border: rgba(255, 255, 255, 0.3);
+    --battle-text: #fff;
+    --battle-text-dim: rgba(255, 255, 255, 0.7);
+}
+
 .battle-stats-panel {
     position: absolute;
-    width: 170px;
+    width: 200px;
     z-index: 100;
-    padding: 10px 12px;
+    padding: 12px 14px;
     /* Base styling - themes SHOULD override these */
-    background: rgba(0, 0, 0, 0.8);
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: var(--battle-panel-bg);
+    border: 2px solid var(--battle-panel-border);
     border-radius: 6px;
 }
 
@@ -398,14 +412,14 @@
 
 /* Panel header (character name) */
 .stats-header {
-    font-size: 0.7rem;
+    font-size: 0.85rem;
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 1px;
-    margin-bottom: 8px;
-    padding-bottom: 4px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    color: #fff;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--battle-panel-border);
+    color: var(--battle-text);
 }
 
 /* Stat row layout: [Label] [Bar] [Value] */
@@ -435,16 +449,16 @@
 }
 
 .stat-label {
-    font-size: 0.55rem;
+    font-size: 0.7rem;
     font-weight: bold;
     text-transform: uppercase;
-    min-width: 18px;
-    color: rgba(255, 255, 255, 0.7);
+    min-width: 22px;
+    color: var(--battle-text-dim);
 }
 
 .stat-bar-outer {
     flex: 1;
-    height: 8px;
+    height: 12px;
     background: rgba(0, 0, 0, 0.5);
     border-radius: 4px;
     overflow: hidden;
@@ -458,23 +472,23 @@
 }
 
 .stat-value {
-    font-size: 0.5rem;
-    min-width: 28px;
+    font-size: 0.65rem;
+    min-width: 36px;
     text-align: right;
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--battle-text);
 }
 
-/* HP bar colors */
+/* HP bar colors - use CSS variables for theme override */
 .stat-bar.hp-bar.hp-high {
-    background: linear-gradient(to right, #4caf50, #66bb6a);
+    background: var(--battle-hp-high);
 }
 
 .stat-bar.hp-bar.hp-medium {
-    background: linear-gradient(to right, #ff9800, #ffb74d);
+    background: var(--battle-hp-medium);
 }
 
 .stat-bar.hp-bar.hp-low {
-    background: linear-gradient(to right, #f44336, #ef5350);
+    background: var(--battle-hp-low);
     animation: hp-pulse 0.5s ease-in-out infinite alternate;
 }
 
@@ -485,21 +499,21 @@
 
 /* Mana bar color */
 .stat-bar.mana-bar {
-    background: linear-gradient(to right, #2196f3, #64b5f6);
+    background: var(--battle-mana);
 }
 
 /* Limit bar colors */
 .stat-bar.limit-bar {
-    background: linear-gradient(to right, #ff8c00, #ffc107);
+    background: var(--battle-limit);
 }
 
 .stat-bar.limit-bar.limit-high {
-    background: linear-gradient(to right, #ffc107, #ffeb3b);
+    background: var(--battle-limit-ready);
     animation: limit-pulse 1s infinite;
 }
 
 .stat-bar.limit-bar.limit-ready {
-    background: linear-gradient(to right, #ffd700, #ffff00);
+    background: var(--battle-limit-ready);
     animation: limit-ready-pulse 0.5s infinite;
 }
 
@@ -509,8 +523,8 @@
 }
 
 @keyframes limit-ready-pulse {
-    0%, 100% { opacity: 1; box-shadow: 0 0 4px #ffd700; }
-    50% { opacity: 0.9; box-shadow: 0 0 10px #ffff00; }
+    0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--battle-limit-ready); }
+    50% { opacity: 0.9; box-shadow: 0 0 10px var(--battle-limit-ready); }
 }
 
 /* Special styling for limit label */
@@ -777,17 +791,18 @@
     bottom: 0;
     left: 0;
     right: 0;
-    height: 32%;
+    height: 42%;
     background: rgba(0, 0, 0, 0.85);
     border-top: 3px solid rgba(255, 255, 255, 0.3);
     display: flex;
     flex-direction: column;
-    padding: 12px;
+    padding: 8px 12px;
     box-sizing: border-box;
 }
 
 .battle-log-content {
-    flex: 1;
+    height: 60px;
+    flex-shrink: 0;
     overflow: hidden;  /* No scrolling - show latest message only */
     padding: 8px;
     font-size: 0.95rem;
@@ -796,7 +811,7 @@
     display: flex;
     display: -webkit-flex;
     flex-direction: column;
-    justify-content: flex-end;  /* Align content to bottom */
+    justify-content: center;  /* Center content vertically */
 }
 
 .battle-log-content .roll-result {

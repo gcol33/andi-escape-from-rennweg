@@ -13,6 +13,18 @@
     --win-cyan: #008080;
     --text-color: #000000;
     --page-bg: #008080;
+
+    /* Battle system - Windows 3.1 colors */
+    --battle-hp-high: #00aa00;
+    --battle-hp-medium: #aaaa00;
+    --battle-hp-low: #aa0000;
+    --battle-mana: #0000aa;
+    --battle-limit: #aa8800;
+    --battle-limit-ready: #ffff00;
+    --battle-panel-bg: var(--win-bg);
+    --battle-panel-border: var(--win-dark);
+    --battle-text: var(--text-color);
+    --battle-text-dim: #404040;
 }
 
 /* === Password Overlay (Windows 3.1 style) === */

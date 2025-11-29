@@ -1182,6 +1182,14 @@ const VNEngine = (function() {
             return false;
         }
 
+        // If battle is active, end it and go back to previous scene
+        if (typeof BattleEngine !== 'undefined' && BattleEngine.isActive()) {
+            console.log('Undo during battle - ending battle');
+            BattleEngine.destroyUI();
+            BattleEngine.reset();
+            // Continue to undo logic to go back to previous scene
+        }
+
         // Check if we can undo BEFORE stopping typewriter
         // Can't undo if we're at block 0 of the first scene
         if (state.currentBlockIndex === 0 && state.history.length <= 1) {
