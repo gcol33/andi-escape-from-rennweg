@@ -6,7 +6,25 @@
  * Or link separately in HTML before theme CSS
  */
 
+/* === Z-Index Scale ===
+ * All z-index values should use these variables for consistency.
+ * Layer order (bottom to top):
+ *   background → sprites → theme-deco → text-box → battle-ui → overlay → modal
+ */
+:root {
+    --z-background: 1;
+    --z-sprites: 2;
+    --z-theme-deco: 10;      /* Theme decorations (triangles, borders, etc.) */
+    --z-text-box: 20;        /* Main text box and controls */
+    --z-battle-ui: 30;       /* Battle stats panels, HP bars */
+    --z-battle-effects: 40;  /* Damage numbers, hit effects */
+    --z-overlay: 100;        /* Dice rolls, transitions */
+    --z-dev-tools: 500;      /* Dev mode indicator, theme selector */
+    --z-modal: 1000;         /* Password screen, popups */
+}
+
 /* === Typography Magic Numbers === */
+/* :root continued */
 :root {
     /* Base font size - responsive with min/max bounds */
     --base-font-size-fallback: 18px;
@@ -27,6 +45,13 @@
     --spacing-md: 12px;
     --spacing-lg: 16px;
     --spacing-xl: 20px;
+
+    /* Button styling - themes should override these */
+    --btn-bg: rgba(100, 100, 100, 0.7);
+    --btn-bg-hover: rgba(120, 120, 120, 0.8);
+    --btn-color: #fff;
+    --btn-border: 1px solid rgba(255, 255, 255, 0.3);
+    --btn-border-radius: 4px;
 }
 
 /* Pixel font themes need smaller base sizes */
@@ -46,6 +71,25 @@
     max-width: 80%;
 }
 
+/* === Dev Mode Indicator === */
+#dev-mode-indicator {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: #00ff00;
+    color: #000;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 3px;
+    z-index: var(--z-dev-tools);
+    display: none;
+}
+
+#dev-mode-indicator.visible {
+    display: block;
+}
+
 /* === Theme Selector Base Styles ===
  * Default styling - individual themes override colors via their CSS files
  */
@@ -54,7 +98,7 @@
     top: 40px;
     right: 10px;
     padding: 8px;
-    z-index: 9999;
+    z-index: var(--z-dev-tools);
     font-size: 12px;
     font-family: inherit;
     display: none;
@@ -73,6 +117,65 @@
     font-size: 12px;
     padding: 4px 8px;
     cursor: pointer;
+}
+
+/* === Reset Button (Base Styles) ===
+ * Positioned fixed in corner. Themes override colors.
+ */
+#reset-btn {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    width: 44px;
+    height: 44px;
+    background: rgba(100, 100, 100, 0.8);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: var(--z-modal);
+    transition: background 0.2s, transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#reset-btn:hover {
+    background: rgba(120, 120, 120, 0.9);
+    transform: scale(1.05);
+}
+
+#reset-btn:active {
+    transform: scale(0.95);
+}
+
+/* === Password Lockout Message ===
+ * Displayed when user exceeds max failed password attempts.
+ * Positioned center of password container.
+ */
+#lockout-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--lockout-bg, rgba(75, 62, 42, 0.95));
+    color: var(--lockout-color, #fffbe9);
+    padding: 20px 30px;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    text-align: center;
+    z-index: var(--z-modal);
+    animation: fadeIn 0.3s ease-out;
+    display: none;
+}
+
+#lockout-message.visible {
+    display: block;
+}
+
+#password-inputs.dimmed {
+    opacity: 0.3;
 }
 
 /* === Animated Background Video ===
@@ -293,6 +396,73 @@
     #dev-mode-indicator.expanded::after {
         content: ' ▲';
     }
+
+    /* Reset button to top-left in portrait */
+    #reset-btn {
+        top: 10px !important;
+        bottom: auto !important;
+        left: 10px !important;
+        right: auto !important;
+        /* Safe area for iPhone notch */
+        top: max(10px, env(safe-area-inset-top, 10px)) !important;
+        left: max(10px, env(safe-area-inset-left, 10px)) !important;
+    }
+
+    /* Battle stats panels - smaller on portrait */
+    .battle-stats-panel {
+        min-width: 140px !important;
+        padding: 8px 10px !important;
+        font-size: 0.8rem !important;
+    }
+
+    .battle-stats-panel .stats-header {
+        font-size: 0.7rem !important;
+        margin-bottom: 6px !important;
+    }
+
+    .battle-stats-panel .stat-row {
+        margin-bottom: 4px !important;
+    }
+
+    .battle-stats-panel .stat-label {
+        font-size: 0.6rem !important;
+        min-width: 18px !important;
+    }
+
+    .battle-stats-panel .stat-bar-outer {
+        height: 10px !important;
+    }
+
+    .battle-stats-panel .stat-value {
+        font-size: 0.55rem !important;
+        min-width: 30px !important;
+    }
+
+    /* Player stats - position higher to avoid text box overlap */
+    .battle-stats-panel.player-stats {
+        bottom: calc(var(--battle-log-height) + 15px) !important;
+        left: 5px !important;
+    }
+
+    /* Enemy stats - smaller gap from top */
+    .battle-stats-panel.enemy-stats {
+        top: 5px !important;
+        right: 5px !important;
+    }
+
+    /* Safe area padding for iPhone home indicator */
+    .battle-log-panel {
+        padding-bottom: max(8px, env(safe-area-inset-bottom, 8px)) !important;
+    }
+
+    #text-box {
+        padding-bottom: max(8px, env(safe-area-inset-bottom, 8px)) !important;
+    }
+
+    /* VN container safe area margins */
+    #vn-container {
+        padding-bottom: env(safe-area-inset-bottom, 0) !important;
+    }
 }
 
 /* === GAME MECHANICS STYLES === */
@@ -306,7 +476,7 @@
     padding: 8px 12px;
     border-radius: 8px;
     display: none;
-    z-index: 100;
+    z-index: var(--z-battle-ui);
     max-width: 200px;
 }
 
@@ -340,7 +510,7 @@
     border-radius: 8px;
     font-size: 1rem;
     font-weight: bold;
-    z-index: 10000;
+    z-index: var(--z-modal);
     opacity: 0;
     transition: opacity 0.3s, transform 0.3s;
     pointer-events: none;
@@ -377,6 +547,9 @@
 
 /* Theme-aware color variables - themes can override these */
 :root {
+    /* Battle log panel height - used for positioning player stats above it */
+    --battle-log-height: 46%;
+
     --battle-hp-high: #4caf50;
     --battle-hp-medium: #ff9800;
     --battle-hp-low: #f44336;
@@ -391,8 +564,9 @@
 
 .battle-stats-panel {
     position: absolute;
-    width: 200px;
-    z-index: 100;
+    min-width: 200px;
+    width: auto;
+    z-index: var(--z-battle-ui);
     padding: 12px 14px;
     /* Base styling - themes SHOULD override these */
     background: var(--battle-panel-bg);
@@ -401,7 +575,8 @@
 }
 
 .battle-stats-panel.player-stats {
-    bottom: 34%;
+    /* Position just above the battle log panel with a small gap */
+    bottom: calc(var(--battle-log-height) + 10px);
     left: 10px;
 }
 
@@ -417,9 +592,14 @@
     text-transform: uppercase;
     letter-spacing: 1px;
     margin-bottom: 10px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid var(--battle-panel-border);
     color: var(--battle-text);
+    white-space: nowrap;
+}
+
+.stats-header .ac-display {
+    font-weight: normal;
+    font-size: 0.75rem;
+    opacity: 0.7;
 }
 
 /* Stat row layout: [Label] [Bar] [Value] */
@@ -532,9 +712,9 @@
     color: #ffd700;
 }
 
-/* Stagger bar (thin bar below stats) */
+/* Stagger bar - HIDDEN (system disabled for simplicity) */
 .stagger-container {
-    margin-top: 4px;
+    display: none;
 }
 
 .stagger-bar {
@@ -606,7 +786,7 @@
     position: absolute;
     font-size: 1.5rem;
     font-weight: bold;
-    z-index: 200;
+    z-index: var(--z-battle-effects);
     pointer-events: none;
     animation: damage-float 1.5s ease-out forwards;
 }
@@ -717,7 +897,7 @@
 /* === Battle Log === */
 .battle-log {
     padding: 8px 12px;
-    margin-bottom: 8px;
+    margin-bottom: 0;
     border-radius: 6px;
     background: rgba(0, 0, 0, 0.3);
     border-left: 3px solid #4caf50;
@@ -771,7 +951,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 100;
+    z-index: var(--z-battle-ui);
     pointer-events: none;
 }
 
@@ -791,7 +971,7 @@
     bottom: 0;
     left: 0;
     right: 0;
-    height: 42%;
+    height: var(--battle-log-height);
     background: rgba(0, 0, 0, 0.85);
     border-top: 3px solid rgba(255, 255, 255, 0.3);
     display: flex;
@@ -801,12 +981,12 @@
 }
 
 .battle-log-content {
-    height: 60px;
-    flex-shrink: 0;
+    min-height: 70px;
+    flex: 0 1 auto;
     overflow: hidden;  /* No scrolling - show latest message only */
-    padding: 8px;
+    padding: 10px 12px;
     font-size: 0.95rem;
-    line-height: 1.4;
+    line-height: 1.5;
     color: #fff;
     display: flex;
     display: -webkit-flex;
@@ -851,10 +1031,10 @@
 }
 
 .battle-choices .choice-button {
-    padding: 14px 20px;
-    font-size: 1rem;
+    padding: 10px 14px;
+    font-size: 0.9rem;
     font-weight: bold;
-    min-height: 50px;
+    min-height: 42px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -876,7 +1056,7 @@
     right: 0;
     bottom: 0;
     pointer-events: none;
-    z-index: 150;
+    z-index: var(--z-battle-effects);
     animation: attack-flash 0.6s ease-out forwards;
 }
 
@@ -1016,7 +1196,7 @@
     color: #fff;
     font-size: 0.85rem;
     font-weight: bold;
-    z-index: 110;
+    z-index: var(--z-battle-ui);
     display: none;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
     border: 2px solid rgba(255, 255, 255, 0.2);
@@ -1035,56 +1215,68 @@
     text-shadow: 2px 2px 0 #000, -1px -1px 0 #000;
 }
 
-/* === Skill Menu (sub-menu for skill selection) === */
+/* === Skill Menu (replaces battle choices in battle-log-panel) === */
 .skill-submenu {
-    position: absolute;
-    bottom: 100%;
-    left: 0;
-    right: 0;
-    background: rgba(0, 0, 0, 0.95);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
     padding: 12px;
-    margin-bottom: 8px;
-    display: none;
-    z-index: 200;
-}
-
-.skill-submenu.active {
-    display: block;
+    overflow: hidden;
 }
 
 .skill-submenu-title {
     color: #ffd700;
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     font-weight: bold;
     margin-bottom: 8px;
     text-align: center;
     text-transform: uppercase;
     letter-spacing: 1px;
+    flex-shrink: 0;
 }
 
 .skill-list {
+    /* Fallback for older browsers */
     display: flex;
-    flex-direction: column;
-    gap: 6px;
-    max-height: 150px;
-    overflow-y: auto;
+    flex-wrap: wrap;
+    /* Modern browsers: use grid */
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 8px;
+    flex: 1;
+    overflow: hidden;
+    padding: 2px; /* Prevent hover transform from triggering scrollbars */
+}
+
+/* Fallback spacing for browsers without gap */
+@supports not (gap: 8px) {
+    .skill-list > * {
+        margin: 4px;
+    }
 }
 
 .skill-item {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    justify-content: center;
     align-items: center;
-    padding: 8px 12px;
+    padding: 10px 8px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 4px;
     cursor: pointer;
     transition: background 0.2s;
+    text-align: center;
+    box-sizing: border-box;
+    height: 100%;
 }
 
 .skill-item:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.skill-item:active {
+    background: rgba(255, 255, 255, 0.15);
 }
 
 .skill-item.disabled {
@@ -1099,31 +1291,104 @@
 .skill-name {
     color: #fff;
     font-weight: bold;
+    font-size: 0.85rem;
 }
 
 .skill-cost {
     color: #60a5fa;
-    font-size: 0.8rem;
+    font-size: 0.7rem;
+    margin-top: 3px;
 }
 
 .skill-cost.insufficient {
     color: #f44336;
 }
 
+/* Back button uses theme CSS variables for consistent styling.
+ * Themes can override --btn-* variables or define .skill-back-btn directly. */
 .skill-back-btn {
-    margin-top: 8px;
+    margin-top: auto;
+    padding-top: 8px;
     width: 100%;
-    padding: 8px;
-    background: rgba(100, 100, 100, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
-    color: #fff;
+    padding: 8px 12px;
+    background: var(--btn-bg);
+    color: var(--btn-color);
+    border: var(--btn-border);
+    border-radius: var(--btn-border-radius);
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: var(--button-font-size, 0.85rem);
+    font-family: inherit;
+    flex-shrink: 0;
 }
 
 .skill-back-btn:hover {
-    background: rgba(100, 100, 100, 0.7);
+    background: var(--btn-bg-hover);
+}
+
+/* === Item Submenu (replaces battle choices in battle-log-panel) === */
+.item-submenu {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 8px 12px;
+    overflow: hidden;
+}
+
+.item-submenu-title {
+    color: #f39c12;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--battle-panel-border);
+    margin-bottom: 6px;
+    flex-shrink: 0;
+}
+
+.item-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.item-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.item-row:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.item-row.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    justify-content: center;
+}
+
+.item-row .item-icon {
+    font-size: 1rem;
+}
+
+.item-row .item-name {
+    flex: 1;
+    color: var(--battle-text);
+    font-size: 0.8rem;
+}
+
+.item-row .item-qty {
+    color: var(--battle-text-dim);
+    font-size: 0.75rem;
 }
 
 /* === Battle Choice Button Type Colors === */
@@ -1177,6 +1442,62 @@
     100% { transform: scale(1); }
 }
 
+/* === Animated Dice Roll Numbers === */
+.dice-number {
+    display: inline-block;
+    min-width: 1.5em;
+    text-align: center;
+    font-size: 1.3em;
+    transition: transform 0.1s ease-out;
+}
+
+.dice-number.dice-spinning {
+    animation: dice-wobble 0.1s ease-in-out infinite;
+    color: #aaa;
+}
+
+.dice-number.dice-final {
+    animation: dice-reveal 0.3s ease-out forwards;
+    color: inherit;
+}
+
+.dice-number.dice-crit {
+    color: #ffd700 !important;
+    text-shadow: 0 0 10px #ffd700, 0 0 20px #ff8c00;
+    animation: dice-crit-reveal 0.5s ease-out forwards;
+}
+
+.dice-number.dice-fumble {
+    color: #ff4444 !important;
+    text-shadow: 0 0 10px #ff0000;
+    animation: dice-fumble-reveal 0.5s ease-out forwards;
+}
+
+@keyframes dice-wobble {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-2px) scale(1.05); }
+}
+
+@keyframes dice-reveal {
+    0% { transform: scale(1.5); opacity: 0.5; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes dice-crit-reveal {
+    0% { transform: scale(0.5); opacity: 0; }
+    40% { transform: scale(2); opacity: 1; }
+    70% { transform: scale(1.8); }
+    100% { transform: scale(1.5); }
+}
+
+@keyframes dice-fumble-reveal {
+    0% { transform: scale(1.5) rotate(0deg); opacity: 0; }
+    30% { transform: scale(1.2) rotate(-5deg); opacity: 1; }
+    60% { transform: scale(1.1) rotate(5deg); }
+    100% { transform: scale(1) rotate(0deg); }
+}
+
 /* === Effectiveness Messages === */
 .effectiveness-super {
     color: #4caf50;
@@ -1206,7 +1527,7 @@
     justify-content: center;
     background: radial-gradient(ellipse at center, rgba(255, 215, 0, 0.5) 0%, rgba(255, 100, 0, 0.3) 50%, transparent 70%);
     animation: limit-break-flash 1.5s ease-out forwards;
-    z-index: 1000;
+    z-index: var(--z-overlay);
     pointer-events: none;
 }
 
@@ -1254,7 +1575,7 @@
     align-items: center;
     box-shadow: 0 2px 10px rgba(100, 200, 255, 0.5);
     animation: summon-glow 2s infinite;
-    z-index: 100;
+    z-index: var(--z-battle-ui);
 }
 
 /* Fallback spacing for browsers without gap support */
@@ -1304,10 +1625,10 @@
 
 .battle-dialogue {
     position: absolute;
-    bottom: 35%;
+    bottom: calc(var(--battle-log-height) + 8px);  /* Position above battle log panel */
     left: 50%;
     transform: translateX(-50%);
-    z-index: 200;
+    z-index: var(--z-battle-effects);
     animation: dialogue-appear 0.3s ease-out;
 }
 
@@ -1361,76 +1682,6 @@
     }
 }
 
-/* === Item Submenu (for battle items) === */
-
-.item-submenu {
-    position: absolute;
-    bottom: 100%;
-    left: 0;
-    right: 0;
-    background: rgba(0, 0, 0, 0.9);
-    border-radius: 8px 8px 0 0;
-    padding: 10px;
-    /* Fallback for browsers without grid support */
-    display: block;
-    display: -webkit-flex;
-    display: flex;
-    flex-wrap: wrap;
-    /* Modern browsers: use grid */
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    max-height: 200px;
-    overflow-y: auto;
-    z-index: 50;
-}
-
-/* Fallback spacing for browsers without gap support */
-.item-submenu > * {
-    margin: 4px;
-}
-
-/* Modern browsers: use gap and remove margin fallback */
-@supports (gap: 8px) {
-    .item-submenu {
-        gap: 8px;
-    }
-    .item-submenu > * {
-        margin: 0;
-    }
-}
-
-.item-button {
-    display: flex;
-    display: -webkit-flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(100, 100, 100, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
-    padding: 8px;
-    color: #fff;
-    cursor: pointer;
-    transition: background 0.2s;
-    font-size: 0.75rem;
-}
-
-.item-button:hover {
-    background: rgba(150, 150, 150, 0.8);
-}
-
-.item-button .item-icon {
-    font-size: 1.2rem;
-}
-
-.item-button .item-name {
-    flex: 1;
-}
-
-.item-button .item-qty {
-    font-size: 0.65rem;
-    opacity: 0.7;
-}
-
 /* === Battle Log Special Entries === */
 
 .battle-log.limit-break {
@@ -1459,7 +1710,7 @@
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0);
-    z-index: 500;
+    z-index: var(--z-overlay);
     display: flex;
     display: -webkit-flex;
     align-items: center;
@@ -1549,7 +1800,7 @@
     right: 0;
     bottom: 0;
     background: #fff;
-    z-index: 499;
+    z-index: var(--z-overlay);
     opacity: 0;
     pointer-events: none;
     animation: battle-intro-flash-anim 0.3s ease-out forwards;
@@ -1577,7 +1828,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 500;
+    z-index: var(--z-overlay);
     display: flex;
     display: -webkit-flex;
     flex-direction: column;

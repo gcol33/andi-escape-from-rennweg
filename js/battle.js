@@ -26,6 +26,51 @@
 var BattleEngine = (function() {
     'use strict';
 
+    // === Configuration Constants ===
+    // Centralized timing and game balance values
+    var config = {
+        // Animation timing (milliseconds)
+        timing: {
+            battleIntro: 1500,          // Delay for "Battle Start!" message
+            battleOutro: 2500,          // Delay for victory/defeat effects
+            actionDelay: 300,           // Delay between action phases
+            enemyTurnDelay: 600,        // Delay before enemy takes turn
+            damageNumberDuration: 2000, // How long damage numbers float
+            sparkleInterval: 150,       // Interval between victory sparkles
+            sparkleLifetime: 2000,      // How long each sparkle lives
+            screenShake: 300,           // Duration of screen shake effect
+            uiTransition: 1500,         // UI fade in/out transitions
+            dialogueDuration: 2500,     // How long dialogue bubbles show
+            fadeOutDuration: 300        // Fade out animation time
+        },
+        // Dice animation settings
+        dice: {
+            spinDuration: 1800,  // Total dice spin animation time
+            spinInterval: 70,    // Time between number changes
+            lingerDelay: 500,    // Pause after reveal before continuing
+            typewriterSpeed: 25  // Characters per second in battle log
+        },
+        // Combat balance
+        combat: {
+            defendACBonus: 4,           // AC bonus when defending
+            defendManaRecoveryMin: 2,   // Min mana recovered on defend
+            defendManaRecoveryMax: 4,   // Max mana recovered on defend
+            defendStaggerReduction: 15, // Stagger reduced when defending
+            critMultiplier: 2,          // Damage multiplier on crit
+            fleeThreshold: 10,          // Roll needed to flee (d20)
+            limitChargeMax: 100,        // Max limit break charge
+            staggerThresholdDefault: 100, // Default stagger threshold
+            limitChargeOnHit: 5,        // Limit charge gained when hitting
+            limitChargeOnTakeDamage: 8  // Limit charge gained when hurt
+        },
+        // HP thresholds for color/behavior changes
+        thresholds: {
+            hpHigh: 50,    // Above this = green/healthy
+            hpMedium: 25,  // Above this = yellow/caution
+            hpLow: 25      // Below this = red/critical
+        }
+    };
+
     // === Type System (D&D-style) ===
     // Types: physical, fire, ice, lightning, poison, psychic, holy, dark
     var typeChart = {
@@ -603,8 +648,142 @@ var BattleEngine = (function() {
             "No... not like this...",
             "I'll get them next time...",
             "This can't be happening..."
+        ],
+        // Enemy pre-attack taunts (context-aware - see getEnemyTaunt)
+        enemy_attack_default: [
+            "My turn!",
+            "Here it comes!",
+            "Take this!"
+        ],
+        enemy_attack_player_low_hp: [
+            "Time to finish this!",
+            "You're barely standing!",
+            "This ends now!",
+            "One more hit should do it!"
+        ],
+        enemy_attack_player_healed: [
+            "Healing won't save you!",
+            "Back to full? Not for long!",
+            "That won't help!"
+        ],
+        enemy_attack_player_defended: [
+            "Hiding behind your shield?",
+            "Defense won't save you!",
+            "Let's test that defense!"
+        ],
+        enemy_attack_player_missed: [
+            "Ha! You missed!",
+            "Nice try!",
+            "That all you got?",
+            "Pathetic!"
+        ],
+        enemy_attack_got_hit: [
+            "Ow! You'll pay for that!",
+            "Lucky shot! My turn!",
+            "That hurt! Now watch this!"
+        ],
+        enemy_attack_got_crit: [
+            "Impressive... but not enough!",
+            "You'll regret that!",
+            "Oh, it's ON now!"
+        ],
+        enemy_attack_self_low_hp: [
+            "I'm not done yet!",
+            "You think you've won?!",
+            "I won't go down easy!"
+        ],
+        enemy_attack_has_status: [
+            "This burning won't stop me!",
+            "Even weakened, I can fight!",
+            "A little status won't slow me down!"
+        ],
+        enemy_attack_player_stunned: [
+            "Can't move? Too bad!",
+            "Just stand there and take it!",
+            "This is gonna hurt!",
+            "Free hit!"
         ]
     };
+
+    /**
+     * Get dialogue lines for a specific trigger from enemy-specific or generic dialogue
+     * @param {string} trigger - The dialogue trigger key (e.g., 'attack_default')
+     * @returns {Array} Array of dialogue strings
+     */
+    function getDialogueLines(trigger) {
+        // First check enemy-specific dialogue (uses 'attack_*' format)
+        if (state.enemy && state.enemy.dialogue && state.enemy.dialogue[trigger]) {
+            return state.enemy.dialogue[trigger];
+        }
+        // Fall back to generic dialogue triggers (uses 'enemy_attack_*' format)
+        var genericKey = 'enemy_' + trigger;
+        if (dialogueTriggers[genericKey]) {
+            return dialogueTriggers[genericKey];
+        }
+        return [];
+    }
+
+    /**
+     * Get a contextual enemy taunt before attacking
+     * Considers: player HP, enemy HP, last player action, status effects
+     * Uses enemy-specific dialogue if available, falls back to generic
+     * Returns null ~40% of the time to avoid being repetitive
+     */
+    function getEnemyTaunt(context) {
+        // 40% chance to skip taunt (keeps it from being annoying)
+        if (Math.random() < 0.4) return null;
+
+        context = context || {};
+        var playerHPPercent = state.player.hp / state.player.maxHP;
+        var enemyHPPercent = state.enemy.hp / state.enemy.maxHP;
+        var candidates = [];
+
+        // Priority-based taunt selection
+        // Player is stunned/frozen - easy target
+        if (context.playerAction === 'stunned') {
+            candidates = getDialogueLines('attack_player_stunned');
+        }
+        // Player is low - enemy is confident
+        else if (playerHPPercent <= 0.25) {
+            candidates = getDialogueLines('attack_player_low_hp');
+        }
+        // Player just healed
+        else if (context.playerAction === 'heal' || context.playerAction === 'item') {
+            candidates = getDialogueLines('attack_player_healed');
+        }
+        // Player defended
+        else if (context.playerAction === 'defend') {
+            candidates = getDialogueLines('attack_player_defended');
+        }
+        // Player missed their attack
+        else if (context.playerMissed) {
+            candidates = getDialogueLines('attack_player_missed');
+        }
+        // Enemy got crit by player
+        else if (context.playerCrit) {
+            candidates = getDialogueLines('attack_got_crit');
+        }
+        // Enemy got hit
+        else if (context.playerHit) {
+            candidates = getDialogueLines('attack_got_hit');
+        }
+        // Enemy is low HP - desperation
+        else if (enemyHPPercent <= 0.3) {
+            candidates = getDialogueLines('attack_self_low_hp');
+        }
+        // Enemy has status effects
+        else if (state.enemy.statuses && state.enemy.statuses.length > 0) {
+            candidates = getDialogueLines('attack_has_status');
+        }
+
+        // Fallback to default if no contextual match
+        if (!candidates || candidates.length === 0) {
+            candidates = getDialogueLines('attack_default');
+        }
+
+        if (candidates.length === 0) return null;
+        return candidates[Math.floor(Math.random() * candidates.length)];
+    }
 
     // === Music Transition Thresholds ===
     var musicThresholds = {
@@ -1698,7 +1877,7 @@ var BattleEngine = (function() {
             if (effect.parentNode) {
                 effect.parentNode.removeChild(effect);
             }
-        }, 1500);
+        }, config.timing.uiTransition);
     }
 
     // === Mid-Fight Dialogue System ===
@@ -1763,9 +1942,9 @@ var BattleEngine = (function() {
                     if (dialogue.parentNode) {
                         dialogue.parentNode.removeChild(dialogue);
                     }
-                }, 300);
+                }, config.timing.fadeOutDuration);
             }
-        }, 2500);
+        }, config.timing.dialogueDuration);
     }
 
     /**
@@ -1942,6 +2121,15 @@ var BattleEngine = (function() {
     function start(battleConfig, sceneId) {
         var enemy = battleConfig.enemy || {};
 
+        // Support loading enemy by ID from enemies.js
+        if (battleConfig.enemy_id && typeof enemies !== 'undefined' && enemies[battleConfig.enemy_id]) {
+            var enemyData = enemies[battleConfig.enemy_id];
+            // Merge enemy data - inline config overrides file data
+            enemy = Object.assign({}, enemyData, enemy);
+            // Store enemy ID for dialogue lookup
+            enemy.id = battleConfig.enemy_id;
+        }
+
         // Initialize player stats
         if (state.player.hp === null || state.player.hp <= 0) {
             state.player.maxHP = battleConfig.player_max_hp || 20;
@@ -1977,11 +2165,12 @@ var BattleEngine = (function() {
         if (battleConfig.player_skills) {
             state.player.skills = battleConfig.player_skills;
         } else {
-            state.player.skills = ['power_strike', 'fireball', 'heal'];
+            state.player.skills = ['power_strike', 'fireball', 'heal', 'fortify'];
         }
 
         // Set enemy stats
         state.enemy = {
+            id: enemy.id || null,
             name: enemy.name || 'Enemy',
             hp: enemy.hp || 20,
             maxHP: enemy.hp || 20,
@@ -1997,7 +2186,9 @@ var BattleEngine = (function() {
             moves: enemy.moves || [
                 { name: 'Attack', damage: '1d6', type: 'physical' }
             ],
-            passives: enemy.passives || []
+            passives: enemy.passives || [],
+            dialogue: enemy.dialogue || null,  // Enemy-specific dialogue from enemies.js
+            summons: enemy.summons || null     // Enemy summon abilities
         };
 
         // Set terrain
@@ -2106,7 +2297,7 @@ var BattleEngine = (function() {
         elements.container.appendChild(flash);
         elements.container.appendChild(overlay);
 
-        // Clean up after animation completes (2 seconds)
+        // Clean up after animation completes
         setTimeout(function() {
             // Remove intro elements
             var introOverlay = document.getElementById('battle-intro-overlay');
@@ -2125,7 +2316,7 @@ var BattleEngine = (function() {
 
             // Call callback to start battle
             if (callback) callback();
-        }, 2000);
+        }, config.timing.damageNumberDuration);
     }
 
     function end(result) {
@@ -2257,7 +2448,7 @@ var BattleEngine = (function() {
 
             // Call callback to transition to next scene
             if (callback) callback();
-        }, 2500);
+        }, config.timing.battleOutro);
     }
 
     /**
@@ -2281,8 +2472,8 @@ var BattleEngine = (function() {
                         if (sparkle.parentNode) {
                             sparkle.parentNode.removeChild(sparkle);
                         }
-                    }, 2000);
-                }, index * 150);
+                    }, config.timing.sparkleLifetime);
+                }, index * config.timing.sparkleInterval);
             })(i);
         }
     }
@@ -2363,7 +2554,7 @@ var BattleEngine = (function() {
             playerStats.id = 'player-stats-panel';
             playerStats.className = 'battle-stats-panel player-stats';
             playerStats.innerHTML =
-                '<div class="stats-header">' + state.player.name + '</div>' +
+                '<div class="stats-header">' + state.player.name + ' <span id="player-ac-display" class="ac-display">(AC ' + state.player.ac + ')</span></div>' +
                 '<div class="stat-row hp-row">' +
                     '<span class="stat-label">HP</span>' +
                     '<div class="stat-bar-outer"><div id="player-hp-bar" class="stat-bar hp-bar hp-high"></div></div>' +
@@ -2483,6 +2674,27 @@ var BattleEngine = (function() {
      * Update status effect icons for both player and enemy
      */
     function updateStatusDisplay() {
+        // Update player AC display (including defend bonus and status effects)
+        var acDisplay = document.getElementById('player-ac-display');
+        if (acDisplay) {
+            var effectiveAC = state.player.ac;
+            if (state.player.defending) effectiveAC += 4;
+            // Add status effect AC bonuses
+            for (var s = 0; s < state.player.statuses.length; s++) {
+                var stat = state.player.statuses[s];
+                var statDef = statusEffects[stat.type];
+                if (statDef && statDef.acBonus) effectiveAC += statDef.acBonus;
+            }
+            var acText = '(AC ' + effectiveAC + ')';
+            if (effectiveAC > state.player.ac) {
+                acText = '(AC ' + effectiveAC + ' ↑)';
+                acDisplay.style.color = '#4caf50';
+            } else {
+                acDisplay.style.color = '';
+            }
+            acDisplay.textContent = acText;
+        }
+
         // Update player statuses
         if (elements.playerStatuses) {
             elements.playerStatuses.innerHTML = '';
@@ -2532,11 +2744,23 @@ var BattleEngine = (function() {
 
     /**
      * Update stagger bars for both player and enemy
+     * Bars are hidden when stagger is 0 (via CSS .has-stagger class)
      */
     function updateStaggerDisplay() {
+        var playerContainer = document.getElementById('player-stagger-container');
+        var enemyContainer = document.getElementById('enemy-stagger-container');
+
         if (elements.playerStaggerFill) {
             var playerPercent = (state.player.stagger / state.player.staggerThreshold) * 100;
             elements.playerStaggerFill.style.width = playerPercent + '%';
+            // Show/hide container based on stagger value
+            if (playerContainer) {
+                if (state.player.stagger > 0) {
+                    playerContainer.classList.add('has-stagger');
+                } else {
+                    playerContainer.classList.remove('has-stagger');
+                }
+            }
             // Color changes as stagger builds
             if (playerPercent >= 75) {
                 elements.playerStaggerFill.className = 'stagger-fill stagger-danger';
@@ -2550,6 +2774,14 @@ var BattleEngine = (function() {
         if (elements.enemyStaggerFill) {
             var enemyPercent = (state.enemy.stagger / state.enemy.staggerThreshold) * 100;
             elements.enemyStaggerFill.style.width = enemyPercent + '%';
+            // Show/hide container based on stagger value
+            if (enemyContainer) {
+                if (state.enemy.stagger > 0) {
+                    enemyContainer.classList.add('has-stagger');
+                } else {
+                    enemyContainer.classList.remove('has-stagger');
+                }
+            }
             if (enemyPercent >= 75) {
                 elements.enemyStaggerFill.className = 'stagger-fill stagger-danger';
             } else if (enemyPercent >= 50) {
@@ -2626,24 +2858,304 @@ var BattleEngine = (function() {
         elements.enemyHPBar.className = 'stat-bar hp-bar ' + hpState;
     }
 
+    // Battle log animation state (timing values from config.dice)
+    var battleLogAnimation = {
+        active: false,
+        timeouts: [],
+        damageQueue: [],       // Queue damage numbers to show after animation
+        onComplete: null       // Callback when animation completes
+    };
+
+    /**
+     * Queue a damage number to show after animation completes
+     */
+    function queueDamageNumber(amount, target, type) {
+        battleLogAnimation.damageQueue.push({ amount: amount, target: target, type: type });
+    }
+
+    /**
+     * Show all queued damage numbers
+     */
+    function flushDamageQueue() {
+        battleLogAnimation.damageQueue.forEach(function(dmg) {
+            showDamageNumberImmediate(dmg.amount, dmg.target, dmg.type);
+        });
+        battleLogAnimation.damageQueue = [];
+    }
+
+    /**
+     * Complete the battle log animation - flush damage queue and mark inactive
+     */
+    function completeBattleLogAnimation() {
+        flushDamageQueue();
+        battleLogAnimation.active = false;
+        if (battleLogAnimation.onComplete) {
+            var cb = battleLogAnimation.onComplete;
+            battleLogAnimation.onComplete = null;
+            cb();
+        }
+    }
+
+    /**
+     * Clear any ongoing battle log animations
+     */
+    function clearBattleLogAnimation() {
+        battleLogAnimation.timeouts.forEach(function(t) { clearTimeout(t); });
+        battleLogAnimation.timeouts = [];
+        battleLogAnimation.damageQueue = [];
+        battleLogAnimation.onComplete = null;
+        battleLogAnimation.active = false;
+    }
+
+    /**
+     * Animate a dice roll number with slot-machine effect
+     * @param {Element} element - The element to animate
+     * @param {number} finalValue - The final value to show
+     * @param {boolean} isCrit - Is this a critical hit (nat 20)
+     * @param {boolean} isFumble - Is this a fumble (nat 1)
+     * @param {function} callback - Called when animation completes
+     */
+    function animateDiceRoll(element, finalValue, isCrit, isFumble, callback) {
+        var duration = config.dice.spinDuration;
+        var interval = config.dice.spinInterval;
+        var lingerDelay = config.dice.lingerDelay;
+        var elapsed = 0;
+        var maxValue = 20; // Assume d20 for battle
+
+        // Play dice roll sound at start
+        playSoundCue('dice_roll');
+
+        function spin() {
+            if (elapsed >= duration) {
+                // Final reveal
+                element.textContent = finalValue;
+                element.classList.remove('dice-spinning');
+                element.classList.add('dice-final');
+
+                // Add special effects for crits/fumbles
+                if (isCrit) {
+                    element.classList.add('dice-crit');
+                    playSoundCue('attack_crit');
+                } else if (isFumble) {
+                    element.classList.add('dice-fumble');
+                    playSoundCue('attack_fumble');
+                } else {
+                    playSfx('click.ogg');
+                }
+
+                // Linger on the result before continuing
+                if (callback) {
+                    var delay = isCrit || isFumble ? lingerDelay * 1.5 : lingerDelay;
+                    var t = setTimeout(callback, delay);
+                    battleLogAnimation.timeouts.push(t);
+                }
+                return;
+            }
+
+            // Show random number (weighted towards final value as we get closer)
+            var progress = elapsed / duration;
+            var randomChance = 1 - (progress * progress * progress); // Cubic ease out - more suspense
+
+            if (Math.random() < randomChance) {
+                element.textContent = Math.floor(Math.random() * maxValue) + 1;
+            } else {
+                element.textContent = finalValue;
+            }
+
+            // Slow down significantly as we approach the end
+            var currentInterval = interval + (progress * progress * interval * 3);
+            elapsed += currentInterval;
+
+            var t = setTimeout(spin, currentInterval);
+            battleLogAnimation.timeouts.push(t);
+        }
+
+        element.classList.add('dice-spinning');
+        spin();
+    }
+
+    /**
+     * Typewriter effect for battle log text
+     * @param {Element} container - Container element
+     * @param {string} text - Text to type
+     * @param {function} callback - Called when typing completes
+     */
+    function typewriterEffect(container, text, callback) {
+        var index = 0;
+        var speed = config.dice.typewriterSpeed;
+
+        function typeNext() {
+            if (index < text.length) {
+                // Handle HTML tags - add them instantly
+                if (text[index] === '<') {
+                    var tagEnd = text.indexOf('>', index);
+                    if (tagEnd !== -1) {
+                        container.innerHTML += text.substring(index, tagEnd + 1);
+                        index = tagEnd + 1;
+                        typeNext();
+                        return;
+                    }
+                }
+
+                container.innerHTML += text[index];
+                index++;
+                var t = setTimeout(typeNext, speed);
+                battleLogAnimation.timeouts.push(t);
+            } else {
+                if (callback) callback();
+            }
+        }
+
+        typeNext();
+    }
+
+    /**
+     * Update battle log with animated effects
+     * Includes typewriter text and animated dice rolls
+     */
     function updateBattleLog(html) {
         if (!elements.battleLog) {
             elements.battleLog = document.getElementById('battle-log-content');
         }
-        if (elements.battleLog) {
-            // Only show the LAST battle-log message (extract last one from accumulated HTML)
-            var temp = document.createElement('div');
-            temp.innerHTML = html;
-            var allLogs = temp.querySelectorAll('.battle-log');
-            if (allLogs.length > 0) {
-                // Get only the last log entry
-                var lastLog = allLogs[allLogs.length - 1];
-                elements.battleLog.innerHTML = '';
-                elements.battleLog.appendChild(lastLog.cloneNode(true));
+        if (!elements.battleLog) return;
+
+        // Clear any ongoing animation
+        clearBattleLogAnimation();
+        battleLogAnimation.active = true;
+
+        // Parse the HTML to extract the last battle-log entry
+        var temp = document.createElement('div');
+        temp.innerHTML = html;
+        var allLogs = temp.querySelectorAll('.battle-log');
+
+        var lastLog;
+        if (allLogs.length > 0) {
+            lastLog = allLogs[allLogs.length - 1];
+        } else {
+            lastLog = temp;
+        }
+
+        // Clear log and create container
+        elements.battleLog.innerHTML = '';
+        var logContainer = document.createElement('div');
+        logContainer.className = lastLog.className || 'battle-log';
+        elements.battleLog.appendChild(logContainer);
+
+        // Check if this is a roll result (has roll-result span)
+        var rollResultSpan = lastLog.querySelector('.roll-result');
+        var critText = lastLog.querySelector('.crit-text');
+        var fumbleText = lastLog.querySelector('.fumble-text');
+
+        if (rollResultSpan) {
+            // This is an attack/skill roll - animate the dice!
+            var rollHtml = rollResultSpan.innerHTML;
+
+            // Extract roll numbers from the text
+            // Pattern: "Name rolled <strong>X</strong>" or "Name rolled <strong>X</strong> + Y = <strong>Z</strong>"
+            var rollMatch = rollHtml.match(/rolled <strong>(\d+)<\/strong>/);
+            var totalMatch = rollHtml.match(/= <strong>(\d+)<\/strong>/);
+
+            if (rollMatch) {
+                var naturalRoll = parseInt(rollMatch[1]);
+                var isCrit = critText !== null;
+                var isFumble = fumbleText !== null;
+
+                // Create the roll result display with placeholder for animated number
+                var nameMatch = rollHtml.match(/^([^<]+) rolled/);
+                var name = nameMatch ? nameMatch[1] : 'You';
+
+                // Build the display step by step
+                var rollSpan = document.createElement('span');
+                rollSpan.className = 'roll-result';
+                logContainer.appendChild(rollSpan);
+
+                // Type the name first
+                typewriterEffect(rollSpan, name + ' rolled ', function() {
+                    // Create the animated dice number
+                    var diceNum = document.createElement('strong');
+                    diceNum.className = 'dice-number';
+                    diceNum.textContent = '?';
+                    rollSpan.appendChild(diceNum);
+
+                    // Animate the dice roll
+                    animateDiceRoll(diceNum, naturalRoll, isCrit, isFumble, function() {
+                        // After dice animation, show the rest
+                        var restOfRoll = '';
+
+                        // Add modifier if present
+                        if (totalMatch) {
+                            var total = parseInt(totalMatch[1]);
+                            var modifier = total - naturalRoll;
+                            if (modifier !== 0) {
+                                restOfRoll += ' + ' + modifier + ' = <strong>' + total + '</strong>';
+                            }
+                        }
+
+                        // Add vs AC
+                        var acMatch = rollHtml.match(/vs AC (\d+)/);
+                        if (acMatch) {
+                            restOfRoll += ' vs AC ' + acMatch[1];
+                        }
+
+                        // Type the rest of the roll info
+                        typewriterEffect(rollSpan, restOfRoll, function() {
+                            // Add crit/fumble text if present
+                            if (critText) {
+                                var critSpan = document.createElement('span');
+                                critSpan.className = 'crit-text';
+                                critSpan.textContent = ' ';
+                                logContainer.appendChild(critSpan);
+                                typewriterEffect(critSpan, 'CRITICAL HIT!', function() {
+                                    showDamageText();
+                                });
+                            } else if (fumbleText) {
+                                var fumbleSpan = document.createElement('span');
+                                fumbleSpan.className = 'fumble-text';
+                                fumbleSpan.textContent = ' ';
+                                logContainer.appendChild(fumbleSpan);
+                                typewriterEffect(fumbleSpan, 'FUMBLE!', function() {
+                                    showDamageText();
+                                });
+                            } else {
+                                showDamageText();
+                            }
+                        });
+                    });
+                });
+
+                // Function to show the damage/miss text
+                function showDamageText() {
+                    // Get remaining content (after roll-result, crit-text, fumble-text)
+                    var fullHtml = lastLog.innerHTML;
+
+                    // Find the damage/miss text (after the <br>)
+                    var brIndex = fullHtml.indexOf('<br>');
+                    if (brIndex !== -1) {
+                        var damageText = fullHtml.substring(brIndex);
+                        // Strip any remaining roll-result or crit/fumble spans we've already shown
+                        damageText = damageText.replace(/<span class="roll-result">.*?<\/span>/g, '');
+                        damageText = damageText.replace(/<span class="crit-text">.*?<\/span>/g, '');
+                        damageText = damageText.replace(/<span class="fumble-text">.*?<\/span>/g, '');
+
+                        typewriterEffect(logContainer, damageText, function() {
+                            completeBattleLogAnimation();
+                        });
+                    } else {
+                        completeBattleLogAnimation();
+                    }
+                }
+
             } else {
-                // Fallback - show all if no battle-log divs found
-                elements.battleLog.innerHTML = html;
+                // No roll number found, just typewriter the whole thing
+                typewriterEffect(logContainer, lastLog.innerHTML, function() {
+                    completeBattleLogAnimation();
+                });
             }
+        } else {
+            // Not a roll result - just typewriter effect
+            typewriterEffect(logContainer, lastLog.innerHTML, function() {
+                completeBattleLogAnimation();
+            });
         }
     }
 
@@ -2681,7 +3193,7 @@ var BattleEngine = (function() {
             sprite.classList.add('damage-flash');
             setTimeout(function() {
                 sprite.classList.remove('damage-flash');
-            }, 300);
+            }, config.timing.screenShake);
         });
     }
 
@@ -2693,14 +3205,26 @@ var BattleEngine = (function() {
             elements.container.classList.add('screen-shake');
             setTimeout(function() {
                 elements.container.classList.remove('screen-shake');
-            }, 300);
+            }, config.timing.screenShake);
         }
     }
 
     /**
-     * Show floating damage number
+     * Show floating damage number (queues if animation is active)
      */
     function showDamageNumber(amount, target, type) {
+        // If battle log animation is active, queue the damage to show later
+        if (battleLogAnimation.active) {
+            queueDamageNumber(amount, target, type);
+            return;
+        }
+        showDamageNumberImmediate(amount, target, type);
+    }
+
+    /**
+     * Show floating damage number immediately (bypasses queue)
+     */
+    function showDamageNumberImmediate(amount, target, type) {
         var container = document.getElementById(target + '-hp-container');
         if (!container) container = elements.container;
         if (!container) return;
@@ -2715,7 +3239,7 @@ var BattleEngine = (function() {
             if (damageNum.parentNode) {
                 damageNum.parentNode.removeChild(damageNum);
             }
-        }, 1500);
+        }, config.timing.uiTransition);
     }
 
     // === Player Actions ===
@@ -2804,7 +3328,7 @@ var BattleEngine = (function() {
 
                 // Check for enemy low HP dialogue
                 checkDialogueTriggers('enemy_hit');
-            }, 300);
+            }, config.timing.actionDelay);
         } else {
             // Attack missed
             if (result.isFumble) {
@@ -2994,7 +3518,7 @@ var BattleEngine = (function() {
                     result.messages.push('💫 ' + state.enemy.name + ' is STAGGERED!');
                 }
                 updateStaggerDisplay();
-            }, 300);
+            }, config.timing.actionDelay);
         }
 
         return result;
@@ -3357,9 +3881,9 @@ var BattleEngine = (function() {
                 statusMessages.join('<br>') + '</div>';
             updateBattleLog(playerResultText);
 
-            // Skip to enemy turn
+            // Skip to enemy turn (player is stunned, so enemy gloats)
             setTimeout(function() {
-                processEnemyTurn(playerResultText, callback);
+                processEnemyTurn(playerResultText, callback, { playerAction: 'stunned' });
             }, 600);
             return;
         }
@@ -3507,17 +4031,37 @@ var BattleEngine = (function() {
         updateBattleLog(playerResultText);
         updateStatusDisplay();
 
-        // Check if player won
+        // Build context for enemy taunt based on player action
+        var actionContext = {
+            playerAction: action,
+            playerHit: playerResult && playerResult.hit,
+            playerMissed: playerResult && playerResult.hit === false,
+            playerCrit: playerResult && playerResult.isCrit,
+            playerHealed: playerResult && (playerResult.healed || (playerResult.skill && playerResult.skill.isHeal))
+        };
+
+        // Check if player won - wait before enemy attacks
         setTimeout(function() {
             if (checkBattleEnd()) return;
-            processEnemyTurn(playerResultText, callback);
-        }, 400);
+            processEnemyTurn(playerResultText, callback, actionContext);
+        }, 2000);
     }
 
     /**
      * Process enemy turn after player action
+     * @param {string} playerResultText - HTML text from player's action
+     * @param {function} callback - Called when turn completes
+     * @param {object} actionContext - Context about player's action for enemy taunt
      */
-    function processEnemyTurn(playerResultText, callback) {
+    function processEnemyTurn(playerResultText, callback, actionContext) {
+        // Show enemy taunt before attacking (with slight delay for drama)
+        var taunt = getEnemyTaunt(actionContext || {});
+        var tauntDelay = taunt ? 1800 : 0; // Show taunt for 1.8s before attacking
+
+        if (taunt) {
+            showBattleDialogue(state.enemy.name + ': "' + taunt + '"');
+        }
+
         setTimeout(function() {
             if (!state.active) return;
 
@@ -3650,7 +4194,7 @@ var BattleEngine = (function() {
             if (callback) {
                 callback(playerResultText + enemyText);
             }
-        }, 600);
+        }, 600 + tauntDelay);  // Add taunt delay so enemy speaks before attacking
     }
 
     // === Utility ===
