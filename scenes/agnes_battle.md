@@ -18,34 +18,7 @@ actions:
       - fortify
       - ice_shard
     terrain: none
-    enemy:
-      name: Agnes (HR)
-      hp: 22
-      ac: 11
-      attack_bonus: 3
-      damage: d6
-      type: physical
-      ai: default
-      stagger_threshold: 50
-      moves:
-        - name: HR Memo
-          damage: d6
-          type: physical
-        - name: Performance Review
-          damage: 2d4
-          type: psychic
-          statusEffect:
-            type: stun
-            chance: 0.15
-        - name: Policy Enforcement
-          damage: d4
-          type: physical
-          statusEffect:
-            type: bleed
-            chance: 0.25
-        - name: Break Room Retreat
-          isHeal: true
-          healAmount: 1d4+1
+    enemy_id: agnes_hr
     win_target: agnes_defeated
     lose_target: lost_to_HR
     flee_target: attempt_pass

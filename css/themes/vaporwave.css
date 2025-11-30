@@ -27,7 +27,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 10000;
+    z-index: var(--z-modal);
     transition: opacity 0.5s ease-out;
 }
 
@@ -186,7 +186,7 @@ body::before {
         linear-gradient(90deg, rgba(1, 205, 254, 0.1) 1px, transparent 1px);
     background-size: 50px 50px;
     pointer-events: none;
-    z-index: 0;
+    z-index: var(--z-background);
 }
 
 /* === VN Wrapper === */
@@ -199,7 +199,7 @@ body::before {
     padding: 20px;
     overflow: hidden;
     position: relative;
-    z-index: 1;
+    z-index: var(--z-background);
 }
 
 /* === Header === */
@@ -241,7 +241,7 @@ h1 {
     background-position: center;
     background-repeat: no-repeat;
     background-color: var(--vapor-dark);
-    z-index: 1;
+    z-index: var(--z-background);
     filter: saturate(1.5) contrast(1.1);
 }
 
@@ -255,7 +255,7 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: flex-end;
-    z-index: 2;
+    z-index: var(--z-sprites);
     pointer-events: none;
 }
 
@@ -287,7 +287,7 @@ h1 {
     max-height: 50%;
     background: linear-gradient(180deg, rgba(26, 10, 46, 0.95), rgba(22, 33, 62, 0.98));
     border-top: 3px solid var(--vapor-pink);
-    z-index: 10;
+    z-index: var(--z-text-box);
     display: flex;
     flex-direction: column;
     padding: 0;
@@ -857,7 +857,7 @@ h1 {
     background: var(--vapor-dark);
     border: 2px solid var(--vapor-cyan);
     padding: 4px;
-    z-index: 9999;
+    z-index: var(--z-dev-tools);
     font-family: 'VT323', 'Courier New', monospace;
     font-size: 12px;
     display: none;

@@ -37,7 +37,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 10000;
+    z-index: var(--z-modal);
     transition: opacity 0.5s ease-out;
 }
 
@@ -204,7 +204,7 @@ body {
     padding: 20px;
     overflow: hidden;
     position: relative;
-    z-index: 1;
+    z-index: var(--z-background);
 }
 
 /* === Header === */
@@ -243,7 +243,7 @@ h1 {
     position: absolute;
     font-size: 1rem;
     color: var(--crystal-purple);
-    z-index: 100;
+    z-index: var(--z-theme-deco);
     text-shadow: 0 0 10px var(--crystal-purple);
 }
 
@@ -268,7 +268,7 @@ h1 {
     background-position: center;
     background-repeat: no-repeat;
     background-color: var(--ff-blue-mid);
-    z-index: 1;
+    z-index: var(--z-background);
 }
 
 /* === Character Sprite Layer === */
@@ -281,7 +281,7 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: flex-end;
-    z-index: 2;
+    z-index: var(--z-sprites);
     pointer-events: none;
 }
 
@@ -314,7 +314,7 @@ h1 {
     background: linear-gradient(180deg, var(--ff-blue-mid) 0%, var(--ff-blue-dark) 100%);
     border-top: 4px solid var(--ff-white);
     border-radius: 0 0 4px 4px;
-    z-index: 10;
+    z-index: var(--z-text-box);
     display: flex;
     flex-direction: column;
     padding: 0;
@@ -909,7 +909,7 @@ h1 {
     border: 3px solid var(--ff-white);
     border-radius: 4px;
     padding: 4px;
-    z-index: 9999;
+    z-index: var(--z-dev-tools);
     font-family: 'Press Start 2P', monospace;
     font-size: 10px;
     display: none;

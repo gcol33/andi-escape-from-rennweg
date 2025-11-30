@@ -24,7 +24,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 10000;
+    z-index: var(--z-modal);
     transition: opacity 0.5s ease-out;
 }
 
@@ -182,7 +182,7 @@ body::after {
         rgba(0, 0, 0, 0.3) 4px
     );
     pointer-events: none;
-    z-index: 9998;
+    z-index: var(--z-overlay);
 }
 
 /* === VN Wrapper === */
@@ -195,7 +195,7 @@ body::after {
     padding: 20px;
     overflow: hidden;
     position: relative;
-    z-index: 1;
+    z-index: var(--z-background);
 }
 
 /* === Header === */
@@ -239,7 +239,7 @@ h1::before {
     background-position: center;
     background-repeat: no-repeat;
     background-color: var(--dos-black);
-    z-index: 1;
+    z-index: var(--z-background);
     filter: grayscale(80%) contrast(1.2);
 }
 
@@ -253,7 +253,7 @@ h1::before {
     display: flex;
     justify-content: center;
     align-items: flex-end;
-    z-index: 2;
+    z-index: var(--z-sprites);
     pointer-events: none;
 }
 
@@ -285,7 +285,7 @@ h1::before {
     max-height: 50%;
     background: rgba(0, 0, 0, 0.95);
     border-top: 2px solid var(--dos-green);
-    z-index: 10;
+    z-index: var(--z-text-box);
     display: flex;
     flex-direction: column;
     padding: 0;

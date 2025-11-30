@@ -27,47 +27,49 @@ var BattleEngine = (function() {
     'use strict';
 
     // === Configuration Constants ===
-    // Centralized timing and game balance values
+    // Values sourced from TUNING.js when available, with fallbacks
+    var T = typeof TUNING !== 'undefined' ? TUNING : null;
+
     var config = {
         // Animation timing (milliseconds)
         timing: {
-            battleIntro: 1500,          // Delay for "Battle Start!" message
-            battleOutro: 2500,          // Delay for victory/defeat effects
-            actionDelay: 300,           // Delay between action phases
-            enemyTurnDelay: 600,        // Delay before enemy takes turn
-            damageNumberDuration: 2000, // How long damage numbers float
-            sparkleInterval: 150,       // Interval between victory sparkles
-            sparkleLifetime: 2000,      // How long each sparkle lives
-            screenShake: 300,           // Duration of screen shake effect
-            uiTransition: 1500,         // UI fade in/out transitions
-            dialogueDuration: 2500,     // How long dialogue bubbles show
-            fadeOutDuration: 300        // Fade out animation time
+            battleIntro: T ? T.battle.timing.introDelay : 1500,
+            battleOutro: T ? T.battle.timing.outroDelay : 2500,
+            actionDelay: T ? T.battle.timing.actionDelay : 300,
+            enemyTurnDelay: T ? T.battle.timing.enemyTurnDelay : 600,
+            damageNumberDuration: T ? T.battle.timing.damageNumberFloat : 2000,
+            sparkleInterval: T ? T.battle.effects.sparkleInterval : 150,
+            sparkleLifetime: T ? T.battle.effects.sparkleLifetime : 2000,
+            screenShake: T ? T.battle.timing.screenShake : 300,
+            uiTransition: T ? T.battle.timing.uiTransition : 1500,
+            dialogueDuration: T ? T.battle.timing.dialogueBubble : 2500,
+            fadeOutDuration: T ? T.battle.timing.fadeOut : 300
         },
         // Dice animation settings
         dice: {
-            spinDuration: 1800,  // Total dice spin animation time
-            spinInterval: 70,    // Time between number changes
-            lingerDelay: 500,    // Pause after reveal before continuing
-            typewriterSpeed: 25  // Characters per second in battle log
+            spinDuration: T ? T.battle.dice.spinDuration : 1800,
+            spinInterval: T ? T.battle.dice.spinInterval : 70,
+            lingerDelay: T ? T.battle.dice.lingerDelay : 500,
+            typewriterSpeed: T ? T.battle.dice.typewriterSpeed : 25
         },
         // Combat balance
         combat: {
-            defendACBonus: 4,           // AC bonus when defending
-            defendManaRecoveryMin: 2,   // Min mana recovered on defend
-            defendManaRecoveryMax: 4,   // Max mana recovered on defend
-            defendStaggerReduction: 15, // Stagger reduced when defending
-            critMultiplier: 2,          // Damage multiplier on crit
-            fleeThreshold: 10,          // Roll needed to flee (d20)
-            limitChargeMax: 100,        // Max limit break charge
-            staggerThresholdDefault: 100, // Default stagger threshold
-            limitChargeOnHit: 5,        // Limit charge gained when hitting
-            limitChargeOnTakeDamage: 8  // Limit charge gained when hurt
+            defendACBonus: T ? T.battle.combat.defendACBonus : 4,
+            defendManaRecoveryMin: T ? T.battle.combat.defendManaRecoveryMin : 2,
+            defendManaRecoveryMax: T ? T.battle.combat.defendManaRecoveryMax : 4,
+            defendStaggerReduction: T ? T.battle.combat.defendStaggerReduction : 15,
+            critMultiplier: T ? T.battle.combat.critMultiplier : 2,
+            fleeThreshold: T ? T.battle.combat.fleeThreshold : 10,
+            limitChargeMax: T ? T.battle.combat.limitChargeMax : 100,
+            staggerThresholdDefault: T ? T.battle.combat.staggerThresholdDefault : 100,
+            limitChargeOnHit: T ? T.battle.combat.limitChargeOnHit : 5,
+            limitChargeOnTakeDamage: T ? T.battle.combat.limitChargeOnTakeDamage : 8
         },
         // HP thresholds for color/behavior changes
         thresholds: {
-            hpHigh: 50,    // Above this = green/healthy
-            hpMedium: 25,  // Above this = yellow/caution
-            hpLow: 25      // Below this = red/critical
+            hpHigh: T ? T.battle.hpThresholds.high : 50,
+            hpMedium: T ? T.battle.hpThresholds.medium : 25,
+            hpLow: T ? T.battle.hpThresholds.low : 25
         }
     };
 
@@ -880,6 +882,11 @@ var BattleEngine = (function() {
     }
 
     // === State ===
+    // Get tuning defaults (with fallbacks for backward compatibility)
+    var T = typeof TUNING !== 'undefined' ? TUNING : null;
+    var playerDefaults = T ? T.player : { defaultMaxHP: 20, defaultMaxMana: 20, defaultAC: 10, defaultAttackBonus: 2, defaultDamage: '1d6', defaultStaggerThreshold: 100, defaultLimitBreak: 'overdrive', defaultSkills: ['power_strike', 'fireball', 'heal', 'fortify'] };
+    var enemyDefaults = T ? T.enemy : { defaultHP: 20, defaultMaxMana: 20, defaultAC: 12, defaultAttackBonus: 3, defaultDamage: '1d6', defaultStaggerThreshold: 80, defaultAI: 'default' };
+
     var state = {
         active: false,
         phase: 'player', // 'player', 'enemy', 'animating', 'ended'
@@ -887,38 +894,38 @@ var BattleEngine = (function() {
         terrain: 'none',
         player: {
             name: 'Andy',
-            hp: 20,
-            maxHP: 20,
-            mana: 20,
-            maxMana: 20,
-            ac: 10,           // Armor Class (to be hit)
-            attackBonus: 2,   // Added to d20 roll
-            damage: '1d6',    // Damage dice
+            hp: playerDefaults.defaultMaxHP,
+            maxHP: playerDefaults.defaultMaxHP,
+            mana: playerDefaults.defaultMaxMana,
+            maxMana: playerDefaults.defaultMaxMana,
+            ac: playerDefaults.defaultAC,           // Armor Class (to be hit)
+            attackBonus: playerDefaults.defaultAttackBonus,   // Added to d20 roll
+            damage: playerDefaults.defaultDamage,    // Damage dice
             type: 'physical',
             defending: false,
             statuses: [],     // Active status effects: { type, duration, stacks }
-            skills: ['power_strike', 'fireball', 'heal'],  // Available skills
+            skills: playerDefaults.defaultSkills.slice(),  // Available skills (copy array)
             stagger: 0,       // Stagger meter (0-100)
-            staggerThreshold: 100,
+            staggerThreshold: playerDefaults.defaultStaggerThreshold,
             limitCharge: 0,   // Limit Break charge (0-100)
-            limitBreak: 'overdrive', // Current limit break ability
+            limitBreak: playerDefaults.defaultLimitBreak, // Current limit break ability
             passives: [],     // Array of passive ability IDs
             items: []         // Battle-usable items: { id, name, quantity }
         },
         enemy: {
             name: 'Enemy',
-            hp: 20,
-            maxHP: 20,
-            ac: 12,
-            attackBonus: 3,
-            damage: '1d6',
+            hp: enemyDefaults.defaultHP,
+            maxHP: enemyDefaults.defaultHP,
+            ac: enemyDefaults.defaultAC,
+            attackBonus: enemyDefaults.defaultAttackBonus,
+            damage: enemyDefaults.defaultDamage,
             type: 'physical',
             sprite: null,
             moves: [],
             statuses: [],     // Active status effects
             stagger: 0,
-            staggerThreshold: 80,
-            ai: 'default',    // AI type: 'default', 'aggressive', 'defensive', 'support'
+            staggerThreshold: enemyDefaults.defaultStaggerThreshold,
+            ai: enemyDefaults.defaultAI,    // AI type: 'default', 'aggressive', 'defensive', 'support'
             passives: []      // Enemy passive abilities
         },
         summon: null,         // Active summon: { type, duration, ... }
@@ -944,7 +951,7 @@ var BattleEngine = (function() {
     // Reference to main VN engine
     var vnEngine = null;
 
-    // DOM elements cache
+    // DOM elements cache (delegated to BattleUI, kept for backwards compatibility)
     var elements = {
         container: null,
         battleUI: null,
@@ -968,6 +975,19 @@ var BattleEngine = (function() {
         vnEngine = engine;
         elements.container = document.getElementById('vn-container');
         elements.textBox = document.getElementById('text-box');
+
+        // Initialize BattleUI module
+        if (typeof BattleUI !== 'undefined') {
+            BattleUI.init(elements.container, elements.textBox);
+            BattleUI.setSfxCallback(playSfx);
+        }
+    }
+
+    // Dev mode forced roll accessor (set by VNEngine)
+    var getForcedRoll = null;
+
+    function setForcedRollCallback(callback) {
+        getForcedRoll = callback;
     }
 
     // === Dice Rolling ===
@@ -977,6 +997,13 @@ var BattleEngine = (function() {
      * @returns {number} - 1-20
      */
     function rollD20() {
+        // Check for dev mode forced roll
+        if (getForcedRoll) {
+            var forced = getForcedRoll();
+            if (forced !== null && forced >= 1 && forced <= 20) {
+                return forced;
+            }
+        }
         return Math.floor(Math.random() * 20) + 1;
     }
 
@@ -1837,7 +1864,12 @@ var BattleEngine = (function() {
      * Update limit break meter display
      */
     function updateLimitDisplay() {
-        // Use cached elements from the unified stats panel
+        // Delegate to BattleUI if available
+        if (typeof BattleUI !== 'undefined') {
+            BattleUI.updateLimitBar(state.player.limitCharge);
+            return;
+        }
+        // Fallback
         var limitBar = elements.limitBar || document.getElementById('limit-bar');
         var limitText = elements.limitText || document.getElementById('limit-text');
 
@@ -1921,9 +1953,14 @@ var BattleEngine = (function() {
      * Show dialogue bubble in battle UI
      */
     function showBattleDialogue(text) {
+        // Delegate to BattleUI if available
+        if (typeof BattleUI !== 'undefined') {
+            BattleUI.showDialogue(text);
+            return;
+        }
+        // Fallback
         if (!elements.container) return;
 
-        // Remove existing dialogue
         var existing = document.getElementById('battle-dialogue');
         if (existing) existing.remove();
 
@@ -1934,7 +1971,6 @@ var BattleEngine = (function() {
 
         elements.container.appendChild(dialogue);
 
-        // Auto-remove after delay
         setTimeout(function() {
             if (dialogue.parentNode) {
                 dialogue.classList.add('fade-out');
@@ -2257,6 +2293,12 @@ var BattleEngine = (function() {
      * @param {function} callback - Called when intro animation completes
      */
     function showBattleIntro(callback) {
+        // Delegate to BattleUI if available
+        if (typeof BattleUI !== 'undefined') {
+            BattleUI.showBattleIntro(callback);
+            return;
+        }
+        // Fallback
         if (!elements.container) {
             elements.container = document.getElementById('vn-container');
         }
@@ -2265,41 +2307,31 @@ var BattleEngine = (function() {
             return;
         }
 
-        // Hide text box during intro
         hideTextBox();
-
-        // Play battle start SFX
         playSoundCue('battle_start');
 
-        // Create intro overlay
         var overlay = document.createElement('div');
         overlay.className = 'battle-intro-overlay';
         overlay.id = 'battle-intro-overlay';
 
-        // Create "BATTLE START" text
         var text = document.createElement('div');
         text.className = 'battle-intro-text';
         text.textContent = 'Battle Start!';
         overlay.appendChild(text);
 
-        // Create flash effect
         var flash = document.createElement('div');
         flash.className = 'battle-intro-flash';
         flash.id = 'battle-intro-flash';
 
-        // Add enemy slide-in animation to sprite layer
         var spriteLayer = document.getElementById('sprite-layer');
         if (spriteLayer) {
             spriteLayer.classList.add('battle-intro-enemy');
         }
 
-        // Add elements to container
         elements.container.appendChild(flash);
         elements.container.appendChild(overlay);
 
-        // Clean up after animation completes
         setTimeout(function() {
-            // Remove intro elements
             var introOverlay = document.getElementById('battle-intro-overlay');
             if (introOverlay && introOverlay.parentNode) {
                 introOverlay.parentNode.removeChild(introOverlay);
@@ -2308,13 +2340,9 @@ var BattleEngine = (function() {
             if (introFlash && introFlash.parentNode) {
                 introFlash.parentNode.removeChild(introFlash);
             }
-
-            // Remove slide-in class from sprite layer
             if (spriteLayer) {
                 spriteLayer.classList.remove('battle-intro-enemy');
             }
-
-            // Call callback to start battle
             if (callback) callback();
         }, config.timing.damageNumberDuration);
     }
@@ -2353,6 +2381,20 @@ var BattleEngine = (function() {
      * @param {function} callback - Called when outro animation completes
      */
     function showBattleOutro(result, callback) {
+        // Trigger dialogue first (before delegating to UI)
+        if (result === 'win') {
+            triggerDialogue('victory');
+        } else if (result === 'lose') {
+            triggerDialogue('defeat');
+        }
+
+        // Delegate to BattleUI if available
+        if (typeof BattleUI !== 'undefined') {
+            BattleUI.showBattleOutro(result, state.enemy.name, callback);
+            return;
+        }
+
+        // Fallback
         if (!elements.container) {
             elements.container = document.getElementById('vn-container');
         }
@@ -2361,7 +2403,6 @@ var BattleEngine = (function() {
             return;
         }
 
-        // Determine text and styles based on result
         var mainText = '';
         var subText = '';
         var overlayClass = '';
@@ -2392,61 +2433,41 @@ var BattleEngine = (function() {
                 break;
         }
 
-        // Play result SFX
         playSoundCue(soundCueKey);
 
-        // Add sprite animation class
         var spriteLayer = document.getElementById('sprite-layer');
         if (spriteLayer && spriteClass) {
             spriteLayer.classList.add(spriteClass);
         }
 
-        // Create outro overlay
         var overlay = document.createElement('div');
         overlay.className = 'battle-outro-overlay ' + overlayClass;
         overlay.id = 'battle-outro-overlay';
 
-        // Create main text
         var textEl = document.createElement('div');
         textEl.className = 'battle-outro-text ' + overlayClass;
         textEl.textContent = mainText;
         overlay.appendChild(textEl);
 
-        // Create subtext
         var subEl = document.createElement('div');
         subEl.className = 'battle-outro-subtext';
         subEl.textContent = subText;
         overlay.appendChild(subEl);
 
-        // Add overlay to container
         elements.container.appendChild(overlay);
 
-        // Create victory sparkles for win result
         if (result === 'win') {
             createVictorySparkles(overlay);
         }
 
-        // Trigger victory/defeat dialogue
-        if (result === 'win') {
-            triggerDialogue('victory');
-        } else if (result === 'lose') {
-            triggerDialogue('defeat');
-        }
-
-        // Clean up after animation (2.5 seconds for outro)
         setTimeout(function() {
-            // Remove outro overlay
             var outroOverlay = document.getElementById('battle-outro-overlay');
             if (outroOverlay && outroOverlay.parentNode) {
                 outroOverlay.parentNode.removeChild(outroOverlay);
             }
-
-            // Remove sprite animation class
             if (spriteLayer && spriteClass) {
                 spriteLayer.classList.remove(spriteClass);
             }
-
-            // Call callback to transition to next scene
             if (callback) callback();
         }, config.timing.battleOutro);
     }
@@ -2510,22 +2531,33 @@ var BattleEngine = (function() {
     }
 
     // === UI Management ===
+    // These functions delegate to BattleUI module for actual rendering.
+    // This separation keeps fight logic in BattleEngine and UI rendering in BattleUI.
 
     function hideTextBox() {
-        if (!elements.textBox) {
-            elements.textBox = document.getElementById('text-box');
-        }
-        if (elements.textBox) {
-            elements.textBox.classList.add('battle-mode');
+        if (typeof BattleUI !== 'undefined') {
+            BattleUI.hideTextBox();
+        } else {
+            // Fallback for backwards compatibility
+            if (!elements.textBox) {
+                elements.textBox = document.getElementById('text-box');
+            }
+            if (elements.textBox) {
+                elements.textBox.classList.add('battle-mode');
+            }
         }
     }
 
     function showTextBox() {
-        if (!elements.textBox) {
-            elements.textBox = document.getElementById('text-box');
-        }
-        if (elements.textBox) {
-            elements.textBox.classList.remove('battle-mode');
+        if (typeof BattleUI !== 'undefined') {
+            BattleUI.showTextBox();
+        } else {
+            if (!elements.textBox) {
+                elements.textBox = document.getElementById('text-box');
+            }
+            if (elements.textBox) {
+                elements.textBox.classList.remove('battle-mode');
+            }
         }
     }
 
@@ -2535,124 +2567,123 @@ var BattleEngine = (function() {
         }
         if (!elements.container) return;
 
-        // Hide normal text box during battle
-        hideTextBox();
+        // Delegate to BattleUI module
+        if (typeof BattleUI !== 'undefined') {
+            BattleUI.createBattleUI(state.player, state.enemy);
+            BattleUI.showUI();
+            // Sync element references
+            var uiElements = BattleUI.getElements();
+            elements.battleUI = uiElements.battleUI;
+            elements.battleLog = uiElements.battleLog;
+            elements.playerHPBar = uiElements.playerHPBar;
+            elements.playerHPText = uiElements.playerHPText;
+            elements.playerManaBar = uiElements.playerManaBar;
+            elements.playerManaText = uiElements.playerManaText;
+            elements.enemyHPBar = uiElements.enemyHPBar;
+            elements.enemyHPText = uiElements.enemyHPText;
+            elements.enemyLabel = uiElements.enemyLabel;
+            elements.playerStatuses = uiElements.playerStatuses;
+            elements.enemyStatuses = uiElements.enemyStatuses;
+            elements.playerStaggerFill = uiElements.playerStaggerFill;
+            elements.enemyStaggerFill = uiElements.enemyStaggerFill;
+            elements.limitBar = uiElements.limitBar;
+            elements.limitText = uiElements.limitText;
+            elements.terrainIndicator = uiElements.terrainIndicator;
+        } else {
+            // Fallback: inline UI creation (original code)
+            hideTextBox();
+            if (!document.getElementById('battle-ui')) {
+                var battleUI = document.createElement('div');
+                battleUI.id = 'battle-ui';
+                battleUI.className = 'battle-ui';
 
-        // Create battle UI container
-        if (!document.getElementById('battle-ui')) {
-            var battleUI = document.createElement('div');
-            battleUI.id = 'battle-ui';
-            battleUI.className = 'battle-ui';
+                var terrainIndicator = document.createElement('div');
+                terrainIndicator.id = 'terrain-indicator';
+                terrainIndicator.className = 'terrain-indicator';
 
-            // Terrain indicator (top center)
-            var terrainIndicator = document.createElement('div');
-            terrainIndicator.id = 'terrain-indicator';
-            terrainIndicator.className = 'terrain-indicator';
+                var playerStats = document.createElement('div');
+                playerStats.id = 'player-stats-panel';
+                playerStats.className = 'battle-stats-panel player-stats';
+                playerStats.innerHTML =
+                    '<div class="stats-header">' + state.player.name + ' <span id="player-ac-display" class="ac-display">(AC ' + state.player.ac + ')</span></div>' +
+                    '<div class="stat-row hp-row"><span class="stat-label">HP</span><div class="stat-bar-outer"><div id="player-hp-bar" class="stat-bar hp-bar hp-high"></div></div><span id="player-hp-text" class="stat-value"></span></div>' +
+                    '<div class="stat-row mp-row"><span class="stat-label">MP</span><div class="stat-bar-outer"><div id="player-mana-bar" class="stat-bar mana-bar"></div></div><span id="player-mana-text" class="stat-value"></span></div>' +
+                    '<div class="stat-row limit-row"><span class="stat-label limit-label">LB</span><div class="stat-bar-outer"><div id="limit-bar" class="stat-bar limit-bar"></div></div><span id="limit-text" class="stat-value">0%</span></div>' +
+                    '<div id="player-stagger-container" class="stagger-container"><div id="player-stagger-bar" class="stagger-bar"><div id="player-stagger-fill" class="stagger-fill"></div></div></div>' +
+                    '<div id="player-statuses" class="status-icons"></div>';
 
-            // === PLAYER STATS PANEL (unified HP/MP/Limit/Status) ===
-            var playerStats = document.createElement('div');
-            playerStats.id = 'player-stats-panel';
-            playerStats.className = 'battle-stats-panel player-stats';
-            playerStats.innerHTML =
-                '<div class="stats-header">' + state.player.name + ' <span id="player-ac-display" class="ac-display">(AC ' + state.player.ac + ')</span></div>' +
-                '<div class="stat-row hp-row">' +
-                    '<span class="stat-label">HP</span>' +
-                    '<div class="stat-bar-outer"><div id="player-hp-bar" class="stat-bar hp-bar hp-high"></div></div>' +
-                    '<span id="player-hp-text" class="stat-value"></span>' +
-                '</div>' +
-                '<div class="stat-row mp-row">' +
-                    '<span class="stat-label">MP</span>' +
-                    '<div class="stat-bar-outer"><div id="player-mana-bar" class="stat-bar mana-bar"></div></div>' +
-                    '<span id="player-mana-text" class="stat-value"></span>' +
-                '</div>' +
-                '<div class="stat-row limit-row">' +
-                    '<span class="stat-label limit-label">LB</span>' +
-                    '<div class="stat-bar-outer"><div id="limit-bar" class="stat-bar limit-bar"></div></div>' +
-                    '<span id="limit-text" class="stat-value">0%</span>' +
-                '</div>' +
-                '<div id="player-stagger-container" class="stagger-container">' +
-                    '<div id="player-stagger-bar" class="stagger-bar"><div id="player-stagger-fill" class="stagger-fill"></div></div>' +
-                '</div>' +
-                '<div id="player-statuses" class="status-icons"></div>';
+                var enemyStats = document.createElement('div');
+                enemyStats.id = 'enemy-stats-panel';
+                enemyStats.className = 'battle-stats-panel enemy-stats';
+                enemyStats.innerHTML =
+                    '<div id="enemy-hp-label" class="stats-header">' + state.enemy.name + '</div>' +
+                    '<div class="stat-row hp-row"><span class="stat-label">HP</span><div class="stat-bar-outer"><div id="enemy-hp-bar" class="stat-bar hp-bar hp-high"></div></div><span id="enemy-hp-text" class="stat-value"></span></div>' +
+                    '<div id="enemy-stagger-container" class="stagger-container"><div id="enemy-stagger-bar" class="stagger-bar"><div id="enemy-stagger-fill" class="stagger-fill"></div></div></div>' +
+                    '<div id="enemy-statuses" class="status-icons"></div>';
 
-            // === ENEMY STATS PANEL ===
-            var enemyStats = document.createElement('div');
-            enemyStats.id = 'enemy-stats-panel';
-            enemyStats.className = 'battle-stats-panel enemy-stats';
-            enemyStats.innerHTML =
-                '<div id="enemy-hp-label" class="stats-header">' + state.enemy.name + '</div>' +
-                '<div class="stat-row hp-row">' +
-                    '<span class="stat-label">HP</span>' +
-                    '<div class="stat-bar-outer"><div id="enemy-hp-bar" class="stat-bar hp-bar hp-high"></div></div>' +
-                    '<span id="enemy-hp-text" class="stat-value"></span>' +
-                '</div>' +
-                '<div id="enemy-stagger-container" class="stagger-container">' +
-                    '<div id="enemy-stagger-bar" class="stagger-bar"><div id="enemy-stagger-fill" class="stagger-fill"></div></div>' +
-                '</div>' +
-                '<div id="enemy-statuses" class="status-icons"></div>';
+                var battleLog = document.createElement('div');
+                battleLog.id = 'battle-log-panel';
+                battleLog.className = 'battle-log-panel';
+                battleLog.innerHTML = '<div id="battle-log-content" class="battle-log-content"></div><div id="battle-choices" class="battle-choices"></div>';
 
-            // Battle log panel (bottom, replaces text box)
-            var battleLog = document.createElement('div');
-            battleLog.id = 'battle-log-panel';
-            battleLog.className = 'battle-log-panel';
-            battleLog.innerHTML =
-                '<div id="battle-log-content" class="battle-log-content"></div>' +
-                '<div id="battle-choices" class="battle-choices"></div>';
-
-            battleUI.appendChild(terrainIndicator);
-            battleUI.appendChild(playerStats);
-            battleUI.appendChild(enemyStats);
-            battleUI.appendChild(battleLog);
-            elements.container.appendChild(battleUI);
+                battleUI.appendChild(terrainIndicator);
+                battleUI.appendChild(playerStats);
+                battleUI.appendChild(enemyStats);
+                battleUI.appendChild(battleLog);
+                elements.container.appendChild(battleUI);
+            }
+            cacheElements();
         }
 
-        // Cache references
-        cacheElements();
-
-        // Update terrain display
         updateTerrainDisplay();
-
-        // Show UI
         if (elements.battleUI) elements.battleUI.style.display = 'block';
     }
 
     function cacheElements() {
         elements.battleUI = document.getElementById('battle-ui');
-        // New unified panels
         elements.playerStats = document.getElementById('player-stats-panel');
         elements.enemyStats = document.getElementById('enemy-stats-panel');
-        // HP/Mana/Limit bars
         elements.playerHPBar = document.getElementById('player-hp-bar');
         elements.playerHPText = document.getElementById('player-hp-text');
         elements.playerManaBar = document.getElementById('player-mana-bar');
         elements.playerManaText = document.getElementById('player-mana-text');
         elements.limitBar = document.getElementById('limit-bar');
         elements.limitText = document.getElementById('limit-text');
-        // Status and stagger
         elements.playerStatuses = document.getElementById('player-statuses');
         elements.playerStaggerFill = document.getElementById('player-stagger-fill');
-        // Enemy elements
         elements.enemyHPBar = document.getElementById('enemy-hp-bar');
         elements.enemyHPText = document.getElementById('enemy-hp-text');
         elements.enemyLabel = document.getElementById('enemy-hp-label');
         elements.enemyStatuses = document.getElementById('enemy-statuses');
         elements.enemyStaggerFill = document.getElementById('enemy-stagger-fill');
-        // Other
         elements.terrainIndicator = document.getElementById('terrain-indicator');
         elements.battleLog = document.getElementById('battle-log-content');
+
+        // Also update BattleUI cache if available
+        if (typeof BattleUI !== 'undefined') {
+            BattleUI.cacheElements();
+        }
     }
 
     function hideUI() {
-        if (elements.battleUI) elements.battleUI.style.display = 'none';
-        if (elements.playerHP) elements.playerHP.style.display = 'none';
-        if (elements.playerMana) elements.playerMana.style.display = 'none';
-        if (elements.enemyHP) elements.enemyHP.style.display = 'none';
+        if (typeof BattleUI !== 'undefined') {
+            BattleUI.hideUI();
+        } else {
+            if (elements.battleUI) elements.battleUI.style.display = 'none';
+            if (elements.playerHP) elements.playerHP.style.display = 'none';
+            if (elements.playerMana) elements.playerMana.style.display = 'none';
+            if (elements.enemyHP) elements.enemyHP.style.display = 'none';
+        }
     }
 
     function destroyUI() {
-        var battleUI = document.getElementById('battle-ui');
-        if (battleUI && battleUI.parentNode) {
-            battleUI.parentNode.removeChild(battleUI);
+        if (typeof BattleUI !== 'undefined') {
+            BattleUI.destroyUI();
+        } else {
+            var battleUI = document.getElementById('battle-ui');
+            if (battleUI && battleUI.parentNode) {
+                battleUI.parentNode.removeChild(battleUI);
+            }
         }
         elements.battleUI = null;
         elements.playerHP = null;
@@ -2674,26 +2705,16 @@ var BattleEngine = (function() {
      * Update status effect icons for both player and enemy
      */
     function updateStatusDisplay() {
-        // Update player AC display (including defend bonus and status effects)
-        var acDisplay = document.getElementById('player-ac-display');
-        if (acDisplay) {
-            var effectiveAC = state.player.ac;
-            if (state.player.defending) effectiveAC += 4;
-            // Add status effect AC bonuses
-            for (var s = 0; s < state.player.statuses.length; s++) {
-                var stat = state.player.statuses[s];
-                var statDef = statusEffects[stat.type];
-                if (statDef && statDef.acBonus) effectiveAC += statDef.acBonus;
-            }
-            var acText = '(AC ' + effectiveAC + ')';
-            if (effectiveAC > state.player.ac) {
-                acText = '(AC ' + effectiveAC + ' ↑)';
-                acDisplay.style.color = '#4caf50';
-            } else {
-                acDisplay.style.color = '';
-            }
-            acDisplay.textContent = acText;
+        // Delegate to BattleUI if available
+        if (typeof BattleUI !== 'undefined') {
+            BattleUI.updateStatuses('player', state.player.statuses, statusEffects);
+            BattleUI.updateStatuses('enemy', state.enemy.statuses, statusEffects);
+            updatePlayerACDisplay();
+            return;
         }
+
+        // Fallback: Update player AC display
+        updatePlayerACDisplay();
 
         // Update player statuses
         if (elements.playerStatuses) {
@@ -2743,17 +2764,59 @@ var BattleEngine = (function() {
     }
 
     /**
+     * Update player AC display (extracted for reuse)
+     */
+    function updatePlayerACDisplay() {
+        var acDisplay = document.getElementById('player-ac-display');
+        if (!acDisplay) return;
+
+        var effectiveAC = state.player.ac;
+        if (state.player.defending) effectiveAC += 4;
+        // Add status effect AC bonuses
+        for (var s = 0; s < state.player.statuses.length; s++) {
+            var stat = state.player.statuses[s];
+            var statDef = statusEffects[stat.type];
+            if (statDef && statDef.acBonus) effectiveAC += statDef.acBonus;
+        }
+
+        // Delegate to BattleUI if available
+        if (typeof BattleUI !== 'undefined') {
+            BattleUI.updatePlayerAC(state.player.ac, effectiveAC);
+            return;
+        }
+
+        // Fallback
+        var acText = '(AC ' + effectiveAC + ')';
+        acDisplay.classList.remove('boosted', 'reduced');
+        if (effectiveAC > state.player.ac) {
+            acText = '(AC ' + effectiveAC + ' ↑)';
+            acDisplay.classList.add('boosted');
+        } else if (effectiveAC < state.player.ac) {
+            acText = '(AC ' + effectiveAC + ' ↓)';
+            acDisplay.classList.add('reduced');
+        }
+        acDisplay.textContent = acText;
+    }
+
+    /**
      * Update stagger bars for both player and enemy
      * Bars are hidden when stagger is 0 (via CSS .has-stagger class)
      */
     function updateStaggerDisplay() {
+        // Delegate to BattleUI if available
+        if (typeof BattleUI !== 'undefined') {
+            BattleUI.updateStagger('player', state.player.stagger, state.player.staggerThreshold);
+            BattleUI.updateStagger('enemy', state.enemy.stagger, state.enemy.staggerThreshold);
+            return;
+        }
+
+        // Fallback
         var playerContainer = document.getElementById('player-stagger-container');
         var enemyContainer = document.getElementById('enemy-stagger-container');
 
         if (elements.playerStaggerFill) {
             var playerPercent = (state.player.stagger / state.player.staggerThreshold) * 100;
             elements.playerStaggerFill.style.width = playerPercent + '%';
-            // Show/hide container based on stagger value
             if (playerContainer) {
                 if (state.player.stagger > 0) {
                     playerContainer.classList.add('has-stagger');
@@ -2761,7 +2824,6 @@ var BattleEngine = (function() {
                     playerContainer.classList.remove('has-stagger');
                 }
             }
-            // Color changes as stagger builds
             if (playerPercent >= 75) {
                 elements.playerStaggerFill.className = 'stagger-fill stagger-danger';
             } else if (playerPercent >= 50) {
@@ -2774,7 +2836,6 @@ var BattleEngine = (function() {
         if (elements.enemyStaggerFill) {
             var enemyPercent = (state.enemy.stagger / state.enemy.staggerThreshold) * 100;
             elements.enemyStaggerFill.style.width = enemyPercent + '%';
-            // Show/hide container based on stagger value
             if (enemyContainer) {
                 if (state.enemy.stagger > 0) {
                     enemyContainer.classList.add('has-stagger');
@@ -2796,6 +2857,13 @@ var BattleEngine = (function() {
      * Update terrain indicator
      */
     function updateTerrainDisplay() {
+        // Delegate to BattleUI if available
+        if (typeof BattleUI !== 'undefined') {
+            BattleUI.updateTerrain(state.terrain, terrainTypes);
+            return;
+        }
+
+        // Fallback
         if (!elements.terrainIndicator) {
             elements.terrainIndicator = document.getElementById('terrain-indicator');
         }
@@ -2814,6 +2882,12 @@ var BattleEngine = (function() {
     }
 
     function updatePlayerHPDisplay() {
+        // Delegate to BattleUI if available
+        if (typeof BattleUI !== 'undefined') {
+            BattleUI.updatePlayerHP(state.player.hp, state.player.maxHP);
+            return;
+        }
+        // Fallback
         if (!elements.playerHPBar || !elements.playerHPText) {
             cacheElements();
         }
@@ -2823,12 +2897,17 @@ var BattleEngine = (function() {
         elements.playerHPBar.style.width = percent + '%';
         elements.playerHPText.textContent = state.player.hp + '/' + state.player.maxHP;
 
-        // Use new unified class names
         var hpState = percent > 50 ? 'hp-high' : percent > 25 ? 'hp-medium' : 'hp-low';
         elements.playerHPBar.className = 'stat-bar hp-bar ' + hpState;
     }
 
     function updatePlayerManaDisplay() {
+        // Delegate to BattleUI if available
+        if (typeof BattleUI !== 'undefined') {
+            BattleUI.updatePlayerMana(state.player.mana, state.player.maxMana);
+            return;
+        }
+        // Fallback
         if (!elements.playerManaBar || !elements.playerManaText) {
             cacheElements();
         }
@@ -2840,6 +2919,12 @@ var BattleEngine = (function() {
     }
 
     function updateEnemyHPDisplay() {
+        // Delegate to BattleUI if available
+        if (typeof BattleUI !== 'undefined') {
+            BattleUI.updateEnemyHP(state.enemy.hp, state.enemy.maxHP, state.enemy.name);
+            return;
+        }
+        // Fallback
         if (!elements.enemyHPBar || !elements.enemyHPText) {
             cacheElements();
         }
@@ -2853,7 +2938,6 @@ var BattleEngine = (function() {
         elements.enemyHPBar.style.width = percent + '%';
         elements.enemyHPText.textContent = state.enemy.hp + '/' + state.enemy.maxHP;
 
-        // Use new unified class names
         var hpState = percent > 50 ? 'hp-high' : percent > 25 ? 'hp-medium' : 'hp-low';
         elements.enemyHPBar.className = 'stat-bar hp-bar ' + hpState;
     }
@@ -3178,13 +3262,19 @@ var BattleEngine = (function() {
             if (effect.parentNode) {
                 effect.parentNode.removeChild(effect);
             }
-        }, 600);
+        }, config.timing.enemyTurnDelay);
     }
 
     /**
      * Flash enemy sprite when hit
      */
     function flashEnemy() {
+        // Delegate to BattleUI if available
+        if (typeof BattleUI !== 'undefined') {
+            BattleUI.flashSprite('enemy');
+            return;
+        }
+        // Fallback
         var spriteLayer = document.getElementById('sprite-layer');
         if (!spriteLayer) return;
 
@@ -3201,6 +3291,12 @@ var BattleEngine = (function() {
      * Shake the screen when player is hit
      */
     function shakeScreen() {
+        // Delegate to BattleUI if available
+        if (typeof BattleUI !== 'undefined') {
+            BattleUI.shakeScreen();
+            return;
+        }
+        // Fallback
         if (elements.container) {
             elements.container.classList.add('screen-shake');
             setTimeout(function() {
@@ -3213,7 +3309,12 @@ var BattleEngine = (function() {
      * Show floating damage number (queues if animation is active)
      */
     function showDamageNumber(amount, target, type) {
-        // If battle log animation is active, queue the damage to show later
+        // Delegate to BattleUI if available
+        if (typeof BattleUI !== 'undefined') {
+            BattleUI.showDamageNumber(amount, target, type);
+            return;
+        }
+        // Fallback: queue if animation active
         if (battleLogAnimation.active) {
             queueDamageNumber(amount, target, type);
             return;
@@ -3884,7 +3985,7 @@ var BattleEngine = (function() {
             // Skip to enemy turn (player is stunned, so enemy gloats)
             setTimeout(function() {
                 processEnemyTurn(playerResultText, callback, { playerAction: 'stunned' });
-            }, 600);
+            }, config.timing.enemyTurnDelay);
             return;
         }
 
@@ -4044,7 +4145,7 @@ var BattleEngine = (function() {
         setTimeout(function() {
             if (checkBattleEnd()) return;
             processEnemyTurn(playerResultText, callback, actionContext);
-        }, 2000);
+        }, config.timing.damageNumberDuration);
     }
 
     /**
@@ -4194,7 +4295,7 @@ var BattleEngine = (function() {
             if (callback) {
                 callback(playerResultText + enemyText);
             }
-        }, 600 + tauntDelay);  // Add taunt delay so enemy speaks before attacking
+        }, config.timing.enemyTurnDelay + tauntDelay);  // Add taunt delay so enemy speaks before attacking
     }
 
     // === Utility ===
@@ -4324,6 +4425,7 @@ var BattleEngine = (function() {
         getStatusEffects: getStatusEffects,
         getTerrainTypes: getTerrainTypes,
         applyStatusTo: applyStatusTo,
+        setForcedRollCallback: setForcedRollCallback,
 
         // === Item System ===
         getAvailableItems: getAvailableBattleItems,

@@ -9,8 +9,28 @@ const PasswordScreen = (function() {
     'use strict';
 
     // === Configuration ===
-    // Change this value to update the password (case-insensitive)
-    const CORRECT_PASSWORD = 'STRAHD';
+    const config = {
+        // Change this value to update the password (case-insensitive)
+        password: 'STRAHD',
+        // Lockout settings
+        maxAttempts: 3,
+        lockoutDuration: 5000,  // 5 seconds
+        // Animation timing (milliseconds)
+        timing: {
+            focusDelay: 100,      // Delay before focusing first input
+            overlayFade: 500,     // Overlay fade out duration
+            errorShake: 500,      // Error shake animation duration
+            countdownInterval: 1000  // Countdown update interval
+        },
+        // Funny lockout messages (use {s} as placeholder for seconds)
+        lockoutMessages: [
+            "Whoa there! Take a breather... {s}s 🧘",
+            "Nice try, but no. Cool down for {s} seconds!",
+            "Error 418: I'm a teapot. Wait {s} seconds.",
+            "Password machine broke. Try again in {s}s.",
+            "Andi says: 'Not today!' Wait {s} seconds..."
+        ]
+    };
 
     // Track if password has been validated
     let isValidated = false;
@@ -21,17 +41,6 @@ const PasswordScreen = (function() {
     // Lockout tracking
     let failedAttempts = 0;
     let isLockedOut = false;
-    const MAX_ATTEMPTS = 3;
-    const LOCKOUT_DURATION = 5000; // 5 seconds
-
-    // Funny lockout messages (use {s} as placeholder for seconds)
-    const LOCKOUT_MESSAGES = [
-        "Whoa there! Take a breather... {s}s 🧘",
-        "Nice try, but no. Cool down for {s} seconds!",
-        "Error 418: I'm a teapot. Wait {s} seconds.",
-        "Password machine broke. Try again in {s}s.",
-        "Andi says: 'Not today!' Wait {s} seconds..."
-    ];
 
     /**
      * Initialize the password screen
@@ -52,7 +61,7 @@ const PasswordScreen = (function() {
         // Focus first input on load
         setTimeout(function() {
             inputs[0].focus();
-        }, 100);
+        }, config.timing.focusDelay);
     }
 
     /**
@@ -145,7 +154,7 @@ const PasswordScreen = (function() {
         if (!allFilled) return;
 
         // Compare with correct password (case-insensitive)
-        if (enteredPassword.toUpperCase() === CORRECT_PASSWORD) {
+        if (enteredPassword.toUpperCase() === config.password) {
             handleSuccess();
         } else {
             handleError(inputs);
@@ -171,7 +180,7 @@ const PasswordScreen = (function() {
                 if (onSuccessCallback) {
                     onSuccessCallback();
                 }
-            }, 500);
+            }, config.timing.overlayFade);
         } else {
             // No overlay, start immediately
             if (onSuccessCallback) {
@@ -202,13 +211,13 @@ const PasswordScreen = (function() {
             });
 
             // Check if we need to lock out
-            if (failedAttempts >= MAX_ATTEMPTS) {
+            if (failedAttempts >= config.maxAttempts) {
                 triggerLockout(inputs);
             } else {
                 // Focus first input
                 inputs[0].focus();
             }
-        }, 500);
+        }, config.timing.errorShake);
     }
 
     /**
@@ -223,8 +232,8 @@ const PasswordScreen = (function() {
         });
 
         // Pick a random message template
-        const messageTemplate = LOCKOUT_MESSAGES[Math.floor(Math.random() * LOCKOUT_MESSAGES.length)];
-        const totalSeconds = Math.ceil(LOCKOUT_DURATION / 1000);
+        const messageTemplate = config.lockoutMessages[Math.floor(Math.random() * config.lockoutMessages.length)];
+        const totalSeconds = Math.ceil(config.lockoutDuration / 1000);
         let secondsRemaining = totalSeconds;
 
         // Update countdown function
@@ -232,7 +241,7 @@ const PasswordScreen = (function() {
             if (secondsRemaining > 0) {
                 showLockoutMessage(messageTemplate.replace('{s}', secondsRemaining));
                 secondsRemaining--;
-                setTimeout(updateCountdown, 1000);
+                setTimeout(updateCountdown, config.timing.countdownInterval);
             } else {
                 // Re-enable inputs
                 isLockedOut = false;
@@ -260,15 +269,15 @@ const PasswordScreen = (function() {
         if (!msgElement) {
             msgElement = document.createElement('div');
             msgElement.id = 'lockout-message';
-            msgElement.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(75, 62, 42, 0.95); color: #fffbe9; padding: 20px 30px; border-radius: 8px; font-size: 1.2rem; text-align: center; z-index: 10001; animation: fadeIn 0.3s ease-out;';
+            // Styles defined in shared.css
             document.getElementById('password-container').appendChild(msgElement);
         }
 
         msgElement.textContent = message;
-        msgElement.style.display = 'block';
+        msgElement.classList.add('visible');
 
         // Hide the inputs visually
-        document.getElementById('password-inputs').style.opacity = '0.3';
+        document.getElementById('password-inputs').classList.add('dimmed');
     }
 
     /**
@@ -277,11 +286,11 @@ const PasswordScreen = (function() {
     function hideLockoutMessage() {
         const msgElement = document.getElementById('lockout-message');
         if (msgElement) {
-            msgElement.style.display = 'none';
+            msgElement.classList.remove('visible');
         }
 
         // Restore inputs visibility
-        document.getElementById('password-inputs').style.opacity = '1';
+        document.getElementById('password-inputs').classList.remove('dimmed');
     }
 
     /**

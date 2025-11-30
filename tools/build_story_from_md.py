@@ -28,7 +28,9 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 SCENES_DIR = PROJECT_ROOT / "scenes"
+ENEMIES_DIR = PROJECT_ROOT / "enemies"
 OUTPUT_FILE = PROJECT_ROOT / "js" / "story.js"
+ENEMIES_OUTPUT_FILE = PROJECT_ROOT / "js" / "enemies.js"
 THEME_FILE = PROJECT_ROOT / "theme.md"
 THEME_OUTPUT_FILE = PROJECT_ROOT / "js" / "theme.js"
 THEMES_DIR = PROJECT_ROOT / "css" / "themes"
@@ -524,6 +526,252 @@ def validate_scenes(scenes):
     return errors, warnings
 
 
+def parse_enemy_frontmatter(content):
+    """Parse enemy file YAML frontmatter with support for nested dialogue and moves."""
+    if not content.startswith('---'):
+        return {}, content
+
+    # Find the closing ---
+    end_match = re.search(r'\n---\n', content[3:])
+    if not end_match:
+        return {}, content
+
+    frontmatter_text = content[3:3 + end_match.start()]
+    body = content[3 + end_match.end():]
+
+    # Use a simple YAML-like parser that handles our specific format
+    result = {}
+    current_section = None
+    current_subsection = None
+    current_move = None
+    current_summon = None
+    dialogue = {}
+    moves = []
+    summons = []
+
+    lines = frontmatter_text.split('\n')
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        stripped = line.strip()
+
+        if not stripped or stripped.startswith('#'):
+            i += 1
+            continue
+
+        indent = len(line) - len(line.lstrip())
+
+        # Top-level key: value
+        if indent == 0 and ':' in stripped:
+            key, _, value = stripped.partition(':')
+            key = key.strip()
+            value = value.strip()
+
+            # Save previous move/summon
+            if current_move:
+                moves.append(current_move)
+                current_move = None
+            if current_summon:
+                summons.append(current_summon)
+                current_summon = None
+
+            if key == 'dialogue':
+                current_section = 'dialogue'
+                current_subsection = None
+            elif key == 'moves':
+                current_section = 'moves'
+            elif key == 'summons':
+                current_section = 'summons'
+            elif value:
+                # Simple key: value
+                # Try to parse as number or float
+                if value.isdigit():
+                    value = int(value)
+                else:
+                    try:
+                        value = float(value)
+                        if value == int(value):
+                            value = int(value)
+                    except ValueError:
+                        # Keep as string, handle booleans
+                        if value.lower() == 'true':
+                            value = True
+                        elif value.lower() == 'false':
+                            value = False
+                result[key] = value
+            else:
+                current_section = key
+            i += 1
+            continue
+
+        # Dialogue subsection (2 spaces)
+        if current_section == 'dialogue' and indent == 2 and ':' in stripped:
+            key, _, value = stripped.partition(':')
+            key = key.strip()
+            current_subsection = key
+            dialogue[key] = []
+            i += 1
+            continue
+
+        # Dialogue list item (4 spaces)
+        if current_section == 'dialogue' and current_subsection and indent >= 4 and stripped.startswith('- '):
+            item = stripped[2:].strip().strip('"').strip("'")
+            dialogue[current_subsection].append(item)
+            i += 1
+            continue
+
+        # Move list item (2 spaces, starts with - name:)
+        if current_section == 'moves' and indent == 2 and stripped.startswith('- name:'):
+            # Save previous move
+            if current_move:
+                moves.append(current_move)
+            current_move = {'name': stripped[7:].strip()}
+            i += 1
+            continue
+
+        # Move property (4 spaces)
+        if current_section == 'moves' and current_move and indent >= 4:
+            if ':' in stripped:
+                key, _, value = stripped.partition(':')
+                key = key.strip()
+                value = value.strip()
+
+                # Handle nested statusEffect
+                if key == 'statusEffect' and value == '':
+                    current_move['statusEffect'] = {}
+                    i += 1
+                    # Read nested properties
+                    while i < len(lines):
+                        nested_line = lines[i]
+                        nested_stripped = nested_line.strip()
+                        nested_indent = len(nested_line) - len(nested_line.lstrip())
+                        if nested_indent < 6 or not nested_stripped:
+                            break
+                        if ':' in nested_stripped:
+                            nk, _, nv = nested_stripped.partition(':')
+                            nk = nk.strip()
+                            nv = nv.strip()
+                            # Parse value
+                            if nv.isdigit():
+                                nv = int(nv)
+                            else:
+                                try:
+                                    nv = float(nv)
+                                except ValueError:
+                                    pass
+                            current_move['statusEffect'][nk] = nv
+                        i += 1
+                    continue
+
+                # Parse value
+                if value.isdigit():
+                    value = int(value)
+                elif value.lower() == 'true':
+                    value = True
+                elif value.lower() == 'false':
+                    value = False
+                else:
+                    try:
+                        value = float(value)
+                        if value == int(value):
+                            value = int(value)
+                    except ValueError:
+                        pass
+                current_move[key] = value
+            i += 1
+            continue
+
+        # Summon list item (2 spaces, starts with - id:)
+        if current_section == 'summons' and indent == 2 and stripped.startswith('- id:'):
+            if current_summon:
+                summons.append(current_summon)
+            current_summon = {'id': stripped[5:].strip()}
+            i += 1
+            continue
+
+        # Summon property (4 spaces)
+        if current_section == 'summons' and current_summon and indent >= 4:
+            if ':' in stripped:
+                key, _, value = stripped.partition(':')
+                key = key.strip()
+                value = value.strip().strip('"').strip("'")
+                # Parse value
+                if value.isdigit():
+                    value = int(value)
+                else:
+                    try:
+                        value = float(value)
+                        if value == int(value):
+                            value = int(value)
+                    except ValueError:
+                        pass
+                current_summon[key] = value
+            i += 1
+            continue
+
+        i += 1
+
+    # Save final move/summon
+    if current_move:
+        moves.append(current_move)
+    if current_summon:
+        summons.append(current_summon)
+
+    if dialogue:
+        result['dialogue'] = dialogue
+    if moves:
+        result['moves'] = moves
+    if summons:
+        result['summons'] = summons
+
+    return result, body
+
+
+def parse_enemy_file(filepath):
+    """Parse a single enemy .md file."""
+    with open(filepath, 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    frontmatter, body = parse_enemy_frontmatter(content)
+
+    # The body is the enemy description (optional flavor text)
+    description = body.strip()
+    if description:
+        frontmatter['description'] = description
+
+    return frontmatter
+
+
+def generate_enemies_js(enemies):
+    """Generate the JavaScript enemies file content."""
+    # Build the enemies object
+    enemies_dict = {}
+    for enemy in enemies:
+        enemies_dict[enemy['id']] = enemy
+
+    # Generate JavaScript
+    lines = [
+        '/**',
+        ' * Andi VN - Enemy Data',
+        ' * ',
+        ' * AUTO-GENERATED FILE - DO NOT EDIT MANUALLY',
+        ' * Generated by tools/build_story_from_md.py',
+        ' * ',
+        ' * Edit enemy files in enemies/*.md instead.',
+        ' */',
+        '',
+        'const enemies = ' + json.dumps(enemies_dict, indent=2) + ';',
+        '',
+        '// Export for use by engine',
+        'if (typeof module !== "undefined" && module.exports) {',
+        '    module.exports = { enemies };',
+        '}',
+        ''
+    ]
+
+    return '\n'.join(lines)
+
+
 def generate_story_js(scenes):
     """Generate the JavaScript story file content."""
     # Build the story object
@@ -644,10 +892,54 @@ def main():
     with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
         f.write(content)
 
+    # === Process Enemies ===
+    print("\n" + "=" * 40)
+    print("Processing enemies...")
+
+    enemies = []
+    if ENEMIES_DIR.exists():
+        enemy_files = list(ENEMIES_DIR.glob('*.md'))
+        if enemy_files:
+            print(f"Found {len(enemy_files)} enemy files")
+
+            for filepath in enemy_files:
+                print(f"  Parsing: {filepath.name}")
+                try:
+                    enemy = parse_enemy_file(filepath)
+                    if 'id' not in enemy:
+                        print(f"    Warning: No 'id' field, using filename: {filepath.stem}")
+                        enemy['id'] = filepath.stem
+                    enemies.append(enemy)
+                except Exception as e:
+                    print(f"    Error: {e}")
+                    sys.exit(1)
+
+            # Check for duplicate enemy IDs
+            enemy_ids = [e['id'] for e in enemies]
+            enemy_duplicates = [id for id in enemy_ids if enemy_ids.count(id) > 1]
+            if enemy_duplicates:
+                print(f"\nError: Duplicate enemy IDs found: {set(enemy_duplicates)}")
+                sys.exit(1)
+
+            # Generate enemies.js
+            print(f"\nGenerating {ENEMIES_OUTPUT_FILE}...")
+            enemies_content = generate_enemies_js(enemies)
+
+            with open(ENEMIES_OUTPUT_FILE, 'w', encoding='utf-8') as f:
+                f.write(enemies_content)
+        else:
+            print("  No enemy files found (optional)")
+    else:
+        print(f"  No enemies/ directory found (optional)")
+
     print(f"\nSuccess!")
     print(f"  Theme: {selected_theme} (from {len(themes)} available)")
     print(f"  Story: {len(scenes)} scenes")
+    if enemies:
+        print(f"  Enemies: {len(enemies)} enemies")
     print(f"  Output: {OUTPUT_FILE}")
+    if enemies:
+        print(f"  Enemies: {ENEMIES_OUTPUT_FILE}")
     print(f"  Theme config: {THEME_OUTPUT_FILE}")
 
 

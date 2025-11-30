@@ -32,7 +32,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 10000;
+    z-index: var(--z-modal);
     transition: opacity 0.5s ease-out;
 }
 
@@ -195,7 +195,7 @@ body::after {
         rgba(0, 0, 0, 0.3) 4px
     );
     pointer-events: none;
-    z-index: 9998;
+    z-index: var(--z-overlay);
 }
 
 /* === VN Wrapper === */
@@ -208,7 +208,7 @@ body::after {
     padding: 20px;
     overflow: hidden;
     position: relative;
-    z-index: 1;
+    z-index: var(--z-background);
 }
 
 /* === Header === */
@@ -251,7 +251,7 @@ h1 {
     background-position: center;
     background-repeat: no-repeat;
     background-color: #003078;
-    z-index: 1;
+    z-index: var(--z-background);
     image-rendering: pixelated;
 }
 
@@ -265,7 +265,7 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: flex-end;
-    z-index: 2;
+    z-index: var(--z-sprites);
     pointer-events: none;
 }
 
@@ -298,7 +298,7 @@ h1 {
     max-height: 50%;
     background: var(--nes-black);
     border-top: 8px solid var(--nes-white);
-    z-index: 10;
+    z-index: var(--z-text-box);
     display: flex;
     flex-direction: column;
     padding: 0;

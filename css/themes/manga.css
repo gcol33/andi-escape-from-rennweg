@@ -36,7 +36,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 10000;
+    z-index: var(--z-modal);
     transition: opacity 0.5s ease-out;
 }
 
@@ -87,13 +87,13 @@
             rgba(0, 0, 0, 0.03) 2px
         );
     pointer-events: none;
-    z-index: 1;
+    z-index: var(--z-background);
 }
 
 #password-inputs {
     display: flex;
     position: relative;
-    z-index: 2;
+    z-index: var(--z-sprites);
 }
 
 /* Fallback spacing for browsers without gap support */
@@ -301,7 +301,7 @@ h1 {
             rgba(0, 0, 0, 0.02) 2px
         );
     pointer-events: none;
-    z-index: 100;
+    z-index: var(--z-theme-deco);
 }
 
 /* === Background Layer === */
@@ -315,7 +315,7 @@ h1 {
     background-position: center;
     background-repeat: no-repeat;
     background-color: var(--manga-light-gray);
-    z-index: 1;
+    z-index: var(--z-background);
     /* Desaturate to black and white */
     filter: grayscale(100%) contrast(1.2);
 }
@@ -330,7 +330,7 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: flex-end;
-    z-index: 2;
+    z-index: var(--z-sprites);
     pointer-events: none;
 }
 
@@ -363,7 +363,7 @@ h1 {
     max-height: 50%;
     background: var(--manga-white);
     border-top: 4px solid var(--manga-black);
-    z-index: 10;
+    z-index: var(--z-text-box);
     display: flex;
     flex-direction: column;
     padding: 0;
@@ -1011,7 +1011,7 @@ h1 {
     border: 3px solid var(--manga-black);
     box-shadow: 4px 4px 0 var(--manga-black);
     padding: 6px;
-    z-index: 9999;
+    z-index: var(--z-dev-tools);
     font-family: 'Courier New', monospace;
     font-size: 12px;
     font-weight: bold;
@@ -1057,7 +1057,7 @@ h1 {
         rgba(0, 0, 0, 0.15) 100%
     );
     pointer-events: none;
-    z-index: 99;
+    z-index: var(--z-theme-deco);
 }
 
 /* Ink splatter decoration for game over */

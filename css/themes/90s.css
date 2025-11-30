@@ -14,6 +14,13 @@
     --text-color: #000000;
     --page-bg: #008080;
 
+    /* Button styling overrides for Windows 3.1 look */
+    --btn-bg: var(--win-bg);
+    --btn-bg-hover: var(--win-light);
+    --btn-color: var(--text-color);
+    --btn-border: 2px solid;
+    --btn-border-radius: 0;
+
     /* Battle system - Windows 3.1 colors */
     --battle-hp-high: #00aa00;
     --battle-hp-medium: #aaaa00;
@@ -38,7 +45,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 10000;
+    z-index: var(--z-modal);
     transition: opacity 0.5s ease-out;
 }
 
@@ -240,7 +247,7 @@ h1 {
     background-position: center;
     background-repeat: no-repeat;
     background-color: var(--win-dark);
-    z-index: 1;
+    z-index: var(--z-background);
 }
 
 /* === Character Sprite Layer === */
@@ -253,7 +260,7 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: flex-end;
-    z-index: 2;
+    z-index: var(--z-sprites);
     pointer-events: none;
 }
 
@@ -285,7 +292,7 @@ h1 {
     max-height: 50%;
     background: var(--win-bg);
     border-top: 2px solid var(--win-light);
-    z-index: 10;
+    z-index: var(--z-text-box);
     display: flex;
     flex-direction: column;
     padding: 0;
@@ -883,7 +890,7 @@ h1 {
     border: 2px solid;
     border-color: var(--win-light) var(--win-dark) var(--win-dark) var(--win-light);
     padding: 4px;
-    z-index: 9999;
+    z-index: var(--z-dev-tools);
     font-family: 'MS Sans Serif', 'Segoe UI', Tahoma, sans-serif;
     font-size: 12px;
     display: none;
@@ -1260,4 +1267,99 @@ h1 {
 
 .battle-outro-overlay.defeat {
     background: rgba(128, 0, 0, 0.8);
+}
+
+/* === Skill/Item Submenu Windows 3.1 Style === */
+.skill-submenu,
+.item-submenu {
+    background: var(--win-gray);
+    border: 3px solid;
+    border-color: var(--win-light) var(--win-dark) var(--win-dark) var(--win-light);
+}
+
+.skill-submenu-title,
+.item-submenu-title {
+    font-family: 'Silkscreen', 'MS Sans Serif', sans-serif;
+    color: #000;
+    background: var(--win-blue);
+    color: #fff;
+    padding: 4px 8px;
+    margin: -8px -12px 8px -12px;
+    border-bottom: 2px solid var(--win-dark);
+}
+
+.skill-list,
+.item-list {
+    background: #fff;
+    border: 2px solid;
+    border-color: var(--win-dark) var(--win-light) var(--win-light) var(--win-dark);
+    padding: 4px;
+}
+
+.skill-item,
+.item-row {
+    background: #fff;
+    color: #000;
+    font-family: 'Silkscreen', 'MS Sans Serif', sans-serif;
+    border: none;
+    padding: 4px 8px;
+}
+
+.skill-item:hover,
+.item-row:hover {
+    background: var(--win-blue);
+    color: #fff;
+}
+
+.skill-item.disabled {
+    color: var(--win-dark);
+    background: #fff;
+}
+
+.skill-item.disabled:hover {
+    background: #fff;
+    color: var(--win-dark);
+}
+
+.skill-name,
+.item-name {
+    color: inherit;
+}
+
+.skill-cost {
+    color: inherit;
+}
+
+.skill-cost.insufficient {
+    color: #ff0000;
+}
+
+.item-icon {
+    font-size: 1rem;
+}
+
+.item-qty {
+    color: inherit;
+    opacity: 0.7;
+}
+
+.skill-back-btn {
+    font-family: 'Silkscreen', 'MS Sans Serif', sans-serif;
+    background: var(--win-bg);
+    color: #000;
+    border: 3px solid;
+    border-color: var(--win-light) var(--win-dark) var(--win-dark) var(--win-light);
+    border-radius: 0;
+    padding: 4px 12px;
+    margin-top: 8px;
+}
+
+.skill-back-btn:hover {
+    background: var(--win-light);
+}
+
+.skill-back-btn:active {
+    border-color: var(--win-dark) var(--win-light) var(--win-light) var(--win-dark);
+    background: var(--win-dark);
+    color: #fff;
 }

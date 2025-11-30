@@ -119,6 +119,64 @@
     cursor: pointer;
 }
 
+/* Ken Burns toggle container */
+.ken-burns-toggle-container {
+    margin-top: var(--spacing-sm);
+}
+
+.ken-burns-toggle-container label {
+    cursor: pointer;
+}
+
+.ken-burns-toggle-container input[type="checkbox"] {
+    margin-right: 6px;
+}
+
+/* Forced dice roll input container */
+.forced-roll-container {
+    margin-top: var(--spacing-sm);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.forced-roll-container label {
+    white-space: nowrap;
+}
+
+.forced-roll-container input[type="number"] {
+    width: 60px;
+    padding: 2px 4px;
+    font-size: 12px;
+    font-family: inherit;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+    background: rgba(0, 0, 0, 0.3);
+    color: inherit;
+}
+
+.forced-roll-container input[type="number"]::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+}
+
+/* Hide spinner buttons on number input */
+.forced-roll-container input[type="number"]::-webkit-outer-spin-button,
+.forced-roll-container input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.forced-roll-container input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+/* Undo button error flash state */
+#dev-undo-btn.error {
+    background-color: #c44 !important;
+    color: #fff !important;
+    border-color: #c44 !important;
+}
+
 /* === Reset Button (Base Styles) ===
  * Positioned fixed in corner. Themes override colors.
  */
@@ -710,6 +768,15 @@
 /* Special styling for limit label */
 .stat-label.limit-label {
     color: #ffd700;
+}
+
+/* AC display states */
+.ac-display.boosted {
+    color: #4caf50;
+}
+
+.ac-display.reduced {
+    color: #ff6b6b;
 }
 
 /* Stagger bar - HIDDEN (system disabled for simplicity) */

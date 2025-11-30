@@ -53,6 +53,16 @@ The VN consists of four layers:
 
 This separation ensures the engine is stable, writers only edit Markdown, and the build step produces clean data.
 
+5. **Tuning layer (JavaScript)**
+   - `js/tuning.js` contains all "game feel" constants.
+   - Text speeds, animation timings, combat balance, UI delays.
+   - Single file for quick iteration without touching engine code.
+
+6. **Battle UI layer (JavaScript)**
+   - `js/battle-ui.js` handles all battle DOM rendering.
+   - Theme-agnostic: all styling comes from CSS.
+   - Separated from battle logic for clean architecture.
+
 ---
 
 ## 3. Folder Structure
@@ -70,14 +80,20 @@ Andi/
 ├─ theme.md                (theme selection config)
 │
 ├─ js/
-│   ├─ engine.js
-│   ├─ battle.js       (battle system module)
+│   ├─ tuning.js       (game feel constants - speeds, delays, balance)
+│   ├─ engine.js       (VN engine core)
+│   ├─ battle-ui.js    (battle UI rendering - theme-agnostic)
+│   ├─ battle.js       (battle logic - no direct DOM manipulation)
 │   ├─ password.js     (password screen logic)
 │   ├─ story.js        (generated - do not edit manually)
+│   ├─ enemies.js      (generated - enemy data)
 │   └─ theme.js        (generated - theme configuration)
 │
 ├─ scenes/
 │   └─ *.md            (source of truth for story)
+│
+├─ enemies/
+│   └─ *.md            (source of truth for enemy data)
 │
 ├─ assets/
 │   ├─ bg/
@@ -1015,8 +1031,9 @@ The VN includes a Pokemon-style turn-based battle system with DnD d20 mechanics.
 
 ### Starting a Battle
 
-Use the `start_battle` action in scene frontmatter:
+Use the `start_battle` action in scene frontmatter. You can either reference an enemy by ID (recommended) or define enemy stats inline:
 
+**Using enemy_id (recommended):**
 ```yaml
 ---
 id: boss_fight
@@ -1037,6 +1054,17 @@ actions:
       - heal
       - fortify
     terrain: none
+    enemy_id: agnes_hr
+    win_target: agnes_defeated
+    lose_target: game_over_agnes
+    flee_target: ran_away
+---
+```
+
+**Inline enemy definition (legacy):**
+```yaml
+actions:
+  - type: start_battle
     enemy:
       name: Agnes
       hp: 30
@@ -1058,8 +1086,6 @@ actions:
             chance: 0.3
     win_target: agnes_defeated
     lose_target: game_over_agnes
-    flee_target: ran_away
----
 ```
 
 ### Battle Configuration Fields
@@ -1073,7 +1099,8 @@ actions:
 | `player_damage` | No | d6 | Player base damage dice |
 | `player_skills` | No | power_strike, fireball, heal | Array of skill IDs |
 | `terrain` | No | none | Terrain type for battle |
-| `enemy.name` | Yes | Enemy | Enemy display name |
+| `enemy_id` | No | - | Enemy ID (loads from enemies/*.md) |
+| `enemy.name` | Yes* | Enemy | Enemy display name (*required if no enemy_id) |
 | `enemy.hp` | No | 20 | Enemy HP |
 | `enemy.ac` | No | 12 | Enemy Armor Class |
 | `enemy.attack_bonus` | No | 3 | Enemy attack bonus |
@@ -1257,6 +1284,132 @@ BattleEngine.skills;         // All skill definitions
 BattleEngine.statusEffects;  // All status effect definitions
 BattleEngine.terrainTypes;   // All terrain definitions
 ```
+
+### Enemy Files (enemies/*.md)
+
+Enemies can be defined in separate Markdown files in the `enemies/` folder. This allows for:
+- Reusable enemy definitions across multiple battles
+- Enemy-specific dialogue that responds to battle context
+- Centralized enemy data management
+
+**Example enemy file (`enemies/agnes_hr.md`):**
+
+```markdown
+---
+id: agnes_hr
+name: Agnes (HR)
+sprite: agnes_blocking.svg
+
+# Base Stats
+hp: 22
+ac: 11
+attack_bonus: 3
+damage: d6
+type: physical
+stagger_threshold: 50
+ai: default
+
+# Moves
+moves:
+  - name: HR Memo
+    damage: d6
+    type: physical
+    description: A sharply worded memo flies your way!
+
+  - name: Performance Review
+    damage: 2d4
+    type: psychic
+    statusEffect:
+      type: stun
+      chance: 0.15
+
+  - name: Break Room Retreat
+    isHeal: true
+    healAmount: 1d4+1
+
+# Context-aware dialogue
+dialogue:
+  attack_default:
+    - "Time for your annual review!"
+    - "This is going in your file!"
+
+  attack_player_low_hp:
+    - "Your termination is imminent!"
+    - "Exit interview time!"
+
+  attack_player_healed:
+    - "Wellness programs won't save you!"
+
+  attack_player_defended:
+    - "No hiding behind bureaucracy!"
+
+  attack_player_missed:
+    - "Missed! Just like your deadlines!"
+
+  attack_got_hit:
+    - "Ow! That's workplace violence!"
+
+  attack_got_crit:
+    - "That's... actually impressive."
+
+  attack_self_low_hp:
+    - "I won't be outsourced!"
+
+  attack_player_stunned:
+    - "Mandatory meeting time!"
+
+  battle_start:
+    - "Your resignation has been... REJECTED!"
+
+  victory:
+    - "Back to the cubicle with you!"
+
+  defeat:
+    - "This... isn't... protocol..."
+---
+
+Agnes from HR. The final boss of every office worker's nightmare.
+```
+
+### Enemy File Fields
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `id` | Yes | Unique enemy identifier (used by `enemy_id` in battles) |
+| `name` | Yes | Display name shown in battle UI |
+| `sprite` | No | Character sprite filename (in assets/char/) |
+| `hp` | No | Enemy hit points (default: 20) |
+| `ac` | No | Armor class (default: 12) |
+| `attack_bonus` | No | Attack roll bonus (default: 3) |
+| `damage` | No | Base damage dice (default: d6) |
+| `type` | No | Elemental type (default: physical) |
+| `stagger_threshold` | No | Stagger needed to stun (default: 80) |
+| `ai` | No | AI behavior: default, aggressive, defensive, support |
+| `moves` | No | Array of attack/ability objects |
+| `dialogue` | No | Context-aware dialogue (see below) |
+| `summons` | No | Enemies this enemy can spawn |
+
+### Dialogue Triggers
+
+Enemy dialogue is context-aware. The system picks appropriate lines based on battle state:
+
+| Trigger | When Used |
+|---------|-----------|
+| `attack_default` | General attack taunt (fallback) |
+| `attack_player_low_hp` | Player HP ≤ 25% |
+| `attack_player_healed` | Player just used heal or item |
+| `attack_player_defended` | Player just defended |
+| `attack_player_missed` | Player's attack missed |
+| `attack_got_hit` | Enemy was hit by player |
+| `attack_got_crit` | Enemy was crit by player |
+| `attack_self_low_hp` | Enemy HP ≤ 30% |
+| `attack_has_status` | Enemy has status effects |
+| `attack_player_stunned` | Player is stunned/frozen |
+| `battle_start` | Battle begins |
+| `victory` | Enemy wins |
+| `defeat` | Enemy loses |
+
+Dialogue has a 40% chance to be skipped to avoid being repetitive.
 
 ---
 

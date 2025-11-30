@@ -21,6 +21,7 @@ const VNEngine = (function() {
     'use strict';
 
     // === Configuration ===
+    // Many values now sourced from TUNING.js for centralized game feel tuning
     const config = {
         assetPaths: {
             bg: 'assets/bg/',
@@ -29,25 +30,35 @@ const VNEngine = (function() {
             sfx: 'assets/sfx/'
         },
         startScene: 'start',
-        defaultMusic: 'default.mp3',  // fallback if scene has no music
-        textSpeed: {
-            normal: 18,  // milliseconds per character
-            fast: 10,    // noticeably faster but still readable
-            auto: 18,    // same as normal, but auto-advances
-            skip: 0      // instant (only for read blocks)
+        defaultMusic: 'default.mp3',
+        // Text speed values from TUNING (with fallbacks)
+        textSpeed: typeof TUNING !== 'undefined' ? TUNING.text.speed : {
+            normal: 18,
+            fast: 10,
+            auto: 18,
+            skip: 0
         },
-        autoDelay: 1500,        // ms to wait before auto-advancing
-        skipModeDelay: 150,     // ms delay between blocks in skip mode
+        autoDelay: typeof TUNING !== 'undefined' ? TUNING.text.autoAdvanceDelay : 1500,
+        skipModeDelay: typeof TUNING !== 'undefined' ? TUNING.text.skipModeDelay : 150,
         currentSpeed: 'normal',
-        saveKey: 'andi_vn_save',  // localStorage key for save data
-        // Audio timing
-        sfxPreDelay: 150,       // ms pause before playing entry SFX
-        sfxPostDelay: 200,      // ms pause after SFX before text starts
-        sfxMinDuration: 620,    // minimum total SFX duration in ms
-        sfxRepeatGap: 150,      // gap between repeated SFX plays in ms
-        sfxDuckVolume: 0.2,     // music volume during SFX (20% of normal)
-        // Text block splitting
-        maxBlockLength: 350     // max characters before auto-splitting text
+        // localStorage keys
+        saveKey: 'andi_vn_save',
+        themeKey: 'andi_vn_theme',
+        kenBurnsKey: 'andi_vn_ken_burns',
+        // Audio timing from TUNING
+        sfxPreDelay: typeof TUNING !== 'undefined' ? TUNING.audio.sfxPreDelay : 150,
+        sfxPostDelay: typeof TUNING !== 'undefined' ? TUNING.audio.sfxPostDelay : 200,
+        sfxMinDuration: typeof TUNING !== 'undefined' ? TUNING.audio.sfxMinDuration : 620,
+        sfxRepeatGap: typeof TUNING !== 'undefined' ? TUNING.audio.sfxRepeatGap : 150,
+        sfxDuckVolume: typeof TUNING !== 'undefined' ? TUNING.audio.duckVolume : 0.2,
+        // Text block splitting from TUNING
+        maxBlockLength: typeof TUNING !== 'undefined' ? TUNING.text.maxBlockLength : 350,
+        // UI timing from TUNING
+        timing: {
+            errorFlash: typeof TUNING !== 'undefined' ? TUNING.ui.errorFlash : 300,
+            damageNumber: typeof TUNING !== 'undefined' ? TUNING.ui.damageNumberDuration : 1500,
+            spriteFlash: typeof TUNING !== 'undefined' ? TUNING.battle.effects.spriteFlash : 300
+        }
     };
 
     // === Logging Utilities ===
@@ -85,7 +96,7 @@ const VNEngine = (function() {
         flags: {},
         inventory: [], // item names the player has collected
         playerHP: null, // player HP (null until first battle)
-        playerMaxHP: 20, // default max HP
+        playerMaxHP: typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxHP : 20,
         battle: null, // active battle state
         history: [],
         readBlocks: {}, // tracks which scene+block combos have been read
@@ -108,6 +119,7 @@ const VNEngine = (function() {
         },
         devMode: true,  // TODO: Set to false before release
         devKeysHeld: {},
+        devForcedRoll: null,  // Dev mode: force next dice roll to this value (null = random)
         kenBurns: false,  // Subtle zoom effect on backgrounds (Apple-style)
         currentBackground: null  // Track current background to avoid Ken Burns reset on same bg
     };
@@ -142,8 +154,17 @@ const VNEngine = (function() {
             }
 
             // Roll the dice (with advantage/disadvantage support)
-            var roll1 = Math.floor(Math.random() * sides) + 1;
-            var roll2 = Math.floor(Math.random() * sides) + 1;
+            // Dev mode: use forced roll if set
+            var forcedRoll = state.devForcedRoll;
+            var roll1, roll2;
+            if (state.devMode && forcedRoll !== null && forcedRoll >= 1 && forcedRoll <= sides) {
+                roll1 = forcedRoll;
+                roll2 = forcedRoll;
+                log.debug('Using forced dice roll: ' + forcedRoll);
+            } else {
+                roll1 = Math.floor(Math.random() * sides) + 1;
+                roll2 = Math.floor(Math.random() * sides) + 1;
+            }
             var result, rollDescription;
 
             if (modifier === 'advantage') {
@@ -245,7 +266,14 @@ const VNEngine = (function() {
             if (typeof BattleEngine !== 'undefined' && !BattleEngine._initialized) {
                 BattleEngine.init({
                     loadScene: loadScene,
-                    playSfx: playSfx
+                    playSfx: playSfx,
+                    getInventory: function() { return state.inventory.slice(); },
+                    hasItem: hasItem,
+                    removeItem: function(item) { removeItems([item]); }
+                });
+                // Set up forced roll callback for dev mode
+                BattleEngine.setForcedRollCallback(function() {
+                    return state.devMode ? state.devForcedRoll : null;
                 });
                 BattleEngine._initialized = true;
             }
@@ -471,7 +499,7 @@ const VNEngine = (function() {
             sprite.classList.add('damage-flash');
             setTimeout(function() {
                 sprite.classList.remove('damage-flash');
-            }, 300);
+            }, config.timing.spriteFlash);
         });
     }
 
@@ -498,7 +526,7 @@ const VNEngine = (function() {
             if (damageNum.parentNode) {
                 damageNum.parentNode.removeChild(damageNum);
             }
-        }, 1500);
+        }, config.timing.damageNumber);
     }
 
     /**
@@ -533,10 +561,20 @@ const VNEngine = (function() {
                     existingSubmenu.parentNode.removeChild(existingSubmenu);
                 }
 
-                // Restore choices container display
+                // Remove any item submenu that might be open
+                var existingItemMenu = document.getElementById('item-submenu');
+                if (existingItemMenu) {
+                    existingItemMenu.parentNode.removeChild(existingItemMenu);
+                }
+
+                // Restore choices container and battle log content display
                 var battleChoicesContainer = document.getElementById('battle-choices');
+                var battleLogContent = document.getElementById('battle-log-content');
                 if (battleChoicesContainer) {
                     battleChoicesContainer.style.display = '';
+                }
+                if (battleLogContent) {
+                    battleLogContent.style.display = '';
                 }
 
                 // Note: Battle log is updated by BattleEngine.updateBattleLog()
@@ -677,9 +715,18 @@ const VNEngine = (function() {
 
             if (skill.canUse) {
                 skillItem.onclick = function() {
-                    // Remove submenu
+                    // Remove submenu and restore battle log content
                     var menu = document.getElementById('skill-submenu');
                     if (menu) menu.parentNode.removeChild(menu);
+                    // Show battle choices and log content again
+                    var battleChoices = document.getElementById('battle-choices');
+                    var battleLogContent = document.getElementById('battle-log-content');
+                    if (battleChoices) {
+                        battleChoices.style.display = '';
+                    }
+                    if (battleLogContent) {
+                        battleLogContent.style.display = '';
+                    }
 
                     // Execute skill action
                     executeBattleAction('skill', { skillId: skill.id });
@@ -699,38 +746,59 @@ const VNEngine = (function() {
         backBtn.onclick = function() {
             var menu = document.getElementById('skill-submenu');
             if (menu) menu.parentNode.removeChild(menu);
-            renderBattleChoices(originalChoices);
+            // Show battle choices and log content again
+            var battleChoices = document.getElementById('battle-choices');
+            var battleLogContent = document.getElementById('battle-log-content');
+            if (battleChoices) {
+                battleChoices.style.display = '';
+            }
+            if (battleLogContent) {
+                battleLogContent.style.display = '';
+            }
         };
         submenu.appendChild(backBtn);
 
-        // Add to battle log panel (above choices)
-        var logPanel = document.getElementById('battle-log-panel');
-        if (logPanel) {
-            logPanel.insertBefore(submenu, container);
+        // Add to battle log panel (replaces entire panel content)
+        var battleLogPanel = document.querySelector('.battle-log-panel');
+        var battleChoices = document.getElementById('battle-choices');
+        var battleLogContent = document.getElementById('battle-log-content');
+        if (battleLogPanel && battleChoices) {
+            // Hide both battle choices and log content - skill menu takes full space
+            battleChoices.style.display = 'none';
+            if (battleLogContent) {
+                battleLogContent.style.display = 'none';
+            }
+            // Insert at the start of the panel
+            battleLogPanel.insertBefore(submenu, battleLogPanel.firstChild);
         }
-
-        // Hide main choices while showing skills
-        container.style.display = 'none';
     }
 
     /**
-     * Show item selection submenu
+     * Show item selection submenu (appears below choices, scrollable)
      */
     function showItemSubmenu(container, originalChoices) {
         if (typeof BattleEngine === 'undefined') return;
 
+        // Remove any existing item submenu
+        var existingMenu = document.getElementById('item-submenu');
+        if (existingMenu) {
+            existingMenu.parentNode.removeChild(existingMenu);
+            // If clicking Item again while menu open, just close it
+            return;
+        }
+
         // Create submenu
         var submenu = document.createElement('div');
-        submenu.id = 'skill-submenu';
-        submenu.className = 'skill-submenu active';
+        submenu.id = 'item-submenu';
+        submenu.className = 'item-submenu';
 
         var title = document.createElement('div');
-        title.className = 'skill-submenu-title';
-        title.textContent = 'Use Item';
+        title.className = 'item-submenu-title';
+        title.textContent = 'Items';
         submenu.appendChild(title);
 
         var itemList = document.createElement('div');
-        itemList.className = 'skill-list';
+        itemList.className = 'item-list';
 
         // Get battle items from BattleEngine
         var battleItems = BattleEngine.getBattleItems ? BattleEngine.getBattleItems() : [];
@@ -741,23 +809,33 @@ const VNEngine = (function() {
             hasItems = true;
 
             var itemRow = document.createElement('div');
-            itemRow.className = 'skill-item';
+            itemRow.className = 'item-row';
+
+            var itemIcon = document.createElement('span');
+            itemIcon.className = 'item-icon';
+            itemIcon.textContent = item.icon || '📦';
 
             var itemName = document.createElement('span');
-            itemName.className = 'skill-name';
+            itemName.className = 'item-name';
             itemName.textContent = item.name;
 
             var itemQty = document.createElement('span');
-            itemQty.className = 'skill-cost';
+            itemQty.className = 'item-qty';
             itemQty.textContent = 'x' + item.quantity;
 
+            itemRow.appendChild(itemIcon);
             itemRow.appendChild(itemName);
             itemRow.appendChild(itemQty);
 
             itemRow.onclick = function() {
                 // Remove submenu
-                var menu = document.getElementById('skill-submenu');
+                var menu = document.getElementById('item-submenu');
                 if (menu) menu.parentNode.removeChild(menu);
+                // Show battle choices again
+                var battleChoices = document.getElementById('battle-choices');
+                if (battleChoices) {
+                    battleChoices.style.display = '';
+                }
 
                 // Execute item action
                 executeBattleAction('item', { itemId: item.id });
@@ -770,32 +848,37 @@ const VNEngine = (function() {
         // If no items, show empty message
         if (!hasItems) {
             var emptyMsg = document.createElement('div');
-            emptyMsg.className = 'skill-item disabled';
-            emptyMsg.innerHTML = '<span class="skill-name">No items available</span>';
+            emptyMsg.className = 'item-row disabled';
+            emptyMsg.textContent = 'No items available';
             itemList.appendChild(emptyMsg);
         }
 
-        submenu.appendChild(itemList);
-
-        // Back button
+        // Add back button
         var backBtn = document.createElement('button');
         backBtn.className = 'skill-back-btn';
-        backBtn.textContent = '← Back';
+        backBtn.innerHTML = '← Back';
         backBtn.onclick = function() {
-            var menu = document.getElementById('skill-submenu');
+            var menu = document.getElementById('item-submenu');
             if (menu) menu.parentNode.removeChild(menu);
-            renderBattleChoices(originalChoices);
+            // Show battle choices again
+            var battleChoices = document.getElementById('battle-choices');
+            if (battleChoices) {
+                battleChoices.style.display = '';
+            }
         };
+
+        submenu.appendChild(itemList);
         submenu.appendChild(backBtn);
 
-        // Add to battle log panel (above choices)
-        var logPanel = document.getElementById('battle-log-panel');
-        if (logPanel) {
-            logPanel.insertBefore(submenu, container);
+        // Add inside the battle-log-panel (replaces battle-choices area)
+        var battleLogPanel = document.querySelector('.battle-log-panel');
+        var battleChoices = document.getElementById('battle-choices');
+        if (battleLogPanel && battleChoices) {
+            // Hide the battle choices temporarily
+            battleChoices.style.display = 'none';
+            // Insert before the hidden battle-choices so it takes its place
+            battleLogPanel.insertBefore(submenu, battleChoices);
         }
-
-        // Hide main choices while showing items
-        container.style.display = 'none';
     }
 
     // === DOM References ===
@@ -1005,7 +1088,7 @@ const VNEngine = (function() {
                 indicator = document.createElement('div');
                 indicator.id = 'dev-mode-indicator';
                 indicator.textContent = 'DEV MODE';
-                indicator.style.cssText = 'position: fixed; top: 10px; right: 10px; background: #00ff00; color: #000; padding: 5px 10px; font-size: 12px; font-weight: bold; border-radius: 3px; z-index: 9999;';
+                // Styles defined in shared.css #dev-mode-indicator
                 document.body.appendChild(indicator);
 
                 // Add click handler for portrait mode toggle
@@ -1013,7 +1096,7 @@ const VNEngine = (function() {
                     toggleDevPanelPortrait();
                 });
             }
-            indicator.style.display = 'block';
+            indicator.classList.add('visible');
 
             // Show theme selector in dev mode (landscape only, portrait uses toggle)
             if (!themeSelector) {
@@ -1026,7 +1109,7 @@ const VNEngine = (function() {
             addUndoButton();
         } else {
             if (indicator) {
-                indicator.style.display = 'none';
+                indicator.classList.remove('visible');
                 indicator.classList.remove('expanded');
             }
             // Hide theme selector
@@ -1132,29 +1215,29 @@ const VNEngine = (function() {
 
         // Ken Burns toggle
         var kenBurnsContainer = document.createElement('div');
-        kenBurnsContainer.style.marginTop = '8px';
+        kenBurnsContainer.className = 'ken-burns-toggle-container';
 
         var kenBurnsLabel = document.createElement('label');
-        kenBurnsLabel.style.cursor = 'pointer';
+        // Styles defined in shared.css .ken-burns-toggle-container label
 
         var kenBurnsCheckbox = document.createElement('input');
         kenBurnsCheckbox.type = 'checkbox';
         kenBurnsCheckbox.id = 'ken-burns-toggle';
         kenBurnsCheckbox.checked = state.kenBurns;
-        kenBurnsCheckbox.style.marginRight = '6px';
+        // Styles defined in shared.css .ken-burns-toggle-container input[type="checkbox"]
 
         kenBurnsCheckbox.addEventListener('change', function() {
             state.kenBurns = this.checked;
             applyKenBurns(this.checked);
             // Save preference
             try {
-                localStorage.setItem('andi_vn_ken_burns', this.checked ? 'true' : 'false');
+                localStorage.setItem(config.kenBurnsKey, this.checked ? 'true' : 'false');
             } catch (e) {}
         });
 
         // Load saved preference
         try {
-            var saved = localStorage.getItem('andi_vn_ken_burns');
+            var saved = localStorage.getItem(config.kenBurnsKey);
             if (saved === 'true') {
                 state.kenBurns = true;
                 kenBurnsCheckbox.checked = true;
@@ -1168,6 +1251,42 @@ const VNEngine = (function() {
         kenBurnsContainer.appendChild(kenBurnsLabel);
         container.appendChild(kenBurnsContainer);
 
+        // Forced dice roll input
+        var diceRollContainer = document.createElement('div');
+        diceRollContainer.className = 'forced-roll-container';
+
+        var diceRollLabel = document.createElement('label');
+        diceRollLabel.htmlFor = 'forced-roll-input';
+        diceRollLabel.textContent = 'Force roll: ';
+
+        var diceRollInput = document.createElement('input');
+        diceRollInput.type = 'number';
+        diceRollInput.id = 'forced-roll-input';
+        diceRollInput.min = '1';
+        diceRollInput.max = '20';
+        diceRollInput.placeholder = 'rand';
+        diceRollInput.title = 'Force next dice roll (1-20). Leave empty for random.';
+
+        diceRollInput.addEventListener('input', function() {
+            var val = this.value.trim();
+            if (val === '') {
+                state.devForcedRoll = null;
+                log.debug('Forced roll cleared - using random');
+            } else {
+                var num = parseInt(val, 10);
+                if (!isNaN(num) && num >= 1 && num <= 20) {
+                    state.devForcedRoll = num;
+                    log.debug('Forced roll set to: ' + num);
+                } else {
+                    state.devForcedRoll = null;
+                }
+            }
+        });
+
+        diceRollContainer.appendChild(diceRollLabel);
+        diceRollContainer.appendChild(diceRollInput);
+        container.appendChild(diceRollContainer);
+
         document.body.appendChild(container);
     }
 
@@ -1175,19 +1294,31 @@ const VNEngine = (function() {
      * Go back one text block, or to previous scene if at first block (dev mode only)
      */
     function undoScene() {
-        console.log('undoScene: blockIndex=', state.currentBlockIndex, 'scene=', state.currentSceneId, 'historyLen=', state.history.length);
+        log.debug('undoScene: blockIndex=' + state.currentBlockIndex + ', scene=' + state.currentSceneId + ', historyLen=' + state.history.length);
 
         if (!state.devMode) {
             flashUndoError();
             return false;
         }
 
-        // If battle is active, end it and go back to previous scene
-        if (typeof BattleEngine !== 'undefined' && BattleEngine.isActive()) {
-            console.log('Undo during battle - ending battle');
-            BattleEngine.destroyUI();
-            BattleEngine.reset();
-            // Continue to undo logic to go back to previous scene
+        // If battle is active or was active, end it and clean up
+        if (typeof BattleEngine !== 'undefined') {
+            if (BattleEngine.isActive()) {
+                log.debug('Undo during active battle - ending battle');
+                BattleEngine.reset();  // reset() calls destroyUI() and showTextBox()
+            } else {
+                // Even if battle is not "active", UI elements might persist
+                // Always clean up to be safe when undoing
+                log.debug('Undo after battle - cleaning up battle UI');
+                BattleEngine.destroyUI();
+            }
+        }
+        // Clear battle state flag in engine
+        state.battle = null;
+        // Ensure text box is visible (remove battle-mode class if present)
+        var textBox = document.getElementById('text-box');
+        if (textBox) {
+            textBox.classList.remove('battle-mode');
         }
 
         // Check if we can undo BEFORE stopping typewriter
@@ -1202,7 +1333,7 @@ const VNEngine = (function() {
 
         // If we're past the first text block, go back one block
         if (state.currentBlockIndex > 0) {
-            console.log('Going back one text block');
+            log.debug('Going back one text block');
             state.currentBlockIndex--;
 
             // Clear choices immediately when going back
@@ -1298,16 +1429,12 @@ const VNEngine = (function() {
     function flashUndoError() {
         var undoBtn = document.getElementById('dev-undo-btn');
         if (undoBtn) {
-            // Flash red
-            undoBtn.style.backgroundColor = '#c44';
-            undoBtn.style.color = '#fff';
-            undoBtn.style.borderColor = '#c44';
+            // Flash red using CSS class (defined in shared.css)
+            undoBtn.classList.add('error');
 
             setTimeout(function() {
-                undoBtn.style.backgroundColor = '';
-                undoBtn.style.color = '';
-                undoBtn.style.borderColor = '';
-            }, 300);
+                undoBtn.classList.remove('error');
+            }, config.timing.errorFlash);
         }
 
         // Play error SFX
@@ -1329,7 +1456,7 @@ const VNEngine = (function() {
 
     function getCurrentTheme() {
         // Check localStorage first for persisted theme
-        var savedTheme = localStorage.getItem('andi_vn_theme');
+        var savedTheme = localStorage.getItem(config.themeKey);
         if (savedTheme && typeof themeConfig !== 'undefined' &&
             themeConfig.available && themeConfig.available.indexOf(savedTheme) !== -1) {
             return savedTheme;
@@ -1348,7 +1475,7 @@ const VNEngine = (function() {
         if (link) {
             link.href = 'css/themes/' + themeName + '.css';
             // Persist theme choice to localStorage
-            localStorage.setItem('andi_vn_theme', themeName);
+            localStorage.setItem(config.themeKey, themeName);
             log.info('Theme changed to: ' + themeName);
         }
     }
@@ -2432,7 +2559,8 @@ const VNEngine = (function() {
      * @param {number} maxHP - Maximum HP value
      */
     function initPlayerHP(maxHP) {
-        state.playerMaxHP = maxHP || 20;
+        var defaultHP = typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxHP : 20;
+        state.playerMaxHP = maxHP || defaultHP;
         if (state.playerHP === null) {
             state.playerHP = state.playerMaxHP;
         }
@@ -2588,7 +2716,7 @@ const VNEngine = (function() {
                 readBlocks: state.readBlocks,
                 history: state.history
             };
-            console.log('saveState: history=', state.history.slice()); // Debug
+            log.debug('saveState: history=' + JSON.stringify(state.history));
             localStorage.setItem(config.saveKey, JSON.stringify(saveData));
         } catch (e) {
             log.warn('Could not save state: ' + e.message);
@@ -2613,10 +2741,11 @@ const VNEngine = (function() {
             state.flags = saveData.flags || {};
             state.inventory = saveData.inventory || [];
             state.playerHP = saveData.playerHP !== undefined ? saveData.playerHP : null;
-            state.playerMaxHP = saveData.playerMaxHP || 20;
+            var defaultMaxHP = typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxHP : 20;
+            state.playerMaxHP = saveData.playerMaxHP || defaultMaxHP;
             state.readBlocks = saveData.readBlocks || {};
             state.history = saveData.history || [];
-            console.log('loadSavedState: loaded history=', state.history.slice()); // Debug
+            log.debug('loadSavedState: loaded history=' + JSON.stringify(state.history));
 
             // Update inventory and HP displays
             updateInventoryDisplay();
@@ -2683,29 +2812,12 @@ const VNEngine = (function() {
 
     function setupResetButton() {
         // Create reset button (touch-friendly 44x44 minimum)
-        // Position is handled by CSS: bottom-right on desktop, top-right on mobile
+        // All styles defined in shared.css #reset-btn, themes can override
         var resetBtn = document.createElement('button');
         resetBtn.id = 'reset-btn';
         resetBtn.textContent = '↺';
         resetBtn.title = 'Reset Progress';
-        // Touch-friendly sizing: 44x44px minimum tap target (position handled by CSS)
-        resetBtn.style.cssText = 'position: fixed; width: 44px; height: 44px; background: rgba(176, 139, 90, 0.8); color: #fffbe9; border: none; border-radius: 50%; font-size: 20px; cursor: pointer; z-index: 1000; transition: background 0.2s, transform 0.1s; -webkit-tap-highlight-color: rgba(143, 111, 70, 0.5); user-select: none; -webkit-user-select: none; bottom: 10px; right: 10px;';
 
-        resetBtn.addEventListener('mouseenter', function() {
-            this.style.background = '#8f6f46';
-        });
-        resetBtn.addEventListener('mouseleave', function() {
-            this.style.background = 'rgba(176, 139, 90, 0.8)';
-        });
-        // Active state for touch feedback
-        resetBtn.addEventListener('touchstart', function() {
-            this.style.background = '#8f6f46';
-            this.style.transform = 'scale(0.95)';
-        }, { passive: true });
-        resetBtn.addEventListener('touchend', function() {
-            this.style.background = 'rgba(176, 139, 90, 0.8)';
-            this.style.transform = 'scale(1)';
-        }, { passive: true });
         resetBtn.addEventListener('click', function() {
             if (confirm('Reset all progress? This will clear your saved game.')) {
                 fullReset();
@@ -2744,7 +2856,7 @@ const VNEngine = (function() {
         state.flags = {};
         state.inventory = [];
         state.playerHP = null;
-        state.playerMaxHP = 20;
+        state.playerMaxHP = typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxHP : 20;
         state.battle = null;
         state.history = [];
 

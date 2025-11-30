@@ -12,7 +12,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 10000;
+    z-index: var(--z-modal);
     transition: opacity 0.5s ease-out;
 }
 
@@ -213,7 +213,7 @@ h1 {
     background-position: center;
     background-repeat: no-repeat;
     background-color: #d3c2a8;
-    z-index: 1;
+    z-index: var(--z-background);
 }
 
 /* === Character Sprite Layer === */
@@ -226,7 +226,7 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: flex-end;
-    z-index: 2;
+    z-index: var(--z-sprites);
     pointer-events: none;
 }
 
@@ -260,7 +260,7 @@ h1 {
     max-height: 50%;
     background-color: rgba(250, 241, 224, 0.95);
     border-top: 3px solid #d3c2a8;
-    z-index: 10;
+    z-index: var(--z-text-box);
     display: flex;
     flex-direction: column;
     padding: 12px 30px 20px 30px;

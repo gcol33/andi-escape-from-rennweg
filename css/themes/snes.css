@@ -35,7 +35,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 10000;
+    z-index: var(--z-modal);
     transition: opacity 0.5s ease-out;
 }
 
@@ -202,7 +202,7 @@ body::before {
         radial-gradient(1px 1px at 15% 80%, var(--snes-white) 50%, transparent 50%),
         radial-gradient(1px 1px at 85% 85%, var(--snes-white) 50%, transparent 50%);
     pointer-events: none;
-    z-index: 0;
+    z-index: var(--z-background);
     opacity: 0.3;
 }
 
@@ -216,7 +216,7 @@ body::before {
     padding: 20px;
     overflow: hidden;
     position: relative;
-    z-index: 1;
+    z-index: var(--z-background);
 }
 
 /* === Header === */
@@ -260,7 +260,7 @@ h1 {
     background-position: center;
     background-repeat: no-repeat;
     background-color: #282878;
-    z-index: 1;
+    z-index: var(--z-background);
 }
 
 /* === Character Sprite Layer === */
@@ -273,7 +273,7 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: flex-end;
-    z-index: 2;
+    z-index: var(--z-sprites);
     pointer-events: none;
 }
 
@@ -306,7 +306,7 @@ h1 {
     background: linear-gradient(180deg, rgba(24, 24, 72, 0.95), rgba(8, 8, 48, 0.98));
     border-top: 6px solid;
     border-color: var(--snes-light-blue);
-    z-index: 10;
+    z-index: var(--z-text-box);
     display: flex;
     flex-direction: column;
     padding: 0;

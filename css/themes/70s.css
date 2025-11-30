@@ -28,7 +28,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 10000;
+    z-index: var(--z-modal);
     transition: opacity 0.5s ease-out;
 }
 
@@ -187,7 +187,7 @@ body::before {
     background-image: radial-gradient(circle at 25% 25%, rgba(255, 107, 53, 0.3) 0%, transparent 50%),
                       radial-gradient(circle at 75% 75%, rgba(247, 197, 72, 0.3) 0%, transparent 50%);
     pointer-events: none;
-    z-index: 0;
+    z-index: var(--z-background);
 }
 
 /* === VN Wrapper === */
@@ -200,7 +200,7 @@ body::before {
     padding: 20px;
     overflow: hidden;
     position: relative;
-    z-index: 1;
+    z-index: var(--z-background);
 }
 
 /* === Header === */
@@ -242,7 +242,7 @@ h1 {
     background-position: center;
     background-repeat: no-repeat;
     background-color: var(--disco-tan);
-    z-index: 1;
+    z-index: var(--z-background);
     filter: sepia(0.2) saturate(1.2) contrast(1.05);
 }
 
@@ -256,7 +256,7 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: flex-end;
-    z-index: 2;
+    z-index: var(--z-sprites);
     pointer-events: none;
 }
 
@@ -288,7 +288,7 @@ h1 {
     max-height: 50%;
     background: var(--disco-cream);
     border-top: 6px solid var(--disco-brown);
-    z-index: 10;
+    z-index: var(--z-text-box);
     display: flex;
     flex-direction: column;
     padding: 0;
@@ -875,7 +875,7 @@ h1 {
     border: 3px solid var(--disco-brown);
     border-radius: 10px;
     padding: 6px;
-    z-index: 9999;
+    z-index: var(--z-dev-tools);
     font-family: 'Cooper Black', 'Georgia', serif;
     font-size: 12px;
     display: none;

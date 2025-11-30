@@ -26,7 +26,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 10000;
+    z-index: var(--z-modal);
     transition: opacity 0.5s ease-out;
 }
 
@@ -185,7 +185,7 @@ body {
     padding: 20px;
     overflow: hidden;
     position: relative;
-    z-index: 1;
+    z-index: var(--z-background);
 }
 
 /* === Header === */
@@ -229,7 +229,7 @@ h1 {
     background-position: center;
     background-repeat: no-repeat;
     background-color: var(--cyber-dark);
-    z-index: 1;
+    z-index: var(--z-background);
     filter: saturate(1.2) contrast(1.1);
 }
 
@@ -243,7 +243,7 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: flex-end;
-    z-index: 2;
+    z-index: var(--z-sprites);
     pointer-events: none;
 }
 
@@ -275,7 +275,7 @@ h1 {
     max-height: 50%;
     background: linear-gradient(180deg, rgba(10, 10, 15, 0.95), rgba(21, 21, 31, 0.98));
     border-top: 2px solid var(--cyber-yellow);
-    z-index: 10;
+    z-index: var(--z-text-box);
     display: flex;
     flex-direction: column;
     padding: 0;
