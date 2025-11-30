@@ -125,6 +125,8 @@ function runTuningTests() {
     TuningTestRunner.assertType(TUNING.ui.errorFlash, 'number', 'ui.errorFlash is a number');
     TuningTestRunner.assertType(TUNING.ui.battleLogMaxLines, 'number', 'ui.battleLogMaxLines is a number');
     TuningTestRunner.assert(TUNING.ui.battleLogMaxLines >= 1, 'ui.battleLogMaxLines is at least 1');
+    TuningTestRunner.assertType(TUNING.ui.battleLogLineHeight, 'number', 'ui.battleLogLineHeight is a number');
+    TuningTestRunner.assert(TUNING.ui.battleLogLineHeight > 0, 'ui.battleLogLineHeight is positive');
     TuningTestRunner.assertType(TUNING.ui.lockoutDuration, 'number', 'ui.lockoutDuration is a number');
     TuningTestRunner.assertType(TUNING.ui.maxPasswordAttempts, 'number', 'ui.maxPasswordAttempts is a number');
 

@@ -44,7 +44,8 @@ var BattleUI = (function() {
             spriteFlash: T ? T.battle.effects.spriteFlash : 300
         },
         ui: {
-            battleLogMaxLines: T ? T.ui.battleLogMaxLines : 2
+            battleLogMaxLines: T ? T.ui.battleLogMaxLines : 2,
+            battleLogLineHeight: T ? T.ui.battleLogLineHeight : 2.2  // rem units
         }
     };
 
@@ -177,11 +178,11 @@ var BattleUI = (function() {
         var battleLog = document.createElement('div');
         battleLog.id = 'battle-log-panel';
         battleLog.className = 'battle-log-panel';
-        // Set CSS variable for max log lines (each line ~35px)
-        var lineHeight = 35;
+        // Set CSS variable for max log lines using rem units for scalability
+        var lineHeightRem = config.ui.battleLogLineHeight;
         var maxLines = config.ui.battleLogMaxLines;
         battleLog.style.setProperty('--battle-log-lines', maxLines);
-        battleLog.style.setProperty('--battle-log-content-height', (lineHeight * maxLines) + 'px');
+        battleLog.style.setProperty('--battle-log-content-height', (lineHeightRem * maxLines) + 'rem');
         battleLog.innerHTML =
             '<div id="battle-log-content" class="battle-log-content"></div>' +
             '<div id="battle-choices" class="battle-choices"></div>';

@@ -142,6 +142,7 @@ var TUNING = (function() {
 
             // Battle log
             battleLogMaxLines: 2,           // Max lines in battle log (oldest removed first)
+            battleLogLineHeight: 2.2,       // Line height in rem units for scalability
 
             // Damage numbers
             damageNumberDuration: 1500,     // How long damage numbers show

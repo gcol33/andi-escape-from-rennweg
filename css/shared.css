@@ -27,8 +27,8 @@
 /* :root continued */
 :root {
     /* Base font size - responsive with min/max bounds */
-    --base-font-size-fallback: 18px;
-    --base-font-size: clamp(16px, 1.4vw, 24px);
+    --base-font-size-fallback: 1.125rem;  /* 18px */
+    --base-font-size: clamp(1rem, 1.4vw, 1.5rem);  /* 16px-24px */
 
     /* Story text sizing */
     --story-font-size: 1.1rem;
@@ -39,26 +39,29 @@
     --small-font-size: 0.75rem;
     --label-font-size: 0.85rem;
 
-    /* Spacing */
-    --spacing-xs: 4px;
-    --spacing-sm: 8px;
-    --spacing-md: 12px;
-    --spacing-lg: 16px;
-    --spacing-xl: 20px;
+    /* Spacing - using rem for scalability (1rem = 16px at default) */
+    --spacing-xs: 0.25rem;   /* 4px */
+    --spacing-sm: 0.5rem;    /* 8px */
+    --spacing-md: 0.75rem;   /* 12px */
+    --spacing-lg: 1rem;      /* 16px */
+    --spacing-xl: 1.25rem;   /* 20px */
+
+    /* Battle log line height for dynamic sizing */
+    --battle-log-line-height: 2.2rem;  /* ~35px per line */
 
     /* Button styling - themes should override these */
     --btn-bg: rgba(100, 100, 100, 0.7);
     --btn-bg-hover: rgba(120, 120, 120, 0.8);
     --btn-color: #fff;
-    --btn-border: 1px solid rgba(255, 255, 255, 0.3);
-    --btn-border-radius: 4px;
+    --btn-border: 0.0625rem solid rgba(255, 255, 255, 0.3);  /* 1px */
+    --btn-border-radius: 0.25rem;  /* 4px */
 }
 
 /* Pixel font themes need smaller base sizes */
 .theme-nes,
 .theme-snes {
-    --base-font-size-fallback: 16px;
-    --base-font-size: clamp(14px, 1.15vw, 18px);
+    --base-font-size-fallback: 1rem;  /* 16px */
+    --base-font-size: clamp(0.875rem, 1.15vw, 1.125rem);  /* 14px-18px */
 }
 
 /* === Single Choice Button Fix ===
@@ -67,21 +70,21 @@
  */
 #choices-container .choice-button:only-child {
     flex: 0 1 auto;
-    min-width: 180px;
+    min-width: 11.25rem;  /* 180px */
     max-width: 80%;
 }
 
 /* === Dev Mode Indicator === */
 #dev-mode-indicator {
     position: fixed;
-    top: 10px;
-    right: 10px;
+    top: 0.625rem;   /* 10px */
+    right: 0.625rem;
     background: #00ff00;
     color: #000;
-    padding: 5px 10px;
-    font-size: 12px;
+    padding: 0.3125rem 0.625rem;  /* 5px 10px */
+    font-size: 0.75rem;  /* 12px */
     font-weight: bold;
-    border-radius: 3px;
+    border-radius: 0.1875rem;  /* 3px */
     z-index: var(--z-dev-tools);
     display: none;
 }
@@ -95,11 +98,11 @@
  */
 #theme-selector {
     position: fixed;
-    top: 40px;
-    right: 10px;
-    padding: 8px;
+    top: 2.5rem;      /* 40px */
+    right: 0.625rem;  /* 10px */
+    padding: var(--spacing-sm);
     z-index: var(--z-dev-tools);
-    font-size: 12px;
+    font-size: 0.75rem;  /* 12px */
     font-family: inherit;
     display: none;
 }
@@ -109,13 +112,13 @@
 }
 
 #theme-selector label {
-    margin-right: 6px;
+    margin-right: 0.375rem;  /* 6px */
 }
 
 #theme-selector select {
     font-family: inherit;
-    font-size: 12px;
-    padding: 4px 8px;
+    font-size: 0.75rem;
+    padding: var(--spacing-xs) var(--spacing-sm);
     cursor: pointer;
 }
 
@@ -129,7 +132,7 @@
 }
 
 .ken-burns-toggle-container input[type="checkbox"] {
-    margin-right: 6px;
+    margin-right: 0.375rem;
 }
 
 /* Forced dice roll input container */
@@ -137,7 +140,7 @@
     margin-top: var(--spacing-sm);
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 0.375rem;
 }
 
 .forced-roll-container label {
@@ -145,12 +148,12 @@
 }
 
 .forced-roll-container input[type="number"] {
-    width: 60px;
-    padding: 2px 4px;
-    font-size: 12px;
+    width: 3.75rem;  /* 60px */
+    padding: 0.125rem 0.25rem;
+    font-size: 0.75rem;
     font-family: inherit;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 3px;
+    border: 0.0625rem solid rgba(255, 255, 255, 0.3);
+    border-radius: 0.1875rem;
     background: rgba(0, 0, 0, 0.3);
     color: inherit;
 }
@@ -182,15 +185,15 @@
  */
 #reset-btn {
     position: fixed;
-    bottom: 10px;
-    right: 10px;
-    width: 44px;
-    height: 44px;
+    bottom: 0.625rem;   /* 10px */
+    right: 0.625rem;
+    width: 2.75rem;     /* 44px */
+    height: 2.75rem;
     background: rgba(100, 100, 100, 0.8);
     color: #fff;
     border: none;
     border-radius: 50%;
-    font-size: 20px;
+    font-size: 1.25rem;  /* 20px */
     cursor: pointer;
     z-index: var(--z-modal);
     transition: background 0.2s, transform 0.1s;
@@ -219,8 +222,8 @@
     transform: translate(-50%, -50%);
     background: var(--lockout-bg, rgba(75, 62, 42, 0.95));
     color: var(--lockout-color, #fffbe9);
-    padding: 20px 30px;
-    border-radius: 8px;
+    padding: var(--spacing-xl) 1.875rem;  /* 20px 30px */
+    border-radius: var(--spacing-sm);
     font-size: 1.2rem;
     text-align: center;
     z-index: var(--z-modal);
@@ -1040,20 +1043,21 @@
     right: 0;
     height: var(--battle-log-height);
     background: rgba(0, 0, 0, 0.85);
-    border-top: 3px solid rgba(255, 255, 255, 0.3);
+    border-top: 0.1875rem solid rgba(255, 255, 255, 0.3);  /* 3px */
     display: flex;
     flex-direction: column;
-    padding: 8px 12px;
+    padding: var(--spacing-sm) var(--spacing-md);
     box-sizing: border-box;
 }
 
 .battle-log-content {
-    /* Height based on max lines (set via JS --battle-log-content-height variable) */
-    min-height: var(--battle-log-content-height, 70px);
-    max-height: var(--battle-log-content-height, 70px);
+    /* Height based on max lines (set via JS --battle-log-content-height variable or CSS var) */
+    --default-log-height: calc(var(--battle-log-line-height, 2.2rem) * 2);
+    min-height: var(--battle-log-content-height, var(--default-log-height));
+    max-height: var(--battle-log-content-height, var(--default-log-height));
     flex: 0 0 auto;
     overflow: hidden;  /* No scrolling - show latest messages only */
-    padding: 10px 12px;
+    padding: 0.625rem 0.75rem;  /* 10px 12px */
     font-size: 0.95rem;
     line-height: 1.5;
     color: #fff;
@@ -1078,21 +1082,21 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr 1fr;
-    padding: 12px;
+    padding: var(--spacing-md);
     flex-shrink: 0;
     flex: 1;
-    min-height: 100px;
+    min-height: 6.25rem;  /* 100px */
 }
 
 /* Fallback spacing for browsers without gap support */
 .battle-choices > * {
-    margin: 6px;
+    margin: 0.375rem;  /* 6px */
 }
 
 /* Modern browsers: use gap and remove margin fallback */
-@supports (gap: 12px) {
+@supports (gap: 0.75rem) {
     .battle-choices {
-        gap: 12px;
+        gap: var(--spacing-md);
     }
     .battle-choices > * {
         margin: 0;
