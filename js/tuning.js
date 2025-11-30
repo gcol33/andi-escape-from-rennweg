@@ -140,6 +140,9 @@ var TUNING = (function() {
             // General timing
             errorFlash: 300,                // Error flash animation duration
 
+            // Battle log
+            battleLogMaxLines: 2,           // Max lines in battle log (oldest removed first)
+
             // Damage numbers
             damageNumberDuration: 1500,     // How long damage numbers show
 
@@ -179,6 +182,120 @@ var TUNING = (function() {
             defaultDamage: '1d6',
             defaultStaggerThreshold: 80,
             defaultAI: 'default'
+        },
+
+        // =====================================================================
+        // QTE SYSTEM (Quick Time Events)
+        // =====================================================================
+        //
+        // Expedition 33-inspired timing system for battle combat.
+        // Player Turn: Accuracy QTE affects hit chance and damage
+        // Enemy Turn: Dodge QTE affects damage reduction
+        //
+        // Visual styling is theme-aware - colors come from CSS variables.
+        //
+
+        qte: {
+            // === Global QTE Settings ===
+            enabled: true,                  // Master toggle for QTE system
+            enabledForAttacks: true,        // QTE on player attacks
+            enabledForDodge: true,          // QTE on enemy attacks
+
+            // === Timing Bar Settings ===
+            bar: {
+                duration: 2000,             // Time for one full pass (ms)
+                oscillations: 2,            // Number of back-and-forth cycles
+                markerSpeed: 1.0            // Speed multiplier
+            },
+
+            // === Zone Sizes (% from center) ===
+            // These define the size of each zone
+            // Total bar is 100%, center is at 50%
+            zones: {
+                perfect: 5,                 // ±5% = 10% total (blue, tiny center)
+                success: 20,                // ±20% = 40% total (green, main hit zone)
+                partial: 35                 // ±35% = 70% total (yellow, glancing)
+                // Remaining 30% = miss zone (red, outer edges)
+            },
+
+            // === Result Modifiers ===
+            // How QTE result affects combat calculations
+
+            // Accuracy QTE (player attacking)
+            accuracyModifiers: {
+                perfect: {
+                    hitBonus: 5,            // +5 to attack roll
+                    damageMultiplier: 1.25, // 25% more damage
+                    critChanceBonus: 0.15   // +15% crit chance
+                },
+                success: {
+                    hitBonus: 0,            // Normal attack
+                    damageMultiplier: 1.0,
+                    critChanceBonus: 0
+                },
+                partial: {
+                    hitBonus: -3,           // -3 to attack roll
+                    damageMultiplier: 0.75, // 25% less damage
+                    critChanceBonus: 0
+                },
+                miss: {
+                    hitBonus: -10,          // Very likely to miss
+                    damageMultiplier: 0.5,  // Half damage if somehow hits
+                    critChanceBonus: 0,
+                    autoMiss: true          // Force miss on QTE failure
+                }
+            },
+
+            // Dodge QTE (enemy attacking player)
+            dodgeModifiers: {
+                perfect: {
+                    damageReduction: 1.0,   // Full dodge (0% damage taken)
+                    counterAttack: true     // Trigger counter attack
+                },
+                success: {
+                    damageReduction: 0.5,   // 50% damage reduction
+                    counterAttack: false
+                },
+                partial: {
+                    damageReduction: 0.25,  // 25% damage reduction
+                    counterAttack: false
+                },
+                miss: {
+                    damageReduction: 0,     // Full damage taken
+                    counterAttack: false
+                }
+            },
+
+            // === Combo System (Optional Enhancement) ===
+            combo: {
+                enabled: false,             // Directional combo inputs
+                maxInputs: 3,               // Number of inputs required
+                inputWindow: 500,           // ms allowed per input
+                bonusDamage: 0.1            // 10% bonus per successful input
+            },
+
+            // === Timing ===
+            timing: {
+                startDelay: 300,            // Delay before QTE starts
+                resultDisplay: 800,         // Show result duration
+                fadeOut: 200                // Fade out animation time
+            },
+
+            // === Visual Settings ===
+            visual: {
+                showZoneLabels: false,      // Show "PERFECT" etc on zones
+                markerPulse: true,          // Pulse effect on marker
+                screenFlash: true           // Flash screen on result
+            },
+
+            // === Sound Effects ===
+            sfx: {
+                start: 'alert.ogg',         // QTE appears
+                perfect: 'success.ogg',     // Perfect timing
+                success: 'click.ogg',       // Good timing
+                partial: 'negative.ogg',    // Partial success
+                miss: 'failure.ogg'         // Missed
+            }
         }
     };
 })();

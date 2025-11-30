@@ -123,6 +123,8 @@ function runTuningTests() {
     console.log('\n--- Testing TUNING.ui ---');
     TuningTestRunner.assertDefined(TUNING.ui, 'TUNING.ui exists');
     TuningTestRunner.assertType(TUNING.ui.errorFlash, 'number', 'ui.errorFlash is a number');
+    TuningTestRunner.assertType(TUNING.ui.battleLogMaxLines, 'number', 'ui.battleLogMaxLines is a number');
+    TuningTestRunner.assert(TUNING.ui.battleLogMaxLines >= 1, 'ui.battleLogMaxLines is at least 1');
     TuningTestRunner.assertType(TUNING.ui.lockoutDuration, 'number', 'ui.lockoutDuration is a number');
     TuningTestRunner.assertType(TUNING.ui.maxPasswordAttempts, 'number', 'ui.maxPasswordAttempts is a number');
 

@@ -42,6 +42,9 @@ var BattleUI = (function() {
         },
         effects: {
             spriteFlash: T ? T.battle.effects.spriteFlash : 300
+        },
+        ui: {
+            battleLogMaxLines: T ? T.ui.battleLogMaxLines : 2
         }
     };
 
@@ -174,6 +177,11 @@ var BattleUI = (function() {
         var battleLog = document.createElement('div');
         battleLog.id = 'battle-log-panel';
         battleLog.className = 'battle-log-panel';
+        // Set CSS variable for max log lines (each line ~35px)
+        var lineHeight = 35;
+        var maxLines = config.ui.battleLogMaxLines;
+        battleLog.style.setProperty('--battle-log-lines', maxLines);
+        battleLog.style.setProperty('--battle-log-content-height', (lineHeight * maxLines) + 'px');
         battleLog.innerHTML =
             '<div id="battle-log-content" class="battle-log-content"></div>' +
             '<div id="battle-choices" class="battle-choices"></div>';
@@ -549,11 +557,20 @@ var BattleUI = (function() {
         // Clear previous animation state
         clearAnimationState();
 
-        elements.battleLog.innerHTML = '';
-
+        // Create new log entry
         var logContainer = document.createElement('div');
         logContainer.className = 'battle-log-messages';
+
+        // Append new entry to battle log
         elements.battleLog.appendChild(logContainer);
+
+        // Remove oldest entries if over max lines
+        var maxLines = config.ui.battleLogMaxLines;
+        var entries = elements.battleLog.querySelectorAll('.battle-log-messages');
+        while (entries.length > maxLines) {
+            entries[0].parentNode.removeChild(entries[0]);
+            entries = elements.battleLog.querySelectorAll('.battle-log-messages');
+        }
 
         // Check if we need to animate a dice roll
         if (rollData && rollData.roll !== undefined) {
