@@ -752,11 +752,20 @@ const VNEngine = (function() {
                     // Show battle choices and log content again
                     var battleChoices = document.getElementById('battle-choices');
                     var battleLogContent = document.getElementById('battle-log-content');
+                    var battleLogPanel = document.querySelector('.battle-log-panel');
+                    var playerStats = document.getElementById('player-stats-panel');
                     if (battleChoices) {
                         battleChoices.style.display = '';
                     }
                     if (battleLogContent) {
                         battleLogContent.style.display = '';
+                    }
+                    // Remove expanded class
+                    if (battleLogPanel) {
+                        battleLogPanel.classList.remove('menu-expanded');
+                    }
+                    if (playerStats) {
+                        playerStats.classList.remove('menu-expanded');
                     }
 
                     // Execute skill action
@@ -801,11 +810,20 @@ const VNEngine = (function() {
             // Show battle choices and log content again
             var battleChoices = document.getElementById('battle-choices');
             var battleLogContent = document.getElementById('battle-log-content');
+            var battleLogPanel = document.querySelector('.battle-log-panel');
+            var playerStats = document.getElementById('player-stats-panel');
             if (battleChoices) {
                 battleChoices.style.display = '';
             }
             if (battleLogContent) {
                 battleLogContent.style.display = '';
+            }
+            // Remove expanded class
+            if (battleLogPanel) {
+                battleLogPanel.classList.remove('menu-expanded');
+            }
+            if (playerStats) {
+                playerStats.classList.remove('menu-expanded');
             }
         };
         submenu.appendChild(backBtn);
@@ -814,11 +832,17 @@ const VNEngine = (function() {
         var battleLogPanel = document.querySelector('.battle-log-panel');
         var battleChoices = document.getElementById('battle-choices');
         var battleLogContent = document.getElementById('battle-log-content');
+        var playerStats = document.getElementById('player-stats-panel');
         if (battleLogPanel && battleChoices) {
             // Hide both battle choices and log content - skill menu takes full space
             battleChoices.style.display = 'none';
             if (battleLogContent) {
                 battleLogContent.style.display = 'none';
+            }
+            // Add class to indicate expanded menu (for player stats positioning)
+            battleLogPanel.classList.add('menu-expanded');
+            if (playerStats) {
+                playerStats.classList.add('menu-expanded');
             }
             // Insert at the start of the panel
             battleLogPanel.insertBefore(submenu, battleLogPanel.firstChild);
@@ -885,8 +909,17 @@ const VNEngine = (function() {
                 if (menu) menu.parentNode.removeChild(menu);
                 // Show battle choices again
                 var battleChoices = document.getElementById('battle-choices');
+                var battleLogPanel = document.querySelector('.battle-log-panel');
+                var playerStats = document.getElementById('player-stats-panel');
                 if (battleChoices) {
                     battleChoices.style.display = '';
+                }
+                // Remove expanded class
+                if (battleLogPanel) {
+                    battleLogPanel.classList.remove('menu-expanded');
+                }
+                if (playerStats) {
+                    playerStats.classList.remove('menu-expanded');
                 }
 
                 // Execute item action
@@ -914,8 +947,17 @@ const VNEngine = (function() {
             if (menu) menu.parentNode.removeChild(menu);
             // Show battle choices again
             var battleChoices = document.getElementById('battle-choices');
+            var battleLogPanel = document.querySelector('.battle-log-panel');
+            var playerStats = document.getElementById('player-stats-panel');
             if (battleChoices) {
                 battleChoices.style.display = '';
+            }
+            // Remove expanded class
+            if (battleLogPanel) {
+                battleLogPanel.classList.remove('menu-expanded');
+            }
+            if (playerStats) {
+                playerStats.classList.remove('menu-expanded');
             }
         };
 
@@ -925,9 +967,15 @@ const VNEngine = (function() {
         // Add inside the battle-log-panel (replaces battle-choices area)
         var battleLogPanel = document.querySelector('.battle-log-panel');
         var battleChoices = document.getElementById('battle-choices');
+        var playerStats = document.getElementById('player-stats-panel');
         if (battleLogPanel && battleChoices) {
             // Hide the battle choices temporarily
             battleChoices.style.display = 'none';
+            // Add class to indicate expanded menu (for player stats positioning)
+            battleLogPanel.classList.add('menu-expanded');
+            if (playerStats) {
+                playerStats.classList.add('menu-expanded');
+            }
             // Insert before the hidden battle-choices so it takes its place
             battleLogPanel.insertBefore(submenu, battleChoices);
         }

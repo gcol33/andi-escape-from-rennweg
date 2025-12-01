@@ -1833,7 +1833,8 @@
     right: 0;
     /* Fixed height to prevent layout shift - matches --battle-log-height variable */
     /* Height = log content (4.4rem) + choices (7rem) + padding (1.5rem) = ~13rem */
-    min-height: var(--battle-log-height, 13.4rem);
+    /* Use fixed height (not min-height) so player stats panel positions correctly */
+    height: var(--battle-log-height, 13.4rem);
     background: rgba(0, 0, 0, 0.85);
     border-top: 0.1875rem solid rgba(255, 255, 255, 0.3);  /* 3px */
     padding: var(--spacing-sm) var(--spacing-md);
@@ -1841,6 +1842,7 @@
     /* Enable flex layout for skill/item submenus to fill space */
     display: flex;
     flex-direction: column;
+    overflow: hidden;  /* Prevent overflow, submenus scroll internally */
 }
 
 .battle-log-content {
@@ -2130,6 +2132,18 @@
     text-shadow: 2px 2px 0 #000, -1px -1px 0 #000;
 }
 
+/* === Expanded Menu State (skill/item menus) === */
+/* When skill/item menu is open, the battle-log-panel expands and player stats must move up */
+.battle-log-panel.menu-expanded {
+    --battle-log-height-expanded: 22rem;  /* Expanded height for skill/item menus */
+    height: var(--battle-log-height-expanded);
+}
+
+/* Player stats panel moves up when menu is expanded */
+.battle-stats-panel.player-stats.menu-expanded {
+    bottom: calc(22rem + 10px) !important;  /* Match --battle-log-height-expanded */
+}
+
 /* === Skill Menu (replaces battle choices in battle-log-panel) === */
 .skill-submenu {
     display: flex;
@@ -2137,6 +2151,7 @@
     flex: 1;
     padding: 12px;
     overflow: hidden;
+    min-height: 0;  /* Allow flex item to shrink below content size */
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box;
@@ -2164,7 +2179,10 @@
     grid-template-columns: 1fr 1fr !important;
     grid-auto-rows: auto;  /* Rows size to content */
     gap: 8px;
-    overflow: hidden;
+    overflow-y: auto;  /* Scroll if content exceeds available space */
+    overflow-x: hidden;
+    flex: 1;  /* Take remaining space in flex container */
+    min-height: 0;  /* Allow shrinking below content size */
     padding: 2px; /* Prevent hover transform from triggering scrollbars */
     width: 100% !important;
     max-width: 100% !important;
@@ -2297,6 +2315,7 @@
     flex: 1;
     padding: 8px 12px;
     overflow: hidden;
+    min-height: 0;  /* Allow flex item to shrink below content size */
 }
 
 .item-submenu-title {
@@ -2318,6 +2337,7 @@
     gap: 4px;
     overflow-y: auto;
     flex: 1;
+    min-height: 0;  /* Allow shrinking below content size */
 }
 
 .item-row {

@@ -927,8 +927,9 @@ var BattleEngine = (function() {
             enemy.hp -= confusionDmg;
             // Show floating damage number
             showDamageNumber(confusionDmg, 'enemy', 'damage');
-            // Add message to show in battle log
-            messages.push('💫 ' + enemy.name + ' hits themselves! <strong>' + confusionDmg + '</strong> DAMAGE');
+            // Add message to show in battle log (matching attack damage format)
+            // Uses roll-damage-normal class for red damage number like normal attacks
+            messages.push(enemy.name + ' hits themselves! <strong class="dice-number roll-damage-normal">' + confusionDmg + '</strong> <span class="damage-text roll-type-damage">DAMAGE</span>');
         }
 
         // Check if enemy died from status
@@ -1133,9 +1134,10 @@ var BattleEngine = (function() {
             BattleCore.getPlayer().hp -= confusionDmg;
             // Show floating damage number
             showDamageNumber(confusionDmg, 'player', 'damage');
-            // Add message to show in battle log
+            // Add message to show in battle log (matching attack damage format)
+            // Uses roll-damage-normal class for red damage number like normal attacks
             var playerName = state.player.name || 'Player';
-            statusResult.messages.push('💫 ' + playerName + ' hits themselves! <strong>' + confusionDmg + '</strong> DAMAGE');
+            statusResult.messages.push(playerName + ' hits themselves! <strong class="dice-number roll-damage-normal">' + confusionDmg + '</strong> <span class="damage-text roll-type-damage">DAMAGE</span>');
         }
 
         // Store status result for executeAction to check canAct
@@ -1149,6 +1151,17 @@ var BattleEngine = (function() {
                     checkEnd();
                     return;
                 }
+
+                // If player can't act (confusion self-hit, stun, etc.), skip to enemy turn
+                if (!statusResult.canAct) {
+                    state._playerStatusResult = null;  // Clear stored result
+                    processEnemyTurn([], callback, { playerAction: 'stunned' });
+                    return;
+                }
+
+                // Clear the status message before returning control to player
+                var battleLogContent = document.getElementById('battle-log-content');
+                if (battleLogContent) battleLogContent.innerHTML = '';
 
                 BattleCore.setPhase('player');
                 updateDisplay();
@@ -1164,6 +1177,13 @@ var BattleEngine = (function() {
         // Check death from status (no messages to show)
         if (state.player.hp <= 0) {
             checkEnd();
+            return;
+        }
+
+        // If player can't act (confusion self-hit, stun, etc.), skip to enemy turn
+        if (!statusResult.canAct) {
+            state._playerStatusResult = null;  // Clear stored result
+            processEnemyTurn([], callback, { playerAction: 'stunned' });
             return;
         }
 

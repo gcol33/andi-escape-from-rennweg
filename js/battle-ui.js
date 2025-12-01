@@ -801,10 +801,11 @@ var BattleUI = (function() {
         wrapper.className = 'typewriter-wrapper';
         wrapper.style.position = 'relative';
 
-        // Full text rendered transparently - reserves exact final space
+        // Full text rendered invisibly - reserves exact final space
+        // Use visibility:hidden (not color:transparent) to hide styled child elements too
         var placeholder = document.createElement('div');
         placeholder.innerHTML = text;
-        placeholder.style.color = 'transparent';
+        placeholder.style.visibility = 'hidden';
         placeholder.style.userSelect = 'none';
         placeholder.style.pointerEvents = 'none';
 
