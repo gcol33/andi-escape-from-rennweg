@@ -17,6 +17,10 @@
     --db-ki: #ffff66;
     --text-color: #ffffff;
     --page-bg: #0f0f1a;
+
+    /* Theme font - damage numbers use same font as body text */
+    --theme-font: 'Segoe UI', 'Arial', sans-serif;
+    --damage-font: var(--theme-font);
 }
 
 /* === Password Overlay (Power-up style) === */
@@ -87,10 +91,8 @@
     }
 }
 
+/* Password char - sizes from shared.css variables, theme styling only */
 .password-char {
-    width: 65px;
-    height: 80px;
-    font-size: 2.5rem;
     font-family: 'Impact', 'Arial Black', sans-serif;
     font-weight: bold;
     text-align: center;
@@ -131,30 +133,6 @@
 #password-inputs.error .password-char {
     animation: shake 0.5s ease-in-out, power-flash 0.5s ease-in-out;
     border-color: var(--db-red);
-}
-
-@media (max-width: 56.25em) {
-    #password-container {
-        margin: 10px;
-    }
-
-    .password-char {
-        width: 55px;
-        height: 68px;
-        font-size: 2rem;
-    }
-}
-
-@media (max-width: 37.5em) {
-    .password-char {
-        width: 45px;
-        height: 56px;
-        font-size: 1.6rem;
-    }
-
-    #password-inputs {
-        gap: 12px;
-    }
 }
 
 /* === Reset & Base === */

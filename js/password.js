@@ -5,13 +5,16 @@
  * Auto-checks when all fields are filled. No submit button needed.
  */
 
-const PasswordScreen = (function() {
+var PasswordScreen = (function() {
     'use strict';
 
     // === Configuration ===
-    const config = {
+    var config = {
         // Change this value to update the password (case-insensitive)
         password: 'STRAHD',
+        // Validation settings
+        maxLength: 1,                        // Max chars per input field
+        allowedChars: /^[A-Za-z0-9]$/,       // Only alphanumeric allowed
         // Lockout settings
         maxAttempts: 3,
         lockoutDuration: 5000,  // 5 seconds
@@ -32,15 +35,35 @@ const PasswordScreen = (function() {
         ]
     };
 
+    /**
+     * Validate and sanitize input value
+     * @param {string} value - Raw input value
+     * @returns {string} Validated value (empty string if invalid)
+     */
+    function validateInput(value) {
+        if (!value) return '';
+
+        // Only keep the first character
+        var char = value.charAt(0);
+
+        // Check if alphanumeric
+        if (!config.allowedChars.test(char)) {
+            return '';
+        }
+
+        // Convert to uppercase for consistency
+        return char.toUpperCase();
+    }
+
     // Track if password has been validated
-    let isValidated = false;
+    var isValidated = false;
 
     // Callback to run when password is correct
-    let onSuccessCallback = null;
+    var onSuccessCallback = null;
 
     // Lockout tracking
-    let failedAttempts = 0;
-    let isLockedOut = false;
+    var failedAttempts = 0;
+    var isLockedOut = false;
 
     /**
      * Initialize the password screen
@@ -49,7 +72,7 @@ const PasswordScreen = (function() {
     function init(onSuccess) {
         onSuccessCallback = onSuccess;
 
-        const inputs = document.querySelectorAll('.password-char');
+        var inputs = document.querySelectorAll('.password-char');
         if (inputs.length === 0) {
             // No password inputs found, skip password screen
             if (onSuccessCallback) onSuccessCallback();
@@ -69,19 +92,25 @@ const PasswordScreen = (function() {
      */
     function setupInputHandlers(inputs) {
         inputs.forEach(function(input, index) {
-            // Handle text input
+            // Handle text input with validation
             input.addEventListener('input', function(e) {
-                const value = this.value;
+                // Validate and sanitize the input
+                var validated = validateInput(this.value);
+
+                // Update input value if validation changed it
+                if (validated !== this.value) {
+                    this.value = validated;
+                }
 
                 // Update filled state
-                if (value) {
+                if (validated) {
                     this.classList.add('filled');
                 } else {
                     this.classList.remove('filled');
                 }
 
-                // Auto-advance to next field if character entered
-                if (value && index < inputs.length - 1) {
+                // Auto-advance to next field if valid character entered
+                if (validated && index < inputs.length - 1) {
                     inputs[index + 1].focus();
                 }
 
@@ -114,16 +143,21 @@ const PasswordScreen = (function() {
             // Prevent paste of multi-character strings breaking the UI
             input.addEventListener('paste', function(e) {
                 e.preventDefault();
-                const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+                var pastedText = (e.clipboardData || window.clipboardData).getData('text');
 
-                // Distribute pasted characters across fields
-                for (let i = 0; i < pastedText.length && index + i < inputs.length; i++) {
-                    inputs[index + i].value = pastedText[i];
-                    inputs[index + i].classList.add('filled');
+                // Distribute pasted characters across fields with validation
+                var validCharsAdded = 0;
+                for (var i = 0; i < pastedText.length && index + validCharsAdded < inputs.length; i++) {
+                    var validated = validateInput(pastedText[i]);
+                    if (validated) {
+                        inputs[index + validCharsAdded].value = validated;
+                        inputs[index + validCharsAdded].classList.add('filled');
+                        validCharsAdded++;
+                    }
                 }
 
                 // Focus the next empty field or last field
-                const nextEmptyIndex = Math.min(index + pastedText.length, inputs.length - 1);
+                var nextEmptyIndex = Math.min(index + validCharsAdded, inputs.length - 1);
                 inputs[nextEmptyIndex].focus();
 
                 // Check password after paste
@@ -140,8 +174,8 @@ const PasswordScreen = (function() {
         if (isLockedOut) return;
 
         // Collect all characters
-        let enteredPassword = '';
-        let allFilled = true;
+        var enteredPassword = '';
+        var allFilled = true;
 
         inputs.forEach(function(input) {
             if (!input.value) {
@@ -167,7 +201,7 @@ const PasswordScreen = (function() {
     function handleSuccess() {
         isValidated = true;
 
-        const overlay = document.getElementById('password-overlay');
+        var overlay = document.getElementById('password-overlay');
         if (overlay) {
             // Fade out the overlay
             overlay.classList.add('hidden');
@@ -193,7 +227,7 @@ const PasswordScreen = (function() {
      * Handle incorrect password entry
      */
     function handleError(inputs) {
-        const inputsContainer = document.getElementById('password-inputs');
+        var inputsContainer = document.getElementById('password-inputs');
 
         // Add error class for shake animation
         inputsContainer.classList.add('error');
@@ -232,9 +266,9 @@ const PasswordScreen = (function() {
         });
 
         // Pick a random message template
-        const messageTemplate = config.lockoutMessages[Math.floor(Math.random() * config.lockoutMessages.length)];
-        const totalSeconds = Math.ceil(config.lockoutDuration / 1000);
-        let secondsRemaining = totalSeconds;
+        var messageTemplate = config.lockoutMessages[Math.floor(Math.random() * config.lockoutMessages.length)];
+        var totalSeconds = Math.ceil(config.lockoutDuration / 1000);
+        var secondsRemaining = totalSeconds;
 
         // Update countdown function
         function updateCountdown() {
@@ -264,7 +298,7 @@ const PasswordScreen = (function() {
      * Show lockout message overlay
      */
     function showLockoutMessage(message) {
-        let msgElement = document.getElementById('lockout-message');
+        var msgElement = document.getElementById('lockout-message');
 
         if (!msgElement) {
             msgElement = document.createElement('div');
@@ -284,7 +318,7 @@ const PasswordScreen = (function() {
      * Hide lockout message
      */
     function hideLockoutMessage() {
-        const msgElement = document.getElementById('lockout-message');
+        var msgElement = document.getElementById('lockout-message');
         if (msgElement) {
             msgElement.classList.remove('visible');
         }

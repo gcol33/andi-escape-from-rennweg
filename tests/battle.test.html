@@ -68,8 +68,19 @@
     <div id="vn-container"></div>
     <div id="sprite-layer"></div>
 
-    <!-- Load battle engine -->
-    <script src="../js/battle.js"></script>
+    <!-- Load tuning (required by battle modules) -->
+    <script src="../js/tuning.js"></script>
+
+    <!-- Load modular battle system -->
+    <script src="../js/battle/battle-data.js"></script>
+    <script src="../js/battle/battle-dice.js"></script>
+    <script src="../js/battle/battle-barrier.js"></script>
+    <script src="../js/battle/battle-intent.js"></script>
+    <script src="../js/battle/battle-core.js"></script>
+    <script src="../js/battle/battle-dnd.js"></script>
+    <script src="../js/battle/battle-pokemon.js"></script>
+    <script src="../js/battle/battle-exp33.js"></script>
+    <script src="../js/battle/battle-facade.js"></script>
 
     <!-- Load tests -->
     <script src="battle.test.js"></script>

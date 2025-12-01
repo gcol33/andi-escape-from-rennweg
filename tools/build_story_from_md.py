@@ -29,8 +29,10 @@ SCRIPT_DIR = Path(__file__).parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 SCENES_DIR = PROJECT_ROOT / "scenes"
 ENEMIES_DIR = PROJECT_ROOT / "enemies"
+PLAYER_DIR = PROJECT_ROOT / "player"
 OUTPUT_FILE = PROJECT_ROOT / "js" / "story.js"
 ENEMIES_OUTPUT_FILE = PROJECT_ROOT / "js" / "enemies.js"
+PLAYER_OUTPUT_FILE = PROJECT_ROOT / "js" / "player.js"
 THEME_FILE = PROJECT_ROOT / "theme.md"
 THEME_OUTPUT_FILE = PROJECT_ROOT / "js" / "theme.js"
 THEMES_DIR = PROJECT_ROOT / "css" / "themes"
@@ -545,9 +547,11 @@ def parse_enemy_frontmatter(content):
     current_subsection = None
     current_move = None
     current_summon = None
+    current_skill = None  # For player skills
     dialogue = {}
     moves = []
     summons = []
+    skills = []  # For player skills
 
     lines = frontmatter_text.split('\n')
     i = 0
@@ -567,21 +571,29 @@ def parse_enemy_frontmatter(content):
             key = key.strip()
             value = value.strip()
 
-            # Save previous move/summon
+            # Save previous move/summon/skill
             if current_move:
                 moves.append(current_move)
                 current_move = None
             if current_summon:
                 summons.append(current_summon)
                 current_summon = None
+            if current_skill:
+                skills.append(current_skill)
+                current_skill = None
 
             if key == 'dialogue':
                 current_section = 'dialogue'
                 current_subsection = None
             elif key == 'moves':
                 current_section = 'moves'
+            elif key == 'skills':
+                current_section = 'skills'
             elif key == 'summons':
                 current_section = 'summons'
+            elif key == 'limit_break':
+                current_section = 'limit_break'
+                result['limit_break'] = {}
             elif value:
                 # Simple key: value
                 # Try to parse as number or float
@@ -709,13 +721,99 @@ def parse_enemy_frontmatter(content):
             i += 1
             continue
 
+        # Skill list item (2 spaces, starts with - id:)
+        if current_section == 'skills' and indent == 2 and stripped.startswith('- id:'):
+            if current_skill:
+                skills.append(current_skill)
+            current_skill = {'id': stripped[5:].strip()}
+            i += 1
+            continue
+
+        # Skill property (4 spaces)
+        if current_section == 'skills' and current_skill and indent >= 4:
+            if ':' in stripped:
+                key, _, value = stripped.partition(':')
+                key = key.strip()
+                value = value.strip()
+
+                # Handle nested statusEffect
+                if key == 'statusEffect' and value == '':
+                    current_skill['statusEffect'] = {}
+                    i += 1
+                    # Read nested properties
+                    while i < len(lines):
+                        nested_line = lines[i]
+                        nested_stripped = nested_line.strip()
+                        nested_indent = len(nested_line) - len(nested_line.lstrip())
+                        if nested_indent < 6 or not nested_stripped:
+                            break
+                        if ':' in nested_stripped:
+                            nk, _, nv = nested_stripped.partition(':')
+                            nk = nk.strip()
+                            nv = nv.strip()
+                            # Parse value
+                            if nv.isdigit():
+                                nv = int(nv)
+                            else:
+                                try:
+                                    nv = float(nv)
+                                except ValueError:
+                                    pass
+                            current_skill['statusEffect'][nk] = nv
+                        i += 1
+                    continue
+
+                # Parse value
+                if value.isdigit():
+                    value = int(value)
+                elif value.lower() == 'true':
+                    value = True
+                elif value.lower() == 'false':
+                    value = False
+                else:
+                    try:
+                        value = float(value)
+                        if value == int(value):
+                            value = int(value)
+                    except ValueError:
+                        pass
+                current_skill[key] = value
+            i += 1
+            continue
+
+        # Limit break property (2 spaces)
+        if current_section == 'limit_break' and indent == 2:
+            if ':' in stripped:
+                key, _, value = stripped.partition(':')
+                key = key.strip()
+                value = value.strip()
+                # Parse value
+                if value.isdigit():
+                    value = int(value)
+                elif value.lower() == 'true':
+                    value = True
+                elif value.lower() == 'false':
+                    value = False
+                else:
+                    try:
+                        value = float(value)
+                        if value == int(value):
+                            value = int(value)
+                    except ValueError:
+                        pass
+                result['limit_break'][key] = value
+            i += 1
+            continue
+
         i += 1
 
-    # Save final move/summon
+    # Save final move/summon/skill
     if current_move:
         moves.append(current_move)
     if current_summon:
         summons.append(current_summon)
+    if current_skill:
+        skills.append(current_skill)
 
     if dialogue:
         result['dialogue'] = dialogue
@@ -723,6 +821,8 @@ def parse_enemy_frontmatter(content):
         result['moves'] = moves
     if summons:
         result['summons'] = summons
+    if skills:
+        result['skills'] = skills
 
     return result, body
 
@@ -765,6 +865,44 @@ def generate_enemies_js(enemies):
         '// Export for use by engine',
         'if (typeof module !== "undefined" && module.exports) {',
         '    module.exports = { enemies };',
+        '}',
+        ''
+    ]
+
+    return '\n'.join(lines)
+
+
+def parse_player_file(filepath):
+    """Parse player.md file using the same format as enemies."""
+    content = filepath.read_text(encoding='utf-8')
+    frontmatter, body = parse_enemy_frontmatter(content)  # Reuse enemy parser
+
+    # Validate name length (max 12 chars)
+    if 'name' in frontmatter and len(frontmatter['name']) > 12:
+        print(f"    Warning: Player name '{frontmatter['name']}' exceeds 12 characters, truncating")
+        frontmatter['name'] = frontmatter['name'][:12]
+
+    return frontmatter
+
+
+def generate_player_js(player_data):
+    """Generate the JavaScript player file content."""
+    # Generate JavaScript
+    lines = [
+        '/**',
+        ' * Andi VN - Player Data',
+        ' * ',
+        ' * AUTO-GENERATED FILE - DO NOT EDIT MANUALLY',
+        ' * Generated by tools/build_story_from_md.py',
+        ' * ',
+        ' * Edit player/player.md instead.',
+        ' */',
+        '',
+        'const playerConfig = ' + json.dumps(player_data, indent=2) + ';',
+        '',
+        '// Export for use by engine',
+        'if (typeof module !== "undefined" && module.exports) {',
+        '    module.exports = { playerConfig };',
         '}',
         ''
     ]
@@ -932,14 +1070,43 @@ def main():
     else:
         print(f"  No enemies/ directory found (optional)")
 
+    # === Process Player ===
+    print("\n" + "=" * 40)
+    print("Processing player...")
+
+    player_data = None
+    player_file = PLAYER_DIR / "player.md"
+    if player_file.exists():
+        print(f"  Parsing: player.md")
+        try:
+            player_data = parse_player_file(player_file)
+            print(f"    Name: {player_data.get('name', 'Player')}")
+            print(f"    HP: {player_data.get('hp', 30)}, Mana: {player_data.get('mana', 10)}, AC: {player_data.get('ac', 10)}")
+
+            # Generate player.js
+            print(f"\nGenerating {PLAYER_OUTPUT_FILE}...")
+            player_content = generate_player_js(player_data)
+
+            with open(PLAYER_OUTPUT_FILE, 'w', encoding='utf-8') as f:
+                f.write(player_content)
+        except Exception as e:
+            print(f"    Error: {e}")
+            sys.exit(1)
+    else:
+        print(f"  No player/player.md found (optional)")
+
     print(f"\nSuccess!")
     print(f"  Theme: {selected_theme} (from {len(themes)} available)")
     print(f"  Story: {len(scenes)} scenes")
     if enemies:
         print(f"  Enemies: {len(enemies)} enemies")
+    if player_data:
+        print(f"  Player: {player_data.get('name', 'Player')}")
     print(f"  Output: {OUTPUT_FILE}")
     if enemies:
         print(f"  Enemies: {ENEMIES_OUTPUT_FILE}")
+    if player_data:
+        print(f"  Player: {PLAYER_OUTPUT_FILE}")
     print(f"  Theme config: {THEME_OUTPUT_FILE}")
 
 

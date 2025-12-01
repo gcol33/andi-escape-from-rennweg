@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Battle Log Text Removal Test</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a2e;
+            color: #eee;
+            padding: 20px;
+        }
+
+        .battle-log {
+            background: #16213e;
+            border: 2px solid #0f3460;
+            border-radius: 8px;
+            padding: 15px;
+            width: 400px;
+            min-height: 60px;
+            margin-bottom: 20px;
+        }
+
+        .battle-log p {
+            margin: 0;
+            padding: 2px 0;
+            line-height: 1.4;
+        }
+
+        .battle-number {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+
+        .controls {
+            margin: 20px 0;
+        }
+
+        button {
+            background: #0f3460;
+            color: #eee;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1a4a7a;
+        }
+
+        .test-messages {
+            background: #0d1b2a;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+        .test-messages h3 {
+            margin-top: 0;
+            color: #64ffda;
+        }
+
+        .test-messages li {
+            margin: 5px 0;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 3px;
+        }
+
+        .test-messages li:hover {
+            background: #1a3a5a;
+        }
+
+        .info {
+            background: #2d3a4a;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        .line-count {
+            color: #ffd93d;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Battle Log Text Removal Test</h1>
+
+    <div class="battle-log" id="battleLog">
+        <p>Battle log empty</p>
+    </div>
+
+    <div class="info">
+        <strong>Current State:</strong>
+        <span id="lineInfo">0 messages, 0 lines</span>
+    </div>
+
+    <div class="controls">
+        <button onclick="clearLog()">Clear Log</button>
+        <button onclick="testWithinMessage()">Test: Long Message (wraps)</button>
+        <button onclick="testAcrossMessages()">Test: Multiple Messages</button>
+        <button onclick="testCombined()">Test: Both Scenarios</button>
+    </div>
+
+    <div class="test-messages">
+        <h3>Click to add message:</h3>
+        <ul>
+            <li onclick="addMessage('Andi attacks!')">Short: "Andi attacks!"</li>
+            <li onclick="addMessage('💫 Andi is confused and hurts themselves for 2 damage!')">Long: "💫 Andi is confused and hurts themselves for 2 damage!"</li>
+            <li onclick="addMessage('💫 Confusion wore off!')">Short: "💫 Confusion wore off!"</li>
+            <li onclick="addMessage('💫 Andi hits themselves! <span class=&quot;battle-number&quot;>-2 HP</span>')">Fixed Short: "💫 Andi hits themselves! -2 HP"</li>
+            <li onclick="addMessage('Agnes (HR) trips over their own feet! Agnes (HR) is confused!')">Combined fumble: "Agnes (HR) trips over their own feet! Agnes (HR) is confused!"</li>
+            <li onclick="addMessage('💫 Agnes (HR) hits themselves! <span class=&quot;battle-number&quot;>-2 HP</span> (wore off)')">OLD BUG: "💫 Agnes (HR) hits themselves! -2 HP (wore off)"</li>
+            <li onclick="addMessage('💫 Confusion wore off!')">NEW BEHAVIOR: Separate "wore off" next turn</li>
+        </ul>
+    </div>
+
+    <div class="info" style="margin-top: 20px;">
+        <h3>Rules:</h3>
+        <ul>
+            <li><strong>Max 2 lines</strong> in the battle log</li>
+            <li><strong>Within message:</strong> If a single message wraps to 3+ lines, truncate it</li>
+            <li><strong>Across messages:</strong> If adding a message exceeds 2 lines total, pop oldest message</li>
+        </ul>
+    </div>
+
+    <script>
+        var MAX_LINES = 2;
+        var messages = [];
+        var logElement = document.getElementById('battleLog');
+        var lineInfo = document.getElementById('lineInfo');
+
+        function getLineHeight() {
+            // Get computed line height
+            var temp = document.createElement('p');
+            temp.style.visibility = 'hidden';
+            temp.textContent = 'Test';
+            logElement.appendChild(temp);
+            var lineHeight = temp.offsetHeight;
+            logElement.removeChild(temp);
+            return lineHeight;
+        }
+
+        function countLines(element) {
+            var lineHeight = getLineHeight();
+            return Math.ceil(element.scrollHeight / lineHeight);
+        }
+
+        function updateLog() {
+            // Clear and rebuild
+            logElement.innerHTML = '';
+
+            if (messages.length === 0) {
+                logElement.innerHTML = '<p>Battle log empty</p>';
+                updateInfo(0, 0);
+                return;
+            }
+
+            // Add all messages
+            for (var i = 0; i < messages.length; i++) {
+                var p = document.createElement('p');
+                p.innerHTML = messages[i];
+                logElement.appendChild(p);
+            }
+
+            // Count total lines
+            var totalLines = 0;
+            var paragraphs = logElement.querySelectorAll('p');
+            paragraphs.forEach(function(p) {
+                totalLines += countLines(p);
+            });
+
+            // Pop oldest messages if over limit
+            while (totalLines > MAX_LINES && messages.length > 1) {
+                messages.shift();
+                updateLog();
+                return;
+            }
+
+            // If single message still too long, truncate it
+            if (totalLines > MAX_LINES && messages.length === 1) {
+                var p = logElement.querySelector('p');
+                var text = messages[0];
+                while (countLines(p) > MAX_LINES && text.length > 10) {
+                    text = text.slice(0, -5) + '...';
+                    p.innerHTML = text;
+                }
+                messages[0] = text;
+            }
+
+            updateInfo(messages.length, totalLines);
+        }
+
+        function updateInfo(msgCount, lineCount) {
+            lineInfo.innerHTML = '<span class="line-count">' + msgCount + '</span> messages, <span class="line-count">' + lineCount + '</span> lines';
+        }
+
+        function addMessage(msg) {
+            messages.push(msg);
+            updateLog();
+        }
+
+        function clearLog() {
+            messages = [];
+            updateLog();
+        }
+
+        function testWithinMessage() {
+            clearLog();
+            addMessage('💫 Andi is confused and hurts themselves for 2 damage! This is a very long message that should wrap to multiple lines and test the within-message truncation!');
+        }
+
+        function testAcrossMessages() {
+            clearLog();
+            addMessage('Andi attacks!');
+            setTimeout(function() {
+                addMessage('Enemy takes damage!');
+            }, 500);
+            setTimeout(function() {
+                addMessage('💫 Confusion wore off!');
+            }, 1000);
+        }
+
+        function testCombined() {
+            clearLog();
+            addMessage('💫 Andi hits themselves! <span class="battle-number">-2 HP</span>');
+            setTimeout(function() {
+                addMessage('💫 Confusion wore off!');
+            }, 1000);
+        }
+
+        // Initialize
+        updateLog();
+    </script>
+</body>
+</html>

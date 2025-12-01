@@ -24,7 +24,7 @@ var BattleUI = (function() {
 
     var config = {
         timing: {
-            damageNumberDuration: T ? T.battle.timing.damageNumberFloat : 2000,
+            damageNumberDuration: T ? T.battle.timing.damageNumberFloat : 4000,
             screenShake: T ? T.battle.timing.screenShake : 300,
             fadeOutDuration: T ? T.battle.timing.fadeOut : 300,
             dialogueDuration: T ? T.battle.timing.dialogueBubble : 2500,
@@ -32,7 +32,9 @@ var BattleUI = (function() {
             battleOutro: T ? T.battle.timing.outroDelay : 2500,
             sparkleInterval: T ? T.battle.effects.sparkleInterval : 150,
             sparkleLifetime: T ? T.battle.effects.sparkleLifetime : 2000,
-            uiTransition: T ? T.battle.timing.uiTransition : 1500
+            uiTransition: T ? T.battle.timing.uiTransition : 1500,
+            messageLingerDelay: T ? T.battle.timing.messageLingerDelay : 2200,
+            statChangeDelay: 200  // Delay between sequential stat popups (HP -> Mana -> LB)
         },
         dice: {
             spinDuration: T ? T.battle.dice.spinDuration : 1800,
@@ -45,7 +47,9 @@ var BattleUI = (function() {
         },
         ui: {
             battleLogMaxLines: T ? T.ui.battleLogMaxLines : 2,
-            battleLogLineHeight: T ? T.ui.battleLogLineHeight : 2.2  // rem units
+            battleLogLineHeight: T ? T.ui.battleLogLineHeight : 2.2,  // rem units
+            battleChoicesHeight: T ? T.ui.battleChoicesHeight : 7.5,  // rem - 2 rows of buttons
+            battleLogPadding: T ? T.ui.battleLogPadding : 1.5        // rem - panel padding
         }
     };
 
@@ -83,6 +87,7 @@ var BattleUI = (function() {
         active: false,
         timeouts: [],
         damageQueue: [],
+        statUpdateQueue: [],  // Queue for HP/mana/limit bar updates
         onComplete: null
     };
 
@@ -178,11 +183,13 @@ var BattleUI = (function() {
         var battleLog = document.createElement('div');
         battleLog.id = 'battle-log-panel';
         battleLog.className = 'battle-log-panel';
-        // Set CSS variable for max log lines using rem units for scalability
-        var lineHeightRem = config.ui.battleLogLineHeight;
-        var maxLines = config.ui.battleLogMaxLines;
-        battleLog.style.setProperty('--battle-log-lines', maxLines);
-        battleLog.style.setProperty('--battle-log-content-height', (lineHeightRem * maxLines) + 'rem');
+
+        // Calculate log content height from max lines
+        var maxLines = config.ui.battleLogMaxLines || 2;
+        var lineHeight = config.ui.battleLogLineHeight || 2.2;
+        var logContentHeight = maxLines * lineHeight;
+        battleLog.style.setProperty('--battle-log-content-height', logContentHeight + 'rem');
+
         battleLog.innerHTML =
             '<div id="battle-log-content" class="battle-log-content"></div>' +
             '<div id="battle-choices" class="battle-choices"></div>';
@@ -204,15 +211,18 @@ var BattleUI = (function() {
         panel.id = 'player-stats-panel';
         panel.className = 'battle-stats-panel player-stats';
         panel.innerHTML =
-            '<div class="stats-header">' + (playerState.name || 'Player') +
-            ' <span id="player-ac-display" class="ac-display">(AC ' + (playerState.ac || 10) + ')</span></div>' +
+            '<div class="stats-header">' +
+                '<span class="player-name-text">' + (playerState.name || 'Player') + '</span>' +
+                '<span id="player-statuses" class="status-icon-slot"></span>' +
+                '<span id="player-ac-display" class="ac-display">(AC ' + (playerState.ac || 10) + ')</span>' +
+            '</div>' +
             '<div class="stat-row hp-row">' +
-                '<span class="stat-label">HP</span>' +
+                '<span id="player-hp-label" class="stat-label">HP</span>' +
                 '<div class="stat-bar-outer"><div id="player-hp-bar" class="stat-bar hp-bar hp-high"></div></div>' +
                 '<span id="player-hp-text" class="stat-value"></span>' +
             '</div>' +
             '<div class="stat-row mp-row">' +
-                '<span class="stat-label">MP</span>' +
+                '<span id="player-mana-label" class="stat-label">MP</span>' +
                 '<div class="stat-bar-outer"><div id="player-mana-bar" class="stat-bar mana-bar"></div></div>' +
                 '<span id="player-mana-text" class="stat-value"></span>' +
             '</div>' +
@@ -223,8 +233,7 @@ var BattleUI = (function() {
             '</div>' +
             '<div id="player-stagger-container" class="stagger-container">' +
                 '<div id="player-stagger-bar" class="stagger-bar"><div id="player-stagger-fill" class="stagger-fill"></div></div>' +
-            '</div>' +
-            '<div id="player-statuses" class="status-icons"></div>';
+            '</div>';
         return panel;
     }
 
@@ -236,7 +245,10 @@ var BattleUI = (function() {
         panel.id = 'enemy-stats-panel';
         panel.className = 'battle-stats-panel enemy-stats';
         panel.innerHTML =
-            '<div id="enemy-hp-label" class="stats-header">' + (enemyState.name || 'Enemy') + '</div>' +
+            '<div class="stats-header">' +
+                '<span id="enemy-hp-label" class="enemy-name-text">' + (enemyState.name || 'Enemy') + '</span>' +
+                '<span id="enemy-statuses" class="status-icon-slot"></span>' +
+            '</div>' +
             '<div class="stat-row hp-row">' +
                 '<span class="stat-label">HP</span>' +
                 '<div class="stat-bar-outer"><div id="enemy-hp-bar" class="stat-bar hp-bar hp-high"></div></div>' +
@@ -244,8 +256,7 @@ var BattleUI = (function() {
             '</div>' +
             '<div id="enemy-stagger-container" class="stagger-container">' +
                 '<div id="enemy-stagger-bar" class="stagger-bar"><div id="enemy-stagger-fill" class="stagger-fill"></div></div>' +
-            '</div>' +
-            '<div id="enemy-statuses" class="status-icons"></div>';
+            '</div>';
         return panel;
     }
 
@@ -258,8 +269,10 @@ var BattleUI = (function() {
         elements.enemyStats = document.getElementById('enemy-stats-panel');
         elements.playerHPBar = document.getElementById('player-hp-bar');
         elements.playerHPText = document.getElementById('player-hp-text');
+        elements.playerHPLabel = document.getElementById('player-hp-label');
         elements.playerManaBar = document.getElementById('player-mana-bar');
         elements.playerManaText = document.getElementById('player-mana-text');
+        elements.playerManaLabel = document.getElementById('player-mana-label');
         elements.limitBar = document.getElementById('limit-bar');
         elements.limitText = document.getElementById('limit-text');
         elements.playerStatuses = document.getElementById('player-statuses');
@@ -305,8 +318,9 @@ var BattleUI = (function() {
      * Update player HP display
      * @param {number} hp - Current HP
      * @param {number} maxHP - Maximum HP
+     * @param {boolean} hasRegen - Whether player has active HP regen
      */
-    function updatePlayerHP(hp, maxHP) {
+    function updatePlayerHP(hp, maxHP, hasRegen) {
         if (!elements.playerHPBar) cacheElements();
         if (!elements.playerHPBar || !elements.playerHPText) return;
 
@@ -315,21 +329,36 @@ var BattleUI = (function() {
         elements.playerHPText.textContent = hp + '/' + maxHP;
 
         var hpState = percent > 50 ? 'hp-high' : percent > 25 ? 'hp-medium' : 'hp-low';
-        elements.playerHPBar.className = 'stat-bar hp-bar ' + hpState;
+        var regenClass = hasRegen ? ' hp-regen' : '';
+        elements.playerHPBar.className = 'stat-bar hp-bar ' + hpState + regenClass;
+        // Apply regen pulse to text and label elements
+        elements.playerHPText.className = 'stat-value' + regenClass;
+        if (elements.playerHPLabel) {
+            elements.playerHPLabel.className = 'stat-label' + regenClass;
+        }
     }
 
     /**
      * Update player mana display
      * @param {number} mana - Current mana
      * @param {number} maxMana - Maximum mana
+     * @param {boolean} hasRegen - Whether player has active mana regen
      */
-    function updatePlayerMana(mana, maxMana) {
+    function updatePlayerMana(mana, maxMana, hasRegen) {
         if (!elements.playerManaBar) cacheElements();
         if (!elements.playerManaBar || !elements.playerManaText) return;
 
         var percent = (mana / maxMana) * 100;
         elements.playerManaBar.style.width = percent + '%';
         elements.playerManaText.textContent = mana + '/' + maxMana;
+
+        var regenClass = hasRegen ? ' mana-regen' : '';
+        elements.playerManaBar.className = 'stat-bar mana-bar' + regenClass;
+        // Apply regen pulse to text and label elements
+        elements.playerManaText.className = 'stat-value' + regenClass;
+        if (elements.playerManaLabel) {
+            elements.playerManaLabel.className = 'stat-label' + regenClass;
+        }
     }
 
     /**
@@ -390,14 +419,15 @@ var BattleUI = (function() {
         }
         if (!elements.playerACDisplay) return;
 
+        // Compact format: (AC XX) or (AC XX+) or (AC XX-)
         var acText = '(AC ' + effectiveAC + ')';
         elements.playerACDisplay.classList.remove('boosted', 'reduced');
 
         if (effectiveAC > baseAC) {
-            acText = '(AC ' + effectiveAC + ' ↑)';
+            acText = '(AC ' + effectiveAC + '+)';
             elements.playerACDisplay.classList.add('boosted');
         } else if (effectiveAC < baseAC) {
-            acText = '(AC ' + effectiveAC + ' ↓)';
+            acText = '(AC ' + effectiveAC + '-)';
             elements.playerACDisplay.classList.add('reduced');
         }
 
@@ -545,9 +575,10 @@ var BattleUI = (function() {
 
     /**
      * Update battle log content with optional dice animation
+     * Like old battle.js: clears log and shows only the latest entry
      * @param {string} html - HTML content to display
      * @param {object} rollData - Optional roll animation data { roll, isCrit, isFumble }
-     * @param {function} callback - Optional callback when animation completes
+     * @param {function} callback - Optional callback when animation/linger completes
      */
     function updateBattleLog(html, rollData, callback) {
         if (!elements.battleLog) {
@@ -558,25 +589,21 @@ var BattleUI = (function() {
         // Clear previous animation state
         clearAnimationState();
 
-        // Create new log entry
-        var logContainer = document.createElement('div');
-        logContainer.className = 'battle-log-messages';
+        // Clear entire log and show only the latest entry (like old battle.js)
+        elements.battleLog.innerHTML = '';
 
-        // Append new entry to battle log
-        elements.battleLog.appendChild(logContainer);
-
-        // Remove oldest entries if over max lines
-        var maxLines = config.ui.battleLogMaxLines;
-        var entries = elements.battleLog.querySelectorAll('.battle-log-messages');
-        while (entries.length > maxLines) {
-            entries[0].parentNode.removeChild(entries[0]);
-            entries = elements.battleLog.querySelectorAll('.battle-log-messages');
-        }
+        // Wrapper to add linger delay before callback
+        var lingerCallback = function() {
+            if (callback) {
+                var t = setTimeout(callback, config.timing.messageLingerDelay);
+                animationState.timeouts.push(t);
+            }
+        };
 
         // Check if we need to animate a dice roll
         if (rollData && rollData.roll !== undefined) {
             animationState.active = true;
-            animationState.onComplete = callback;
+            animationState.onComplete = lingerCallback;
 
             // Parse the HTML to find the roll value and animate it
             var temp = document.createElement('div');
@@ -589,21 +616,36 @@ var BattleUI = (function() {
                 html = temp.innerHTML;
             }
 
-            logContainer.innerHTML = html;
+            elements.battleLog.innerHTML = html;
+            scrollLogToBottom();
 
-            var diceNum = logContainer.querySelector('.dice-number');
+            var diceNum = elements.battleLog.querySelector('.dice-number');
             if (diceNum) {
                 animateDiceRoll(diceNum, rollData.roll, rollData.isCrit, rollData.isFumble, function() {
                     completeAnimation();
                 });
             } else {
-                typewriterEffect(logContainer, html, function() {
+                typewriterEffect(elements.battleLog, html, function() {
                     completeAnimation();
                 });
             }
         } else {
-            logContainer.innerHTML = html;
-            if (callback) callback();
+            // Use typewriter effect for all non-roll messages (e.g., "Defending!")
+            animationState.active = true;
+            animationState.onComplete = lingerCallback;
+            typewriterEffect(elements.battleLog, html, function() {
+                scrollLogToBottom();
+                completeAnimation();
+            });
+        }
+    }
+
+    /**
+     * Scroll battle log to bottom to show latest content
+     */
+    function scrollLogToBottom() {
+        if (elements.battleLog) {
+            elements.battleLog.scrollTop = elements.battleLog.scrollHeight;
         }
     }
 
@@ -614,6 +656,7 @@ var BattleUI = (function() {
         animationState.timeouts.forEach(function(t) { clearTimeout(t); });
         animationState.timeouts = [];
         animationState.damageQueue = [];
+        animationState.statUpdateQueue = [];
         animationState.onComplete = null;
         animationState.active = false;
     }
@@ -639,11 +682,42 @@ var BattleUI = (function() {
     }
 
     /**
-     * Display all queued damage numbers
+     * Queue a stat change for display after animation
+     */
+    function queueStatChange(statType, amount, target, label) {
+        animationState.damageQueue.push({ statType: statType, amount: amount, target: target, label: label, isStatChange: true });
+    }
+
+    /**
+     * Display all queued damage numbers, stat changes, and stat bar updates
      */
     function flushDamageQueue() {
+        // First, apply queued stat bar updates (HP/mana/limit)
+        animationState.statUpdateQueue.forEach(function(update) {
+            switch (update.type) {
+                case 'playerHP':
+                    updatePlayerHP(update.hp, update.maxHP, update.hasRegen);
+                    break;
+                case 'playerMana':
+                    updatePlayerMana(update.mana, update.maxMana, update.hasRegen);
+                    break;
+                case 'enemyHP':
+                    updateEnemyHP(update.hp, update.maxHP, update.name);
+                    break;
+                case 'limitBar':
+                    updateLimitBar(update.charge);
+                    break;
+            }
+        });
+        animationState.statUpdateQueue = [];
+
+        // Then show floating damage numbers and stat change popups
         animationState.damageQueue.forEach(function(dmg) {
-            showDamageNumberImmediate(dmg.amount, dmg.target, dmg.type);
+            if (dmg.isStatChange) {
+                showStatChangeImmediate(dmg.statType, dmg.amount, dmg.target, dmg.label);
+            } else {
+                showDamageNumberImmediate(dmg.amount, dmg.target, dmg.type);
+            }
         });
         animationState.damageQueue = [];
     }
@@ -713,44 +787,83 @@ var BattleUI = (function() {
 
     /**
      * Typewriter effect for text
+     * Uses transparent text to reserve exact space and prevent layout jumps
      */
     function typewriterEffect(container, text, callback) {
         var index = 0;
         var speed = config.dice.typewriterSpeed;
 
+        container.innerHTML = '';
+
+        // Create wrapper with relative positioning
+        var wrapper = document.createElement('div');
+        wrapper.className = 'typewriter-wrapper';
+        wrapper.style.position = 'relative';
+
+        // Full text rendered transparently - reserves exact final space
+        var placeholder = document.createElement('div');
+        placeholder.innerHTML = text;
+        placeholder.style.color = 'transparent';
+        placeholder.style.userSelect = 'none';
+        placeholder.style.pointerEvents = 'none';
+
+        // Visible text overlaid on top - typed character by character
+        var visible = document.createElement('div');
+        visible.style.position = 'absolute';
+        visible.style.top = '0';
+        visible.style.left = '0';
+        visible.style.right = '0';
+
+        wrapper.appendChild(placeholder);
+        wrapper.appendChild(visible);
+        container.appendChild(wrapper);
+
         function typeNext() {
             if (index < text.length) {
+                // Skip HTML tags instantly
                 if (text[index] === '<') {
                     var tagEnd = text.indexOf('>', index);
                     if (tagEnd !== -1) {
-                        container.innerHTML += text.substring(index, tagEnd + 1);
+                        visible.innerHTML += text.substring(index, tagEnd + 1);
                         index = tagEnd + 1;
                         typeNext();
                         return;
                     }
                 }
 
-                container.innerHTML += text[index];
+                visible.innerHTML += text[index];
                 index++;
 
                 var t = setTimeout(typeNext, 1000 / speed);
                 animationState.timeouts.push(t);
-            } else if (callback) {
-                callback();
+            } else {
+                // Animation complete - replace wrapper with final text
+                container.innerHTML = text;
+                if (callback) {
+                    callback();
+                }
             }
         }
 
-        container.innerHTML = '';
         typeNext();
     }
 
     // === Visual Effects ===
 
+    // Track damage number positions for WoW-style staggering
+    var damageNumberState = {
+        lastX: 0,
+        lastTime: 0,
+        counter: 0
+    };
+
     /**
-     * Show floating damage number
+     * Show floating damage number (WoW-style on sprites)
+     * Uses the unified roll display system for consistent colors.
+     *
      * @param {number} amount - Damage/heal amount
      * @param {string} target - 'player' or 'enemy'
-     * @param {string} type - 'damage', 'heal', or 'dot'
+     * @param {string} type - 'damage', 'heal', 'dot', 'crit', 'maxdamage', 'mindamage', 'miss'
      */
     function showDamageNumber(amount, target, type) {
         if (animationState.active) {
@@ -760,32 +873,350 @@ var BattleUI = (function() {
         }
     }
 
+    /**
+     * Helper to get unified roll class for floating numbers.
+     * Maps legacy type strings to the unified roll-{type}-{emphasis} system.
+     */
+    function getFloatingRollClass(type) {
+        // Use BattleDiceUI helper if available, otherwise inline
+        var getRollClass = (typeof BattleDiceUI !== 'undefined' && BattleDiceUI.getRollClass)
+            ? BattleDiceUI.getRollClass
+            : function(rollType, resultCategory) { return 'roll-' + rollType + '-' + resultCategory; };
+
+        switch (type) {
+            case 'crit':
+                return getRollClass('damage', 'crit');
+            case 'maxdamage':
+                return getRollClass('damage', 'max');
+            case 'mindamage':
+                return getRollClass('damage', 'min');
+            case 'damage':
+            case 'dot':
+                return getRollClass('damage', 'normal');
+            case 'heal':
+                return getRollClass('heal', 'normal');
+            case 'maxheal':
+                return getRollClass('heal', 'max');
+            case 'minheal':
+                return getRollClass('heal', 'min');
+            case 'miss':
+                return getRollClass('neutral', 'normal');
+            default:
+                return getRollClass('damage', 'normal');
+        }
+    }
+
     function showDamageNumberImmediate(amount, target, type) {
+        if (!elements.container) {
+            elements.container = document.getElementById('vn-container');
+        }
         if (!elements.container) return;
 
+        var isCrit = type === 'crit';
+        var isMaxDamage = type === 'maxdamage';
+        var isMinDamage = type === 'mindamage';
+        var isHeal = type === 'heal' || type === 'maxheal' || type === 'minheal';
+        var isDot = type === 'dot';
+        var isMiss = type === 'miss';
+        var isACBoost = type === 'ac-boost';
         var damageNum = document.createElement('div');
-        damageNum.className = 'damage-number ' + (type || 'damage');
-        damageNum.textContent = (type === 'heal' ? '+' : '-') + amount;
 
-        // Position based on target
-        var container = elements.container;
-        var rect = container.getBoundingClientRect();
+        // Get unified roll class for consistent styling
+        var rollClass = getFloatingRollClass(type);
 
-        if (target === 'player') {
-            damageNum.style.left = '25%';
-            damageNum.style.bottom = '40%';
+        // Set class and text based on type
+        // Use Math.abs to prevent double minus signs if amount is already negative
+        var displayAmount = Math.abs(amount);
+        if (isMiss) {
+            damageNum.className = 'damage-number wow-style ' + rollClass;
+            damageNum.textContent = 'MISS';
+        } else if (isACBoost) {
+            // AC boost uses its own class and shows +X AC format
+            damageNum.className = 'damage-number wow-style ac-boost';
+            damageNum.textContent = '+' + displayAmount + ' AC';
         } else {
-            damageNum.style.right = '25%';
-            damageNum.style.top = '30%';
+            damageNum.className = 'damage-number wow-style ' + rollClass;
+            damageNum.textContent = (isHeal ? '+' : '-') + displayAmount;
         }
 
+        // WoW-style: show a label above the damage number
+        // Labels use the same unified color system
+        var hitLabel = null;
+        if (isCrit) {
+            // Crits show "CRIT!" label with crit emphasis
+            hitLabel = document.createElement('div');
+            hitLabel.className = 'damage-number wow-style crit-label ' + rollClass;
+            hitLabel.textContent = 'CRIT!';
+        } else if (isMaxDamage) {
+            // Max damage rolls show "MAX!" label with max emphasis
+            hitLabel = document.createElement('div');
+            hitLabel.className = 'damage-number wow-style max-label ' + rollClass;
+            hitLabel.textContent = 'MAX!';
+        } else if (isMinDamage) {
+            // Min damage rolls show "MIN" label with min emphasis
+            hitLabel = document.createElement('div');
+            hitLabel.className = 'damage-number wow-style min-label ' + rollClass;
+            hitLabel.textContent = 'MIN';
+        } else if (!isHeal && !isDot && !isMiss && !isACBoost) {
+            // Normal hits show "Hit" label (yellow, normal emphasis)
+            hitLabel = document.createElement('div');
+            var hitLabelClass = (typeof BattleDiceUI !== 'undefined' && BattleDiceUI.getRollClass)
+                ? BattleDiceUI.getRollClass('hit', 'normal')
+                : 'roll-hit-normal';
+            hitLabel.className = 'damage-number wow-style hit-label ' + hitLabelClass;
+            hitLabel.textContent = 'Hit';
+        }
+
+        // Position damage numbers near the stats panels instead of sprites
+        var container = elements.container;
+
+        // Stagger horizontal position to avoid overlap (alternating left/right of center)
+        var now = Date.now();
+        if (now - damageNumberState.lastTime > 500) {
+            damageNumberState.counter = 0;
+        }
+        damageNumberState.counter++;
+        damageNumberState.lastTime = now;
+
+        // Calculate position - center on the enemy sprite
+        // The sprite-layer is centered horizontally, so enemy is at 50%
+        var baseX, baseY;
+        var containerRect = container.getBoundingClientRect();
+
+        // Try to get the actual sprite position for more accurate centering
+        var spriteLayer = document.getElementById('sprite-layer');
+        var spriteImg = spriteLayer ? spriteLayer.querySelector('img') : null;
+
+        // Get battle log height to know where sprite area ends
+        var battleLogPanel = document.querySelector('.battle-log-panel');
+        var battleLogHeight = battleLogPanel ? battleLogPanel.offsetHeight : 0;
+        var spriteAreaBottom = containerRect.height - battleLogHeight;
+
+        // Position at lower 1/3 of sprite area (roughly 50-65% from top)
+        var spriteAreaBottomPercent = (spriteAreaBottom / containerRect.height) * 100;
+        var targetY = spriteAreaBottomPercent - 15; // ~15% above the battle log
+
+        if (target === 'player') {
+            // Player damage - left side near player stats panel
+            var playerPanel = document.getElementById('player-stats-panel');
+            if (playerPanel) {
+                var panelRect = playerPanel.getBoundingClientRect();
+                baseX = ((panelRect.left + panelRect.width / 2 - containerRect.left) / containerRect.width) * 100;
+            } else {
+                baseX = 20;
+            }
+            baseY = targetY;
+            // Add some random spread
+            baseX += (Math.random() * 10 - 5);
+            baseY += (Math.random() * 8 - 4);
+        } else {
+            // Enemy damage - centered on the enemy sprite (sprite-layer is centered)
+            if (spriteImg) {
+                var imgRect = spriteImg.getBoundingClientRect();
+                baseX = ((imgRect.left + imgRect.width / 2 - containerRect.left) / containerRect.width) * 100;
+                // Position vertically on the sprite (upper-middle area for better visibility)
+                baseY = ((imgRect.top + imgRect.height * 0.3 - containerRect.top) / containerRect.height) * 100;
+            } else {
+                // Fallback: center of screen horizontally
+                baseX = 50;
+                baseY = targetY;
+            }
+            // Add some random spread to avoid overlap
+            var spread = (damageNumberState.counter % 2 === 0 ? -1 : 1) * (3 + Math.random() * 5);
+            baseX += spread;
+            baseY += (Math.random() * 8 - 4);
+        }
+
+        damageNum.style.left = baseX + '%';
+        damageNum.style.top = baseY + '%';
+
         container.appendChild(damageNum);
+
+        // WoW-style: add label above the damage number (Hit/CRIT!)
+        // Position is same as damage number - CSS handles the vertical offset
+        if (hitLabel) {
+            hitLabel.style.left = baseX + '%';
+            hitLabel.style.top = baseY + '%';
+            container.appendChild(hitLabel);
+
+            setTimeout(function() {
+                if (hitLabel.parentNode) {
+                    hitLabel.parentNode.removeChild(hitLabel);
+                }
+            }, config.timing.damageNumberDuration);
+        }
 
         setTimeout(function() {
             if (damageNum.parentNode) {
                 damageNum.parentNode.removeChild(damageNum);
             }
         }, config.timing.damageNumberDuration);
+    }
+
+    /**
+     * Show floating stat change notification near a stat bar
+     * @param {string} statType - 'hp', 'mana', 'limit', 'ac'
+     * @param {number} amount - Change amount (positive = gain, negative = loss)
+     * @param {string} target - 'player' or 'enemy'
+     * @param {string} label - Optional label text (e.g., "AC" for AC changes)
+     */
+    function showStatChange(statType, amount, target, label) {
+        if (amount === 0) return;
+        if (animationState.active) {
+            queueStatChange(statType, amount, target, label);
+        } else {
+            showStatChangeImmediate(statType, amount, target, label);
+        }
+    }
+
+    function showStatChangeImmediate(statType, amount, target, label) {
+        if (!elements.container) {
+            elements.container = document.getElementById('vn-container');
+        }
+        if (!elements.container) return;
+        if (amount === 0) return;
+
+        var container = elements.container;
+        var containerRect = container.getBoundingClientRect();
+
+        // Determine the stat element to position near
+        var statElement = null;
+        var displayClass = '';
+        var prefix = '';
+
+        switch (statType) {
+            case 'hp':
+                statElement = target === 'player' ? elements.playerHPBar : elements.enemyHPBar;
+                displayClass = amount > 0 ? 'heal' : 'damage';
+                prefix = amount > 0 ? '+' : '';
+                break;
+            case 'mana':
+                statElement = elements.playerManaBar;
+                displayClass = 'mana-change';
+                prefix = amount > 0 ? '+' : '';
+                break;
+            case 'limit':
+                statElement = elements.limitBar;
+                displayClass = 'limit-change purple';
+                prefix = amount > 0 ? '+' : '';
+                break;
+            case 'ac':
+                statElement = elements.playerACDisplay;
+                displayClass = amount > 0 ? 'ac-boost' : 'ac-reduce';
+                prefix = amount > 0 ? '+' : '';
+                break;
+            default:
+                return;
+        }
+
+        if (!statElement) {
+            cacheElements();
+            switch (statType) {
+                case 'hp':
+                    statElement = target === 'player' ? elements.playerHPBar : elements.enemyHPBar;
+                    break;
+                case 'mana':
+                    statElement = elements.playerManaBar;
+                    break;
+                case 'limit':
+                    statElement = elements.limitBar;
+                    break;
+                case 'ac':
+                    statElement = elements.playerACDisplay;
+                    break;
+            }
+        }
+
+        // Create the floating number
+        var statNum = document.createElement('div');
+        statNum.className = 'damage-number wow-style stat-change ' + displayClass;
+        statNum.textContent = prefix + amount + (label ? ' ' + label : '');
+
+        // Position near the stat bar
+        var baseX, baseY;
+        if (statElement) {
+            var statRect = statElement.getBoundingClientRect();
+            baseX = ((statRect.left + statRect.width / 2 - containerRect.left) / containerRect.width) * 100;
+            baseY = ((statRect.top - containerRect.top) / containerRect.height) * 100;
+        } else {
+            // Fallback positions
+            baseX = target === 'player' ? 20 : 80;
+            baseY = 70;
+        }
+
+        // Add small random offset
+        baseX += (Math.random() * 6 - 3);
+
+        statNum.style.left = baseX + '%';
+        statNum.style.top = baseY + '%';
+
+        container.appendChild(statNum);
+
+        setTimeout(function() {
+            if (statNum.parentNode) {
+                statNum.parentNode.removeChild(statNum);
+            }
+        }, config.timing.damageNumberDuration);
+    }
+
+    /**
+     * Show multiple stat changes sequentially with delays
+     * Order: HP -> Mana -> Limit Break
+     * @param {object} changes - { hp: {amount, target, type}, mana: {amount, target}, limit: {amount, target} }
+     */
+    function showStatChangesSequential(changes) {
+        var queue = [];
+        var delay = config.timing.statChangeDelay;
+
+        // Build queue in order: HP, Mana, LB
+        if (changes.hp && changes.hp.amount !== 0) {
+            queue.push({ type: 'damage', data: changes.hp });
+        }
+        if (changes.mana && changes.mana.amount !== 0) {
+            queue.push({ type: 'stat', statType: 'mana', data: changes.mana });
+        }
+        if (changes.limit && changes.limit.amount !== 0) {
+            queue.push({ type: 'stat', statType: 'limit', data: changes.limit });
+        }
+
+        // Show each change with a delay
+        queue.forEach(function(item, index) {
+            setTimeout(function() {
+                if (item.type === 'damage') {
+                    showDamageNumberImmediate(item.data.amount, item.data.target, item.data.damageType || 'heal');
+                } else {
+                    showStatChangeImmediate(item.statType, item.data.amount, item.data.target);
+                }
+            }, index * delay);
+        });
+    }
+
+    /**
+     * Show mid-screen combat announcement (CRITICAL HIT, FUMBLE, etc.)
+     * @param {string} type - 'critical' or 'fumble'
+     */
+    function showCombatAnnouncement(type) {
+        if (!elements.container) return;
+
+        var announcement = document.createElement('div');
+        announcement.className = 'combat-announcement ' + type;
+
+        if (type === 'critical') {
+            announcement.textContent = 'CRITICAL!';
+        } else if (type === 'fumble') {
+            announcement.textContent = 'FUMBLE!';
+        } else {
+            announcement.textContent = type.toUpperCase();
+        }
+
+        elements.container.appendChild(announcement);
+
+        // Remove after animation completes
+        setTimeout(function() {
+            if (announcement.parentNode) {
+                announcement.parentNode.removeChild(announcement);
+            }
+        }, 1500);
     }
 
     /**
@@ -916,14 +1347,17 @@ var BattleUI = (function() {
      * @param {function} callback - Called when intro completes
      */
     function showBattleIntro(callback) {
+        console.log('[BattleUI] showBattleIntro called');
         if (!elements.container) {
             elements.container = document.getElementById('vn-container');
         }
         if (!elements.container) {
+            console.log('[BattleUI] No container found, calling callback immediately');
             if (callback) callback();
             return;
         }
 
+        console.log('[BattleUI] Container found, hiding text box and playing sfx');
         hideTextBox();
         playSfx('alert.ogg');
 
@@ -948,8 +1382,10 @@ var BattleUI = (function() {
 
         elements.container.appendChild(flash);
         elements.container.appendChild(overlay);
+        console.log('[BattleUI] Intro overlay appended, starting timeout:', config.timing.battleIntro, 'ms');
 
         setTimeout(function() {
+            console.log('[BattleUI] Intro timeout fired, cleaning up');
             var introOverlay = document.getElementById('battle-intro-overlay');
             if (introOverlay && introOverlay.parentNode) {
                 introOverlay.parentNode.removeChild(introOverlay);
@@ -961,8 +1397,9 @@ var BattleUI = (function() {
             if (spriteLayer) {
                 spriteLayer.classList.remove('battle-intro-enemy');
             }
+            console.log('[BattleUI] Calling callback');
             if (callback) callback();
-        }, config.timing.damageNumberDuration);
+        }, config.timing.battleIntro);
     }
 
     /**
@@ -1091,16 +1528,112 @@ var BattleUI = (function() {
         destroyUI: destroyUI,
         cacheElements: cacheElements,
 
-        // Display updates
-        updatePlayerHP: updatePlayerHP,
-        updatePlayerMana: updatePlayerMana,
-        updateEnemyHP: updateEnemyHP,
-        updateLimitBar: updateLimitBar,
+        // Display updates (these also queue when animation is active)
+        updatePlayerHP: function(hp, maxHP, hasRegen) {
+            if (animationState.active) {
+                animationState.statUpdateQueue.push({
+                    type: 'playerHP',
+                    hp: hp,
+                    maxHP: maxHP,
+                    hasRegen: hasRegen
+                });
+            } else {
+                updatePlayerHP(hp, maxHP, hasRegen);
+            }
+        },
+        updatePlayerMana: function(mana, maxMana, hasRegen) {
+            if (animationState.active) {
+                animationState.statUpdateQueue.push({
+                    type: 'playerMana',
+                    mana: mana,
+                    maxMana: maxMana,
+                    hasRegen: hasRegen
+                });
+            } else {
+                updatePlayerMana(mana, maxMana, hasRegen);
+            }
+        },
+        updateEnemyHP: function(hp, maxHP, name) {
+            if (animationState.active) {
+                animationState.statUpdateQueue.push({
+                    type: 'enemyHP',
+                    hp: hp,
+                    maxHP: maxHP,
+                    name: name
+                });
+            } else {
+                updateEnemyHP(hp, maxHP, name);
+            }
+        },
+        updateLimitBar: function(charge) {
+            if (animationState.active) {
+                animationState.statUpdateQueue.push({
+                    type: 'limitBar',
+                    charge: charge
+                });
+            } else {
+                updateLimitBar(charge);
+            }
+        },
         updatePlayerAC: updatePlayerAC,
         updateStatuses: updateStatuses,
         updateStagger: updateStagger,
         updateTerrain: updateTerrain,
         updateSummon: updateSummon,
+
+        // Facade-compatible aliases (used by battle-facade.js)
+        // These queue updates when animation is active so HP/mana changes appear after text
+        updateHP: function(target, hp, maxHP, name, hasRegen) {
+            if (animationState.active) {
+                // Queue the update to apply after animation completes
+                if (target === 'player') {
+                    animationState.statUpdateQueue.push({
+                        type: 'playerHP',
+                        hp: hp,
+                        maxHP: maxHP,
+                        hasRegen: hasRegen
+                    });
+                } else {
+                    animationState.statUpdateQueue.push({
+                        type: 'enemyHP',
+                        hp: hp,
+                        maxHP: maxHP,
+                        name: name
+                    });
+                }
+            } else {
+                // Apply immediately when no animation is running
+                if (target === 'player') {
+                    updatePlayerHP(hp, maxHP, hasRegen);
+                } else {
+                    updateEnemyHP(hp, maxHP, name);
+                }
+            }
+        },
+        updateMana: function(mana, maxMana, hasRegen) {
+            if (animationState.active) {
+                animationState.statUpdateQueue.push({
+                    type: 'playerMana',
+                    mana: mana,
+                    maxMana: maxMana,
+                    hasRegen: hasRegen
+                });
+            } else {
+                updatePlayerMana(mana, maxMana, hasRegen);
+            }
+        },
+        addLogEntry: function(html) {
+            updateBattleLog(html);
+        },
+        showIntro: function(enemy, callback) {
+            showBattleIntro(callback);
+        },
+        showOutro: function(result, callback) {
+            showBattleOutro(result, null, callback);
+        },
+        showDialogueBubble: function(text, duration) {
+            showDialogue(text);
+        },
 
         // Battle log
         updateBattleLog: updateBattleLog,
@@ -1108,6 +1641,9 @@ var BattleUI = (function() {
 
         // Visual effects
         showDamageNumber: showDamageNumber,
+        showStatChange: showStatChange,
+        showStatChangesSequential: showStatChangesSequential,
+        showCombatAnnouncement: showCombatAnnouncement,
         showAttackEffect: showAttackEffect,
         flashSprite: flashSprite,
         shakeScreen: shakeScreen,

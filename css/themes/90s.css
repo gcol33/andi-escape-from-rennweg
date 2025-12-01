@@ -32,6 +32,21 @@
     --battle-panel-border: var(--win-dark);
     --battle-text: var(--text-color);
     --battle-text-dim: #404040;
+
+    /* Theme fonts */
+    --theme-font: 'MS Sans Serif', 'Segoe UI', Tahoma, sans-serif;
+
+    /* Damage numbers use same font as normal text */
+    --damage-font: var(--theme-font);
+
+    /* Dev mode input styling - Windows 3.1 look */
+    --dev-font: 'Silkscreen', 'MS Sans Serif', 'Segoe UI', sans-serif;
+    --dev-font-size: 0.5rem;
+    --dev-input-bg: var(--win-light);
+    --dev-input-color: var(--text-color);
+    --dev-input-border: 2px solid;
+    --dev-input-radius: 0;
+    --dev-input-placeholder: var(--win-dark);
 }
 
 /* === Password Overlay (Windows 3.1 style) === */
@@ -104,10 +119,8 @@
     }
 }
 
+/* Password char - sizes from shared.css variables, theme styling only */
 .password-char {
-    width: 60px;
-    height: 72px;
-    font-size: 2.2rem;
     font-family: 'MS Sans Serif', 'Segoe UI', Tahoma, sans-serif;
     font-weight: bold;
     text-align: center;
@@ -140,35 +153,6 @@
     animation: shake 0.5s ease-in-out;
     border-color: #aa0000;
     background-color: #ffcccc;
-}
-
-/* Responsive password inputs */
-@media (max-width: 56.25em) {
-    #password-container {
-        margin: 10px;
-    }
-
-    .password-char {
-        width: 50px;
-        height: 60px;
-        font-size: 1.8rem;
-    }
-
-    #password-inputs {
-        gap: 10px;
-    }
-}
-
-@media (max-width: 37.5em) {
-    .password-char {
-        width: 40px;
-        height: 50px;
-        font-size: 1.5rem;
-    }
-
-    #password-inputs {
-        gap: 8px;
-    }
 }
 
 /* === Reset & Base === */
@@ -917,6 +901,11 @@ h1 {
     accent-color: var(--win-blue);
 }
 
+/* Dev mode forced roll input - Windows 3.1 sunken field (inset border) */
+.forced-roll-container input[type="number"] {
+    border-color: var(--win-dark) var(--win-light) var(--win-light) var(--win-dark);
+}
+
 /* === Battle System (Windows 3.1 style) === */
 
 /* Battle Stats Panel - Windows 3.1 dialog box */
@@ -1061,10 +1050,9 @@ h1 {
     text-shadow: none;
 }
 
-/* Damage Numbers - Bold 90s style */
+/* Damage Numbers - Windows 3.1 style text shadow */
 .damage-number,
 .battle-damage-number {
-    font-family: 'MS Sans Serif', 'Segoe UI', Tahoma, sans-serif;
     text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
 }
 
@@ -1173,11 +1161,26 @@ h1 {
     border: 2px inset var(--win-dark);
     color: var(--text-color);
     font-family: 'MS Sans Serif', 'Segoe UI', Tahoma, sans-serif;
+    overflow: hidden;
 }
 
 .battle-log-content .roll-result {
     color: var(--win-blue);
     font-weight: bold;
+}
+
+/* Defend message styling - override theme colors for visibility */
+.battle-log-content .defend-ac-bonus,
+#battle-log-content .defend-ac-bonus {
+    color: #ffd700 !important;  /* Yellow for bonus number */
+    font-size: 1.2rem !important;
+    font-weight: bold !important;
+}
+
+.battle-log-content .defend-duration,
+#battle-log-content .defend-duration {
+    color: #3498db !important;  /* Blue for duration */
+    font-size: 1rem !important;
 }
 
 /* Battle choices - Windows 3.1 buttons in 2x2 grid */

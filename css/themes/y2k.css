@@ -17,6 +17,10 @@
     --translucent-blue: rgba(0, 102, 204, 0.3);
     --translucent-white: rgba(255, 255, 255, 0.8);
     --dark-bg: #1a1a2e;
+
+    /* Theme font - damage numbers use same font as body text */
+    --theme-font: 'Audiowide', 'Arial', sans-serif;
+    --damage-font: var(--theme-font);
 }
 
 /* === Font Face === */
@@ -97,10 +101,8 @@
     }
 }
 
+/* Password char - sizes from shared.css variables, theme styling only */
 .password-char {
-    width: 60px;
-    height: 72px;
-    font-size: 2rem;
     font-family: 'Audiowide', 'Arial', sans-serif;
     font-weight: normal;
     text-align: center;
@@ -140,34 +142,6 @@
     animation: shake 0.5s ease-in-out;
     border-color: var(--y2k-pink);
     box-shadow: 0 0 30px var(--y2k-pink);
-}
-
-@media (max-width: 56.25em) {
-    #password-container {
-        margin: 10px;
-    }
-
-    .password-char {
-        width: 50px;
-        height: 60px;
-        font-size: 1.6rem;
-    }
-
-    #password-inputs {
-        gap: 10px;
-    }
-}
-
-@media (max-width: 37.5em) {
-    .password-char {
-        width: 40px;
-        height: 50px;
-        font-size: 1.3rem;
-    }
-
-    #password-inputs {
-        gap: 8px;
-    }
 }
 
 /* === Reset & Base === */

@@ -26,12 +26,12 @@
 /* === Typography Magic Numbers === */
 /* :root continued */
 :root {
-    /* Base font size - responsive with min/max bounds */
-    --base-font-size-fallback: 1.125rem;  /* 18px */
-    --base-font-size: clamp(1rem, 1.4vw, 1.5rem);  /* 16px-24px */
+    /* Base font size - responsive with min/max bounds (+20%) */
+    --base-font-size-fallback: 1.35rem;  /* ~22px */
+    --base-font-size: clamp(1.2rem, 1.7vw, 1.8rem);  /* 19px-29px */
 
-    /* Story text sizing */
-    --story-font-size: 1.1rem;
+    /* Story text sizing (+20%) */
+    --story-font-size: 1.3rem;
     --story-line-height: 1.6;
 
     /* UI element sizing */
@@ -55,6 +55,62 @@
     --btn-color: #fff;
     --btn-border: 0.0625rem solid rgba(255, 255, 255, 0.3);  /* 1px */
     --btn-border-radius: 0.25rem;  /* 4px */
+
+    /* Damage number font - themes should override this */
+    --damage-font: 'Arial Black', 'Helvetica Neue', sans-serif;
+
+    /* === Battle Text Tuning === */
+    /* Normal battle text */
+    --battle-text-size: 0.95rem;
+    --battle-text-color: #fff;
+
+    /* Special battle text - shared size */
+    --battle-special-size: 1.2rem;
+
+    /* === NEW ROLL COLOR SYSTEM ===
+     * Base colors by roll TYPE (never change based on result):
+     * - Hit rolls = yellow
+     * - Damage rolls = red
+     * - Healing rolls = green
+     * - Status rolls = blue
+     * - Neutral/miss = grey
+     *
+     * Emphasis (crit/fail/min/max) is shown via OUTLINE only, never color change.
+     */
+
+    /* Base colors by roll type */
+    --roll-color-hit: #ffd700;           /* Yellow - hit/attack rolls */
+    --roll-color-damage: #ff4444;        /* Red - damage rolls */
+    --roll-color-heal: #4caf50;          /* Green - healing rolls */
+    --roll-color-status: #64b5f6;        /* Blue - status rolls */
+    --roll-color-neutral: #888888;       /* Grey - miss, neutral */
+
+    /* Emphasis outline colors (applied via outline/glow, not color change) */
+    --emphasis-crit-glow: #ff8c00;       /* Orange glow for crits */
+    --emphasis-fail-glow: #ff0000;       /* Red glow for fumbles/fails */
+    --emphasis-max-glow: #ffffff;        /* White/bright glow for max */
+    --emphasis-min-glow: #666666;        /* Dim glow for min */
+
+    /* Legacy variables (kept for backward compatibility, mapped to new system) */
+    --battle-number-color: var(--roll-color-hit);
+    --battle-hit-dice-color: var(--roll-color-hit);
+    --battle-damage-dice-color: var(--roll-color-damage);
+    --battle-roll-color: var(--roll-color-neutral);
+    --battle-hit-color: var(--roll-color-hit);
+    --battle-damage-color: var(--roll-color-damage);
+    --battle-crit-color: var(--roll-color-hit);      /* Now same as hit - emphasis via outline */
+    --battle-fumble-color: var(--roll-color-neutral); /* Now grey - emphasis via outline */
+
+    /* Password input box sizing - themes can override these */
+    --password-char-width: 100px;
+    --password-char-height: 120px;
+    --password-char-font-size: 3rem;
+    --password-char-width-tablet: 80px;
+    --password-char-height-tablet: 96px;
+    --password-char-font-size-tablet: 2.5rem;
+    --password-char-width-mobile: 60px;
+    --password-char-height-mobile: 72px;
+    --password-char-font-size-mobile: 2rem;
 }
 
 /* Pixel font themes need smaller base sizes */
@@ -62,6 +118,233 @@
 .theme-snes {
     --base-font-size-fallback: 1rem;  /* 16px */
     --base-font-size: clamp(0.875rem, 1.15vw, 1.125rem);  /* 14px-18px */
+}
+
+/* ============================================================================
+ * UNIFIED ROLL DISPLAY SYSTEM
+ * ============================================================================
+ * This system provides consistent visual language for ALL roll displays:
+ * - Combat log dice numbers and result text
+ * - Floating damage numbers (WoW-style)
+ * - Status effect notifications
+ *
+ * RULE 1: Base color is ONLY determined by roll TYPE
+ *   - Hit/Attack rolls = Yellow
+ *   - Damage rolls = Red
+ *   - Healing rolls = Green
+ *   - Status rolls = Blue
+ *   - Neutral/Miss = Grey
+ *
+ * RULE 2: Emphasis is ONLY determined by result CATEGORY
+ *   - Crit = Strong orange glow outline
+ *   - Fail/Fumble = Red glow outline
+ *   - Max = Bright white/strong glow
+ *   - Min = Dim/weak glow
+ *   - Normal = No outline
+ *
+ * The color NEVER changes based on crit/fail/min/max. Only the outline does.
+ * ============================================================================ */
+
+/* === BASE ROLL TYPE COLORS ===
+ * Apply these to set the base color. Combine with emphasis classes for effect.
+ */
+.roll-type-hit {
+    color: var(--roll-color-hit) !important;
+}
+
+.roll-type-damage {
+    color: var(--roll-color-damage) !important;
+}
+
+.roll-type-heal {
+    color: var(--roll-color-heal) !important;
+}
+
+.roll-type-status {
+    color: var(--roll-color-status) !important;
+}
+
+.roll-type-neutral {
+    color: var(--roll-color-neutral) !important;
+}
+
+/* === EMPHASIS CLASSES ===
+ * Add outline/glow effects WITHOUT changing color.
+ * These work with any roll-type color.
+ */
+
+/* Crit emphasis - strong orange glow, scale-up animation */
+.emphasis-crit {
+    text-shadow:
+        0 0 8px var(--emphasis-crit-glow),
+        0 0 16px var(--emphasis-crit-glow),
+        0 0 24px rgba(255, 140, 0, 0.5) !important;
+    animation: emphasis-crit-pulse 0.5s ease-out forwards;
+}
+
+/* Fail/fumble emphasis - red glow, shake animation */
+.emphasis-fail {
+    text-shadow:
+        0 0 8px var(--emphasis-fail-glow),
+        0 0 16px rgba(255, 0, 0, 0.6) !important;
+    animation: emphasis-fail-shake 0.5s ease-out forwards;
+}
+
+/* Max roll emphasis - bright white glow */
+.emphasis-max {
+    text-shadow:
+        0 0 6px var(--emphasis-max-glow),
+        0 0 12px rgba(255, 255, 255, 0.8),
+        0 0 18px rgba(255, 255, 255, 0.4) !important;
+    animation: emphasis-max-pulse 0.4s ease-out forwards;
+}
+
+/* Min roll emphasis - dim weak glow */
+.emphasis-min {
+    text-shadow:
+        0 0 4px var(--emphasis-min-glow),
+        0 0 8px rgba(100, 100, 100, 0.4) !important;
+    animation: emphasis-min-fade 0.4s ease-out forwards;
+}
+
+/* Normal - no special emphasis, just standard text shadow for readability */
+.emphasis-normal {
+    text-shadow:
+        2px 2px 0 #000,
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000;
+}
+
+/* === EMPHASIS ANIMATIONS === */
+
+@keyframes emphasis-crit-pulse {
+    0% { transform: scale(0.8); opacity: 0.5; }
+    40% { transform: scale(1.5); opacity: 1; }
+    70% { transform: scale(1.3); }
+    100% { transform: scale(1.2); opacity: 1; }
+}
+
+@keyframes emphasis-fail-shake {
+    0% { transform: scale(1.2) rotate(0deg); opacity: 0.5; }
+    20% { transform: scale(1.1) rotate(-5deg); opacity: 1; }
+    40% { transform: scale(1.05) rotate(5deg); }
+    60% { transform: scale(1.02) rotate(-3deg); }
+    80% { transform: scale(1.01) rotate(2deg); }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+@keyframes emphasis-max-pulse {
+    0% { transform: scale(0.9); opacity: 0.7; }
+    50% { transform: scale(1.3); opacity: 1; }
+    100% { transform: scale(1.1); opacity: 1; }
+}
+
+@keyframes emphasis-min-fade {
+    0% { transform: scale(1.1); opacity: 0.8; }
+    100% { transform: scale(0.95); opacity: 0.85; }
+}
+
+/* === COMBINED CONVENIENCE CLASSES ===
+ * Pre-combined classes for common scenarios.
+ * Format: roll-{type}-{emphasis}
+ */
+
+/* Hit rolls */
+.roll-hit-normal {
+    color: var(--roll-color-hit) !important;
+    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+}
+
+.roll-hit-crit {
+    color: var(--roll-color-hit) !important;
+    text-shadow: 0 0 8px var(--emphasis-crit-glow), 0 0 16px var(--emphasis-crit-glow), 0 0 24px rgba(255, 140, 0, 0.5) !important;
+    animation: emphasis-crit-pulse 0.5s ease-out forwards;
+}
+
+.roll-hit-fail {
+    color: var(--roll-color-neutral) !important;  /* Miss uses grey */
+    text-shadow: 0 0 8px var(--emphasis-fail-glow), 0 0 16px rgba(255, 0, 0, 0.6) !important;
+    animation: emphasis-fail-shake 0.5s ease-out forwards;
+}
+
+/* Damage rolls */
+.roll-damage-normal {
+    color: var(--roll-color-damage) !important;
+    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+}
+
+.roll-damage-crit {
+    color: var(--roll-color-damage) !important;
+    text-shadow: 0 0 8px var(--emphasis-crit-glow), 0 0 16px var(--emphasis-crit-glow), 0 0 24px rgba(255, 140, 0, 0.5) !important;
+    animation: emphasis-crit-pulse 0.5s ease-out forwards;
+}
+
+.roll-damage-max {
+    color: var(--roll-color-damage) !important;
+    text-shadow: 0 0 6px var(--emphasis-max-glow), 0 0 12px rgba(255, 255, 255, 0.8), 0 0 18px rgba(255, 255, 255, 0.4) !important;
+    animation: emphasis-max-pulse 0.4s ease-out forwards;
+}
+
+.roll-damage-min {
+    color: var(--roll-color-damage) !important;
+    text-shadow: 0 0 4px var(--emphasis-min-glow), 0 0 8px rgba(100, 100, 100, 0.4) !important;
+    animation: emphasis-min-fade 0.4s ease-out forwards;
+}
+
+/* Healing rolls */
+.roll-heal-normal {
+    color: var(--roll-color-heal) !important;
+    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+}
+
+.roll-heal-max {
+    color: var(--roll-color-heal) !important;
+    text-shadow: 0 0 6px var(--emphasis-max-glow), 0 0 12px rgba(255, 255, 255, 0.8), 0 0 18px rgba(255, 255, 255, 0.4) !important;
+    animation: emphasis-max-pulse 0.4s ease-out forwards;
+}
+
+.roll-heal-min {
+    color: var(--roll-color-heal) !important;
+    text-shadow: 0 0 4px var(--emphasis-min-glow), 0 0 8px rgba(100, 100, 100, 0.4) !important;
+    animation: emphasis-min-fade 0.4s ease-out forwards;
+}
+
+/* Status rolls */
+.roll-status-normal {
+    color: var(--roll-color-status) !important;
+    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+}
+
+.roll-status-max {
+    color: var(--roll-color-status) !important;
+    text-shadow: 0 0 6px var(--emphasis-max-glow), 0 0 12px rgba(255, 255, 255, 0.8), 0 0 18px rgba(255, 255, 255, 0.4) !important;
+    animation: emphasis-max-pulse 0.4s ease-out forwards;
+}
+
+.roll-status-min {
+    color: var(--roll-color-status) !important;
+    text-shadow: 0 0 4px var(--emphasis-min-glow), 0 0 8px rgba(100, 100, 100, 0.4) !important;
+    animation: emphasis-min-fade 0.4s ease-out forwards;
+}
+
+/* Neutral (miss, etc) */
+.roll-neutral-normal {
+    color: var(--roll-color-neutral) !important;
+    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+}
+
+/* AC bonus display - dark green (defensive stat) */
+.ac-bonus-text {
+    color: #2e7d32 !important;
+    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+}
+
+/* Defend cooldown text - grey/muted */
+.defend-cooldown-text {
+    color: #888 !important;
+    font-size: 0.9em;
+    text-shadow: 1px 1px 0 #000;
 }
 
 /* === Single Choice Button Fix ===
@@ -77,14 +360,14 @@
 /* === Dev Mode Indicator === */
 #dev-mode-indicator {
     position: fixed;
-    top: 0.625rem;   /* 10px */
-    right: 0.625rem;
+    top: 10px;
+    right: 10px;
     background: #00ff00;
     color: #000;
-    padding: 0.3125rem 0.625rem;  /* 5px 10px */
-    font-size: 0.75rem;  /* 12px */
+    padding: 5px 10px;
+    font-size: 12px;  /* Fixed size - don't scale with base font */
     font-weight: bold;
-    border-radius: 0.1875rem;  /* 3px */
+    border-radius: 3px;
     z-index: var(--z-dev-tools);
     display: none;
 }
@@ -98,11 +381,11 @@
  */
 #theme-selector {
     position: fixed;
-    top: 2.5rem;      /* 40px */
-    right: 0.625rem;  /* 10px */
-    padding: var(--spacing-sm);
+    top: 40px;
+    right: 10px;
+    padding: 8px;
     z-index: var(--z-dev-tools);
-    font-size: 0.75rem;  /* 12px */
+    font-size: 12px;  /* Fixed size - don't scale with base font */
     font-family: inherit;
     display: none;
 }
@@ -112,13 +395,13 @@
 }
 
 #theme-selector label {
-    margin-right: 0.375rem;  /* 6px */
+    margin-right: 6px;
 }
 
 #theme-selector select {
     font-family: inherit;
-    font-size: 0.75rem;
-    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 12px;
+    padding: 4px 8px;
     cursor: pointer;
 }
 
@@ -141,26 +424,31 @@
     display: flex;
     align-items: center;
     gap: 0.375rem;
+    font-family: var(--dev-font, inherit);
+    font-size: var(--dev-font-size, 0.65rem);
 }
 
 .forced-roll-container label {
     white-space: nowrap;
+    font-size: inherit;
 }
 
 .forced-roll-container input[type="number"] {
-    width: 3.75rem;  /* 60px */
+    width: 2.5rem;
     padding: 0.125rem 0.25rem;
-    font-size: 0.75rem;
+    font-size: inherit;
     font-family: inherit;
-    border: 0.0625rem solid rgba(255, 255, 255, 0.3);
-    border-radius: 0.1875rem;
-    background: rgba(0, 0, 0, 0.3);
-    color: inherit;
+    border: var(--dev-input-border, 0.0625rem solid rgba(255, 255, 255, 0.3));
+    border-radius: var(--dev-input-radius, 0.1875rem);
+    background: var(--dev-input-bg, rgba(0, 0, 0, 0.3));
+    color: var(--dev-input-color, inherit);
+    text-align: center;
 }
 
 .forced-roll-container input[type="number"]::placeholder {
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--dev-input-placeholder, rgba(255, 255, 255, 0.5));
     font-style: italic;
+    font-size: inherit;
 }
 
 /* Hide spinner buttons on number input */
@@ -182,18 +470,19 @@
 
 /* === Reset Button (Base Styles) ===
  * Positioned fixed in corner. Themes override colors.
+ * Uses fixed px sizes to avoid scaling with base font.
  */
 #reset-btn {
     position: fixed;
-    bottom: 0.625rem;   /* 10px */
-    right: 0.625rem;
-    width: 2.75rem;     /* 44px */
-    height: 2.75rem;
+    bottom: 10px;
+    right: 10px;
+    width: 44px;
+    height: 44px;
     background: rgba(100, 100, 100, 0.8);
     color: #fff;
     border: none;
     border-radius: 50%;
-    font-size: 1.25rem;  /* 20px */
+    font-size: 20px;  /* Fixed size - don't scale with base font */
     cursor: pointer;
     z-index: var(--z-modal);
     transition: background 0.2s, transform 0.1s;
@@ -237,6 +526,38 @@
 
 #password-inputs.dimmed {
     opacity: 0.3;
+}
+
+/* === Password Character Input Sizing ===
+ * Base sizing using CSS variables - themes override colors/borders only.
+ * Uses text-align for horizontal centering.
+ * Uses box-sizing: content-box so line-height = height works for vertical centering.
+ */
+.password-char {
+    width: var(--password-char-width);
+    height: var(--password-char-height);
+    font-size: var(--password-char-font-size);
+    line-height: var(--password-char-height);
+    text-align: center;
+    padding: 0;
+}
+
+@media (max-width: 56.25em) {
+    .password-char {
+        width: var(--password-char-width-tablet);
+        height: var(--password-char-height-tablet);
+        font-size: var(--password-char-font-size-tablet);
+        line-height: var(--password-char-height-tablet);
+    }
+}
+
+@media (max-width: 37.5em) {
+    .password-char {
+        width: var(--password-char-width-mobile);
+        height: var(--password-char-height-mobile);
+        font-size: var(--password-char-font-size-mobile);
+        line-height: var(--password-char-height-mobile);
+    }
 }
 
 /* === Animated Background Video ===
@@ -396,6 +717,13 @@
 }
 
 @media (orientation: portrait) {
+    /* Keep smaller text on portrait/mobile */
+    :root {
+        --base-font-size-fallback: 1.125rem;  /* 18px - original size */
+        --base-font-size: clamp(1rem, 1.4vw, 1.5rem);
+        --story-font-size: 1.1rem;
+    }
+
     #text-box {
         max-height: 75% !important;
     }
@@ -608,15 +936,19 @@
 
 /* Theme-aware color variables - themes can override these */
 :root {
-    /* Battle log panel height - used for positioning player stats above it */
-    --battle-log-height: 46%;
+    /* Battle log panel height - dynamically calculated in JS based on:
+       - battleLogMaxLines * battleLogLineHeight (log content)
+       - 7.5rem (battle choices - 2 rows of 3rem buttons + gap)
+       - 1.5rem (panel padding)
+       Default: 2 lines * 2.2rem = 4.4rem + 7.5rem + 1.5rem = 13.4rem */
+    --battle-log-height: 13.4rem;
 
     --battle-hp-high: #4caf50;
     --battle-hp-medium: #ff9800;
     --battle-hp-low: #f44336;
     --battle-mana: #2196f3;
-    --battle-limit: #ff8c00;
-    --battle-limit-ready: #ffd700;
+    --battle-limit: #9b59b6;           /* Purple for limit bar */
+    --battle-limit-ready: #a855f7;     /* Brighter purple when ready */
     --battle-panel-bg: rgba(0, 0, 0, 0.85);
     --battle-panel-border: rgba(255, 255, 255, 0.3);
     --battle-text: #fff;
@@ -639,6 +971,8 @@
     /* Position just above the battle log panel with a small gap */
     bottom: calc(var(--battle-log-height) + 10px);
     left: 10px;
+    /* Fixed width to prevent layout shift when status icons appear */
+    min-width: 160px;
 }
 
 .battle-stats-panel.enemy-stats {
@@ -661,6 +995,24 @@
     font-weight: normal;
     font-size: 0.75rem;
     opacity: 0.7;
+    display: inline-block;
+    min-width: 5.5em;  /* Prevent box expansion when AC changes (e.g., "AC 11" → "AC 15+") */
+    text-align: left;
+}
+
+/* Status icon slot next to player name - fixed size reserved box */
+.status-icon-slot {
+    display: inline-block;
+    min-width: 4em;  /* Reserve space for ~3-4 status icons to prevent layout shift */
+    text-align: left;
+    vertical-align: baseline;
+}
+
+.status-icon-slot .status-icon {
+    font-size: 0.85rem;
+    cursor: help;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    vertical-align: baseline;
 }
 
 /* Stat row layout: [Label] [Bar] [Value] */
@@ -741,6 +1093,85 @@
 /* Mana bar color */
 .stat-bar.mana-bar {
     background: var(--battle-mana);
+}
+
+/* HP Regen glow effect - green pulsing glow */
+.stat-bar.hp-bar.hp-regen {
+    box-shadow: 0 0 8px #2ecc71, 0 0 12px #2ecc71;
+    animation: hp-regen-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes hp-regen-pulse {
+    0%, 100% { box-shadow: 0 0 4px #2ecc71, 0 0 8px rgba(46, 204, 113, 0.5); }
+    50% { box-shadow: 0 0 10px #2ecc71, 0 0 16px rgba(46, 204, 113, 0.8); }
+}
+
+/* Mana Regen glow effect - blue pulsing glow */
+.stat-bar.mana-bar.mana-regen {
+    box-shadow: 0 0 8px #3498db, 0 0 12px #3498db;
+    animation: mana-regen-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes mana-regen-pulse {
+    0%, 100% { box-shadow: 0 0 4px #3498db, 0 0 8px rgba(52, 152, 219, 0.5); }
+    50% { box-shadow: 0 0 10px #3498db, 0 0 16px rgba(52, 152, 219, 0.8); }
+}
+
+/* Regen text colors in battle log - pulsing */
+.regen-hp {
+    color: #2ecc71;
+    font-size: var(--battle-special-size, 1.2rem);
+    font-weight: bold;
+    animation: regen-text-pulse 1s ease-in-out infinite;
+}
+
+.regen-mp {
+    color: #3498db;
+    font-size: var(--battle-special-size, 1.2rem);
+    font-weight: bold;
+    animation: regen-text-pulse 1s ease-in-out infinite;
+}
+
+@keyframes regen-text-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* Stat value and label text regen effects - color and pulse */
+.stat-value.hp-regen,
+.stat-label.hp-regen {
+    color: #2ecc71;
+    text-shadow: 0 0 6px rgba(46, 204, 113, 0.8);
+    animation: stat-text-hp-pulse 1.5s ease-in-out infinite;
+}
+
+.stat-value.mana-regen,
+.stat-label.mana-regen {
+    color: #3498db;
+    text-shadow: 0 0 6px rgba(52, 152, 219, 0.8);
+    animation: stat-text-mana-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes stat-text-hp-pulse {
+    0%, 100% {
+        color: #2ecc71;
+        text-shadow: 0 0 4px rgba(46, 204, 113, 0.6);
+    }
+    50% {
+        color: #58d68d;
+        text-shadow: 0 0 10px rgba(46, 204, 113, 1);
+    }
+}
+
+@keyframes stat-text-mana-pulse {
+    0%, 100% {
+        color: #3498db;
+        text-shadow: 0 0 4px rgba(52, 152, 219, 0.6);
+    }
+    50% {
+        color: #5dade2;
+        text-shadow: 0 0 10px rgba(52, 152, 219, 1);
+    }
 }
 
 /* Limit bar colors */
@@ -850,41 +1281,384 @@
     display: none;
 }
 
-/* === Damage Numbers === */
+/* === Damage Numbers (WoW-style) ===
+ * These now use the unified roll display system.
+ * Base color = roll type (damage=red, heal=green, hit=yellow, neutral=grey)
+ * Emphasis = result category (crit, max, min, fail, normal)
+ */
 .damage-number,
 .battle-damage-number {
     position: absolute;
     font-size: 1.5rem;
-    font-weight: bold;
+    font-weight: normal;
+    font-style: normal;
     z-index: var(--z-battle-effects);
     pointer-events: none;
     animation: damage-float 1.5s ease-out forwards;
+    font-family: var(--damage-font);
+    transform: translateX(-50%);
+    text-align: center;
+    color: var(--roll-color-damage);  /* Default to red (damage) */
 }
 
+/* WoW-style damage numbers - larger for visibility */
+.damage-number.wow-style {
+    font-size: var(--battle-special-size);
+    font-weight: bold;
+    font-style: normal;
+    letter-spacing: 0;
+    animation: wow-damage-float 4s ease-out forwards;
+}
+
+/* Legacy .damage class - now maps to unified roll-damage-normal */
 .damage-number.damage,
 .battle-damage-number.damage {
-    color: #ff4444;
-    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000;
+    color: var(--roll-color-damage);
+    text-shadow:
+        2px 2px 0 #000,
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000;
 }
 
-.damage-number.heal,
-.battle-damage-number.heal {
-    color: #44ff44;
-    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000;
+/* Critical damage - red base + crit emphasis (was gold, now red with orange glow) */
+.damage-number.crit {
+    font-size: var(--battle-special-size);
+    color: var(--roll-color-damage);
+    text-shadow:
+        0 0 8px var(--emphasis-crit-glow),
+        0 0 16px var(--emphasis-crit-glow),
+        0 0 24px rgba(255, 140, 0, 0.5);
+    animation: wow-crit-float 4s ease-out forwards;
 }
 
-@keyframes damage-float {
+/* WoW-style "CRIT!" label - damage color + crit emphasis */
+.damage-number.crit-label {
+    font-size: var(--battle-special-size);
+    color: var(--roll-color-damage);
+    text-shadow:
+        0 0 8px var(--emphasis-crit-glow),
+        0 0 16px var(--emphasis-crit-glow);
+    animation: wow-crit-label-float 4s ease-out forwards;
+}
+
+/* Max damage - red base + max emphasis (bright white glow) */
+.damage-number.maxdamage {
+    font-size: var(--battle-special-size);
+    color: var(--roll-color-damage);
+    text-shadow:
+        0 0 6px var(--emphasis-max-glow),
+        0 0 12px rgba(255, 255, 255, 0.8),
+        0 0 18px rgba(255, 255, 255, 0.4);
+    animation: wow-crit-float 4s ease-out forwards;
+}
+
+/* WoW-style "MAX!" label - damage color + max emphasis */
+.damage-number.max-label {
+    font-size: var(--battle-special-size);
+    color: var(--roll-color-damage);
+    text-shadow:
+        0 0 6px var(--emphasis-max-glow),
+        0 0 12px rgba(255, 255, 255, 0.8);
+    animation: wow-crit-label-float 4s ease-out forwards;
+}
+
+/* Min damage - red base + min emphasis (dim glow) */
+.damage-number.mindamage {
+    font-size: var(--battle-special-size);
+    color: var(--roll-color-damage);
+    text-shadow:
+        0 0 4px var(--emphasis-min-glow),
+        0 0 8px rgba(100, 100, 100, 0.4);
+    animation: wow-damage-float 4s ease-out forwards;
+}
+
+/* WoW-style "MIN" label - damage color + min emphasis */
+.damage-number.min-label {
+    font-size: var(--battle-special-size);
+    color: var(--roll-color-damage);
+    text-shadow:
+        0 0 4px var(--emphasis-min-glow),
+        0 0 8px rgba(100, 100, 100, 0.4);
+    animation: wow-hit-label-float 4s ease-out forwards;
+}
+
+/* WoW-style "Hit" label for normal hits - uses yellow (hit roll type) */
+.damage-number.hit-label {
+    font-size: var(--battle-special-size);
+    color: var(--roll-color-hit);
+    text-shadow:
+        2px 2px 0 #000,
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000;
+    animation: wow-hit-label-float 4s ease-out forwards;
+}
+
+/* Hit label floats up starting from above the damage number */
+@keyframes wow-hit-label-float {
     0% {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: translateY(-2em) scale(1);
+    }
+    10% {
+        opacity: 1;
+        transform: translateY(-2.5em) scale(1);
     }
     50% {
         opacity: 1;
-        transform: translateY(-30px) scale(1.2);
+        transform: translateY(-4em) scale(1);
     }
     100% {
         opacity: 0;
-        transform: translateY(-60px) scale(0.8);
+        transform: translateY(-6em) scale(1);
+    }
+}
+
+/* Crit label floats up starting from above the damage number (relative offset via em units) */
+@keyframes wow-crit-label-float {
+    0% {
+        opacity: 1;
+        transform: translateY(-2em) scale(1);
+    }
+    10% {
+        opacity: 1;
+        transform: translateY(-2.5em) scale(1);
+    }
+    20% {
+        transform: translateY(-3em) scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: translateY(-5em) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-8em) scale(1);
+    }
+}
+
+/* Heal - green base color (heal roll type) */
+.damage-number.heal,
+.battle-damage-number.heal {
+    color: var(--roll-color-heal);
+    text-shadow:
+        2px 2px 0 #000,
+        -1px -1px 0 #000;
+}
+
+/* Max heal - green + max emphasis */
+.damage-number.maxheal {
+    color: var(--roll-color-heal);
+    text-shadow:
+        0 0 6px var(--emphasis-max-glow),
+        0 0 12px rgba(255, 255, 255, 0.8);
+}
+
+/* Min heal - green + min emphasis */
+.damage-number.minheal {
+    color: var(--roll-color-heal);
+    text-shadow:
+        0 0 4px var(--emphasis-min-glow),
+        0 0 8px rgba(100, 100, 100, 0.4);
+}
+
+/* DOT damage - red base (damage type) */
+.damage-number.dot {
+    color: var(--roll-color-damage);
+    font-size: var(--battle-special-size);
+    text-shadow:
+        2px 2px 0 #000,
+        -1px -1px 0 #000;
+}
+
+/* Miss - grey/neutral base color */
+.damage-number.miss {
+    color: var(--roll-color-neutral);
+    font-size: var(--battle-special-size);
+    text-shadow:
+        2px 2px 0 #000,
+        -1px -1px 0 #000;
+}
+
+/* Stat change floating numbers */
+.damage-number.stat-change {
+    font-size: var(--battle-special-size);
+}
+
+/* Mana change - uses status color (blue) */
+.damage-number.mana-change {
+    color: var(--roll-color-status);
+    text-shadow:
+        2px 2px 0 #000,
+        -1px -1px 0 #000;
+}
+
+/* Limit break - purple (special resource, kept distinct) */
+.damage-number.limit-change {
+    color: #9b59b6;
+    text-shadow:
+        2px 2px 0 #000,
+        -1px -1px 0 #000;
+}
+
+/* AC changes - uses dark green (defensive stat) */
+.damage-number.ac-boost,
+.damage-number.ac-reduce {
+    color: #2e7d32;
+    text-shadow:
+        2px 2px 0 #000,
+        -1px -1px 0 #000;
+}
+
+/* WoW-style float animation - scrolls up and fades (4s duration) */
+@keyframes wow-damage-float {
+    0% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0) scale(1);
+    }
+    8% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(-5px) scale(1);
+    }
+    15% {
+        transform: translateX(-50%) translateY(-15px) scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(-40px) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-80px) scale(1);
+    }
+}
+
+/* Crit animation - bigger pop, longer hang time (3s total) */
+@keyframes wow-crit-float {
+    0% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0) scale(1);
+    }
+    10% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(-10px) scale(1);
+    }
+    20% {
+        transform: translateX(-50%) translateY(-20px) scale(1);
+    }
+    40% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(-40px) scale(1);
+    }
+    70% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(-60px) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-100px) scale(1);
+    }
+}
+
+/* Legacy animation for non-WoW style */
+@keyframes damage-float {
+    0% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0) scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(-30px) scale(1.2);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-60px) scale(0.8);
+    }
+}
+
+/* === Combat Announcements (mid-screen CRITICAL/FUMBLE) === */
+.combat-announcement {
+    position: absolute;
+    left: 50%;
+    top: 40%;
+    transform: translate(-50%, -50%);
+    font-size: 3.5rem;
+    font-weight: 900;
+    font-family: 'Arial Black', 'Impact', sans-serif;
+    letter-spacing: 4px;
+    z-index: var(--z-overlay);
+    pointer-events: none;
+    text-transform: uppercase;
+}
+
+.combat-announcement.critical {
+    color: #ffd700;
+    text-shadow:
+        4px 4px 0 #000,
+        -2px -2px 0 #000,
+        2px -2px 0 #000,
+        -2px 2px 0 #000,
+        0 0 30px rgba(255, 215, 0, 0.8),
+        0 0 60px rgba(255, 150, 0, 0.6);
+    animation: announcement-critical 1.5s ease-out forwards;
+}
+
+.combat-announcement.fumble {
+    color: #ff3333;
+    text-shadow:
+        4px 4px 0 #000,
+        -2px -2px 0 #000,
+        2px -2px 0 #000,
+        -2px 2px 0 #000,
+        0 0 20px rgba(255, 0, 0, 0.6);
+    animation: announcement-fumble 1.5s ease-out forwards;
+}
+
+@keyframes announcement-critical {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.3);
+    }
+    15% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.2);
+    }
+    30% {
+        transform: translate(-50%, -50%) scale(1);
+    }
+    70% {
+        opacity: 1;
+        transform: translate(-50%, -60%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -80%) scale(0.8);
+    }
+}
+
+@keyframes announcement-fumble {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.3) rotate(-5deg);
+    }
+    10% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.1) rotate(3deg);
+    }
+    20% {
+        transform: translate(-50%, -50%) scale(1) rotate(-2deg);
+    }
+    30% {
+        transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    }
+    70% {
+        opacity: 1;
+        transform: translate(-50%, -55%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -70%) scale(0.9);
     }
 }
 
@@ -964,6 +1738,22 @@
     text-shadow: 1px 1px 0 #000;
 }
 
+/* Damage roll min/max indicators - shared fumble/crit style */
+/* Use high specificity to override theme-specific roll-result colors */
+.damage-min,
+.roll-result .damage-min,
+.battle-log-content .roll-result .damage-min {
+    color: var(--battle-fumble-color) !important;
+    text-shadow: 0 0 10px #ff0000 !important;
+}
+
+.damage-max,
+.roll-result .damage-max,
+.battle-log-content .roll-result .damage-max {
+    color: var(--battle-crit-color) !important;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.6) !important;
+}
+
 /* === Battle Log === */
 .battle-log {
     padding: 8px 12px;
@@ -1041,35 +1831,69 @@
     bottom: 0;
     left: 0;
     right: 0;
-    height: var(--battle-log-height);
+    /* Fixed height to prevent layout shift - matches --battle-log-height variable */
+    /* Height = log content (4.4rem) + choices (7rem) + padding (1.5rem) = ~13rem */
+    min-height: var(--battle-log-height, 13.4rem);
     background: rgba(0, 0, 0, 0.85);
     border-top: 0.1875rem solid rgba(255, 255, 255, 0.3);  /* 3px */
-    display: flex;
-    flex-direction: column;
     padding: var(--spacing-sm) var(--spacing-md);
     box-sizing: border-box;
+    /* Enable flex layout for skill/item submenus to fill space */
+    display: flex;
+    flex-direction: column;
 }
 
 .battle-log-content {
-    /* Height based on max lines (set via JS --battle-log-content-height variable or CSS var) */
-    --default-log-height: calc(var(--battle-log-line-height, 2.2rem) * 2);
-    min-height: var(--battle-log-content-height, var(--default-log-height));
-    max-height: var(--battle-log-content-height, var(--default-log-height));
-    flex: 0 0 auto;
-    overflow: hidden;  /* No scrolling - show latest messages only */
-    padding: 0.625rem 0.75rem;  /* 10px 12px */
-    font-size: 0.95rem;
+    /* Fixed height to prevent text shift when lines are added */
+    height: var(--battle-log-content-height, 4.4rem);  /* Fixed: 2 lines * 2.2rem */
+    overflow: hidden;  /* Never scroll - JS truncates to max lines */
+    padding: 0.875rem 1rem;  /* 14px 16px - extra room to avoid scrollbar */
+    font-size: var(--battle-text-size);
     line-height: 1.5;
-    color: #fff;
-    display: flex;
-    display: -webkit-flex;
-    flex-direction: column;
-    justify-content: flex-end;  /* Align content to bottom (newest at bottom) */
+    color: var(--battle-text-color);
+    /* Text starts at top - space is pre-reserved for 2 lines */
+    flex-shrink: 0;  /* Don't shrink when in flex container */
 }
 
 .battle-log-content .roll-result {
-    color: #ffd700;
+    color: var(--battle-text-color);
 }
+
+/* Dice numbers: grey while spinning, inherit when final
+ * The unified roll classes (roll-hit-normal, roll-damage-normal, etc.)
+ * now control the final color, so we don't force yellow here anymore.
+ */
+.battle-log-content .dice-number,
+.roll-result .dice-number {
+    color: var(--battle-roll-color);
+}
+
+/* REMOVED: Old rule that forced all dice-final to yellow
+ * This broke the unified system where damage dice should be red.
+ * Color is now controlled by roll-type classes (roll-hit-*, roll-damage-*, etc.)
+ */
+/* .battle-log-content .dice-number.dice-final,
+.roll-result .dice-number.dice-final {
+    color: var(--battle-hit-dice-color) !important;
+} */
+
+/* Highlight numbers/effects in battle messages (e.g., "+4 AC", "2 turns") */
+.battle-log-content strong:not(.dice-number),
+.battle-log-content b,
+#battle-log-content strong:not(.dice-number),
+#battle-log-content b {
+    color: var(--battle-number-color, #ffd700) !important;
+    font-size: var(--battle-special-size, 1.2rem);
+}
+
+/* Battle number - for inline numbers in messages (e.g., "Restored 12 MP!") */
+.battle-number {
+    color: var(--battle-number-color, #ffd700);
+    font-size: var(--battle-special-size, 1.2rem);
+    font-weight: bold;
+    vertical-align: baseline;
+}
+
 
 /* === Pokemon-style 4-choice Grid === */
 .battle-choices {
@@ -1083,9 +1907,7 @@
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr 1fr;
     padding: var(--spacing-md);
-    flex-shrink: 0;
-    flex: 1;
-    min-height: 6.25rem;  /* 100px */
+    height: 7rem;  /* Fixed height for 2 rows of buttons */
 }
 
 /* Fallback spacing for browsers without gap support */
@@ -1116,9 +1938,17 @@
     letter-spacing: 0.05em;
 }
 
-.battle-choices .choice-button:disabled {
-    opacity: 0.5;
+.battle-choices .choice-button:disabled,
+.battle-choices .choice-button.waiting {
+    opacity: 0.4;
     cursor: not-allowed;
+    pointer-events: none;
+    filter: grayscale(30%);
+}
+
+/* Container waiting state - subtle visual cue */
+.battle-choices.waiting {
+    opacity: 0.85;
 }
 
 /* === Attack Effect Animations === */
@@ -1208,6 +2038,15 @@
     font-style: italic;
 }
 
+/* Status damage numbers in battle log - red color for damage */
+.battle-log-content .battle-number,
+.battle-log-messages .battle-number,
+#battle-log-content .battle-number {
+    color: var(--roll-color-damage, #ff4444) !important;
+    font-size: var(--battle-special-size, 1.2rem);
+    font-weight: bold;
+}
+
 /* === Status Effect Icons === */
 .status-icons {
     display: block;
@@ -1295,6 +2134,11 @@
     flex: 1;
     padding: 12px;
     overflow: hidden;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+    align-self: stretch !important;  /* Stretch to fill parent width in flex container */
+    align-items: stretch;  /* Children (skill-list) stretch to full width */
 }
 
 .skill-submenu-title {
@@ -1313,13 +2157,16 @@
     display: flex;
     flex-wrap: wrap;
     /* Modern browsers: use grid */
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    grid-auto-rows: auto;  /* Rows size to content */
     gap: 8px;
-    flex: 1;
     overflow: hidden;
     padding: 2px; /* Prevent hover transform from triggering scrollbars */
+    width: 100% !important;
+    max-width: 100% !important;
+    align-content: start;  /* Pack rows at the top, don't stretch */
+    justify-items: stretch;  /* Grid items stretch to fill cell width */
 }
 
 /* Fallback spacing for browsers without gap */
@@ -1341,7 +2188,8 @@
     transition: background 0.2s;
     text-align: center;
     box-sizing: border-box;
-    height: 100%;
+    width: 100%;
+    min-height: 50px;
 }
 
 .skill-item:hover {
@@ -1353,8 +2201,16 @@
 }
 
 .skill-item.disabled {
-    opacity: 0.5;
+    opacity: 0.7;
     cursor: not-allowed;
+}
+
+.skill-item.disabled .skill-name {
+    color: var(--roll-color-neutral, #888) !important;
+}
+
+.skill-item.disabled .skill-cost {
+    color: var(--roll-color-neutral, #888) !important;
 }
 
 .skill-item.disabled:hover {
@@ -1375,6 +2231,28 @@
 
 .skill-cost.insufficient {
     color: #f44336;
+}
+
+/* Locked skill slots - show player can earn more */
+.skill-item.skill-item-locked {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    cursor: default;
+    opacity: 0.6;
+}
+
+.skill-item.skill-item-locked:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.skill-name-locked {
+    color: #666 !important;
+    font-style: italic;
+}
+
+.skill-cost-locked {
+    color: #555 !important;
+    font-size: 0.65rem;
 }
 
 /* Back button uses theme CSS variables for consistent styling.
@@ -1518,10 +2396,15 @@
 /* === Animated Dice Roll Numbers === */
 .dice-number {
     display: inline-block;
-    min-width: 1.5em;
-    text-align: center;
-    font-size: 1.3em;
+    font-size: var(--battle-special-size);
+    line-height: 1;
+    vertical-align: baseline;
     transition: transform 0.1s ease-out;
+}
+
+/* Prevent text shifting during dice roll by using fixed line height */
+.battle-log-content {
+    line-height: 1.6;  /* Fixed line height to accommodate special size numbers and emojis */
 }
 
 .dice-number.dice-spinning {
@@ -1531,18 +2414,22 @@
 
 .dice-number.dice-final {
     animation: dice-reveal 0.3s ease-out forwards;
-    color: inherit;
+    /* color is set by roll-* classes, don't override here */
 }
 
+/* Legacy dice-crit/fumble classes - now use unified system
+ * Crit: yellow (hit type) + crit emphasis
+ * Fumble: grey (neutral) + fail emphasis
+ */
 .dice-number.dice-crit {
-    color: #ffd700 !important;
-    text-shadow: 0 0 10px #ffd700, 0 0 20px #ff8c00;
+    color: var(--roll-color-hit) !important;
+    text-shadow: 0 0 8px var(--emphasis-crit-glow), 0 0 16px var(--emphasis-crit-glow);
     animation: dice-crit-reveal 0.5s ease-out forwards;
 }
 
 .dice-number.dice-fumble {
-    color: #ff4444 !important;
-    text-shadow: 0 0 10px #ff0000;
+    color: var(--roll-color-neutral) !important;
+    text-shadow: 0 0 8px var(--emphasis-fail-glow), 0 0 16px rgba(255, 0, 0, 0.6);
     animation: dice-fumble-reveal 0.5s ease-out forwards;
 }
 
@@ -1569,6 +2456,207 @@
     30% { transform: scale(1.2) rotate(-5deg); opacity: 1; }
     60% { transform: scale(1.1) rotate(5deg); }
     100% { transform: scale(1) rotate(0deg); }
+}
+
+/* === Roll Result Display (Collapsing Modifiers System) === */
+
+.roll-result, .damage-result {
+    display: block;
+    margin: 4px 0;
+    line-height: 1.8;  /* Tall enough to fit larger dice numbers without shifting */
+    /* Reset theme overrides that may interfere */
+    -webkit-text-stroke: 0 !important;
+}
+
+/* Modifier that appears then collapses into the number */
+.mod-part {
+    display: inline;
+    opacity: 0;
+    font-size: var(--battle-special-size);
+    line-height: 1;
+    vertical-align: baseline;
+    color: var(--battle-number-color);  /* Modifier values are yellow (e.g., "+ 3") */
+}
+
+.mod-part.mod-animate-in {
+    opacity: 1;
+    animation: mod-slide-in 0.3s ease-out forwards;
+}
+
+.mod-part.mod-collapsing {
+    animation: mod-collapse 0.25s ease-in forwards;
+}
+
+.mod-source {
+    color: var(--battle-roll-color);  /* Source stays grey (e.g., "(STR)") */
+    font-size: var(--battle-text-size);
+    font-style: italic;
+}
+
+/* Overheal modifier - grey/muted to show "wasted" healing */
+.overheal-mod {
+    color: var(--roll-neutral-color, #888);
+    font-size: var(--battle-special-size);
+}
+
+@keyframes mod-slide-in {
+    0% { opacity: 0; transform: translateX(10px); }
+    100% { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes mod-collapse {
+    0% { opacity: 1; transform: translateX(0) scale(1); }
+    100% { opacity: 0; transform: translateX(-15px) scale(0.7); }
+}
+
+/* Pop effect when number updates after collapse */
+.dice-number.dice-pop {
+    animation: dice-number-pop 0.25s ease-out;
+}
+
+@keyframes dice-number-pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.4); }
+    100% { transform: scale(1); }
+}
+
+/* HIT/MISS/DAMAGE result text - no background, just colored text */
+.roll-result-text {
+    display: inline;
+    font-weight: bold;
+    font-size: var(--battle-text-size);
+    line-height: 1;
+    vertical-align: baseline;
+}
+
+/* Legacy result classes - now use unified system */
+.result-hit {
+    color: var(--roll-color-hit);
+}
+
+.result-miss {
+    color: var(--roll-color-neutral);
+}
+
+.result-crit {
+    color: var(--roll-color-hit);
+    text-shadow: 0 0 8px var(--emphasis-crit-glow), 0 0 16px var(--emphasis-crit-glow);
+}
+
+.result-fumble {
+    color: var(--roll-color-neutral);
+    text-shadow: 0 0 8px var(--emphasis-fail-glow);
+}
+
+/* Heal roll styling - green (heal type) */
+.dice-number.dice-heal {
+    color: var(--roll-color-heal) !important;
+}
+
+.result-heal {
+    color: var(--roll-color-heal);
+    font-weight: bold;
+}
+
+/* Defend message styling - high specificity to override theme colors */
+.defend-ac-bonus,
+.battle-log-content .defend-ac-bonus,
+.battle-log-messages .defend-ac-bonus,
+#battle-log-content .defend-ac-bonus,
+div.battle-log-content span.defend-ac-bonus {
+    color: var(--battle-roll-color, #888) !important;  /* Grey for AC bonus */
+    font-size: var(--battle-special-size, 1.2rem) !important;
+    font-weight: bold !important;
+}
+
+.defend-duration,
+.battle-log-content .defend-duration,
+.battle-log-messages .defend-duration,
+#battle-log-content .defend-duration,
+div.battle-log-content span.defend-duration {
+    color: var(--battle-roll-color, #888) !important;  /* Grey for duration */
+    font-size: var(--battle-special-size, 1.2rem) !important;
+    font-weight: bold !important;
+}
+
+@keyframes result-pop {
+    0% { transform: scale(0.5); opacity: 0; }
+    60% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes result-crit-pop {
+    0% { transform: scale(0.3) rotate(-10deg); opacity: 0; }
+    40% { transform: scale(1.5) rotate(5deg); opacity: 1; }
+    70% { transform: scale(1.3) rotate(-2deg); }
+    100% { transform: scale(1.2) rotate(0deg); opacity: 1; }
+}
+
+@keyframes result-fumble-shake {
+    0% { transform: scale(0.5); opacity: 0; }
+    20% { transform: scale(1.1) translateX(-3px); opacity: 1; }
+    40% { transform: scale(1.05) translateX(3px); }
+    60% { transform: scale(1.02) translateX(-2px); }
+    80% { transform: scale(1.01) translateX(1px); }
+    100% { transform: scale(1) translateX(0); opacity: 1; }
+}
+
+/* Damage display - no special styling for damage numbers, just inherit */
+.damage-dice {
+    /* Damage dice don't get crit/fumble colors - that's only for d20 attack rolls */
+}
+
+/* DAMAGE text - uses red (damage type) by default */
+.damage-text {
+    display: inline;
+    font-weight: bold;
+    color: var(--roll-color-damage);
+    font-size: var(--battle-text-size);
+}
+
+/* Legacy damage-crit-text - red + crit emphasis */
+.damage-text.damage-crit-text {
+    color: var(--roll-color-damage);
+    text-shadow: 0 0 8px var(--emphasis-crit-glow), 0 0 16px var(--emphasis-crit-glow);
+}
+
+/* Legacy damage-min/max - now uses unified emphasis system
+ * Color stays red, only the glow/outline changes
+ */
+.damage-text.damage-min,
+.roll-result .damage-text.damage-min,
+.battle-log-content .roll-result .damage-text.damage-min {
+    color: var(--roll-color-damage) !important;
+    text-shadow: 0 0 4px var(--emphasis-min-glow), 0 0 8px rgba(100, 100, 100, 0.4) !important;
+}
+
+.damage-text.damage-max,
+.roll-result .damage-text.damage-max,
+.battle-log-content .roll-result .damage-text.damage-max {
+    color: var(--roll-color-damage) !important;
+    text-shadow: 0 0 6px var(--emphasis-max-glow), 0 0 12px rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Damage dice styling - red for damage rolls */
+.damage-dice {
+    color: var(--roll-color-damage);
+    font-size: var(--battle-special-size);
+    font-weight: bold;
+}
+
+/* Legacy min/max damage dice - red + emphasis, NOT color change */
+.dice-number.damage-min,
+.roll-result .dice-number.damage-min {
+    color: var(--roll-color-damage) !important;
+    text-shadow: 0 0 4px var(--emphasis-min-glow), 0 0 8px rgba(100, 100, 100, 0.4) !important;
+    animation: emphasis-min-fade 0.4s ease-out forwards;
+}
+
+.dice-number.damage-max,
+.roll-result .dice-number.damage-max {
+    color: var(--roll-color-damage) !important;
+    text-shadow: 0 0 6px var(--emphasis-max-glow), 0 0 12px rgba(255, 255, 255, 0.8) !important;
+    animation: emphasis-max-pulse 0.4s ease-out forwards;
 }
 
 /* === Effectiveness Messages === */
@@ -1710,12 +2798,15 @@
     color: #333;
     padding: 10px 20px;
     border-radius: 16px;
-    font-size: 0.9rem;
+    font-size: var(--base-font-size, 1.35rem);
     font-style: italic;
-    max-width: 300px;
+    max-width: 80vw;
+    width: max-content;
     text-align: center;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     position: relative;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .dialogue-bubble::after {
@@ -1809,7 +2900,7 @@
 
 /* Battle start text announcement */
 .battle-intro-text {
-    font-size: 2.5rem;
+    font-size: calc(var(--base-font-size, 1.35rem) * 2);
     font-weight: bold;
     color: #fff;
     text-transform: uppercase;
@@ -1848,6 +2939,17 @@
 /* Enemy slide-in animation during intro */
 #sprite-layer.battle-intro-enemy {
     animation: battle-enemy-slide-in 1.5s ease-out forwards;
+    /* Prevent background rectangle on mobile */
+    background: transparent !important;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+}
+
+#sprite-layer.battle-intro-enemy img {
+    /* Ensure sprites have no visible background during animation */
+    background: transparent !important;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
 }
 
 @keyframes battle-enemy-slide-in {
@@ -1964,7 +3066,7 @@
 
 /* Victory/Defeat text */
 .battle-outro-text {
-    font-size: 3rem;
+    font-size: calc(var(--base-font-size, 1.35rem) * 2.3);
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 6px;
@@ -1995,7 +3097,7 @@
     text-shadow:
         0 0 10px rgba(150, 150, 150, 0.5),
         2px 2px 4px rgba(0, 0, 0, 0.8);
-    font-size: 2rem;
+    font-size: calc(var(--base-font-size, 1.35rem) * 1.6);
 }
 
 @keyframes outro-text-appear {
@@ -2103,11 +3205,17 @@
 /* === QTE Theme Variables ===
    Themes should override these to match their visual style */
 :root {
-    /* Zone colors */
+    /* Zone colors - Legacy (miss/partial/success/perfect) */
     --qte-zone-miss: #e74c3c;        /* Red - outer edges */
     --qte-zone-partial: #f39c12;     /* Yellow/Orange - glancing */
     --qte-zone-success: #27ae60;     /* Green - solid hit */
     --qte-zone-perfect: #3498db;     /* Blue - center sweet spot */
+
+    /* Zone colors - Finalized Battle System (bad/normal/good/perfect) */
+    --qte-zone-bad: #e74c3c;         /* Red - outer edges, worst result */
+    --qte-zone-normal: #f39c12;      /* Yellow/Orange - standard roll */
+    --qte-zone-good: #27ae60;        /* Green - advantage */
+    /* --qte-zone-perfect already defined above */
 
     /* Marker colors */
     --qte-marker-color: #fff;
@@ -2116,6 +3224,10 @@
     --qte-marker-success: var(--qte-zone-success);
     --qte-marker-partial: var(--qte-zone-partial);
     --qte-marker-miss: var(--qte-zone-miss);
+    /* Finalized marker colors */
+    --qte-marker-good: var(--qte-zone-good);
+    --qte-marker-normal: var(--qte-zone-normal);
+    --qte-marker-bad: var(--qte-zone-bad);
 
     /* Container styling */
     --qte-bg: rgba(0, 0, 0, 0.9);
@@ -2133,6 +3245,10 @@
     --qte-result-success: #4caf50;
     --qte-result-partial: #ff9800;
     --qte-result-miss: #f44336;
+    /* Finalized result colors */
+    --qte-result-good: #4caf50;
+    --qte-result-normal: #ff9800;
+    --qte-result-bad: #f44336;
 }
 
 /* === QTE Container === */
@@ -2176,6 +3292,18 @@
     box-shadow: 0 0 20px rgba(243, 156, 18, 0.3);
 }
 
+/* Finalized Battle System - Skill QTE */
+.qte-container.qte-skill {
+    border-color: var(--qte-zone-good);
+    box-shadow: 0 0 20px rgba(39, 174, 96, 0.4);
+}
+
+/* Finalized Battle System - Defend QTE */
+.qte-container.qte-defend {
+    border-color: var(--qte-zone-perfect);
+    box-shadow: 0 0 20px rgba(52, 152, 219, 0.4);
+}
+
 /* === QTE Label === */
 .qte-label {
     text-align: center;
@@ -2194,6 +3322,23 @@
 
 .qte-dodge .qte-label {
     color: var(--qte-zone-partial);
+}
+
+.qte-skill .qte-label {
+    color: var(--qte-zone-good);
+}
+
+.qte-defend .qte-label {
+    color: var(--qte-zone-perfect);
+}
+
+/* Sub-label for defend QTE (shows enemy attack name) */
+.qte-sublabel {
+    font-size: 0.9rem;
+    font-weight: normal;
+    letter-spacing: 2px;
+    margin-top: 4px;
+    color: var(--qte-text-dim);
 }
 
 /* === QTE Bar Wrapper === */
@@ -2237,6 +3382,19 @@
     box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.3);
 }
 
+/* Finalized Battle System Zones */
+.qte-zone-bad {
+    background: var(--qte-zone-bad);
+}
+
+.qte-zone-normal {
+    background: var(--qte-zone-normal);
+}
+
+.qte-zone-good {
+    background: var(--qte-zone-good);
+}
+
 /* Zone flash effects on result */
 .qte-zones-flash-perfect .qte-zone-perfect {
     animation: qte-zone-flash 0.5s ease-out;
@@ -2251,6 +3409,19 @@
 }
 
 .qte-zones-flash-miss .qte-zone-miss {
+    animation: qte-zone-flash 0.5s ease-out;
+}
+
+/* Finalized zone flash effects */
+.qte-zones-flash-good .qte-zone-good {
+    animation: qte-zone-flash 0.5s ease-out;
+}
+
+.qte-zones-flash-normal .qte-zone-normal {
+    animation: qte-zone-flash 0.5s ease-out;
+}
+
+.qte-zones-flash-bad .qte-zone-bad {
     animation: qte-zone-flash 0.5s ease-out;
 }
 
@@ -2314,6 +3485,28 @@
     box-shadow:
         0 0 8px var(--qte-marker-miss),
         0 0 16px var(--qte-marker-miss);
+}
+
+/* Finalized Battle System marker colors */
+.qte-marker.qte-marker-good {
+    background: var(--qte-marker-good);
+    box-shadow:
+        0 0 12px var(--qte-marker-good),
+        0 0 24px var(--qte-marker-good);
+}
+
+.qte-marker.qte-marker-normal {
+    background: var(--qte-marker-normal);
+    box-shadow:
+        0 0 10px var(--qte-marker-normal),
+        0 0 20px var(--qte-marker-normal);
+}
+
+.qte-marker.qte-marker-bad {
+    background: var(--qte-marker-bad);
+    box-shadow:
+        0 0 8px var(--qte-marker-bad),
+        0 0 16px var(--qte-marker-bad);
 }
 
 /* Marker stopped state */
@@ -2418,6 +3611,22 @@
     text-shadow: 0 0 10px var(--qte-result-miss);
 }
 
+/* Finalized Battle System result text */
+.qte-result-good {
+    color: var(--qte-result-good);
+    text-shadow: 0 0 10px var(--qte-result-good);
+}
+
+.qte-result-normal {
+    color: var(--qte-result-normal);
+    text-shadow: 0 0 10px var(--qte-result-normal);
+}
+
+.qte-result-bad {
+    color: var(--qte-result-bad);
+    text-shadow: 0 0 10px var(--qte-result-bad);
+}
+
 @keyframes qte-result-appear {
     0% {
         opacity: 0;
@@ -2451,6 +3660,105 @@
 .qte-container.qte-result-miss {
     border-color: var(--qte-result-miss);
     box-shadow: 0 0 15px var(--qte-result-miss);
+}
+
+/* Finalized Battle System container result states */
+.qte-container.qte-result-good {
+    border-color: var(--qte-result-good);
+    box-shadow: 0 0 15px var(--qte-result-good);
+}
+
+.qte-container.qte-result-normal {
+    border-color: var(--qte-result-normal);
+    box-shadow: 0 0 15px var(--qte-result-normal);
+}
+
+.qte-container.qte-result-bad {
+    border-color: var(--qte-result-bad);
+    box-shadow: 0 0 15px var(--qte-result-bad);
+}
+
+/* === QTE Chain Combo Display === */
+.qte-chain-progress {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.qte-chain-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--qte-bar-border);
+    border: 2px solid var(--qte-text-dim);
+    transition: all 0.2s ease;
+}
+
+.qte-chain-dot-complete {
+    background: var(--qte-zone-success);
+    border-color: var(--qte-zone-success);
+}
+
+.qte-chain-dot-current {
+    border-color: var(--qte-text);
+    animation: qte-chain-dot-pulse 0.5s ease-in-out infinite;
+}
+
+@keyframes qte-chain-dot-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+.qte-chain-flash {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2rem;
+    font-weight: bold;
+    pointer-events: none;
+    animation: qte-chain-flash-anim 0.3s ease-out forwards;
+}
+
+.qte-chain-flash-perfect {
+    color: var(--qte-result-perfect);
+}
+
+.qte-chain-flash-success,
+.qte-chain-flash-good {
+    color: var(--qte-result-success);
+}
+
+.qte-chain-flash-partial,
+.qte-chain-flash-normal {
+    color: var(--qte-result-partial);
+}
+
+.qte-chain-flash-miss,
+.qte-chain-flash-bad {
+    color: var(--qte-result-miss);
+}
+
+@keyframes qte-chain-flash-anim {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1.5);
+    }
+}
+
+.qte-chain-hit {
+    animation: qte-chain-hit-pulse 0.2s ease-out;
+}
+
+@keyframes qte-chain-hit-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
 }
 
 /* === QTE Combo Display (Future Enhancement) === */
@@ -2546,4 +3854,325 @@
     .qte-bar-wrapper {
         margin-bottom: 12px;
     }
+
+    /* === Battle UI Portrait Mode Centering Fixes === */
+
+    /* Center the battle log panel content */
+    .battle-log-panel {
+        left: 50% !important;
+        right: auto !important;
+        transform: translateX(-50%) !important;
+        width: 95% !important;
+        max-width: 100% !important;
+    }
+
+    /* Center player stats panel above battle log */
+    .battle-stats-panel.player-stats {
+        left: 50% !important;
+        right: auto !important;
+        transform: translateX(-50%) !important;
+        min-width: auto !important;
+        width: auto !important;
+        max-width: 90% !important;
+    }
+
+    /* Center enemy stats panel at top */
+    .battle-stats-panel.enemy-stats {
+        left: 50% !important;
+        right: auto !important;
+        transform: translateX(-50%) !important;
+        top: max(5px, env(safe-area-inset-top, 5px)) !important;
+        min-width: auto !important;
+        width: auto !important;
+        max-width: 90% !important;
+    }
+
+    /* Center terrain indicator */
+    .terrain-indicator {
+        top: calc(max(5px, env(safe-area-inset-top, 5px)) + 55px) !important;
+    }
+
+    /* Battle choices grid - ensure proper centering */
+    .battle-choices {
+        justify-content: center !important;
+        align-content: center !important;
+    }
+
+    /* Skill/Item submenus - stretch to fill width */
+    .skill-submenu,
+    .item-submenu {
+        align-items: stretch !important;
+    }
+
+    .skill-list {
+        width: 100% !important;
+    }
+}
+
+/* =============================================================================
+   ERROR SCREEN OVERLAY
+   Shows user-friendly error messages for missing scenes/assets
+============================================================================= */
+
+.error-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: var(--z-modal);
+    animation: error-fade-in 0.3s ease-out;
+}
+
+@keyframes error-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.error-dialog {
+    background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
+    border: 2px solid #e74c3c;
+    border-radius: 12px;
+    padding: 2rem;
+    max-width: 420px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.error-title {
+    color: #e74c3c;
+    font-size: 1.5rem;
+    margin: 0 0 1rem 0;
+    font-weight: bold;
+}
+
+.error-message {
+    color: #ecf0f1;
+    font-size: 1rem;
+    margin: 0 0 0.75rem 0;
+    line-height: 1.5;
+}
+
+.error-suggestion {
+    color: #95a5a6;
+    font-size: 0.875rem;
+    margin: 0 0 1.5rem 0;
+    font-style: italic;
+}
+
+.error-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.error-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.1s, background-color 0.2s;
+}
+
+.error-btn:hover {
+    transform: scale(1.05);
+}
+
+.error-btn:active {
+    transform: scale(0.98);
+}
+
+.error-btn-back {
+    background: #3498db;
+    color: white;
+}
+
+.error-btn-back:hover {
+    background: #2980b9;
+}
+
+.error-btn-restart {
+    background: #27ae60;
+    color: white;
+}
+
+.error-btn-restart:hover {
+    background: #219a52;
+}
+
+/* ==========================================================================
+   OVERWORLD SYSTEM (Pokemon-style top-down movement)
+   ========================================================================== */
+
+.overworld-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: var(--z-sprites);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    background: #000;
+}
+
+.overworld-container.active {
+    display: flex;
+}
+
+.overworld-canvas {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    /* Scale to fit container while maintaining aspect ratio */
+    max-width: 100%;
+    max-height: 100%;
+}
+
+/* Hide VN elements when overworld is active */
+.overworld-active #background-layer,
+.overworld-active #sprite-layer,
+.overworld-active #text-box {
+    display: none;
+}
+
+/* Overworld interaction prompt */
+.overworld-prompt {
+    position: absolute;
+    bottom: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 1rem;
+    z-index: var(--z-text-box);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    animation: prompt-bounce 0.5s ease-out;
+}
+
+@keyframes prompt-bounce {
+    0% { transform: translateX(-50%) translateY(20px); opacity: 0; }
+    100% { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+
+/* Mobile touch controls */
+.overworld-touch-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: var(--z-overlay);
+    display: none;
+}
+
+/* Show on touch devices */
+@media (hover: none) and (pointer: coarse) {
+    .overworld-touch-controls {
+        display: block;
+    }
+}
+
+.touch-dpad {
+    display: grid;
+    grid-template-columns: 48px 48px 48px;
+    grid-template-rows: 48px 48px 48px;
+    gap: 4px;
+}
+
+.touch-btn {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+    font-size: 1.5rem;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+}
+
+.touch-btn:active {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.touch-btn-up { grid-column: 2; grid-row: 1; }
+.touch-btn-down { grid-column: 2; grid-row: 3; }
+.touch-btn-left { grid-column: 1; grid-row: 2; }
+.touch-btn-right { grid-column: 3; grid-row: 2; }
+.touch-btn-action {
+    grid-column: 2;
+    grid-row: 2;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+/* === Battle Pause Overlay === */
+.battle-pause-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: var(--z-modal);
+    animation: pauseFadeIn 0.2s ease-out;
+}
+
+@keyframes pauseFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.battle-pause-overlay .pause-text {
+    font-family: var(--font-ui);
+    font-size: 3rem;
+    color: #fff;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+    letter-spacing: 0.3em;
+    margin-bottom: 1rem;
+}
+
+.battle-pause-overlay .pause-hint {
+    font-family: var(--font-ui);
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: 0.1em;
+}
+
+/* Freeze all animations when paused */
+.battle-paused,
+.battle-paused * {
+    animation-play-state: paused !important;
+    transition: none !important;
+}
+
+/* Freeze floating damage numbers */
+.battle-paused .damage-number {
+    animation-play-state: paused !important;
+}
+
+/* Freeze dice spinning */
+.battle-paused .dice-spinning {
+    animation-play-state: paused !important;
+}
+
+/* Freeze typewriter cursor */
+.battle-paused .roll-result {
+    animation-play-state: paused !important;
 }

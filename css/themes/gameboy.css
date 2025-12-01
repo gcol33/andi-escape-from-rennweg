@@ -10,6 +10,10 @@
     --gb-dark: #306230;
     --gb-darkest: #0f380f;
     --gb-screen: #9bbc0f;
+
+    /* Theme font - damage numbers use same font as body text */
+    --theme-font: 'Press Start 2P', 'Courier New', monospace;
+    --damage-font: var(--theme-font);
 }
 
 /* === Password Overlay === */
@@ -77,10 +81,8 @@
     }
 }
 
+/* Password char - sizes from shared.css variables, theme styling only */
 .password-char {
-    width: 60px;
-    height: 72px;
-    font-size: 2rem;
     font-family: 'Press Start 2P', 'Courier New', monospace;
     text-align: center;
     text-transform: uppercase;
@@ -109,34 +111,6 @@
 
 #password-inputs.error .password-char {
     animation: shake 0.5s ease-in-out;
-}
-
-@media (max-width: 56.25em) {
-    #password-container {
-        margin: 10px;
-    }
-
-    .password-char {
-        width: 50px;
-        height: 60px;
-        font-size: 1.5rem;
-    }
-
-    #password-inputs {
-        gap: 10px;
-    }
-}
-
-@media (max-width: 37.5em) {
-    .password-char {
-        width: 40px;
-        height: 50px;
-        font-size: 1.2rem;
-    }
-
-    #password-inputs {
-        gap: 8px;
-    }
 }
 
 /* === Reset & Base === */

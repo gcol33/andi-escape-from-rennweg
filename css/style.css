@@ -71,10 +71,8 @@
     }
 }
 
+/* Password char - sizes from shared.css variables, theme styling only */
 .password-char {
-    width: 60px;
-    height: 72px;
-    font-size: 2.2rem;
     font-family: 'Arial', sans-serif;
     font-weight: bold;
     text-align: center;
@@ -108,35 +106,6 @@
     animation: shake 0.5s ease-in-out;
     border-color: #c44;
     background-color: #fdd;
-}
-
-/* Responsive password inputs */
-@media (max-width: 56.25em) {
-    #password-container {
-        margin: 10px;
-    }
-
-    .password-char {
-        width: 50px;
-        height: 60px;
-        font-size: 1.8rem;
-    }
-
-    #password-inputs {
-        gap: 10px;
-    }
-}
-
-@media (max-width: 37.5em) {
-    .password-char {
-        width: 40px;
-        height: 50px;
-        font-size: 1.5rem;
-    }
-
-    #password-inputs {
-        gap: 8px;
-    }
 }
 
 /* === Reset & Base === */
@@ -228,6 +197,8 @@ h1 {
     align-items: flex-end;
     z-index: var(--z-sprites);
     pointer-events: none;
+    /* Prevent background rectangle on mobile during animations */
+    background: transparent;
 }
 
 /* Fallback spacing for browsers without gap support */
@@ -237,6 +208,8 @@ h1 {
     object-fit: contain;
     filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.3));
     margin: 0 10px;
+    /* Ensure no background on sprite images */
+    background: transparent;
 }
 
 /* Modern browsers: use gap and remove margin fallback */
@@ -754,10 +727,25 @@ h1 {
     #sprite-layer {
         bottom: 40%;
         height: 55%;
+        /* Ensure no background artifacts */
+        background: transparent !important;
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
     }
 
     #sprite-layer img {
         max-width: 35%;
+        /* Fix for mobile rendering - prevent background rectangle */
+        background: transparent !important;
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        /* Use a more compatible shadow approach for mobile */
+        filter: drop-shadow(1px 2px 3px rgba(0, 0, 0, 0.25));
+    }
+
+    /* Battle intro - ensure sprite has no background during animation */
+    #sprite-layer.battle-intro-enemy img {
+        background: transparent !important;
     }
 
     /* Stack choices vertically in portrait */

@@ -34,13 +34,32 @@ global.window = {
     location: { search: '' }
 };
 
-// Load battle engine
+// Load battle engine (modular system)
 console.log('Loading battle engine...');
 var fs = require('fs');
 var path = require('path');
 
-var battleCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle.js'), 'utf8');
-eval(battleCode);
+// Load tuning first (battle modules depend on it)
+var tuningCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'tuning.js'), 'utf8');
+eval(tuningCode);
+
+// Load modular battle system in dependency order
+var battleDataCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-data.js'), 'utf8');
+eval(battleDataCode);
+var battleDiceCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-dice.js'), 'utf8');
+eval(battleDiceCode);
+var battleCoreCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-core.js'), 'utf8');
+eval(battleCoreCode);
+var battleDndCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-dnd.js'), 'utf8');
+eval(battleDndCode);
+var battlePokemonCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-pokemon.js'), 'utf8');
+eval(battlePokemonCode);
+var battleExp33Code = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-exp33.js'), 'utf8');
+eval(battleExp33Code);
+var battleFinalizedCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-finalized.js'), 'utf8');
+eval(battleFinalizedCode);
+var battleFacadeCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-facade.js'), 'utf8');
+eval(battleFacadeCode);
 
 // Load test code
 var testCode = fs.readFileSync(path.join(__dirname, 'battle.test.js'), 'utf8');

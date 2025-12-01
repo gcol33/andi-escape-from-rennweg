@@ -22,6 +22,10 @@
     --snes-brown: #885830;
     --text-color: #f8f8f8;
     --page-bg: #181848;
+
+    /* Theme font - damage numbers use same font as body text */
+    --theme-font: 'SNES', 'Press Start 2P', 'Courier New', monospace;
+    --damage-font: var(--theme-font);
 }
 
 /* === Password Overlay === */
@@ -91,10 +95,8 @@
     }
 }
 
+/* Password char - sizes from shared.css variables, theme styling only */
 .password-char {
-    width: 56px;
-    height: 68px;
-    font-size: 2rem;
     font-family: 'SNES', 'Press Start 2P', 'Courier New', monospace;
     font-weight: normal;
     text-align: center;
@@ -129,34 +131,6 @@
     animation: shake 0.4s ease-out;
     border-color: var(--snes-red);
     background: linear-gradient(180deg, #882020, #581818);
-}
-
-@media (max-width: 56.25em) {
-    #password-container {
-        margin: 10px;
-    }
-
-    .password-char {
-        width: 48px;
-        height: 58px;
-        font-size: 1.6rem;
-    }
-
-    #password-inputs {
-        gap: 12px;
-    }
-}
-
-@media (max-width: 37.5em) {
-    .password-char {
-        width: 40px;
-        height: 50px;
-        font-size: 1.3rem;
-    }
-
-    #password-inputs {
-        gap: 8px;
-    }
 }
 
 /* === Reset & Base === */

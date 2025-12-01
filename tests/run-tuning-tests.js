@@ -54,13 +54,27 @@ try {
     console.log('BattleUI module not loaded (expected in Node.js environment)');
 }
 
-// Load BattleEngine for integration tests
+// Load modular battle system for integration tests
 try {
-    var battleCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle.js'), 'utf8');
-    eval(battleCode);
-    console.log('Loaded battle engine');
+    var battleDataCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-data.js'), 'utf8');
+    eval(battleDataCode);
+    var battleDiceCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-dice.js'), 'utf8');
+    eval(battleDiceCode);
+    var battleCoreCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-core.js'), 'utf8');
+    eval(battleCoreCode);
+    var battleDndCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-dnd.js'), 'utf8');
+    eval(battleDndCode);
+    var battlePokemonCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-pokemon.js'), 'utf8');
+    eval(battlePokemonCode);
+    var battleExp33Code = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-exp33.js'), 'utf8');
+    eval(battleExp33Code);
+    var battleFinalizedCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-finalized.js'), 'utf8');
+    eval(battleFinalizedCode);
+    var battleFacadeCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-facade.js'), 'utf8');
+    eval(battleFacadeCode);
+    console.log('Loaded modular battle system');
 } catch (e) {
-    console.log('Battle engine not loaded: ' + e.message);
+    console.log('Battle system not loaded: ' + e.message);
 }
 
 // Load test code

@@ -19,6 +19,10 @@
     --nes-tan: #fce4a0;
     --text-color: #fcfcfc;
     --page-bg: #000000;
+
+    /* Theme font - damage numbers use same font as body text */
+    --theme-font: 'Press Start 2P', 'Courier New', monospace;
+    --damage-font: var(--theme-font);
 }
 
 /* === Password Overlay === */
@@ -87,10 +91,8 @@
     }
 }
 
+/* Password char - sizes from shared.css variables, theme styling only */
 .password-char {
-    width: 56px;
-    height: 64px;
-    font-size: 2rem;
     font-family: 'Press Start 2P', 'Courier New', monospace;
     font-weight: normal;
     text-align: center;
@@ -123,34 +125,6 @@
     animation: shake 0.3s step-end;
     border-color: var(--nes-red);
     color: var(--nes-red);
-}
-
-@media (max-width: 56.25em) {
-    #password-container {
-        margin: 10px;
-    }
-
-    .password-char {
-        width: 48px;
-        height: 56px;
-        font-size: 1.5rem;
-    }
-
-    #password-inputs {
-        gap: 12px;
-    }
-}
-
-@media (max-width: 37.5em) {
-    .password-char {
-        width: 40px;
-        height: 48px;
-        font-size: 1.2rem;
-    }
-
-    #password-inputs {
-        gap: 8px;
-    }
 }
 
 /* === Reset & Base === */

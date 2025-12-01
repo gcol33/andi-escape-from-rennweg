@@ -7,7 +7,7 @@ chars:
 actions:
   - type: start_battle
     player_max_hp: 25
-    player_max_mana: 25
+    player_max_mana: 10
     player_ac: 11
     player_attack_bonus: 3
     player_damage: d6

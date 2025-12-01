@@ -16,6 +16,10 @@
     --sunset-top: #ff6b35;
     --sunset-mid: #f72585;
     --sunset-bottom: #7209b7;
+
+    /* Theme font - damage numbers use same font as body text */
+    --theme-font: 'Orbitron', 'Arial Black', sans-serif;
+    --damage-font: var(--theme-font);
 }
 
 /* === Password Overlay === */
@@ -84,10 +88,8 @@
     }
 }
 
+/* Password char - sizes from shared.css variables, theme styling only */
 .password-char {
-    width: 60px;
-    height: 72px;
-    font-size: 2.2rem;
     font-family: 'Orbitron', 'Arial Black', sans-serif;
     font-weight: bold;
     text-align: center;
@@ -122,34 +124,6 @@
     animation: shake 0.5s ease-in-out;
     border-color: #ff0000;
     box-shadow: 0 0 30px #ff0000;
-}
-
-@media (max-width: 56.25em) {
-    #password-container {
-        margin: 10px;
-    }
-
-    .password-char {
-        width: 50px;
-        height: 60px;
-        font-size: 1.8rem;
-    }
-
-    #password-inputs {
-        gap: 10px;
-    }
-}
-
-@media (max-width: 37.5em) {
-    .password-char {
-        width: 40px;
-        height: 50px;
-        font-size: 1.5rem;
-    }
-
-    #password-inputs {
-        gap: 8px;
-    }
 }
 
 /* === Reset & Base === */

@@ -29,6 +29,12 @@ const VNEngine = (function() {
             music: 'assets/music/',
             sfx: 'assets/sfx/'
         },
+        // Fallback assets for when loading fails
+        fallbackAssets: {
+            bg: 'assets/bg/fallback.svg',
+            char: 'assets/char/fallback.svg'
+            // No fallback for audio - silence is fine
+        },
         startScene: 'start',
         defaultMusic: 'default.mp3',
         // Text speed values from TUNING (with fallbacks)
@@ -115,7 +121,7 @@ const VNEngine = (function() {
         audio: {
             currentMusic: null,  // filename of currently playing music
             muted: false,
-            volume: 0.4
+            volume: 0.16
         },
         devMode: true,  // TODO: Set to false before release
         devKeysHeld: {},
@@ -199,7 +205,7 @@ const VNEngine = (function() {
             if (rollDescription) {
                 resultText += ' ' + rollDescription;
             }
-            resultText += ' and got: <strong>' + result + '</strong>!';
+            resultText += ' and got: <span class="battle-number">' + result + '</span>!';
 
             // Add crit/fumble text
             if (isCrit && critText) {
@@ -263,7 +269,7 @@ const VNEngine = (function() {
          */
         start_battle: function(action) {
             // Initialize BattleEngine if not done yet
-            if (typeof BattleEngine !== 'undefined' && !BattleEngine._initialized) {
+            if (typeof BattleEngine !== 'undefined' && !BattleEngine.isInitialized()) {
                 BattleEngine.init({
                     loadScene: loadScene,
                     playSfx: playSfx,
@@ -275,7 +281,6 @@ const VNEngine = (function() {
                 BattleEngine.setForcedRollCallback(function() {
                     return state.devMode ? state.devForcedRoll : null;
                 });
-                BattleEngine._initialized = true;
             }
 
             // Start battle using the module
@@ -641,6 +646,19 @@ const VNEngine = (function() {
             if (choice.heals) {
                 labelText += ' [+' + choice.heals + ' HP]';
             }
+
+            // Check defend cooldown
+            var isOnCooldown = false;
+            if (action === 'defend' && typeof BattleCore !== 'undefined') {
+                var player = BattleCore.getPlayer();
+                if (player && player.defendCooldown > 0) {
+                    isOnCooldown = true;
+                    labelText += ' (' + player.defendCooldown + ')';
+                    button.classList.add('on-cooldown');
+                    button.disabled = true;
+                }
+            }
+
             button.textContent = labelText;
 
             button.onclick = function() {
@@ -736,6 +754,27 @@ const VNEngine = (function() {
             skillItem.title = skill.description || '';
             skillList.appendChild(skillItem);
         });
+
+        // Add empty locked slots to show player can earn more skills (up to 6 total)
+        var maxSkills = 6;
+        var emptySlots = maxSkills - playerSkills.length;
+        for (var i = 0; i < emptySlots; i++) {
+            var emptyItem = document.createElement('div');
+            emptyItem.className = 'skill-item skill-item-locked';
+
+            var emptyName = document.createElement('span');
+            emptyName.className = 'skill-name skill-name-locked';
+            emptyName.textContent = '???';
+
+            var emptyHint = document.createElement('span');
+            emptyHint.className = 'skill-cost skill-cost-locked';
+            emptyHint.textContent = 'Locked';
+
+            emptyItem.appendChild(emptyName);
+            emptyItem.appendChild(emptyHint);
+            emptyItem.title = 'Earn new skills by progressing through the story';
+            skillList.appendChild(emptyItem);
+        }
 
         submenu.appendChild(skillList);
 
@@ -1484,6 +1523,16 @@ const VNEngine = (function() {
     function loadScene(sceneId, prependContent, entrySfx) {
         prependContent = prependContent || '';
 
+        // Cancel any ongoing animations from previous scene
+        if (typeof AnimationManager !== 'undefined') {
+            AnimationManager.cancelAll();
+        }
+
+        // Emit scene transition event
+        if (typeof EventEmitter !== 'undefined') {
+            EventEmitter.emit('scene:transition', { from: state.currentSceneId, to: sceneId });
+        }
+
         // Check for special roll trigger
         if (sceneId === '_roll') {
             executeActions();
@@ -1494,6 +1543,12 @@ const VNEngine = (function() {
 
         if (!scene) {
             log.error('Scene not found: ' + sceneId);
+            showErrorScreen({
+                title: 'Scene Not Found',
+                message: 'Could not find scene: "' + sceneId + '"',
+                suggestion: 'Check that the scene ID is correct in your story files.',
+                canGoBack: state.history.length > 1
+            });
             return;
         }
 
@@ -1527,6 +1582,13 @@ const VNEngine = (function() {
 
         // Auto-save progress
         saveState();
+
+        // Ensure text box is visible (remove any hidden state from tap-to-hide or battle mode)
+        var textBox = document.getElementById('text-box');
+        if (textBox) {
+            textBox.classList.remove('hidden-textbox');
+            textBox.classList.remove('battle-mode');
+        }
 
         // Render the scene (pass entry SFX if provided)
         renderScene(scene, prependContent, entrySfx);
@@ -1714,12 +1776,15 @@ const VNEngine = (function() {
         var currentText = textBlocks[state.currentBlockIndex] || '';
         var isLastBlock = state.currentBlockIndex >= textBlocks.length - 1;
 
+        console.log('[Engine] renderCurrentBlock:', { sceneId: state.currentSceneId, blockIndex: state.currentBlockIndex, isLastBlock: isLastBlock, hasActions: !!(scene.actions && scene.actions.length > 0) });
+
         // Hide continue button and choices while typing
         hideContinueButton();
         elements.choicesContainer.innerHTML = '';
 
         // Render text with callback
         renderText(currentText, prependContent, function() {
+            console.log('[Engine] Text render complete, isLastBlock:', isLastBlock, 'hasActions:', !!(scene.actions && scene.actions.length > 0));
             if (isLastBlock) {
                 // Check for actions
                 if (scene.actions && scene.actions.length > 0) {
@@ -1727,10 +1792,12 @@ const VNEngine = (function() {
                     var hasRollChoice = scene.choices && scene.choices.some(function(c) {
                         return c.target === '_roll';
                     });
+                    console.log('[Engine] hasRollChoice:', hasRollChoice);
                     if (hasRollChoice) {
                         renderChoices(scene.choices);
                     } else {
                         // Execute actions directly
+                        console.log('[Engine] Calling executeActions()');
                         executeActions();
                     }
                 } else {
@@ -2076,8 +2143,15 @@ const VNEngine = (function() {
         var action = scene.actions[0];
         var handler = actionHandlers[action.type];
 
+        console.log('[Engine] executeActions: action type =', action.type, 'handler exists =', !!handler);
+
         if (handler) {
-            handler(action);
+            try {
+                handler(action);
+            } catch (e) {
+                console.error('[Engine] Error executing action:', e);
+                console.error('[Engine] Stack trace:', e.stack);
+            }
         } else {
             log.warn('Unknown action type: ' + action.type);
         }
@@ -2118,6 +2192,13 @@ const VNEngine = (function() {
             if (elements.bgVideo) {
                 elements.bgVideo.src = path;
                 elements.bgVideo.style.display = 'block';
+                elements.bgVideo.onerror = function() {
+                    log.warn('Failed to load video background: ' + filename);
+                    emitAssetError('bg', filename);
+                    // Fall back to static image
+                    elements.bgVideo.style.display = 'none';
+                    elements.backgroundLayer.style.backgroundImage = 'url(' + config.fallbackAssets.bg + ')';
+                };
                 elements.bgVideo.play().catch(function(err) {
                     log.warn('Video autoplay blocked: ' + err.message);
                 });
@@ -2129,7 +2210,26 @@ const VNEngine = (function() {
                 elements.bgVideo.removeAttribute('src');
                 elements.bgVideo.style.display = 'none';
             }
-            elements.backgroundLayer.style.backgroundImage = 'url(' + path + ')';
+            // Preload image to detect errors
+            var img = new Image();
+            img.onload = function() {
+                elements.backgroundLayer.style.backgroundImage = 'url(' + path + ')';
+            };
+            img.onerror = function() {
+                log.warn('Failed to load background: ' + filename);
+                emitAssetError('bg', filename);
+                elements.backgroundLayer.style.backgroundImage = 'url(' + config.fallbackAssets.bg + ')';
+            };
+            img.src = path;
+        }
+    }
+
+    /**
+     * Emit asset load error event (if EventEmitter exists)
+     */
+    function emitAssetError(type, filename) {
+        if (typeof EventEmitter !== 'undefined') {
+            EventEmitter.emit('asset:load-error', { type: type, filename: filename });
         }
     }
 
@@ -2172,13 +2272,31 @@ const VNEngine = (function() {
             return typeof char === 'object' && char.file;
         });
 
+        /**
+         * Create image with error handling
+         */
+        function createCharImage(filename, onError) {
+            var img = document.createElement('img');
+            img.alt = filename;
+            img.onerror = function() {
+                log.warn('Failed to load character sprite: ' + filename);
+                emitAssetError('char', filename);
+                // Use fallback image
+                if (config.fallbackAssets.char) {
+                    this.src = config.fallbackAssets.char;
+                    this.onerror = null; // Prevent infinite loop
+                }
+            };
+            img.src = config.assetPaths.char + filename;
+            return img;
+        }
+
         if (hasPositioning) {
             // New format: sprites with x/y positions
             // Switch to absolute positioning mode
             elements.spriteLayer.style.display = 'block';
 
             chars.forEach(function(char) {
-                var img = document.createElement('img');
                 var filename, x, y, scale;
 
                 if (typeof char === 'object') {
@@ -2193,8 +2311,7 @@ const VNEngine = (function() {
                     scale = 1;
                 }
 
-                img.src = config.assetPaths.char + filename;
-                img.alt = filename;
+                var img = createCharImage(filename);
                 img.style.position = 'absolute';
                 img.style.left = x + '%';
                 img.style.bottom = (100 - y) + '%';
@@ -2210,9 +2327,7 @@ const VNEngine = (function() {
             elements.spriteLayer.style.display = 'flex';
 
             chars.forEach(function(filename) {
-                var img = document.createElement('img');
-                img.src = config.assetPaths.char + filename;
-                img.alt = filename;
+                var img = createCharImage(filename);
                 elements.spriteLayer.appendChild(img);
             });
         }
@@ -2221,6 +2336,75 @@ const VNEngine = (function() {
     function clearCharacters() {
         if (elements.spriteLayer) {
             elements.spriteLayer.innerHTML = '';
+        }
+    }
+
+    // === Error Handling ===
+
+    /**
+     * Show a user-friendly error screen overlay
+     * @param {Object} options - Error display options
+     * @param {string} options.title - Error title
+     * @param {string} options.message - Error message
+     * @param {string} [options.suggestion] - Helpful suggestion text
+     * @param {boolean} [options.canGoBack] - Show "Go Back" button
+     */
+    function showErrorScreen(options) {
+        // Remove any existing error overlay
+        var existing = document.getElementById('error-overlay');
+        if (existing) {
+            existing.parentNode.removeChild(existing);
+        }
+
+        var overlay = document.createElement('div');
+        overlay.id = 'error-overlay';
+        overlay.className = 'error-overlay';
+        overlay.innerHTML =
+            '<div class="error-dialog">' +
+                '<h2 class="error-title">' + (options.title || 'Error') + '</h2>' +
+                '<p class="error-message">' + (options.message || 'An error occurred.') + '</p>' +
+                (options.suggestion ? '<p class="error-suggestion">' + options.suggestion + '</p>' : '') +
+                '<div class="error-buttons">' +
+                    (options.canGoBack ? '<button class="error-btn error-btn-back">Go Back</button>' : '') +
+                    '<button class="error-btn error-btn-restart">Restart</button>' +
+                '</div>' +
+            '</div>';
+
+        // Add button handlers
+        var backBtn = overlay.querySelector('.error-btn-back');
+        var restartBtn = overlay.querySelector('.error-btn-restart');
+
+        if (backBtn) {
+            backBtn.addEventListener('click', function() {
+                hideErrorScreen();
+                undo();
+            });
+        }
+
+        if (restartBtn) {
+            restartBtn.addEventListener('click', function() {
+                hideErrorScreen();
+                resetGame();
+                loadScene(config.startScene);
+            });
+        }
+
+        // Add to DOM
+        var container = elements.container || document.getElementById('vn-container');
+        if (container) {
+            container.appendChild(overlay);
+        } else {
+            document.body.appendChild(overlay);
+        }
+    }
+
+    /**
+     * Hide the error screen overlay
+     */
+    function hideErrorScreen() {
+        var overlay = document.getElementById('error-overlay');
+        if (overlay && overlay.parentNode) {
+            overlay.parentNode.removeChild(overlay);
         }
     }
 
@@ -2871,6 +3055,14 @@ const VNEngine = (function() {
         if (typeof BattleEngine !== 'undefined') {
             BattleEngine.reset();
             BattleEngine.destroyUI();
+        }
+
+        // Ensure text box is visible after battle reset
+        var textBox = document.getElementById('text-box');
+        if (textBox) {
+            textBox.style.display = '';
+            textBox.classList.remove('hidden-textbox');
+            textBox.classList.remove('battle-mode');
         }
 
         // Optionally clear read history (for full reset)

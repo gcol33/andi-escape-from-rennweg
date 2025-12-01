@@ -14,6 +14,10 @@
     --vapor-mid: #16213e;
     --text-color: #ffffff;
     --page-bg: linear-gradient(180deg, #1a0a2e 0%, #16213e 50%, #0f3460 100%);
+
+    /* Theme font - damage numbers use same font as body text */
+    --theme-font: 'VT323', 'Courier New', monospace;
+    --damage-font: var(--theme-font);
 }
 
 /* === Password Overlay (Vaporwave style) === */
@@ -81,10 +85,8 @@
     }
 }
 
+/* Password char - sizes from shared.css variables, theme styling only */
 .password-char {
-    width: 60px;
-    height: 72px;
-    font-size: 2.2rem;
     font-family: 'VT323', 'Courier New', monospace;
     font-weight: bold;
     text-align: center;
@@ -117,34 +119,6 @@
     animation: shake 0.5s ease-in-out;
     border-color: #ff0000;
     box-shadow: 0 0 20px #ff0000;
-}
-
-@media (max-width: 56.25em) {
-    #password-container {
-        margin: 10px;
-    }
-
-    .password-char {
-        width: 50px;
-        height: 60px;
-        font-size: 1.8rem;
-    }
-
-    #password-inputs {
-        gap: 10px;
-    }
-}
-
-@media (max-width: 37.5em) {
-    .password-char {
-        width: 40px;
-        height: 50px;
-        font-size: 1.5rem;
-    }
-
-    #password-inputs {
-        gap: 8px;
-    }
 }
 
 /* === Reset & Base === */

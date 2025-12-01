@@ -15,6 +15,10 @@
     --manga-blood: #2a0a0a;
     --text-color: #0a0a0a;
     --page-bg: #0a0a0a;
+
+    /* Theme font - damage numbers use same font as body text */
+    --theme-font: 'Courier New', 'Georgia', serif;
+    --damage-font: var(--theme-font);
 }
 
 /* === Password Overlay (Horror manga style) === */
@@ -118,10 +122,8 @@
     }
 }
 
+/* Password char - sizes from shared.css variables, theme styling only */
 .password-char {
-    width: 65px;
-    height: 80px;
-    font-size: 2.5rem;
     font-family: 'Courier New', monospace;
     font-weight: bold;
     text-align: center;
@@ -172,35 +174,6 @@
             rgba(0, 0, 0, 0.1) 2px,
             rgba(0, 0, 0, 0.1) 4px
         );
-}
-
-/* Responsive password inputs */
-@media (max-width: 56.25em) {
-    #password-container {
-        margin: 10px;
-    }
-
-    .password-char {
-        width: 55px;
-        height: 68px;
-        font-size: 2rem;
-    }
-
-    #password-inputs {
-        gap: 15px;
-    }
-}
-
-@media (max-width: 37.5em) {
-    .password-char {
-        width: 45px;
-        height: 56px;
-        font-size: 1.6rem;
-    }
-
-    #password-inputs {
-        gap: 10px;
-    }
 }
 
 /* === Reset & Base === */
