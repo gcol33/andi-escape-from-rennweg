@@ -1,3 +1,56 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Build and Test Commands
+
+```bash
+# Build story from markdown scenes (REQUIRED after editing scenes/*.md)
+python tools/build_story_from_md.py
+
+# Run battle system tests (177 tests)
+node tests/run-tests.js
+
+# Run theme CSS validation tests (126 tests)
+node tests/run-theme-tests.js
+
+# Run tuning system tests
+node tests/run-tuning-tests.js
+```
+
+## Key Architecture
+
+- **Story content**: Edit `scenes/*.md` files (YAML frontmatter + markdown text blocks)
+- **Generated code**: `js/story.js`, `js/enemies.js`, `js/theme.js` are auto-generated - DO NOT edit manually
+- **Engine code**: `js/engine.js` (VN logic), `js/battle/*.js` (modular combat), `js/overworld.js` (2D top-down)
+- **Tuning constants**: `js/tuning.js` contains all game feel values (speeds, delays, balance)
+- **Themes**: `css/themes/*.css` - each theme is self-contained, `theme.md` selects active theme
+
+**See `module_outline.md`** for the complete module dependency map, public APIs, and guidelines for adding new modules.
+
+## Core Design Principles
+
+1. **Separation of concerns**: Logic and UI are always separate modules
+   - `battle/*.js` = modular combat logic (no DOM), `battle-ui.js` = rendering (no game logic)
+   - Engine handles state, UI modules handle display
+
+2. **Tuning layer**: All magic numbers go in `js/tuning.js`
+   - Text speeds, animation timings, combat balance, delays
+   - Quick iteration without touching engine code
+
+3. **Content vs code**: Writers edit Markdown, developers edit JS
+   - Story text never lives in engine code
+   - Generated files bridge the gap
+
+4. **Theme-agnostic UI**: Battle UI and other components use CSS classes, not inline styles
+   - All visual styling comes from theme CSS files
+
+## Dev Mode
+
+Hold **q+w+e+r+t** simultaneously to toggle dev mode (undo, theme selector, force dice rolls).
+
+---
+
 # Andi VN — Project Overview and Development Rules
 
 This document defines how the project is structured, how files are organized, and the coding conventions we follow. No numbers for scenes, endings, or prompts are fixed here; this document only describes architecture and rules.
@@ -55,13 +108,19 @@ This separation ensures the engine is stable, writers only edit Markdown, and th
 
 5. **Tuning layer (JavaScript)**
    - `js/tuning.js` contains all "game feel" constants.
-   - Text speeds, animation timings, combat balance, UI delays.
+   - Text speeds, animation timings, combat balance, UI delays, QTE settings.
    - Single file for quick iteration without touching engine code.
 
 6. **Battle UI layer (JavaScript)**
    - `js/battle-ui.js` handles all battle DOM rendering.
    - Theme-agnostic: all styling comes from CSS.
    - Separated from battle logic for clean architecture.
+
+7. **QTE layer (JavaScript)**
+   - `js/qte.js` handles QTE logic (timing, zones, results).
+   - `js/qte-ui.js` handles QTE DOM rendering.
+   - Expedition 33-inspired timing system for battle combat.
+   - Theme-aware: all colors come from CSS variables.
 
 ---
 
@@ -80,10 +139,25 @@ Andi/
 ├─ theme.md                (theme selection config)
 │
 ├─ js/
-│   ├─ tuning.js       (game feel constants - speeds, delays, balance)
+│   ├─ tuning.js       (game feel constants - speeds, delays, balance, QTE)
 │   ├─ engine.js       (VN engine core)
 │   ├─ battle-ui.js    (battle UI rendering - theme-agnostic)
-│   ├─ battle.js       (battle logic - no direct DOM manipulation)
+│   ├─ battle/         (modular battle system)
+│   │   ├─ battle-facade.js   (main entry point)
+│   │   ├─ battle-core.js     (shared logic)
+│   │   ├─ battle-data.js     (skills, effects, types)
+│   │   ├─ battle-dice.js     (dice rolling logic)
+│   │   ├─ battle-dice-ui.js  (dice animation UI)
+│   │   ├─ battle-barrier.js  (enemy barrier/shield system)
+│   │   ├─ battle-intent.js   (enemy intent/telegraph system)
+│   │   ├─ battle-dnd.js      (D&D-style combat - default)
+│   │   ├─ battle-pokemon.js  (Pokemon-style combat)
+│   │   └─ battle-exp33.js    (Expedition 33 style)
+│   ├─ qte.js          (QTE logic - timing, zones, results)
+│   ├─ qte-ui.js       (QTE UI rendering - theme-agnostic)
+│   ├─ overworld.js    (Pokemon-style 2D top-down logic)
+│   ├─ overworld-ui.js (overworld rendering)
+│   ├─ maps.js         (map tile data)
 │   ├─ password.js     (password screen logic)
 │   ├─ story.js        (generated - do not edit manually)
 │   ├─ enemies.js      (generated - enemy data)
@@ -1235,6 +1309,79 @@ Battle action types:
 - Stagger decays 10-20 per turn
 - Defending reduces stagger by 15
 
+### Barrier System (battle-barrier.js)
+
+Enemies can have barriers (shields) that absorb hits before HP damage is dealt:
+
+- **Barrier Stacks**: 1-6 stacks per enemy (configurable)
+- **Hit Absorption**: Each hit removes 1 stack regardless of damage
+- **Multi-hit Skills**: Remove multiple stacks (e.g., 3-hit skill removes 3 stacks)
+- **Barrier Break**: When all stacks removed, barrier breaks and normal damage resumes
+
+```javascript
+// Barrier API
+BattleBarrier.init(3);              // Enemy starts with 3 barrier stacks
+BattleBarrier.hasBarrier();         // Check if barrier active
+BattleBarrier.getStacks();          // Get current stacks
+BattleBarrier.removeStack(1);       // Remove stacks (returns { removed, remaining, broken })
+BattleBarrier.restore(2);           // Restore stacks (up to max)
+
+// Via battle-dnd.js
+BattleStyleDnD.hasBarrier();        // Check barrier status
+BattleStyleDnD.getBarrierStacks();  // Get current stacks
+BattleStyleDnD.initBarrier(3);      // Initialize barrier for enemy
+```
+
+**Tuning**: Configure in `TUNING.battle.barrier`:
+- `damageReduction`: 1.0 = full block while barrier active
+- `stacksPerHit`: Stacks removed per hit (default: 1)
+- `defaultStacks`: Default barrier for enemies (default: 3)
+- `breakStagger`: Bonus stagger when barrier breaks
+
+### Intent System (battle-intent.js)
+
+Enemies telegraph their next action for strategic player decisions:
+
+- **Intent Types**: attack, skill, defend, charging, special, heal, buff, debuff
+- **Visual Icons**: Emoji indicators (⚔️, ✨, 🛡️, ⚡, 💀, 💚, ⬆️, ⬇️)
+- **AI-Generated**: Intent generated based on enemy HP, available moves
+
+```javascript
+// Intent API
+BattleIntent.generate(enemy, player);  // AI decides next action
+BattleIntent.get();                    // { type, moveId, data, icon }
+BattleIntent.set('attack', null);      // Set intent directly
+BattleIntent.clear();                  // Clear after action resolves
+BattleIntent.getIcon('heal');          // Get icon for intent type
+
+// Via battle-dnd.js
+BattleStyleDnD.generateIntent();       // Generate intent for current enemy
+BattleStyleDnD.getIntent();            // Get current intent
+BattleStyleDnD.clearIntent();          // Clear intent
+```
+
+### Advantage/Disadvantage System
+
+D&D 5e-style rolling for skills via QTE:
+
+- **Advantage**: Roll twice, take the best result
+- **Disadvantage**: Roll twice, take the worst result
+- **Skill QTE**: QTE zone determines advantage/disadvantage on skill rolls
+
+```javascript
+// QTE Skill Modifiers (from TUNING.qte.skillModifiers)
+// Perfect zone: Advantage + 25% bonus damage
+// Good zone: Advantage only
+// Normal zone: Standard roll
+// Bad zone: Disadvantage + 25% less damage
+
+// Defend QTE Outcomes (from TUNING.qte.defendModifiers)
+// Perfect: Parry (0 damage + counter attack)
+// Good: Dodge (0 damage)
+// Normal: Block (50% damage reduction)
+// Bad: Guard broken (full damage, defend ends)
+```
+
 ### Visual Feedback
 
 - **HP/MP Bars**: Player (bottom-left), Enemy (top-right)
@@ -1413,7 +1560,173 @@ Dialogue has a 40% chance to be skipped to avoid being repetitive.
 
 ---
 
-## 20. Game State Persistence
+## 20. QTE System (Quick Time Events)
+
+The VN includes an Expedition 33-inspired QTE timing system for battle combat. QTEs add skill-based player interaction to attack accuracy and dodge/parry.
+
+### Architecture
+
+The QTE system follows the same separation pattern as battle:
+
+- **qte.js**: Core QTE logic (timing, zones, result calculation)
+- **qte-ui.js**: UI rendering (DOM manipulation, animations)
+- **tuning.js**: All QTE balance values in `TUNING.qte`
+- **shared.css**: Theme-aware QTE styling via CSS variables
+
+### QTE Types
+
+#### Accuracy QTE (Player Turn)
+
+Appears when player uses Attack or Skill actions.
+
+| Zone | Hit Bonus | Damage | Effect |
+|------|-----------|--------|--------|
+| Perfect (blue) | +5 | 125% | +15% crit chance |
+| Success (green) | +0 | 100% | Normal hit |
+| Partial (yellow) | -3 | 75% | Glancing blow |
+| Miss (red) | -10 | 50% | Auto-miss |
+
+#### Dodge QTE (Enemy Turn)
+
+Appears when enemy attacks the player.
+
+| Zone | Damage Taken | Effect |
+|------|--------------|--------|
+| Perfect (blue) | 0% | Counter attack opportunity |
+| Success (green) | 50% | Solid dodge |
+| Partial (yellow) | 75% | Grazed |
+| Miss (red) | 100% | Full damage |
+
+### QTE Visual Design
+
+The timing bar uses a horizontal layout:
+
+```
+[MISS][PARTIAL][SUCCESS][PERFECT][SUCCESS][PARTIAL][MISS]
+  red   yellow   green    blue    green   yellow   red
+                    ^
+                 marker
+```
+
+- **Marker**: Slides back and forth across the bar
+- **Press SPACE/TAP** when marker is in desired zone
+- Marker color changes based on current zone
+- Result text appears with zone-specific styling
+
+### Tuning Parameters
+
+All QTE values are in `TUNING.qte`:
+
+```javascript
+qte: {
+    enabled: true,              // Master toggle
+    enabledForAttacks: true,    // QTE on player attacks
+    enabledForDodge: true,      // QTE on enemy attacks
+
+    bar: {
+        duration: 2000,         // Time for one pass (ms)
+        oscillations: 2,        // Back-and-forth cycles
+        markerSpeed: 1.0        // Speed multiplier
+    },
+
+    zones: {
+        perfect: 5,             // ±5% from center
+        success: 20,            // ±20% from center
+        partial: 35             // ±35% from center
+    },
+
+    timing: {
+        startDelay: 300,        // Delay before QTE starts
+        resultDisplay: 800,     // Show result duration
+        fadeOut: 200            // Fade out time
+    }
+}
+```
+
+### Theme Integration
+
+QTE colors are CSS variables that themes can override:
+
+```css
+:root {
+    /* Zone colors */
+    --qte-zone-miss: #e74c3c;
+    --qte-zone-partial: #f39c12;
+    --qte-zone-success: #27ae60;
+    --qte-zone-perfect: #3498db;
+
+    /* Result text colors */
+    --qte-result-perfect: #ffd700;
+    --qte-result-success: #4caf50;
+    --qte-result-partial: #ff9800;
+    --qte-result-miss: #f44336;
+
+    /* Container styling */
+    --qte-bg: rgba(0, 0, 0, 0.9);
+    --qte-border: rgba(255, 255, 255, 0.3);
+}
+```
+
+### QTEEngine API
+
+```javascript
+// Initialize (called automatically)
+QTEEngine.init(battleEngine);
+QTEEngine.bindInputs();
+
+// Start QTE
+QTEEngine.startAccuracyQTE({}, function(result) {
+    // result = { type, zone, position, modifiers }
+});
+
+QTEEngine.startDodgeQTE({}, function(result) {
+    // result = { type, zone, position, modifiers }
+});
+
+// Check state
+QTEEngine.isActive();     // Is QTE running?
+QTEEngine.getType();      // 'accuracy' or 'dodge'
+QTEEngine.getPhase();     // 'idle', 'waiting', 'running', 'result'
+
+// Cancel active QTE
+QTEEngine.cancel();
+```
+
+### BattleEngine QTE API
+
+```javascript
+// Check if QTE is enabled
+BattleEngine.isQTEEnabledForAttacks();
+BattleEngine.isQTEEnabledForDodge();
+
+// Execute attack with QTE
+BattleEngine.executeAttackWithQTE(move, function(result) {
+    // result includes qteZone, qteMessage
+});
+
+// Apply QTE results manually
+BattleEngine.applyQTEModifiersToAttack(attackResult, qteResult);
+BattleEngine.applyQTEDodgeResult(baseDamage, qteResult);
+```
+
+### Combo System (Future Enhancement)
+
+The QTE system supports directional combo inputs (Style 6):
+
+```javascript
+qte.combo: {
+    enabled: false,         // Toggle on when ready
+    maxInputs: 3,           // Number of inputs
+    inputWindow: 500,       // ms per input
+    bonusDamage: 0.1        // 10% bonus per success
+}
+```
+
+When enabled, after the timing bar QTE, players input a sequence like `↑ → ↓` for bonus damage.
+
+---
+
+## 21. Game State Persistence
 
 The engine automatically saves game state to localStorage:
 
@@ -1557,3 +1870,14 @@ Test the Agnes (HR) battle specifically:
 8. [ ] Verify all assets load (no 404 errors in console)
 9. [ ] Remove any debug console.log statements
 10. [ ] Verify dev mode is hidden by default
+
+---
+
+## 22. Changelog
+
+### 2025-12-01
+- **UI Improvement**: Improved "cannot act" message when enemies are stunned/frozen
+  - Before: "Agnes (HR) cannot act!"
+  - After: "💫 Agnes (HR) is stunned and cannot act!"
+  - Added `getCannotActMessage()` helper in battle-core.js that includes status icon and verb form
+  - Updated battle-exp33.js and battle-dnd.js to use the new helper
