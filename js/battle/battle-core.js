@@ -766,17 +766,14 @@ var BattleCore = (function() {
 
             // Confusion self-damage check
             // Logic:
-            // - 40% chance: hurt self, can't act this turn, confusion stays (will auto-clear next turn)
+            // - 40% chance: hurt self (roll 1-5 damage), can't act this turn, confusion stays (will auto-clear next turn)
             // - 60% chance: shake off confusion immediately, can act this turn
-            if (def.selfDamageChance && def.selfDamagePercent) {
+            if (def.selfDamageChance) {
                 if (Math.random() < def.selfDamageChance) {
-                    // Hit self - can't act, confusion stays for one more turn (duration already at 1 or will be decremented to 1)
-                    var selfDamage = Math.max(1, Math.ceil(target.maxHP * def.selfDamagePercent));
-                    result.damage += selfDamage;
+                    // Hit self - roll 1-5 damage like a combat attack
+                    var selfDamage = Math.floor(Math.random() * 5) + 1;  // 1-5 damage
+                    result.confusionDamage = selfDamage;  // Store separately for proper display
                     result.canAct = false;  // Can't act when confused and hurt self
-                    // Short message: "💫 Andi hits themselves! -2 HP"
-                    var confusionMsg = def.icon + ' ' + targetName + ' hits themselves! <span class="battle-number">-' + selfDamage + ' HP</span>';
-                    result.messages.push(confusionMsg);
                     result.confusionTriggered = true;
                     // Set duration to 1 so it clears at START of next turn
                     status.duration = 1;

@@ -233,7 +233,7 @@ var TUNING = (function() {
 
             // Battle log sizing
             battleLogMaxLines: 2,           // Max lines visible in battle log
-            battleLogLineHeight: 2.2,       // Height per line in rem
+            battleLogLineHeight: 1.6,       // Height per line in rem (must match CSS line-height)
 
             // Damage numbers (WoW-style floating text)
             damageNumberDuration: 4000,     // How long damage numbers show (matches CSS animation)

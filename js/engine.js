@@ -728,7 +728,20 @@ const VNEngine = (function() {
             skillCost.className = 'skill-cost' + (skill.canUse ? '' : ' insufficient');
             skillCost.textContent = skill.manaCost + ' MP';
 
+            // Effect icon slot - reserves space to prevent layout shift
+            var effectSlot = document.createElement('span');
+            effectSlot.className = 'skill-effect-slot';
+            if (skill.statusEffect && typeof BattleData !== 'undefined') {
+                var effectDef = BattleData.getStatusEffect(skill.statusEffect.type);
+                if (effectDef && effectDef.icon) {
+                    effectSlot.textContent = effectDef.icon;
+                    effectSlot.title = effectDef.name;
+                    effectSlot.style.color = effectDef.color || '#fff';
+                }
+            }
+
             skillItem.appendChild(skillName);
+            skillItem.appendChild(effectSlot);
             skillItem.appendChild(skillCost);
 
             if (skill.canUse) {

@@ -920,6 +920,17 @@ var BattleEngine = (function() {
             showDamageNumber(statusResult.heal, 'enemy', 'heal');
         }
 
+        // Handle enemy confusion self-damage with attack-style display
+        if (statusResult.confusionDamage > 0) {
+            var confusionDmg = statusResult.confusionDamage;
+            // Apply damage to enemy
+            enemy.hp -= confusionDmg;
+            // Show floating damage number
+            showDamageNumber(confusionDmg, 'enemy', 'damage');
+            // Add message to show in battle log
+            messages.push('💫 ' + enemy.name + ' hits themselves! <strong>' + confusionDmg + '</strong> DAMAGE');
+        }
+
         // Check if enemy died from status
         if (checkEnd()) return;
 
@@ -1113,6 +1124,18 @@ var BattleEngine = (function() {
         }
         if (statusResult.mana > 0) {
             BattleCore.restoreMana(statusResult.mana);
+        }
+
+        // Handle confusion self-damage with attack-style display
+        if (statusResult.confusionDamage > 0) {
+            var confusionDmg = statusResult.confusionDamage;
+            // Apply damage to player
+            BattleCore.getPlayer().hp -= confusionDmg;
+            // Show floating damage number
+            showDamageNumber(confusionDmg, 'player', 'damage');
+            // Add message to show in battle log
+            var playerName = state.player.name || 'Player';
+            statusResult.messages.push('💫 ' + playerName + ' hits themselves! <strong>' + confusionDmg + '</strong> DAMAGE');
         }
 
         // Store status result for executeAction to check canAct

@@ -945,7 +945,7 @@ h1 {
     background: transparent;
     color: #4b3e2a;
     font-family: 'Georgia', 'Times New Roman', serif;
-    line-height: 1.5;
+    /* line-height inherited from shared.css (1.6rem) for consistent height calculation */
 }
 
 .battle-log-content .roll-result {

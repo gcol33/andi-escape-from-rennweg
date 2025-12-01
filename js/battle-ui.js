@@ -184,10 +184,11 @@ var BattleUI = (function() {
         battleLog.id = 'battle-log-panel';
         battleLog.className = 'battle-log-panel';
 
-        // Calculate log content height from max lines
+        // Calculate log content height from max lines (including padding for box-sizing: border-box)
         var maxLines = config.ui.battleLogMaxLines || 2;
-        var lineHeight = config.ui.battleLogLineHeight || 2.2;
-        var logContentHeight = maxLines * lineHeight;
+        var lineHeight = config.ui.battleLogLineHeight || 1.6;  // Must match CSS line-height in rem
+        var verticalPadding = 1.0; // 0.5rem top + 0.5rem bottom (must match CSS padding)
+        var logContentHeight = (maxLines * lineHeight) + verticalPadding;
         battleLog.style.setProperty('--battle-log-content-height', logContentHeight + 'rem');
 
         battleLog.innerHTML =

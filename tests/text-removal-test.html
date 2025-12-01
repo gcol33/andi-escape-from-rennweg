@@ -110,12 +110,10 @@
         <h3>Click to add message:</h3>
         <ul>
             <li onclick="addMessage('Andi attacks!')">Short: "Andi attacks!"</li>
-            <li onclick="addMessage('💫 Andi is confused and hurts themselves for 2 damage!')">Long: "💫 Andi is confused and hurts themselves for 2 damage!"</li>
+            <li onclick="addMessage('💫 Andi hits themselves! <strong>3</strong> DAMAGE')">Confusion: "💫 Andi hits themselves! 3 DAMAGE"</li>
             <li onclick="addMessage('💫 Confusion wore off!')">Short: "💫 Confusion wore off!"</li>
-            <li onclick="addMessage('💫 Andi hits themselves! <span class=&quot;battle-number&quot;>-2 HP</span>')">Fixed Short: "💫 Andi hits themselves! -2 HP"</li>
             <li onclick="addMessage('Agnes (HR) trips over their own feet! Agnes (HR) is confused!')">Combined fumble: "Agnes (HR) trips over their own feet! Agnes (HR) is confused!"</li>
-            <li onclick="addMessage('💫 Agnes (HR) hits themselves! <span class=&quot;battle-number&quot;>-2 HP</span> (wore off)')">OLD BUG: "💫 Agnes (HR) hits themselves! -2 HP (wore off)"</li>
-            <li onclick="addMessage('💫 Confusion wore off!')">NEW BEHAVIOR: Separate "wore off" next turn</li>
+            <li onclick="addMessage('💫 Agnes (HR) hits themselves! <strong>4</strong> DAMAGE')">Enemy confusion: "💫 Agnes (HR) hits themselves! 4 DAMAGE"</li>
         </ul>
     </div>
 
@@ -227,7 +225,7 @@
 
         function testCombined() {
             clearLog();
-            addMessage('💫 Andi hits themselves! <span class="battle-number">-2 HP</span>');
+            addMessage('💫 Andi hits themselves! <strong>3</strong> DAMAGE');
             setTimeout(function() {
                 addMessage('💫 Confusion wore off!');
             }, 1000);

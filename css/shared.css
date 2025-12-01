@@ -1845,11 +1845,14 @@
 
 .battle-log-content {
     /* Fixed height to prevent text shift when lines are added */
-    height: var(--battle-log-content-height, 4.4rem);  /* Fixed: 2 lines * 2.2rem */
+    /* Height = content (2 lines * 1.6rem = 3.2rem) + padding (0.5rem * 2 = 1rem) = 4.2rem */
+    /* Line height must match TUNING.ui.battleLogLineHeight for consistent calculation */
+    height: var(--battle-log-content-height, 4.2rem);
+    box-sizing: border-box;  /* Include padding in height */
     overflow: hidden;  /* Never scroll - JS truncates to max lines */
-    padding: 0.875rem 1rem;  /* 14px 16px - extra room to avoid scrollbar */
+    padding: 0.5rem 1rem;  /* Reduced vertical padding for tighter fit */
     font-size: var(--battle-text-size);
-    line-height: 1.5;
+    line-height: 1.6rem;  /* Fixed rem value, not multiplier - must match TUNING.ui.battleLogLineHeight */
     color: var(--battle-text-color);
     /* Text starts at top - space is pre-reserved for 2 lines */
     flex-shrink: 0;  /* Don't shrink when in flex container */
@@ -2233,6 +2236,17 @@
     color: #f44336;
 }
 
+/* Effect icon slot - reserves fixed space to prevent layout shift */
+.skill-effect-slot {
+    display: inline-block;
+    min-width: 1.2em;
+    min-height: 1em;
+    font-size: 0.85rem;
+    text-align: center;
+    vertical-align: middle;
+    margin-top: 2px;
+}
+
 /* Locked skill slots - show player can earn more */
 .skill-item.skill-item-locked {
     background: rgba(255, 255, 255, 0.03);
@@ -2400,11 +2414,6 @@
     line-height: 1;
     vertical-align: baseline;
     transition: transform 0.1s ease-out;
-}
-
-/* Prevent text shifting during dice roll by using fixed line height */
-.battle-log-content {
-    line-height: 1.6;  /* Fixed line height to accommodate special size numbers and emojis */
 }
 
 .dice-number.dice-spinning {
