@@ -103,6 +103,8 @@
     outline: none;
     transition: all 0.1s step-end;
     image-rendering: pixelated;
+    /* Fix horizontal centering for Press Start 2P font */
+    padding-left: 0.15em;
 }
 
 .password-char:focus {

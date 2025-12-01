@@ -109,6 +109,8 @@
     outline: none;
     transition: all 0.15s ease-out;
     text-shadow: 2px 2px 0 var(--snes-blue);
+    /* Fix horizontal centering for pixel fonts */
+    padding-left: 0.15em;
 }
 
 .password-char:focus {

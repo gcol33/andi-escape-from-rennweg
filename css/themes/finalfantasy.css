@@ -109,6 +109,8 @@
     outline: none;
     transition: all 0.3s ease;
     box-shadow: inset 0 0 0 2px var(--menu-border);
+    /* Fix horizontal centering for Press Start 2P font */
+    padding-left: 0.15em;
 }
 
 .password-char:focus {

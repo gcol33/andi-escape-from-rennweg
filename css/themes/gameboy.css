@@ -91,6 +91,8 @@
     color: var(--gb-darkest);
     outline: none;
     transition: all 0.1s ease;
+    /* Fix horizontal centering for Press Start 2P font */
+    padding-left: 0.15em;
 }
 
 .password-char:focus {
