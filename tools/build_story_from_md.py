@@ -548,10 +548,12 @@ def parse_enemy_frontmatter(content):
     current_move = None
     current_summon = None
     current_skill = None  # For player skills
+    current_intent = None  # For telegraphed intent skills
     dialogue = {}
     moves = []
     summons = []
     skills = []  # For player skills
+    intents = []  # For telegraphed intent skills
 
     lines = frontmatter_text.split('\n')
     i = 0
@@ -581,6 +583,9 @@ def parse_enemy_frontmatter(content):
             if current_skill:
                 skills.append(current_skill)
                 current_skill = None
+            if current_intent:
+                intents.append(current_intent)
+                current_intent = None
 
             if key == 'dialogue':
                 current_section = 'dialogue'
@@ -591,6 +596,8 @@ def parse_enemy_frontmatter(content):
                 current_section = 'skills'
             elif key == 'summons':
                 current_section = 'summons'
+            elif key == 'intents':
+                current_section = 'intents'
             elif key == 'limit_break':
                 current_section = 'limit_break'
                 result['limit_break'] = {}
@@ -781,6 +788,72 @@ def parse_enemy_frontmatter(content):
             i += 1
             continue
 
+        # Intent list item (2 spaces, starts with - id:)
+        if current_section == 'intents' and indent == 2 and stripped.startswith('- id:'):
+            if current_intent:
+                intents.append(current_intent)
+            current_intent = {'id': stripped[5:].strip()}
+            i += 1
+            continue
+
+        # Intent property (4 spaces)
+        if current_section == 'intents' and current_intent and indent >= 4:
+            if ':' in stripped:
+                key, _, value = stripped.partition(':')
+                key = key.strip()
+                value = value.strip().strip('"').strip("'")
+
+                # Handle nested skill object
+                if key == 'skill' and value == '':
+                    current_intent['skill'] = {}
+                    i += 1
+                    # Read nested skill properties
+                    while i < len(lines):
+                        nested_line = lines[i]
+                        nested_stripped = nested_line.strip()
+                        nested_indent = len(nested_line) - len(nested_line.lstrip())
+                        if nested_indent < 6 or not nested_stripped:
+                            break
+                        if ':' in nested_stripped:
+                            nk, _, nv = nested_stripped.partition(':')
+                            nk = nk.strip()
+                            nv = nv.strip()
+                            # Parse value
+                            if nv.isdigit():
+                                nv = int(nv)
+                            elif nv.lower() == 'true':
+                                nv = True
+                            elif nv.lower() == 'false':
+                                nv = False
+                            else:
+                                try:
+                                    nv = float(nv)
+                                    if nv == int(nv):
+                                        nv = int(nv)
+                                except ValueError:
+                                    pass
+                            current_intent['skill'][nk] = nv
+                        i += 1
+                    continue
+
+                # Parse value
+                if value.isdigit():
+                    value = int(value)
+                elif value.lower() == 'true':
+                    value = True
+                elif value.lower() == 'false':
+                    value = False
+                else:
+                    try:
+                        value = float(value)
+                        if value == int(value):
+                            value = int(value)
+                    except ValueError:
+                        pass
+                current_intent[key] = value
+            i += 1
+            continue
+
         # Limit break property (2 spaces)
         if current_section == 'limit_break' and indent == 2:
             if ':' in stripped:
@@ -807,13 +880,15 @@ def parse_enemy_frontmatter(content):
 
         i += 1
 
-    # Save final move/summon/skill
+    # Save final move/summon/skill/intent
     if current_move:
         moves.append(current_move)
     if current_summon:
         summons.append(current_summon)
     if current_skill:
         skills.append(current_skill)
+    if current_intent:
+        intents.append(current_intent)
 
     if dialogue:
         result['dialogue'] = dialogue
@@ -823,6 +898,8 @@ def parse_enemy_frontmatter(content):
         result['summons'] = summons
     if skills:
         result['skills'] = skills
+    if intents:
+        result['intents'] = intents
 
     return result, body
 

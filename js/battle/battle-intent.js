@@ -1,21 +1,31 @@
 /**
  * Andi VN - Battle Intent System
  *
- * Standalone module for enemy intent/telegraph mechanics.
- * Enemies show what action they'll take next turn, allowing
- * strategic player decisions.
+ * Telegraphs powerful enemy abilities before execution (like Slay the Spire).
+ * Enemies "prepare" for one turn, then execute the telegraphed move.
  *
  * Intent Types:
- *   - 'attack': Basic attack incoming
- *   - 'skill': Using a specific skill (moveId provided)
- *   - 'defend': Enemy will defend
- *   - 'charging': Charging a powerful attack
- *   - 'special': Unique boss action
+ *   - summon: Concentrating to summon ally/allies (broken by any status effect)
+ *   - big_attack: Preparing a powerful single attack (counter by defending)
+ *   - multi_hit: Preparing a multi-hit attack (counter with defense-boosting skills)
+ *
+ * Flow:
+ *   1. Trigger conditions checked (random chance, turn count, HP threshold)
+ *   2. Enemy announces preparation via dialogue + battle log
+ *   3. Icon appears above enemy
+ *   4. Enemy still does normal attack during preparation turn
+ *   5. Next turn: Enemy executes the telegraphed skill, icon disappears
+ *
+ * Interruption:
+ *   - Concentration (summon) can be broken by applying any status effect
+ *   - On break: visual/audio feedback, enemy does basic attack instead
  *
  * Usage:
- *   BattleIntent.generate(enemy, player);  // AI decides next action
- *   var intent = BattleIntent.get();       // { type, moveId, data }
- *   BattleIntent.clear();                  // After action resolves
+ *   BattleIntent.generate(enemy, player);  // Check if intent should trigger
+ *   BattleIntent.tick();                   // Decrement prep counter
+ *   BattleIntent.isReady();                // Check if ready to execute
+ *   BattleIntent.getSkill();               // Get skill to execute
+ *   BattleIntent.clear();                  // After execution/interruption
  */
 
 var BattleIntent = (function() {
@@ -28,20 +38,41 @@ var BattleIntent = (function() {
     var _hasBattleData = typeof BattleData !== 'undefined';
 
     // =========================================================================
-    // CONFIGURATION
+    // INTENT TYPE DEFINITIONS
     // =========================================================================
 
-    var T = typeof TUNING !== 'undefined' ? TUNING : null;
-    var config = {
-        healThreshold: T && T.battle.ai ? T.battle.ai.healThreshold : 0.3,
-        defendThreshold: T && T.battle.ai ? T.battle.ai.defendThreshold : 0.4,
-        skillChance: 0.6  // 60% chance to use skill vs basic attack
+    var intentTypes = {
+        summon: {
+            id: 'summon',
+            name: 'Summoning',
+            icon: '✦',
+            cssClass: 'intent-summon',
+            description: 'Concentrating to summon reinforcements',
+            canBreak: true,
+            breakCondition: 'status',
+            breakMessage: 'Concentration broken!'
+        },
+        big_attack: {
+            id: 'big_attack',
+            name: 'Big Attack',
+            icon: '⚠',
+            cssClass: 'intent-big-attack',
+            description: 'Preparing a devastating attack',
+            canBreak: false,
+            counterHint: 'Defend to reduce damage!'
+        },
+        multi_hit: {
+            id: 'multi_hit',
+            name: 'Multi-Hit',
+            icon: '⚔',
+            cssClass: 'intent-multi-hit',
+            description: 'Preparing a multi-hit combo',
+            canBreak: false,
+            counterHint: 'Boost defense to mitigate!'
+        }
     };
 
-    // =========================================================================
-    // INTENT ICONS
-    // =========================================================================
-
+    // Legacy icons for basic intent display (backwards compatibility)
     var INTENT_ICONS = {
         attack: '⚔️',
         skill: '✨',
@@ -50,7 +81,11 @@ var BattleIntent = (function() {
         special: '💀',
         heal: '💚',
         buff: '⬆️',
-        debuff: '⬇️'
+        debuff: '⬇️',
+        // New telegraphed types
+        summon: '✦',
+        big_attack: '⚠',
+        multi_hit: '⚔'
     };
 
     // =========================================================================
@@ -58,14 +93,90 @@ var BattleIntent = (function() {
     // =========================================================================
 
     var currentIntent = null;
+    var intentHistory = [];
 
     // =========================================================================
-    // PRIVATE FUNCTIONS
+    // CONFIGURATION HELPERS
     // =========================================================================
 
     /**
-     * Find a healing move from enemy's moveset
+     * Get intent configuration for a specific enemy
      */
+    function getIntentConfig(enemy) {
+        return enemy.intents || null;
+    }
+
+    /**
+     * Check if enemy has telegraphed intent skills configured
+     */
+    function hasIntents(enemy) {
+        return enemy.intents && enemy.intents.length > 0;
+    }
+
+    // =========================================================================
+    // TRIGGER CONDITIONS
+    // =========================================================================
+
+    /**
+     * Check if an intent should trigger this turn
+     */
+    function shouldTrigger(intentConfig, enemy, player, turn) {
+        // Check cooldown
+        var cooldown = intentConfig.cooldown || 3;
+        var lastUsed = getLastUsedTurn(intentConfig.id, enemy.id);
+        if (lastUsed !== null && (turn - lastUsed) < cooldown) {
+            return false;
+        }
+
+        // Check minimum turn requirement
+        var minTurn = intentConfig.minTurn || 1;
+        if (turn < minTurn) return false;
+
+        // Check HP threshold
+        if (intentConfig.hpThreshold) {
+            var hpPercent = enemy.hp / enemy.maxHP;
+            if (hpPercent > intentConfig.hpThreshold) return false;
+        }
+
+        // Random chance
+        var chance = intentConfig.chance || 0.2;
+        if (Math.random() > chance) return false;
+
+        return true;
+    }
+
+    function getLastUsedTurn(intentId, enemyId) {
+        for (var i = intentHistory.length - 1; i >= 0; i--) {
+            var record = intentHistory[i];
+            if (record.intentId === intentId && record.enemyId === enemyId) {
+                return record.turn;
+            }
+        }
+        return null;
+    }
+
+    function recordIntentUsed(intentId, enemyId, turn) {
+        intentHistory.push({
+            intentId: intentId,
+            enemyId: enemyId,
+            turn: turn
+        });
+        if (intentHistory.length > 50) {
+            intentHistory.shift();
+        }
+    }
+
+    // =========================================================================
+    // LEGACY INTENT GENERATION (for backwards compatibility)
+    // =========================================================================
+
+    var T = typeof TUNING !== 'undefined' ? TUNING : null;
+    var config = {
+        healThreshold: T && T.battle.ai ? T.battle.ai.healThreshold : 0.3,
+        defendThreshold: T && T.battle.ai ? T.battle.ai.defendThreshold : 0.4,
+        skillChance: 0.6
+    };
+
     function findHealMove(moves) {
         if (!_hasBattleData) return null;
         for (var i = 0; i < moves.length; i++) {
@@ -77,23 +188,6 @@ var BattleIntent = (function() {
         return null;
     }
 
-    /**
-     * Find a buff move from enemy's moveset
-     */
-    function findBuffMove(moves) {
-        if (!_hasBattleData) return null;
-        for (var i = 0; i < moves.length; i++) {
-            var move = BattleData.getSkill(moves[i]);
-            if (move && move.isBuff) {
-                return { id: moves[i], move: move };
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Get a random skill from enemy's moveset
-     */
     function getRandomSkill(moves) {
         if (moves.length === 0) return null;
         var randomId = moves[Math.floor(Math.random() * moves.length)];
@@ -106,43 +200,113 @@ var BattleIntent = (function() {
     // =========================================================================
 
     return {
+        // Intent type definitions
+        intentTypes: intentTypes,
+
         /**
-         * Set enemy intent directly
-         * @param {string} type - Intent type
-         * @param {string} moveId - Optional skill ID
-         * @param {Object} data - Optional extra data
+         * Get intent type definition
+         */
+        getType: function(typeId) {
+            return intentTypes[typeId] || null;
+        },
+
+        /**
+         * Set enemy intent directly (legacy support)
          */
         set: function(type, moveId, data) {
             currentIntent = {
                 type: type,
                 moveId: moveId || null,
                 data: data || null,
-                icon: INTENT_ICONS[type] || INTENT_ICONS.attack
+                icon: INTENT_ICONS[type] || INTENT_ICONS.attack,
+                // Telegraphed intent fields (for new system)
+                isTelegraphed: false,
+                turnsRemaining: 0
             };
         },
 
         /**
          * Get current intent
-         * @returns {Object|null} { type, moveId, data, icon }
          */
         get: function() {
             return currentIntent;
         },
 
         /**
+         * Check if there's an active intent
+         */
+        isActive: function() {
+            return currentIntent !== null;
+        },
+
+        /**
+         * Check if current intent is a telegraphed (preparation) intent
+         */
+        isTelegraphed: function() {
+            return currentIntent && currentIntent.isTelegraphed;
+        },
+
+        /**
          * Clear current intent
          */
-        clear: function() {
+        clear: function(turn) {
+            if (currentIntent && currentIntent.isTelegraphed && turn !== undefined) {
+                recordIntentUsed(currentIntent.id, currentIntent.enemyId, turn);
+            }
             currentIntent = null;
         },
 
         /**
          * Generate intent based on AI behavior
-         * @param {Object} enemy - Enemy state { hp, maxHP, moves, ai }
-         * @param {Object} player - Player state { hp, maxHP }
-         * @returns {Object} Generated intent
+         * Now checks for telegraphed intents first, then falls back to basic intent
          */
-        generate: function(enemy, player) {
+        generate: function(enemy, player, turn) {
+            // Get turn from BattleCore if not provided
+            if (turn === undefined && typeof BattleCore !== 'undefined') {
+                var state = BattleCore.getState();
+                turn = state.turn || 1;
+            }
+
+            // === NEW: Check for telegraphed intents first ===
+            if (hasIntents(enemy) && !currentIntent) {
+                var intents = enemy.intents;
+                for (var i = 0; i < intents.length; i++) {
+                    var intentConfig = intents[i];
+                    if (shouldTrigger(intentConfig, enemy, player, turn)) {
+                        // Create telegraphed intent
+                        var typeDef = intentTypes[intentConfig.type];
+                        currentIntent = {
+                            type: intentConfig.type,
+                            id: intentConfig.id,
+                            moveId: intentConfig.skillId || null,
+                            skill: intentConfig.skill,
+                            enemyId: enemy.id,
+                            data: {
+                                moveName: intentConfig.skill ? intentConfig.skill.name : intentConfig.type,
+                                isHeal: false
+                            },
+                            icon: typeDef ? typeDef.icon : INTENT_ICONS[intentConfig.type] || '⚠',
+                            cssClass: typeDef ? typeDef.cssClass : '',
+                            // Telegraphed fields
+                            isTelegraphed: true,
+                            prepTurns: intentConfig.prepTurns || 1,
+                            turnsRemaining: intentConfig.prepTurns || 1,
+                            dialogue: intentConfig.dialogue,
+                            executeDialogue: intentConfig.executeDialogue,
+                            canBreak: typeDef ? typeDef.canBreak : false,
+                            breakCondition: typeDef ? typeDef.breakCondition : null
+                        };
+                        return currentIntent;
+                    }
+                }
+            }
+
+            // If we already have a telegraphed intent, don't generate basic intent
+            if (currentIntent && currentIntent.isTelegraphed) {
+                return currentIntent;
+            }
+
+            // === LEGACY: Basic intent generation ===
             var moves = enemy.moves || [];
             var hpPercent = enemy.hp / enemy.maxHP;
             var intent = { type: 'attack', moveId: null, data: null };
@@ -197,27 +361,160 @@ var BattleIntent = (function() {
         },
 
         /**
+         * Decrement turn counter for telegraphed intents
+         * @returns {boolean} True if intent should execute next turn
+         */
+        tick: function() {
+            if (!currentIntent || !currentIntent.isTelegraphed) return false;
+            currentIntent.turnsRemaining--;
+            return currentIntent.turnsRemaining <= 0;
+        },
+
+        /**
+         * Check if telegraphed intent is ready to execute
+         */
+        isReady: function() {
+            return currentIntent && currentIntent.isTelegraphed && currentIntent.turnsRemaining <= 0;
+        },
+
+        /**
+         * Get the skill data for the current telegraphed intent
+         */
+        getSkill: function() {
+            if (!currentIntent || !currentIntent.skill) return null;
+            return currentIntent.skill;
+        },
+
+        /**
          * Get icon for intent type
-         * @param {string} type - Intent type
-         * @returns {string} Emoji icon
          */
         getIcon: function(type) {
+            if (type === undefined && currentIntent) {
+                return currentIntent.icon;
+            }
             return INTENT_ICONS[type] || INTENT_ICONS.attack;
         },
 
         /**
-         * Get all available icons (for UI reference)
-         * @returns {Object}
+         * Get CSS class for current intent
+         */
+        getCssClass: function() {
+            if (!currentIntent) return '';
+            return currentIntent.cssClass || '';
+        },
+
+        /**
+         * Get all available icons
          */
         getIcons: function() {
             return Object.assign({}, INTENT_ICONS);
         },
 
         /**
-         * Reset state
+         * Get display data for UI rendering
+         */
+        getDisplayData: function() {
+            if (!currentIntent) return null;
+
+            var typeDef = intentTypes[currentIntent.type];
+            return {
+                icon: currentIntent.icon,
+                name: typeDef ? typeDef.name : currentIntent.type,
+                cssClass: currentIntent.cssClass || '',
+                description: typeDef ? typeDef.description : '',
+                turnsRemaining: currentIntent.turnsRemaining || 0,
+                counterHint: typeDef ? typeDef.counterHint : null,
+                isTelegraphed: currentIntent.isTelegraphed || false
+            };
+        },
+
+        // =====================================================================
+        // INTERRUPTION
+        // =====================================================================
+
+        /**
+         * Check if intent can be broken
+         */
+        canBreak: function() {
+            if (!currentIntent || !currentIntent.isTelegraphed) return false;
+            return currentIntent.canBreak || false;
+        },
+
+        /**
+         * Check if a status effect would break the current intent
+         */
+        wouldBreak: function(statusType) {
+            if (!currentIntent || !currentIntent.isTelegraphed) return false;
+            if (!currentIntent.canBreak) return false;
+
+            // Concentration is broken by ANY status effect
+            if (currentIntent.breakCondition === 'status') {
+                return true;
+            }
+            return false;
+        },
+
+        /**
+         * Break the current intent
+         */
+        breakIntent: function(turn) {
+            if (!currentIntent || !currentIntent.isTelegraphed) {
+                return { broken: false };
+            }
+
+            var typeDef = intentTypes[currentIntent.type];
+            var message = typeDef ? typeDef.breakMessage : 'Intent interrupted!';
+
+            var result = {
+                broken: true,
+                intentType: currentIntent.type,
+                message: message
+            };
+
+            this.clear(turn);
+            return result;
+        },
+
+        // =====================================================================
+        // DIALOGUE HELPERS
+        // =====================================================================
+
+        /**
+         * Get the preparation dialogue for current intent
+         */
+        getPrepDialogue: function() {
+            if (!currentIntent || !currentIntent.isTelegraphed) return null;
+            return currentIntent.dialogue || null;
+        },
+
+        /**
+         * Get the execution dialogue for current intent
+         */
+        getExecuteDialogue: function() {
+            if (!currentIntent || !currentIntent.isTelegraphed) return null;
+            return currentIntent.executeDialogue || null;
+        },
+
+        // =====================================================================
+        // STATE MANAGEMENT
+        // =====================================================================
+
+        /**
+         * Check if enemy has telegraphed intents configured
+         */
+        hasIntents: hasIntents,
+
+        /**
+         * Get intent configuration for enemy
+         */
+        getIntentConfig: getIntentConfig,
+
+        /**
+         * Reset all intent state
          */
         reset: function() {
             currentIntent = null;
+            intentHistory = [];
         }
     };
 })();

@@ -1231,7 +1231,14 @@ var BattleStyleDnD = (function() {
                 damage = Math.floor(damage * config.critMultiplier);
             }
 
-            if (qteResult.damageMultiplier) damage = Math.floor(damage * qteResult.damageMultiplier);
+            // Apply QTE damage multiplier
+            if (qteResult.damageMultiplier && qteResult.damageMultiplier !== 1) {
+                var qteBonus = Math.floor(damage * (qteResult.damageMultiplier - 1));
+                if (qteBonus !== 0) {
+                    damageModifiers.push({ value: qteBonus, source: 'Timing' });
+                    damage = Math.floor(damage * qteResult.damageMultiplier);
+                }
+            }
             damage = Math.max(config.minDamage, damage);
         }
 

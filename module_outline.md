@@ -30,7 +30,9 @@ Reference this when creating new modules to maintain clean architecture.
        ├─► battle-dnd.js
        ├─► battle-pokemon.js
        ├─► battle-exp33.js
-       ├─► battle-ui.js
+       ├─► battle-ui.js ───┬─► element-utils.js
+       │                   ├─► stat-bar.js
+       │                   └─► floating-number.js
        └─► qte.js
               │
               └─► qte-ui.js
@@ -202,7 +204,15 @@ Each major system follows this pattern:
 ╠═══════════════════════════════════════════════════════════════════════════════════════╣
 ║  overworld-ui.js     │  OverworldUI       │  Canvas, sprites, camera  │  (leaf node)  ║
 ╠═══════════════════════════════════════════════════════════════════════════════════════╣
-║  battle-ui.js        │  BattleUI          │  Battle DOM elements      │  (leaf node)  ║
+║  battle-ui.js        │  BattleUI          │  Battle DOM elements      │  FloatingNum  ║
+║                      │                    │                           │  StatBar      ║
+║                      │                    │                           │  ElementUtils ║
+╠═══════════════════════════════════════════════════════════════════════════════════════╣
+║  floating-number.js  │  FloatingNumber    │  Damage/heal float anims  │  (leaf node)  ║
+╠═══════════════════════════════════════════════════════════════════════════════════════╣
+║  stat-bar.js         │  StatBar           │  HP/MP/Limit bar helpers  │  (leaf node)  ║
+╠═══════════════════════════════════════════════════════════════════════════════════════╣
+║  element-utils.js    │  ElementUtils      │  DOM manipulation utils   │  (leaf node)  ║
 ╠═══════════════════════════════════════════════════════════════════════════════════════╣
 ║  qte-ui.js           │  QTEUI             │  QTE DOM elements         │  (leaf node)  ║
 ╠═══════════════════════════════════════════════════════════════════════════════════════╣

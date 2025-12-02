@@ -21,6 +21,9 @@ var BattleEngine = (function() {
     // =========================================================================
 
     var _hasBattleData = typeof BattleData !== 'undefined';
+    var _hasBattleIntent = typeof BattleIntent !== 'undefined';
+    var _hasBattleUI = typeof BattleUI !== 'undefined';
+
     if (!_hasBattleData) {
         console.warn('[BattleEngine] BattleData module not loaded - some features will be unavailable');
     }
@@ -523,6 +526,15 @@ var BattleEngine = (function() {
         // Clear action lock when battle ends
         _actionInProgress = false;
 
+        // Reset intent system
+        if (_hasBattleIntent) {
+            BattleIntent.reset();
+        }
+        // Hide intent indicator if visible
+        if (_hasBattleUI && BattleUI.hideIntentIndicator) {
+            BattleUI.hideIntentIndicator();
+        }
+
         var endInfo = BattleCore.endBattle(result);
 
         // Show outro transition
@@ -550,6 +562,15 @@ var BattleEngine = (function() {
         _isPaused = false;
         if (_pauseOverlay && _pauseOverlay.parentNode) {
             _pauseOverlay.parentNode.removeChild(_pauseOverlay);
+        }
+
+        // Reset intent system
+        if (_hasBattleIntent) {
+            BattleIntent.reset();
+        }
+        // Hide intent indicator if visible
+        if (_hasBattleUI && BattleUI.hideIntentIndicator) {
+            BattleUI.hideIntentIndicator();
         }
 
         // End battle properly (sets active = false)
@@ -859,6 +880,24 @@ var BattleEngine = (function() {
                 var critLine = BattleCore.triggerDialogue('player_crit');
                 if (critLine) showDialogueBubble(critLine);
             }
+
+            // === INTENT SYSTEM: Check if status effect breaks concentration ===
+            if (_hasBattleIntent && result.attackResult.statusResult && result.attackResult.statusResult.applied) {
+                var statusType = result.attackResult.statusResult.type ||
+                    (result.skill && result.skill.statusEffect && result.skill.statusEffect.type);
+                if (statusType && BattleIntent.wouldBreak(statusType)) {
+                    var breakResult = BattleIntent.breakIntent(state.turn);
+                    if (breakResult.broken) {
+                        // Show visual feedback
+                        if (_hasBattleUI && BattleUI.hideIntentIndicator) {
+                            BattleUI.hideIntentIndicator('broken');
+                        }
+                        // Add message to battle log
+                        var enemyName = state.enemy.name || 'Enemy';
+                        messages.push('<span class="intent-broken-message">' + enemyName + '\'s ' + breakResult.message + '</span>');
+                    }
+                }
+            }
         } else if (result.attackResult && result.attackResult.isFumble) {
             // Show fumble message with confusion status
             var playerName = state.player.name || 'Andi';
@@ -1030,18 +1069,222 @@ var BattleEngine = (function() {
             return;
         }
 
-        // Try to get an enemy taunt based on context
-        var taunt = getEnemyTaunt(context);
-        if (taunt) {
-            // Show dialogue bubble, then wait before attacking
-            showDialogueBubble(taunt);
-            scheduleTimeout(function() {
-                executeEnemyAttack(style, messages, callback);
-            }, config.timing.dialogueDuration);
-        } else {
-            // No taunt, attack immediately
-            executeEnemyAttack(style, messages, callback);
+        // === INTENT SYSTEM: Check for telegraphed attacks ===
+        if (_hasBattleIntent) {
+            var intent = BattleIntent.get();
+
+            // If there's a ready intent, execute it instead of normal attack
+            if (intent && intent.isTelegraphed && BattleIntent.isReady()) {
+                executeIntentAttack(style, intent, messages, callback);
+                return;
+            }
+
+            // If there's an active (not ready) intent, show the enemy is preparing
+            // and still do a normal attack
+            if (intent && intent.isTelegraphed && intent.turnsRemaining > 0) {
+                // Intent already displayed, just proceed with normal attack
+            } else {
+                // Check if a new intent should trigger
+                var newIntent = BattleIntent.generate(enemy, state.player);
+                if (newIntent && newIntent.isTelegraphed) {
+                    // New intent triggered - show preparation
+                    showIntentPreparation(enemy, newIntent, function() {
+                        // After showing intent, proceed with normal attack
+                        proceedWithNormalAttack();
+                    });
+                    return;
+                }
+            }
         }
+
+        // Normal attack flow
+        proceedWithNormalAttack();
+
+        function proceedWithNormalAttack() {
+            // Try to get an enemy taunt based on context
+            var taunt = getEnemyTaunt(context);
+            if (taunt) {
+                // Show dialogue bubble, then wait before attacking
+                showDialogueBubble(taunt);
+                scheduleTimeout(function() {
+                    executeEnemyAttack(style, messages, callback);
+                }, config.timing.dialogueDuration);
+            } else {
+                // No taunt, attack immediately
+                executeEnemyAttack(style, messages, callback);
+            }
+        }
+    }
+
+    /**
+     * Show intent preparation dialogue and UI
+     */
+    function showIntentPreparation(enemy, intent, callback) {
+        var enemyName = enemy.name || 'Enemy';
+        var dialogue = intent.dialogue || (enemyName + ' is preparing something...');
+
+        // Show dialogue bubble
+        showDialogueBubble(dialogue);
+
+        // Show intent indicator above enemy
+        if (_hasBattleUI && BattleUI.showIntentIndicator) {
+            var displayData = BattleIntent.getDisplayData();
+            BattleUI.showIntentIndicator(displayData);
+        }
+
+        // Log the intent
+        var intentType = BattleIntent.getType(intent.type);
+        var logClass = 'intent-message ' + (intent.cssClass || '');
+        var logMessage = '<span class="' + logClass + '">' + enemyName + ' ' + dialogue + '</span>';
+        updateBattleLog(logMessage, null, function() {
+            scheduleTimeout(callback, config.timing.dialogueDuration);
+        });
+    }
+
+    /**
+     * Execute a telegraphed intent attack
+     */
+    function executeIntentAttack(style, intent, messages, callback) {
+        var state = BattleCore.getState();
+        var enemy = state.enemy;
+        var player = state.player;
+        var enemyName = enemy.name || 'Enemy';
+
+        // Get the skill from the intent
+        var skill = intent.skill || BattleIntent.getSkill();
+        if (!skill) {
+            console.warn('[BattleEngine] Intent has no skill, falling back to normal attack');
+            BattleIntent.clear(state.turn);
+            if (_hasBattleUI && BattleUI.hideIntentIndicator) {
+                BattleUI.hideIntentIndicator('execute');
+            }
+            executeEnemyAttack(style, messages, callback);
+            return;
+        }
+
+        // Show execution dialogue
+        var execDialogue = intent.executeDialogue || (enemyName + ' unleashes ' + skill.name + '!');
+        showDialogueBubble(execDialogue);
+
+        // Hide intent indicator with execute animation
+        if (_hasBattleUI && BattleUI.hideIntentIndicator) {
+            BattleUI.hideIntentIndicator('execute');
+        }
+
+        // Wait for dialogue, then execute the attack
+        scheduleTimeout(function() {
+            executeIntentSkill(style, skill, intent, messages, callback);
+        }, config.timing.dialogueDuration);
+    }
+
+    /**
+     * Execute the actual intent skill
+     */
+    function executeIntentSkill(style, skill, intent, messages, callback) {
+        var state = BattleCore.getState();
+        var enemy = state.enemy;
+        var player = state.player;
+        var enemyName = enemy.name || 'Enemy';
+
+        // Clear the intent (record cooldown)
+        BattleIntent.clear(state.turn);
+
+        // Handle summon type (not implemented yet - placeholder)
+        if (skill.isSummon) {
+            var summonMsg = enemyName + ' calls for reinforcements!';
+            updateBattleLog(summonMsg, null, function() {
+                // TODO: Implement actual summon logic
+                finishEnemyTurn([], callback);
+            });
+            return;
+        }
+
+        // Handle multi-hit skill
+        if (skill.hits && skill.hits > 1) {
+            executeMultiHitIntentSkill(style, skill, intent, messages, callback);
+            return;
+        }
+
+        // Single big attack - resolve like normal enemy attack
+        var attackResult = style.resolveAttack ?
+            style.resolveAttack(enemy, player, skill) :
+            { hit: true, damage: style.rollDamage ? style.rollDamage(skill.damage) : 5 };
+
+        var resultMsgs = [];
+        resultMsgs.push(enemyName + ' uses ' + skill.name + '!');
+
+        if (attackResult.hit) {
+            var damage = attackResult.damage || 5;
+            BattleCore.damagePlayer(damage, { source: 'intent', type: skill.type });
+            resultMsgs.push('<span class="roll-damage-normal">' + damage + ' DAMAGE</span>');
+            showDamageNumber(damage, 'player', 'damage');
+
+            if (attackResult.isCrit) {
+                resultMsgs.push('Critical hit!');
+            }
+        } else {
+            resultMsgs.push('But it missed!');
+        }
+
+        updateBattleLog(resultMsgs.join('<br>'), null, function() {
+            updateDisplay();
+            if (checkEnd()) return;
+            finishEnemyTurn([], callback);
+        });
+    }
+
+    /**
+     * Execute a multi-hit intent skill
+     */
+    function executeMultiHitIntentSkill(style, skill, intent, messages, callback) {
+        var state = BattleCore.getState();
+        var enemy = state.enemy;
+        var player = state.player;
+        var enemyName = enemy.name || 'Enemy';
+        var hits = skill.hits || 1;
+        var currentHit = 0;
+        var totalDamage = 0;
+
+        function executeHit() {
+            currentHit++;
+            if (currentHit > hits || player.hp <= 0) {
+                // All hits done
+                var totalMsg = 'Total: <span class="roll-damage-normal">' + totalDamage + ' DAMAGE</span>';
+                updateBattleLog(totalMsg, null, function() {
+                    updateDisplay();
+                    if (checkEnd()) return;
+                    finishEnemyTurn([], callback);
+                });
+                return;
+            }
+
+            // Resolve single hit
+            var attackResult = style.resolveAttack ?
+                style.resolveAttack(enemy, player, skill) :
+                { hit: true, damage: style.rollDamage ? style.rollDamage(skill.damage) : 2 };
+
+            if (attackResult.hit) {
+                var damage = attackResult.damage || 2;
+                totalDamage += damage;
+                BattleCore.damagePlayer(damage, { source: 'intent', type: skill.type });
+                showDamageNumber(damage, 'player', 'damage');
+            }
+
+            // Small delay between hits
+            scheduleTimeout(function() {
+                updateDisplay();
+                if (player.hp <= 0) {
+                    checkEnd();
+                    return;
+                }
+                executeHit();
+            }, 300);
+        }
+
+        // Start the multi-hit sequence
+        updateBattleLog(enemyName + ' uses ' + skill.name + '!', null, function() {
+            executeHit();
+        });
     }
 
     function executeEnemyAttack(style, messages, callback) {
@@ -1372,6 +1615,15 @@ var BattleEngine = (function() {
         if (messages && messages.length > 0) {
             var msgHtml = messages.join('<br>');
             updateBattleLog(msgHtml);
+        }
+
+        // === INTENT SYSTEM: Tick intent counter at end of enemy turn ===
+        if (_hasBattleIntent && BattleIntent.isTelegraphed()) {
+            BattleIntent.tick();
+            // Update the indicator to show remaining turns
+            if (_hasBattleUI && BattleUI.updateIntentIndicator) {
+                BattleUI.updateIntentIndicator(BattleIntent.getDisplayData());
+            }
         }
 
         BattleCore.incrementTurn();

@@ -45,9 +45,22 @@ var path = require('path');
 var tuningCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'tuning.js'), 'utf8');
 eval(tuningCode);
 
+// Load BattleUI helper modules (optional, may not work without full DOM)
+try {
+    var elementUtilsCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'element-utils.js'), 'utf8');
+    eval(elementUtilsCode);
+    var statBarCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'stat-bar.js'), 'utf8');
+    eval(statBarCode);
+    var floatingNumberCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'floating-number.js'), 'utf8');
+    eval(floatingNumberCode);
+    console.log('Loaded battle UI helper modules');
+} catch (e) {
+    console.log('Battle UI helper modules not loaded (expected in Node.js environment)');
+}
+
 // Load BattleUI (optional, may not work without full DOM)
 try {
-    var battleUICode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle-ui.js'), 'utf8');
+    var battleUICode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-ui.js'), 'utf8');
     eval(battleUICode);
     console.log('Loaded battle-ui module');
 } catch (e) {

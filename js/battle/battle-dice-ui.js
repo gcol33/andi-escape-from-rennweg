@@ -636,12 +636,13 @@ var BattleDiceUI = (function() {
                               document.getElementById('battle-log-content');
 
         // Check if content overflows and scroll if needed
-        // Uses the same logic as BattleUI.scrollToBottomIfNeeded
+        // Only scroll when content ACTUALLY overflows the container (not just approaching it)
         function checkAndScroll() {
             if (!scrollContainer) return;
-            // Only scroll if there's content hidden below the current scroll position
+            // Only scroll if content is taller than the visible area AND there's hidden content below
+            var isOverflowing = scrollContainer.scrollHeight > scrollContainer.clientHeight;
             var hiddenBelow = scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight;
-            if (hiddenBelow > 5) {  // 5px threshold to avoid micro-scrolls from rounding
+            if (isOverflowing && hiddenBelow > 10) {  // 10px threshold - only scroll when definitely overflowing
                 scrollContainer.scrollTop = scrollContainer.scrollHeight - scrollContainer.clientHeight;
             }
         }
@@ -678,7 +679,8 @@ var BattleDiceUI = (function() {
 
             element.innerHTML += char;
             index++;
-            checkAndScroll();
+            // Don't scroll on every character - only at end or on newlines
+            // This prevents the "line 1 jumps up when line 2 starts" bug
             diceTimeout(type, speed);
         }
 
@@ -1069,7 +1071,7 @@ var BattleDiceUI = (function() {
 
             var mod = modifiers[showIndex];
             var modSpan = document.createElement('span');
-            modSpan.className = 'mod-part mod-animate-in';
+            modSpan.className = 'mod-part mod-animate-in damage-mod';
 
             if (mod.isMultiplier) {
                 // Multiplier display: " x 2 (CRIT)"

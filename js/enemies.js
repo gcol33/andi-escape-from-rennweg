@@ -128,6 +128,60 @@ const enemies = {
         "description": "Agnes takes a coffee break."
       }
     ],
+    "intents": [
+      {
+        "id": "call_intern",
+        "type": "summon",
+        "chance": 0.15,
+        "minTurn": 3,
+        "cooldown": 5,
+        "prepTurns": 1,
+        "dialogue": "INTERN! Get in here NOW!",
+        "executeDialogue": "You wanted to see me, Agnes?",
+        "skill": {
+          "name": "Call Intern",
+          "damage": 0,
+          "type": "physical",
+          "isSummon": true,
+          "summonId": "office_intern",
+          "description": "Agnes summons an intern to assist her."
+        }
+      },
+      {
+        "id": "termination_notice",
+        "type": "big_attack",
+        "chance": 0.2,
+        "minTurn": 2,
+        "cooldown": 4,
+        "hpThreshold": 0.7,
+        "prepTurns": 1,
+        "dialogue": "I'm preparing your TERMINATION NOTICE!",
+        "executeDialogue": "Your employment is TERMINATED!",
+        "skill": {
+          "name": "Termination Notice",
+          "damage": "3d6",
+          "type": "psychic",
+          "description": "A devastating psychological attack. You should have defended!"
+        }
+      },
+      {
+        "id": "policy_barrage",
+        "type": "multi_hit",
+        "chance": 0.18,
+        "minTurn": 4,
+        "cooldown": 5,
+        "prepTurns": 1,
+        "dialogue": "Let me pull up ALL your violations...",
+        "executeDialogue": "Violation 1... 2... 3... 4!",
+        "skill": {
+          "name": "Policy Barrage",
+          "damage": "d4",
+          "type": "physical",
+          "hits": 4,
+          "description": "A rapid barrage of policy violations!"
+        }
+      }
+    ],
     "description": "Agnes from HR. The final boss of every office worker's nightmare. Her weapon? Paperwork. Her armor? Policy. Her weakness? Actual human connection (which she lacks)."
   }
 };

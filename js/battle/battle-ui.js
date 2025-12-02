@@ -9,6 +9,11 @@
  *   - BattleUI: DOM manipulation, element creation, animations, visual feedback
  *   - BattleEngine: Game state, combat logic, turn management
  *
+ * Dependencies:
+ *   - FloatingNumber: Floating damage/heal number animations
+ *   - StatBar: Stat bar update helpers (HP, Mana, Limit, etc.)
+ *   - ElementUtils: DOM manipulation utilities
+ *
  * Usage:
  *   BattleUI.init(containerElement);
  *   BattleUI.createBattleUI(playerState, enemyState);
@@ -17,6 +22,12 @@
 
 var BattleUI = (function() {
     'use strict';
+
+    // === Module Dependencies ===
+    // These modules are optional but provide cleaner code when available
+    var _hasFloatingNumber = typeof FloatingNumber !== 'undefined';
+    var _hasStatBar = typeof StatBar !== 'undefined';
+    var _hasElementUtils = typeof ElementUtils !== 'undefined';
 
     // === Configuration ===
     // Values sourced from TUNING.js when available, with fallbacks
@@ -62,8 +73,10 @@ var BattleUI = (function() {
         playerStats: null,
         playerHPBar: null,
         playerHPText: null,
+        playerHPLabel: null,
         playerManaBar: null,
         playerManaText: null,
+        playerManaLabel: null,
         playerStatuses: null,
         playerStaggerFill: null,
         playerACDisplay: null,
@@ -325,6 +338,13 @@ var BattleUI = (function() {
         if (!elements.playerHPBar) cacheElements();
         if (!elements.playerHPBar || !elements.playerHPText) return;
 
+        // Use StatBar module if available
+        if (_hasStatBar) {
+            StatBar.updateHP(elements.playerHPBar, elements.playerHPText, hp, maxHP, hasRegen, elements.playerHPLabel);
+            return;
+        }
+
+        // Fallback implementation
         var percent = (hp / maxHP) * 100;
         elements.playerHPBar.style.width = percent + '%';
         elements.playerHPText.textContent = hp + '/' + maxHP;
@@ -349,6 +369,13 @@ var BattleUI = (function() {
         if (!elements.playerManaBar) cacheElements();
         if (!elements.playerManaBar || !elements.playerManaText) return;
 
+        // Use StatBar module if available
+        if (_hasStatBar) {
+            StatBar.updateMana(elements.playerManaBar, elements.playerManaText, mana, maxMana, hasRegen, elements.playerManaLabel);
+            return;
+        }
+
+        // Fallback implementation
         var percent = (mana / maxMana) * 100;
         elements.playerManaBar.style.width = percent + '%';
         elements.playerManaText.textContent = mana + '/' + maxMana;
@@ -376,6 +403,13 @@ var BattleUI = (function() {
             elements.enemyLabel.textContent = name;
         }
 
+        // Use StatBar module if available (no regen for enemies)
+        if (_hasStatBar) {
+            StatBar.updateHP(elements.enemyHPBar, elements.enemyHPText, hp, maxHP, false, null);
+            return;
+        }
+
+        // Fallback implementation
         var percent = (hp / maxHP) * 100;
         elements.enemyHPBar.style.width = percent + '%';
         elements.enemyHPText.textContent = hp + '/' + maxHP;
@@ -392,6 +426,13 @@ var BattleUI = (function() {
         if (!elements.limitBar) cacheElements();
         if (!elements.limitBar) return;
 
+        // Use StatBar module if available
+        if (_hasStatBar) {
+            StatBar.updateLimit(elements.limitBar, elements.limitText, charge);
+            return;
+        }
+
+        // Fallback implementation
         elements.limitBar.style.width = charge + '%';
 
         if (charge >= 100) {
@@ -420,6 +461,13 @@ var BattleUI = (function() {
         }
         if (!elements.playerACDisplay) return;
 
+        // Use StatBar module if available
+        if (_hasStatBar) {
+            StatBar.updateAC(elements.playerACDisplay, baseAC, effectiveAC);
+            return;
+        }
+
+        // Fallback implementation
         // Compact format: (AC XX) or (AC XX+) or (AC XX-)
         var acText = '(AC ' + effectiveAC + ')';
         elements.playerACDisplay.classList.remove('boosted', 'reduced');
@@ -612,7 +660,7 @@ var BattleUI = (function() {
 
             var rollResultSpan = temp.querySelector('.roll-result strong');
             if (rollResultSpan) {
-                var rollHtml = rollResultSpan.innerHTML;
+                // Replace the roll value with animated dice placeholder
                 rollResultSpan.innerHTML = '<span class="dice-number">?</span>';
                 html = temp.innerHTML;
             }
@@ -919,6 +967,13 @@ var BattleUI = (function() {
     }
 
     function showDamageNumberImmediate(amount, target, type) {
+        // Use FloatingNumber module if available
+        if (_hasFloatingNumber) {
+            FloatingNumber.show(amount, target, type);
+            return;
+        }
+
+        // Fallback implementation
         if (!elements.container) {
             elements.container = document.getElementById('vn-container');
         }
@@ -1097,11 +1152,19 @@ var BattleUI = (function() {
     }
 
     function showStatChangeImmediate(statType, amount, target, label) {
+        if (amount === 0) return;
+
+        // Use FloatingNumber module if available
+        if (_hasFloatingNumber) {
+            FloatingNumber.showStatChange(statType, amount, target, label, elements);
+            return;
+        }
+
+        // Fallback implementation
         if (!elements.container) {
             elements.container = document.getElementById('vn-container');
         }
         if (!elements.container) return;
-        if (amount === 0) return;
 
         var container = elements.container;
         var containerRect = container.getBoundingClientRect();
@@ -1538,6 +1601,98 @@ var BattleUI = (function() {
         }
     }
 
+    // === Intent Display ===
+
+    /**
+     * Show intent indicator above enemy sprite
+     * @param {Object} intentData - Intent display data from BattleIntent.getDisplayData()
+     */
+    function showIntentIndicator(intentData) {
+        if (!intentData) return;
+
+        // Remove existing indicator if present
+        hideIntentIndicator();
+
+        // Get sprite layer to position relative to enemy
+        var spriteLayer = document.getElementById('sprite-layer');
+        if (!spriteLayer) return;
+
+        // Create intent indicator container
+        var indicator = document.createElement('div');
+        indicator.id = 'enemy-intent-indicator';
+        indicator.className = 'enemy-intent-indicator';
+
+        // Create icon element
+        var icon = document.createElement('div');
+        icon.className = 'intent-icon ' + (intentData.cssClass || '') + ' intent-appear';
+        icon.textContent = intentData.icon || '?';
+
+        // Create label element
+        var label = document.createElement('div');
+        label.className = 'intent-label';
+        label.textContent = intentData.name || 'Preparing...';
+
+        indicator.appendChild(icon);
+        indicator.appendChild(label);
+        spriteLayer.appendChild(indicator);
+
+        // Play sound effect
+        playSfx('intent_prepare');
+    }
+
+    /**
+     * Hide the intent indicator (after execution or interruption)
+     * @param {string} animationType - 'execute' or 'broken' for different animations
+     */
+    function hideIntentIndicator(animationType) {
+        var indicator = document.getElementById('enemy-intent-indicator');
+        if (!indicator) return;
+
+        var icon = indicator.querySelector('.intent-icon');
+        if (icon && animationType) {
+            // Apply exit animation
+            icon.classList.remove('intent-appear', 'intent-pulse');
+            icon.classList.add('intent-' + animationType);
+
+            // Play appropriate sound
+            if (animationType === 'broken') {
+                playSfx('intent_broken');
+            } else if (animationType === 'execute') {
+                playSfx('intent_execute');
+            }
+
+            // Remove after animation
+            setTimeout(function() {
+                if (indicator.parentNode) {
+                    indicator.parentNode.removeChild(indicator);
+                }
+            }, 500);
+        } else {
+            // Remove immediately
+            if (indicator.parentNode) {
+                indicator.parentNode.removeChild(indicator);
+            }
+        }
+    }
+
+    /**
+     * Update the intent indicator (e.g., decrement turns remaining)
+     * @param {Object} intentData - Updated intent display data
+     */
+    function updateIntentIndicator(intentData) {
+        var indicator = document.getElementById('enemy-intent-indicator');
+        if (!indicator || !intentData) return;
+
+        var label = indicator.querySelector('.intent-label');
+        if (label && intentData.turnsRemaining !== undefined) {
+            if (intentData.turnsRemaining > 0) {
+                label.textContent = intentData.name + ' (' + intentData.turnsRemaining + ')';
+            } else {
+                label.textContent = intentData.name + '!';
+            }
+        }
+    }
+
     // === Public API ===
     return {
         // Initialization
@@ -1652,13 +1807,13 @@ var BattleUI = (function() {
         addLogEntry: function(html) {
             updateBattleLog(html);
         },
-        showIntro: function(enemy, callback) {
+        showIntro: function(_enemy, callback) {
             showBattleIntro(callback);
         },
         showOutro: function(result, callback) {
             showBattleOutro(result, null, callback);
         },
-        showDialogueBubble: function(text, duration) {
+        showDialogueBubble: function(text, _duration) {
             showDialogue(text);
         },
 
@@ -1685,6 +1840,11 @@ var BattleUI = (function() {
         animateDiceRoll: animateDiceRoll,
         scrollToBottomIfNeeded: scrollToBottomIfNeeded,
         typewriterEffect: typewriterEffect,
+
+        // Intent display (telegraphed enemy attacks)
+        showIntentIndicator: showIntentIndicator,
+        hideIntentIndicator: hideIntentIndicator,
+        updateIntentIndicator: updateIntentIndicator,
 
         // Expose config for external timing needs
         config: config,
