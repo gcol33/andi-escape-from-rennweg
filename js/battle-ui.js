@@ -814,11 +814,28 @@ var BattleUI = (function() {
 
         function typeNext() {
             if (index < text.length) {
-                // Skip HTML tags instantly
+                // Skip HTML tags instantly, including their full content for styled spans
                 if (text[index] === '<') {
                     var tagEnd = text.indexOf('>', index);
                     if (tagEnd !== -1) {
-                        visible.innerHTML += text.substring(index, tagEnd + 1);
+                        var tagContent = text.substring(index, tagEnd + 1);
+                        // Check if this is an opening tag with a class (styled content)
+                        // If so, include everything up to and including the closing tag
+                        var classMatch = tagContent.match(/^<(\w+)\s+class=/);
+                        if (classMatch) {
+                            var tagName = classMatch[1];
+                            var closingTag = '</' + tagName + '>';
+                            var closeIndex = text.indexOf(closingTag, tagEnd);
+                            if (closeIndex !== -1) {
+                                // Add the entire styled element at once (opening tag + content + closing tag)
+                                visible.innerHTML += text.substring(index, closeIndex + closingTag.length);
+                                index = closeIndex + closingTag.length;
+                                typeNext();
+                                return;
+                            }
+                        }
+                        // Regular tag without class - just add the tag
+                        visible.innerHTML += tagContent;
                         index = tagEnd + 1;
                         typeNext();
                         return;
@@ -918,18 +935,25 @@ var BattleUI = (function() {
         // Get unified roll class for consistent styling
         var rollClass = getFloatingRollClass(type);
 
+        // For crit/max/min damage floating numbers, don't use the roll class (avoid glow effects)
+        // Just use the base damage color class instead
+        var floatingClass = rollClass;
+        if (isCrit || isMaxDamage || isMinDamage) {
+            floatingClass = 'roll-damage-normal';
+        }
+
         // Set class and text based on type
         // Use Math.abs to prevent double minus signs if amount is already negative
         var displayAmount = Math.abs(amount);
         if (isMiss) {
-            damageNum.className = 'damage-number wow-style ' + rollClass;
+            damageNum.className = 'damage-number wow-style ' + floatingClass;
             damageNum.textContent = 'MISS';
         } else if (isACBoost) {
             // AC boost uses its own class and shows +X AC format
             damageNum.className = 'damage-number wow-style ac-boost';
             damageNum.textContent = '+' + displayAmount + ' AC';
         } else {
-            damageNum.className = 'damage-number wow-style ' + rollClass;
+            damageNum.className = 'damage-number wow-style ' + floatingClass;
             damageNum.textContent = (isHeal ? '+' : '-') + displayAmount;
         }
 
@@ -937,19 +961,19 @@ var BattleUI = (function() {
         // Labels use the same unified color system
         var hitLabel = null;
         if (isCrit) {
-            // Crits show "CRIT!" label with crit emphasis
+            // Crits show "CRIT!" label - no rollClass to avoid orange glow on floating numbers
             hitLabel = document.createElement('div');
-            hitLabel.className = 'damage-number wow-style crit-label ' + rollClass;
+            hitLabel.className = 'damage-number wow-style crit-label';
             hitLabel.textContent = 'CRIT!';
         } else if (isMaxDamage) {
-            // Max damage rolls show "MAX!" label with max emphasis
+            // Max damage rolls show "MAX!" label - no rollClass to avoid orange glow on floating numbers
             hitLabel = document.createElement('div');
-            hitLabel.className = 'damage-number wow-style max-label ' + rollClass;
+            hitLabel.className = 'damage-number wow-style max-label';
             hitLabel.textContent = 'MAX!';
         } else if (isMinDamage) {
-            // Min damage rolls show "MIN" label with min emphasis
+            // Min damage rolls show "MIN" label - no rollClass to avoid glow on floating numbers
             hitLabel = document.createElement('div');
-            hitLabel.className = 'damage-number wow-style min-label ' + rollClass;
+            hitLabel.className = 'damage-number wow-style min-label';
             hitLabel.textContent = 'MIN';
         } else if (isDot) {
             // DOT damage (bleed, poison, etc.) shows "DAMAGE" label in red

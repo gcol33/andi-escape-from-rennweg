@@ -393,10 +393,12 @@ var BattleEngine = (function() {
     }
 
     // =========================================================================
-    // FORCED ROLL (DEV MODE)
+    // FORCED ROLL / DAMAGE / STATUS (DEV MODE)
     // =========================================================================
 
     var forcedRollCallback = null;
+    var forcedDamageCallback = null;
+    var guaranteeStatusCallback = null;
 
     function setForcedRollCallback(callback) {
         forcedRollCallback = callback;
@@ -404,6 +406,22 @@ var BattleEngine = (function() {
         var style = getActiveStyle();
         if (style && style.setForcedRollCallback) {
             style.setForcedRollCallback(callback);
+        }
+    }
+
+    function setForcedDamageCallback(callback) {
+        forcedDamageCallback = callback;
+        // Pass to dice module
+        if (typeof BattleDice !== 'undefined' && BattleDice.setForcedDamageCallback) {
+            BattleDice.setForcedDamageCallback(callback);
+        }
+    }
+
+    function setGuaranteeStatusCallback(callback) {
+        guaranteeStatusCallback = callback;
+        // Pass to core module
+        if (typeof BattleCore !== 'undefined' && BattleCore.setGuaranteeStatusCallback) {
+            BattleCore.setGuaranteeStatusCallback(callback);
         }
     }
 
@@ -442,6 +460,16 @@ var BattleEngine = (function() {
         var style = getActiveStyle();
         if (style && style.setForcedRollCallback && forcedRollCallback) {
             style.setForcedRollCallback(forcedRollCallback);
+        }
+
+        // Pass forced damage to dice module
+        if (typeof BattleDice !== 'undefined' && BattleDice.setForcedDamageCallback && forcedDamageCallback) {
+            BattleDice.setForcedDamageCallback(forcedDamageCallback);
+        }
+
+        // Pass guarantee status to core module
+        if (typeof BattleCore !== 'undefined' && BattleCore.setGuaranteeStatusCallback && guaranteeStatusCallback) {
+            BattleCore.setGuaranteeStatusCallback(guaranteeStatusCallback);
         }
 
         // Reset music state for new battle
@@ -2253,6 +2281,8 @@ var BattleEngine = (function() {
 
         // Dev mode
         setForcedRollCallback: setForcedRollCallback,
+        setForcedDamageCallback: setForcedDamageCallback,
+        setGuaranteeStatusCallback: setGuaranteeStatusCallback,
 
         // Item system
         getAvailableItems: function() { return BattleCore.getAvailableItems(); },

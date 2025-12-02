@@ -31,6 +31,9 @@ var BattleCore = (function() {
         console.warn('[BattleCore] BattleData module not loaded - some features will be unavailable');
     }
 
+    // Dev mode: callback to check if status effects should be guaranteed
+    var guaranteeStatusCallback = null;
+
     // =========================================================================
     // CONFIGURATION
     // =========================================================================
@@ -558,6 +561,27 @@ var BattleCore = (function() {
     // =========================================================================
 
     /**
+     * Set callback to check if status effects should be guaranteed (dev mode)
+     */
+    function setGuaranteeStatusCallback(callback) {
+        guaranteeStatusCallback = callback;
+    }
+
+    /**
+     * Check if a status effect should apply based on chance
+     * Respects dev mode guarantee status setting
+     * @param {number} chance - Status effect chance (0-1)
+     * @returns {boolean} True if status should apply
+     */
+    function shouldApplyStatus(chance) {
+        // Dev mode: guarantee all status effects
+        if (guaranteeStatusCallback && guaranteeStatusCallback()) {
+            return true;
+        }
+        return Math.random() < chance;
+    }
+
+    /**
      * Apply a status effect to a target
      * @param {Object} target - player or enemy state
      * @param {string} statusType - Status effect ID
@@ -741,7 +765,7 @@ var BattleCore = (function() {
             if (def.damagePerTurn && !skipDOT) {
                 var dotDamage = def.damagePerTurn * (status.stacks || 1);
                 result.damage += dotDamage;
-                result.messages.push(def.icon + ' ' + targetName + ' takes <span class="battle-number">' + dotDamage + '</span> ' + def.name + ' damage!');
+                result.messages.push(def.icon + ' ' + def.name + ' <span class="roll-damage-normal">' + dotDamage + ' DAMAGE</span>');
             }
 
             // Healing over time (skip first tick for newly applied statuses)
@@ -1413,6 +1437,8 @@ var BattleCore = (function() {
         getStatusDamageModifier: getStatusDamageModifier,
         canAct: canAct,
         getCannotActMessage: getCannotActMessage,
+        shouldApplyStatus: shouldApplyStatus,
+        setGuaranteeStatusCallback: setGuaranteeStatusCallback,
 
         // Stagger
         addStagger: addStagger,

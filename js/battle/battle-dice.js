@@ -12,14 +12,23 @@
 var BattleDice = (function() {
     'use strict';
 
-    // For dev mode: forced roll callback
+    // For dev mode: forced roll callback (hit rolls d20)
     var forcedRollCallback = null;
+    // For dev mode: forced damage callback
+    var forcedDamageCallback = null;
 
     /**
      * Set callback to force specific roll values (dev mode)
      */
     function setForcedRollCallback(callback) {
         forcedRollCallback = callback;
+    }
+
+    /**
+     * Set callback to force specific damage values (dev mode)
+     */
+    function setForcedDamageCallback(callback) {
+        forcedDamageCallback = callback;
     }
 
     /**
@@ -145,6 +154,14 @@ var BattleDice = (function() {
     function rollDamage(notation, minDamage) {
         minDamage = minDamage !== undefined ? minDamage : 1;
 
+        // Check for forced damage (dev mode)
+        if (forcedDamageCallback) {
+            var forced = forcedDamageCallback();
+            if (forced !== null && forced >= 1) {
+                return Math.max(minDamage, forced);
+            }
+        }
+
         // Handle plain number
         if (typeof notation === 'number') {
             return Math.max(minDamage, notation);
@@ -174,6 +191,22 @@ var BattleDice = (function() {
      * @returns {Object} { total, rolls, modifier }
      */
     function rollDamageDetailed(notation) {
+        // Check for forced damage (dev mode)
+        if (forcedDamageCallback) {
+            var forced = forcedDamageCallback();
+            if (forced !== null && forced >= 1) {
+                return {
+                    total: Math.max(1, forced),
+                    rolls: [forced],
+                    modifier: 0,
+                    notation: notation,
+                    isMin: false,
+                    isMax: false,
+                    forced: true
+                };
+            }
+        }
+
         // Support formats: "1d6", "d6", "2d6+3", "d8-1"
         var match = String(notation).match(/(\d*)d(\d+)([+-]\d+)?/i);
         if (!match) {
@@ -264,6 +297,7 @@ var BattleDice = (function() {
     return {
         // Configuration
         setForcedRollCallback: setForcedRollCallback,
+        setForcedDamageCallback: setForcedDamageCallback,
 
         // Generic roll
         roll: roll,

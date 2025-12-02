@@ -1238,7 +1238,7 @@ var BattleStyleDnD = (function() {
         var statusResult = null;
         if (hit && skill.statusEffect) {
             var chance = (skill.statusEffect.chance || 0) + (qteResult.statusChanceBonus || 0);
-            statusResult = Math.random() < chance ? BattleCore.applyStatus(defender, skill.statusEffect.type, 1) : { applied: false };
+            statusResult = BattleCore.shouldApplyStatus(chance) ? BattleCore.applyStatus(defender, skill.statusEffect.type, 1) : { applied: false };
         }
 
         // Apply confusion on fumble (nat 1)

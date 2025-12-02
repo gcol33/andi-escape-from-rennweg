@@ -620,7 +620,7 @@ var BattleDiceUI = (function() {
 
     /**
      * Typewriter text effect
-     * Always scrolls to bottom as content is typed to keep it visible
+     * Only scrolls when content overflows to prevent line jumping during animation.
      * @param {Element} element - Element to type into
      * @param {string} text - Text (can include HTML tags)
      * @param {function} callback - Called when done
@@ -635,15 +635,40 @@ var BattleDiceUI = (function() {
         var scrollContainer = element.closest('.battle-log-content') ||
                               document.getElementById('battle-log-content');
 
+        // Track if we've started scrolling (once we start, keep scrolling)
+        var hasStartedScrolling = false;
+
+        // Scroll to bottom - keeps newest content visible
         function scrollToBottom() {
             if (scrollContainer) {
                 scrollContainer.scrollTop = scrollContainer.scrollHeight;
             }
         }
 
+        // Check if content overflows and we need to scroll
+        function checkAndScroll() {
+            if (!scrollContainer) return;
+
+            // Once we start scrolling, always scroll to keep up with new content
+            if (hasStartedScrolling) {
+                scrollToBottom();
+                return;
+            }
+
+            // Calculate half a line height as buffer (prevents false triggers during line wrap)
+            var lineHeight = parseFloat(getComputedStyle(scrollContainer).lineHeight) || 16;
+            var buffer = lineHeight * 0.5;
+
+            // Start scrolling only when content overflows by more than half a line
+            if (scrollContainer.scrollHeight > scrollContainer.clientHeight + buffer) {
+                hasStartedScrolling = true;
+                scrollToBottom();
+            }
+        }
+
         function type() {
             if (index >= text.length) {
-                scrollToBottom();
+                checkAndScroll();
                 if (callback) callback();
                 return;
             }
@@ -673,8 +698,7 @@ var BattleDiceUI = (function() {
 
             element.innerHTML += char;
             index++;
-            // Always scroll to keep newest content visible
-            scrollToBottom();
+            checkAndScroll();
             diceTimeout(type, speed);
         }
 
@@ -1246,7 +1270,9 @@ var BattleDiceUI = (function() {
                     rolls: options.healRolls,
                     total: healRolled,
                     advantage: options.hasHealAdvantage,
-                    disadvantage: options.hasHealDisadvantage
+                    disadvantage: options.hasHealDisadvantage,
+                    isMaxHeal: options.isMaxHeal,
+                    isMinHeal: options.isMinHeal
                 };
 
                 animateAdvantageHealRoll(line, healAdvResult, function(healNum) {
@@ -1379,8 +1405,9 @@ var BattleDiceUI = (function() {
                     // Remove advantage classes for normal modifier collapse behavior
                     winner.classList.remove('advantage-die', 'advantage-winner');
 
-                    // Apply green heal color
-                    winner.classList.add('roll-heal-normal');
+                    // Apply green heal color based on max/min status
+                    var healResultCategory = rollResult.isMaxHeal ? 'max' : (rollResult.isMinHeal ? 'min' : 'normal');
+                    winner.classList.add(getRollClass('heal', healResultCategory));
 
                     if (callback) callback(winner);
                 }, 300);

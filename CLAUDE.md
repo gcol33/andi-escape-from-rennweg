@@ -2,52 +2,46 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Build and Test Commands
+## Quick Reference
 
 ```bash
-# Build story from markdown scenes (REQUIRED after editing scenes/*.md)
+# Build story from markdown (REQUIRED after editing scenes/*.md, enemies/*.md, player/*.md, or theme.md)
 python tools/build_story_from_md.py
 
-# Run battle system tests (177 tests)
-node tests/run-tests.js
-
-# Run theme CSS validation tests (126 tests)
-node tests/run-theme-tests.js
-
-# Run tuning system tests
-node tests/run-tuning-tests.js
+# Run tests
+node tests/run-tests.js           # Battle system (177 tests)
+node tests/run-theme-tests.js     # Theme CSS validation (126 tests)
+node tests/run-tuning-tests.js    # Tuning validation
+node tests/run-qte-tests.js       # QTE tests
 ```
+
+**Dev Mode**: Hold **q+w+e+r+t** simultaneously to toggle (enables undo, theme selector, force dice rolls).
 
 ## Key Architecture
 
-- **Story content**: Edit `scenes/*.md` files (YAML frontmatter + markdown text blocks)
-- **Generated code**: `js/story.js`, `js/enemies.js`, `js/theme.js` are auto-generated - DO NOT edit manually
-- **Engine code**: `js/engine.js` (VN logic), `js/battle/*.js` (modular combat), `js/overworld.js` (2D top-down)
-- **Tuning constants**: `js/tuning.js` contains all game feel values (speeds, delays, balance)
-- **Themes**: `css/themes/*.css` - each theme is self-contained, `theme.md` selects active theme
+| Layer | Source | Output | Purpose |
+|-------|--------|--------|---------|
+| Story | `scenes/*.md` | `js/story.js` | Scene content, choices, flags |
+| Enemies | `enemies/*.md` | `js/enemies.js` | Enemy stats, moves, dialogue |
+| Player | `player/player.md` | `js/player.js` | Player config, skills |
+| Theme | `theme.md` | `js/theme.js` | Active theme selection |
 
-**See `module_outline.md`** for the complete module dependency map, public APIs, and guidelines for adding new modules.
+**Generated files (`js/story.js`, `js/enemies.js`, `js/player.js`, `js/theme.js`) - DO NOT edit manually.**
 
-## Core Design Principles
+### Core Modules
 
-1. **Separation of concerns**: Logic and UI are always separate modules
-   - `battle/*.js` = modular combat logic (no DOM), `battle-ui.js` = rendering (no game logic)
-   - Engine handles state, UI modules handle display
+- `js/engine.js` - VN engine: scene rendering, typewriter, choices, flags, inventory, action registry
+- `js/battle/` - Modular battle system (facade → core → styles)
+- `js/qte.js` + `js/qte-ui.js` - Quick-time event system
+- `js/tuning.js` - **All** magic numbers (timing, speeds, balance values)
+- `css/themes/*.css` - Visual themes (20+ available)
 
-2. **Tuning layer**: All magic numbers go in `js/tuning.js`
-   - Text speeds, animation timings, combat balance, delays
-   - Quick iteration without touching engine code
+## Design Principles
 
-3. **Content vs code**: Writers edit Markdown, developers edit JS
-   - Story text never lives in engine code
-   - Generated files bridge the gap
-
-4. **Theme-agnostic UI**: Battle UI and other components use CSS classes, not inline styles
-   - All visual styling comes from theme CSS files
-
-## Dev Mode
-
-Hold **q+w+e+r+t** simultaneously to toggle dev mode (undo, theme selector, force dice rolls).
+1. **Logic/UI separation**: `battle/*.js` = logic (no DOM), `battle-ui.js` = rendering
+2. **Tuning layer**: All numbers in `js/tuning.js` for quick iteration
+3. **Content/code separation**: Writers edit Markdown only, never JS
+4. **Theme-agnostic UI**: Use CSS classes, never inline styles
 
 ---
 
@@ -1874,6 +1868,13 @@ Test the Agnes (HR) battle specifically:
 ---
 
 ## 22. Changelog
+
+### 2025-12-02
+- **Bug Fix**: Defensive stance countdown now shows on ALL greyed-out action buttons
+  - Before: Only the Defend button showed "(5)" cooldown during defensive stance
+  - After: All action buttons (Attack, Skill, Item, Defend) show "(5)" countdown while player is defending
+  - Countdown counts down through QTEs: (5) => first QTE => (4) => second QTE => (3) => resume normal turns
+  - Updated `renderBattleChoices()` in engine.js to check `player.defending` state
 
 ### 2025-12-01
 - **UI Improvement**: Improved "cannot act" message when enemies are stunned/frozen

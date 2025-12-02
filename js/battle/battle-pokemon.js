@@ -225,7 +225,7 @@ var BattleStylePokemon = (function() {
             }
         }
 
-        if (Math.random() < baseChance) {
+        if (BattleCore.shouldApplyStatus(baseChance)) {
             return BattleCore.applyStatus(target, statusInfo.type, statusInfo.stacks || 1);
         }
 

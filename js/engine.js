@@ -125,7 +125,9 @@ const VNEngine = (function() {
         },
         devMode: true,  // TODO: Set to false before release
         devKeysHeld: {},
-        devForcedRoll: null,  // Dev mode: force next dice roll to this value (null = random)
+        devForcedRoll: null,  // Dev mode: force next hit roll to this value (null = random)
+        devForcedDamage: null,  // Dev mode: force next damage roll to this value (null = random)
+        devGuaranteeStatus: false,  // Dev mode: 100% status effect application
         kenBurns: false,  // Subtle zoom effect on backgrounds (Apple-style)
         currentBackground: null  // Track current background to avoid Ken Burns reset on same bg
     };
@@ -281,6 +283,18 @@ const VNEngine = (function() {
                 BattleEngine.setForcedRollCallback(function() {
                     return state.devMode ? state.devForcedRoll : null;
                 });
+                // Set up forced damage callback for dev mode
+                if (BattleEngine.setForcedDamageCallback) {
+                    BattleEngine.setForcedDamageCallback(function() {
+                        return state.devMode ? state.devForcedDamage : null;
+                    });
+                }
+                // Set up guarantee status callback for dev mode
+                if (BattleEngine.setGuaranteeStatusCallback) {
+                    BattleEngine.setGuaranteeStatusCallback(function() {
+                        return state.devMode && state.devGuaranteeStatus;
+                    });
+                }
             }
 
             // Start battle using the module
@@ -647,15 +661,26 @@ const VNEngine = (function() {
                 labelText += ' [+' + choice.heals + ' HP]';
             }
 
-            // Check defend cooldown
+            // Check if player is in defensive stance (all buttons greyed, show cooldown)
+            var isDefending = false;
             var isOnCooldown = false;
-            if (action === 'defend' && typeof BattleCore !== 'undefined') {
+            if (typeof BattleCore !== 'undefined') {
                 var player = BattleCore.getPlayer();
-                if (player && player.defendCooldown > 0) {
-                    isOnCooldown = true;
-                    labelText += ' (' + player.defendCooldown + ')';
-                    button.classList.add('on-cooldown');
-                    button.disabled = true;
+                if (player) {
+                    // If player is in defensive stance, grey out all buttons and show cooldown
+                    if (player.defending && player.defending > 0 && player.defendCooldown > 0) {
+                        isDefending = true;
+                        labelText += ' (' + player.defendCooldown + ')';
+                        button.classList.add('on-cooldown');
+                        button.disabled = true;
+                    }
+                    // Defend button specifically has its own cooldown even after stance ends
+                    else if (action === 'defend' && player.defendCooldown > 0) {
+                        isOnCooldown = true;
+                        labelText += ' (' + player.defendCooldown + ')';
+                        button.classList.add('on-cooldown');
+                        button.disabled = true;
+                    }
                 }
             }
 
@@ -1363,41 +1388,99 @@ const VNEngine = (function() {
         kenBurnsContainer.appendChild(kenBurnsLabel);
         container.appendChild(kenBurnsContainer);
 
-        // Forced dice roll input
-        var diceRollContainer = document.createElement('div');
-        diceRollContainer.className = 'forced-roll-container';
+        // Forced hit roll input
+        var hitRollContainer = document.createElement('div');
+        hitRollContainer.className = 'forced-roll-container';
 
-        var diceRollLabel = document.createElement('label');
-        diceRollLabel.htmlFor = 'forced-roll-input';
-        diceRollLabel.textContent = 'Force roll: ';
+        var hitRollLabel = document.createElement('label');
+        hitRollLabel.htmlFor = 'forced-hit-input';
+        hitRollLabel.textContent = 'Hit Roll: ';
 
-        var diceRollInput = document.createElement('input');
-        diceRollInput.type = 'number';
-        diceRollInput.id = 'forced-roll-input';
-        diceRollInput.min = '1';
-        diceRollInput.max = '20';
-        diceRollInput.placeholder = 'rand';
-        diceRollInput.title = 'Force next dice roll (1-20). Leave empty for random.';
+        var hitRollInput = document.createElement('input');
+        hitRollInput.type = 'number';
+        hitRollInput.id = 'forced-hit-input';
+        hitRollInput.min = '1';
+        hitRollInput.max = '20';
+        hitRollInput.placeholder = 'rand';
+        hitRollInput.title = 'Force next d20 hit roll (1-20). Leave empty for random.';
 
-        diceRollInput.addEventListener('input', function() {
+        hitRollInput.addEventListener('input', function() {
             var val = this.value.trim();
             if (val === '') {
                 state.devForcedRoll = null;
-                log.debug('Forced roll cleared - using random');
+                log.debug('Forced hit roll cleared - using random');
             } else {
                 var num = parseInt(val, 10);
                 if (!isNaN(num) && num >= 1 && num <= 20) {
                     state.devForcedRoll = num;
-                    log.debug('Forced roll set to: ' + num);
+                    log.debug('Forced hit roll set to: ' + num);
                 } else {
                     state.devForcedRoll = null;
                 }
             }
         });
 
-        diceRollContainer.appendChild(diceRollLabel);
-        diceRollContainer.appendChild(diceRollInput);
-        container.appendChild(diceRollContainer);
+        hitRollContainer.appendChild(hitRollLabel);
+        hitRollContainer.appendChild(hitRollInput);
+        container.appendChild(hitRollContainer);
+
+        // Forced damage roll input
+        var damageRollContainer = document.createElement('div');
+        damageRollContainer.className = 'forced-roll-container';
+
+        var damageRollLabel = document.createElement('label');
+        damageRollLabel.htmlFor = 'forced-damage-input';
+        damageRollLabel.textContent = 'Damage Roll: ';
+
+        var damageRollInput = document.createElement('input');
+        damageRollInput.type = 'number';
+        damageRollInput.id = 'forced-damage-input';
+        damageRollInput.min = '1';
+        damageRollInput.max = '99';
+        damageRollInput.placeholder = 'rand';
+        damageRollInput.title = 'Force next damage roll (1-99). Leave empty for random.';
+
+        damageRollInput.addEventListener('input', function() {
+            var val = this.value.trim();
+            if (val === '') {
+                state.devForcedDamage = null;
+                log.debug('Forced damage roll cleared - using random');
+            } else {
+                var num = parseInt(val, 10);
+                if (!isNaN(num) && num >= 1 && num <= 99) {
+                    state.devForcedDamage = num;
+                    log.debug('Forced damage roll set to: ' + num);
+                } else {
+                    state.devForcedDamage = null;
+                }
+            }
+        });
+
+        damageRollContainer.appendChild(damageRollLabel);
+        damageRollContainer.appendChild(damageRollInput);
+        container.appendChild(damageRollContainer);
+
+        // Guarantee status effects checkbox
+        var statusContainer = document.createElement('div');
+        statusContainer.className = 'guarantee-status-container';
+
+        var statusLabel = document.createElement('label');
+
+        var statusCheckbox = document.createElement('input');
+        statusCheckbox.type = 'checkbox';
+        statusCheckbox.id = 'guarantee-status-toggle';
+        statusCheckbox.checked = state.devGuaranteeStatus;
+
+        statusCheckbox.addEventListener('change', function() {
+            state.devGuaranteeStatus = this.checked;
+            log.debug('Guarantee status effects: ' + this.checked);
+        });
+
+        statusLabel.appendChild(statusCheckbox);
+        statusLabel.appendChild(document.createTextNode('100% Status Effects'));
+
+        statusContainer.appendChild(statusLabel);
+        container.appendChild(statusContainer);
 
         document.body.appendChild(container);
     }

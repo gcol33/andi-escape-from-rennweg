@@ -258,12 +258,14 @@
 
 .roll-hit-crit {
     color: var(--roll-color-hit) !important;
-    text-shadow: 0 0 8px var(--emphasis-crit-glow), 0 0 16px var(--emphasis-crit-glow), 0 0 24px rgba(255, 140, 0, 0.5);
+    text-shadow: 0 0 8px var(--emphasis-crit-glow), 0 0 16px var(--emphasis-crit-glow), 0 0 24px rgba(255, 140, 0, 0.5) !important;
+    animation: emphasis-crit-pulse 0.5s ease-out forwards;
 }
 
 .roll-hit-fail {
     color: var(--roll-color-neutral) !important;  /* Miss uses grey */
-    text-shadow: 0 0 8px var(--emphasis-fail-glow), 0 0 16px rgba(255, 0, 0, 0.6);
+    text-shadow: 0 0 8px var(--emphasis-fail-glow), 0 0 16px rgba(255, 0, 0, 0.6) !important;
+    animation: emphasis-fail-shake 0.5s ease-out forwards;
 }
 
 /* Damage rolls */
@@ -274,17 +276,20 @@
 
 .roll-damage-crit {
     color: var(--roll-color-damage) !important;
-    text-shadow: 0 0 8px var(--emphasis-crit-glow), 0 0 16px var(--emphasis-crit-glow), 0 0 24px rgba(255, 140, 0, 0.5);
+    text-shadow: 0 0 8px var(--emphasis-crit-glow), 0 0 16px var(--emphasis-crit-glow), 0 0 24px rgba(255, 140, 0, 0.5) !important;
+    animation: emphasis-crit-pulse 0.5s ease-out forwards;
 }
 
 .roll-damage-max {
     color: var(--roll-color-damage) !important;
-    text-shadow: 0 0 6px var(--emphasis-max-glow), 0 0 12px rgba(255, 140, 0, 0.8), 0 0 18px rgba(255, 140, 0, 0.4);
+    text-shadow: 0 0 6px var(--emphasis-max-glow), 0 0 12px rgba(255, 140, 0, 0.8), 0 0 18px rgba(255, 140, 0, 0.4) !important;
+    animation: emphasis-max-pulse 0.4s ease-out forwards;
 }
 
 .roll-damage-min {
     color: var(--roll-color-damage) !important;
-    text-shadow: 0 0 4px var(--emphasis-min-glow), 0 0 8px rgba(100, 100, 100, 0.4);
+    text-shadow: 0 0 4px var(--emphasis-min-glow), 0 0 8px rgba(100, 100, 100, 0.4) !important;
+    animation: emphasis-min-fade 0.4s ease-out forwards;
 }
 
 /* Healing rolls */
@@ -295,12 +300,14 @@
 
 .roll-heal-max {
     color: var(--roll-color-heal) !important;
-    text-shadow: 0 0 6px var(--emphasis-max-glow), 0 0 12px rgba(255, 140, 0, 0.8), 0 0 18px rgba(255, 140, 0, 0.4);
+    text-shadow: 0 0 6px var(--emphasis-max-glow), 0 0 12px rgba(255, 140, 0, 0.8), 0 0 18px rgba(255, 140, 0, 0.4) !important;
+    animation: emphasis-max-pulse 0.4s ease-out forwards;
 }
 
 .roll-heal-min {
     color: var(--roll-color-heal) !important;
-    text-shadow: 0 0 4px var(--emphasis-min-glow), 0 0 8px rgba(100, 100, 100, 0.4);
+    text-shadow: 0 0 4px var(--emphasis-min-glow), 0 0 8px rgba(100, 100, 100, 0.4) !important;
+    animation: emphasis-min-fade 0.4s ease-out forwards;
 }
 
 /* Status rolls */
@@ -311,12 +318,14 @@
 
 .roll-status-max {
     color: var(--roll-color-status) !important;
-    text-shadow: 0 0 6px var(--emphasis-max-glow), 0 0 12px rgba(255, 140, 0, 0.8), 0 0 18px rgba(255, 140, 0, 0.4);
+    text-shadow: 0 0 6px var(--emphasis-max-glow), 0 0 12px rgba(255, 140, 0, 0.8), 0 0 18px rgba(255, 140, 0, 0.4) !important;
+    animation: emphasis-max-pulse 0.4s ease-out forwards;
 }
 
 .roll-status-min {
     color: var(--roll-color-status) !important;
-    text-shadow: 0 0 4px var(--emphasis-min-glow), 0 0 8px rgba(100, 100, 100, 0.4);
+    text-shadow: 0 0 4px var(--emphasis-min-glow), 0 0 8px rgba(100, 100, 100, 0.4) !important;
+    animation: emphasis-min-fade 0.4s ease-out forwards;
 }
 
 /* Neutral (miss, etc) */
@@ -1325,11 +1334,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 90vw;
-    /* Override any glow from roll classes - floating numbers use simple black outline */
-    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000 !important;
-    background: none;
-    border: none;
-    box-shadow: none;
 }
 
 /* WoW-style damage numbers - larger for visibility */
