@@ -532,7 +532,6 @@
 /* === Password Character Input Sizing ===
  * Base sizing using CSS variables - themes override colors/borders only.
  * Uses text-align for horizontal centering.
- * Uses box-sizing: content-box so line-height = height works for vertical centering.
  */
 .password-char {
     width: var(--password-char-width);
@@ -541,6 +540,8 @@
     line-height: var(--password-char-height);
     text-align: center;
     padding: 0;
+    /* Hide the text cursor - it interferes with centering single characters */
+    caret-color: transparent;
 }
 
 @media (max-width: 56.25em) {
@@ -718,11 +719,11 @@
 }
 
 @media (orientation: portrait) {
-    /* Keep smaller text on portrait/mobile */
+    /* Larger text for portrait/mobile - easier to read on phones */
     :root {
-        --base-font-size-fallback: 1.125rem;  /* 18px - original size */
-        --base-font-size: clamp(1rem, 1.4vw, 1.5rem);
-        --story-font-size: 1.1rem;
+        --base-font-size-fallback: 1.5rem;
+        --base-font-size: clamp(1.25rem, 4vw, 1.75rem);
+        --story-font-size: 1.4rem;
     }
 
     #text-box {
@@ -758,6 +759,21 @@
         order: 2;
         justify-content: center !important;
         width: 100%;
+    }
+
+    /* Hide volume slider in portrait - phones have hardware volume */
+    #volume-slider {
+        display: none !important;
+    }
+
+    /* 9:16 aspect ratio for portrait, 80% height with bottom padding */
+    #vn-container,
+    #password-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        aspect-ratio: 9 / 16 !important;
+        max-height: 80vh !important;
+        margin-bottom: 10vh !important;
     }
 
     /* Dev mode panel - hidden by default in portrait, toggle on tap */

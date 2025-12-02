@@ -673,31 +673,21 @@ h1 {
 /* === Portrait Mode (phones held vertically) === */
 /* These rules ONLY apply when screen is taller than wide */
 @media (orientation: portrait) {
-    /* Use 9:16 aspect ratio for portrait screens */
+    /* Use full width on portrait phones */
     #vn-container {
-        /* Fallback for older browsers without aspect-ratio/min() */
-        max-width: 56.25vh;
-        height: 0;
-        padding-bottom: 177.78%; /* 16:9 inverted = 9:16 */
-        /* Modern browsers override with aspect-ratio */
+        width: 100%;
+        max-width: 100%;
         height: auto;
-        padding-bottom: 0;
         aspect-ratio: 9 / 16;
-        max-width: min(100%, 56.25vh); /* Constrain width based on height */
-        max-height: 85vh; /* Leave buffer room like landscape */
+        max-height: 100vh;
     }
 
     #password-container {
-        /* Fallback for older browsers without aspect-ratio/min() */
-        max-width: 56.25vh;
-        height: 0;
-        padding-bottom: 177.78%; /* 16:9 inverted = 9:16 */
-        /* Modern browsers override */
+        width: 100%;
+        max-width: 100%;
         height: auto;
-        padding-bottom: 0;
         aspect-ratio: 9 / 16;
-        max-width: min(100%, 56.25vh);
-        max-height: 85vh;
+        max-height: 100vh;
     }
 
     /* Ensure wrapper fits in viewport */
@@ -718,13 +708,8 @@ h1 {
     }
 
     /* Hide volume slider in portrait - not needed on phones */
-    #volume-control {
+    #volume-slider {
         display: none !important;
-    }
-
-    /* Center audio controls without volume slider */
-    .audio-controls {
-        justify-content: center;
     }
 
     #text-box.ending-scene {

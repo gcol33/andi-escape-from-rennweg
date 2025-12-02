@@ -25,6 +25,25 @@ var BattleDiceUI = (function() {
     };
 
     // =========================================================================
+    // KEYWORDS - Centralized text for battle UI consistency
+    // =========================================================================
+
+    var KEYWORDS = {
+        // Attack results
+        CRITICAL_HIT: 'CRITICAL HIT!',
+        HIT: 'HIT!',
+        MISS: 'MISS!',
+        FUMBLE: 'FUMBLE!',
+
+        // Damage/Heal
+        DAMAGE: 'DAMAGE',
+        HEALED: 'HEALED!',
+
+        // Defend/Mana
+        MP: 'MP!'
+    };
+
+    // =========================================================================
     // STATE
     // =========================================================================
 
@@ -323,17 +342,25 @@ var BattleDiceUI = (function() {
         hitInfo = hitInfo || {};
 
         // Create two dice elements - both start grey
+        // Use minWidth + left-align so single digits don't shift (e.g., [2 ] not [ 2])
+        // d20 needs 3ch to fit numbers 10-20
         var dice1 = document.createElement('span');
         dice1.className = 'dice-number advantage-die';
         dice1.textContent = '?';
+        dice1.style.minWidth = '3ch';
+        dice1.style.textAlign = 'left';
+        dice1.style.display = 'inline-block';
 
         var dice2 = document.createElement('span');
         dice2.className = 'dice-number advantage-die';
         dice2.textContent = '?';
+        dice2.style.minWidth = '3ch';
+        dice2.style.textAlign = 'left';
+        dice2.style.display = 'inline-block';
 
         var separator = document.createElement('span');
         separator.className = 'advantage-separator';
-        separator.textContent = ' / ';
+        separator.textContent = '/';
 
         container.appendChild(dice1);
         container.appendChild(separator);
@@ -365,6 +392,11 @@ var BattleDiceUI = (function() {
                 loser = roll1Higher ? dice2 : dice1;
                 loserIsLeft = !roll1Higher; // loser is dice2 (right) when roll1 is higher
             }
+
+            // Clear minWidth on winner BEFORE collapse so we don't see [ ]7 during animation
+            winner.style.minWidth = '';
+            winner.style.textAlign = '';
+            winner.style.display = '';
 
             // Collapse loser into winner (direction depends on position)
             // Left loser collapses right (->), right loser collapses left (<-)
@@ -498,17 +530,25 @@ var BattleDiceUI = (function() {
         var isDisadvantage = rollResult.disadvantage;
 
         // Create two damage dice elements - both start grey
+        // Use minWidth + left-align so single digits don't shift (e.g., [2 ] not [ 2])
+        // d6 needs 2ch to fit numbers 1-6
         var dice1 = document.createElement('strong');
         dice1.className = 'dice-number damage-dice advantage-die';
         dice1.textContent = '?';
+        dice1.style.minWidth = '2ch';
+        dice1.style.textAlign = 'left';
+        dice1.style.display = 'inline-block';
 
         var dice2 = document.createElement('strong');
         dice2.className = 'dice-number damage-dice advantage-die';
         dice2.textContent = '?';
+        dice2.style.minWidth = '2ch';
+        dice2.style.textAlign = 'left';
+        dice2.style.display = 'inline-block';
 
         var separator = document.createElement('span');
         separator.className = 'advantage-separator';
-        separator.textContent = ' / ';
+        separator.textContent = '/';
 
         container.appendChild(dice1);
         container.appendChild(separator);
@@ -540,6 +580,11 @@ var BattleDiceUI = (function() {
                 loser = roll1Higher ? dice2 : dice1;
                 loserIsLeft = !roll1Higher;
             }
+
+            // Clear minWidth on winner BEFORE collapse so we don't see [ ]7 during animation
+            winner.style.minWidth = '';
+            winner.style.textAlign = '';
+            winner.style.display = '';
 
             // Collapse loser into winner
             if (loserIsLeft) {
@@ -736,19 +781,19 @@ var BattleDiceUI = (function() {
                 // Determine result text and unified roll class
                 var resultText, rollClass, diceRollClass;
                 if (rollResult.isCrit) {
-                    resultText = 'CRITICAL HIT!';
+                    resultText = KEYWORDS.CRITICAL_HIT;
                     rollClass = getRollClass('hit', 'crit');
                     diceRollClass = getRollClass('hit', 'crit');
                 } else if (rollResult.isFumble) {
-                    resultText = 'FUMBLE!';
+                    resultText = KEYWORDS.FUMBLE;
                     rollClass = getRollClass('hit', 'fail');  // Fumble uses grey + fail emphasis
                     diceRollClass = getRollClass('hit', 'fail');
                 } else if (options.hit) {
-                    resultText = 'HIT!';
+                    resultText = KEYWORDS.HIT;
                     rollClass = getRollClass('hit', 'normal');
                     diceRollClass = getRollClass('hit', 'normal');
                 } else {
-                    resultText = 'MISS!';
+                    resultText = KEYWORDS.MISS;
                     rollClass = getRollClass('neutral', 'normal');  // Miss is neutral/grey
                     diceRollClass = getRollClass('neutral', 'normal');  // Dice should also be grey for miss
                 }
@@ -879,7 +924,7 @@ var BattleDiceUI = (function() {
                 var damageText = document.createElement('span');
                 // Just red color for text, no special outline/glow
                 damageText.className = 'damage-text roll-type-damage';
-                damageText.textContent = 'DAMAGE';
+                damageText.textContent = KEYWORDS.DAMAGE;
                 line.appendChild(damageText);
 
                 diceTimeout(callback, config.lingerDelay);
@@ -1261,23 +1306,25 @@ var BattleDiceUI = (function() {
         var isDisadvantage = rollResult.disadvantage;
 
         // Create two heal dice elements - both start grey
+        // Use minWidth + left-align so single digits don't shift (e.g., [2 ] not [ 2])
+        // d6 needs 2ch to fit numbers 1-6
         var dice1 = document.createElement('strong');
         dice1.className = 'dice-number heal-dice advantage-die';
         dice1.textContent = '?';
         dice1.style.minWidth = '2ch';
-        dice1.style.textAlign = 'center';
+        dice1.style.textAlign = 'left';
         dice1.style.display = 'inline-block';
 
         var dice2 = document.createElement('strong');
         dice2.className = 'dice-number heal-dice advantage-die';
         dice2.textContent = '?';
         dice2.style.minWidth = '2ch';
-        dice2.style.textAlign = 'center';
+        dice2.style.textAlign = 'left';
         dice2.style.display = 'inline-block';
 
         // Add separator
         var separator = document.createElement('span');
-        separator.textContent = ' / ';
+        separator.textContent = '/';
         separator.className = 'advantage-separator';
 
         container.appendChild(dice1);
@@ -1324,6 +1371,11 @@ var BattleDiceUI = (function() {
             if (completed < 2) return;
 
             config.spinDuration = originalDuration;
+
+            // Clear minWidth on winner BEFORE collapse so we don't see [ ]7 during animation
+            winner.style.minWidth = '';
+            winner.style.textAlign = '';
+            winner.style.display = '';
 
             // Brief pause then collapse loser into winner
             diceTimeout(function() {
@@ -1396,7 +1448,7 @@ var BattleDiceUI = (function() {
         // Show HEALED! text - just green color, no special outline/glow
         var healedSpan = document.createElement('span');
         healedSpan.className = 'roll-result-text roll-type-heal';
-        healedSpan.textContent = 'HEALED!';
+        healedSpan.textContent = KEYWORDS.HEALED;
         line.appendChild(healedSpan);
 
         // Play heal sound
@@ -1503,7 +1555,7 @@ var BattleDiceUI = (function() {
                                     showOvermanaCollapse(line, manaSpan, manaRolled, overmana, manaRecovered, cooldown, finishWithCooldown);
                                 } else {
                                     // No overmana - just finish with MP! and cooldown
-                                    typewriter(line, ' MP!', finishWithCooldown);
+                                    typewriter(line, ' ' + KEYWORDS.MP, finishWithCooldown);
                                 }
                             });
                         });
@@ -1537,7 +1589,7 @@ var BattleDiceUI = (function() {
                 diceTimeout(function() {
                     manaSpan.classList.remove('dice-pop');
                     // Finish with MP! then show cooldown via callback
-                    typewriter(line, ' MP!', finishCallback);
+                    typewriter(line, ' ' + KEYWORDS.MP, finishCallback);
                 }, 200);
             }, 250);
         }, 400);
@@ -1563,7 +1615,7 @@ var BattleDiceUI = (function() {
         var container = options.container;
         var damage = options.damage;
         var sides = options.sides || 5;
-        var damageText = options.damageText || 'DAMAGE';
+        var damageText = options.damageText || KEYWORDS.DAMAGE;
 
         // Clear container and create roll result line
         container.innerHTML = '';
@@ -1615,6 +1667,9 @@ var BattleDiceUI = (function() {
         // Config
         setSfxCallback: setSfxCallback,
         config: config,
+
+        // Keywords - centralized text for UI consistency
+        KEYWORDS: KEYWORDS,
 
         // Unified Roll Display System helpers
         // Use these to get consistent styling across combat log and floating numbers
