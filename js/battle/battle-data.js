@@ -52,10 +52,10 @@ var BattleData = (function() {
         // Special pseudo-status for defending stance (shown via player.defending flag)
         defending: {
             name: 'Defending',
-            icon: '🛡️',
+            icon: '🙅',
             color: '#3498db',
             duration: 1,
-            description: 'Bracing for impact - AC boosted, recovers mana'
+            description: 'Defensive stance - cannot act, QTE to dodge/parry attacks'
         },
         burn: {
             name: 'Burn',

@@ -717,6 +717,16 @@ h1 {
         justify-content: center;
     }
 
+    /* Hide volume slider in portrait - not needed on phones */
+    #volume-control {
+        display: none !important;
+    }
+
+    /* Center audio controls without volume slider */
+    .audio-controls {
+        justify-content: center;
+    }
+
     #text-box.ending-scene {
         height: auto;
         min-height: 40%;

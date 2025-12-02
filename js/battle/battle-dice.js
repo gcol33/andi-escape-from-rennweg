@@ -216,14 +216,17 @@ var BattleDice = (function() {
 
         var winner = roll1.total >= roll2.total ? roll1 : roll2;
 
+        // For advantage, isMin/isMax should reflect the CHOSEN roll's relation to possible range
+        // isMin: chosen roll equals the minimum possible (only if BOTH rolls were minimum)
+        // isMax: chosen roll equals the maximum possible (winner.isMax is correct since we took higher)
         return {
             total: winner.total,
             rolls: winner.rolls,
             bothRolls: [roll1.total, roll2.total],
             modifier: winner.modifier,
             notation: notation,
-            isMin: winner.isMin,
-            isMax: winner.isMax,
+            isMin: roll1.isMin && roll2.isMin,  // Only min if both rolls were min
+            isMax: winner.isMax,                 // Max if the higher roll was max
             advantage: true
         };
     }
@@ -239,14 +242,17 @@ var BattleDice = (function() {
 
         var loser = roll1.total <= roll2.total ? roll1 : roll2;
 
+        // For disadvantage, isMin/isMax should reflect the CHOSEN roll's relation to possible range
+        // isMin: chosen roll equals the minimum possible (loser.isMin is correct since we took lower)
+        // isMax: chosen roll equals the maximum possible (only if BOTH rolls were maximum)
         return {
             total: loser.total,
             rolls: loser.rolls,
             bothRolls: [roll1.total, roll2.total],
             modifier: loser.modifier,
             notation: notation,
-            isMin: loser.isMin,
-            isMax: loser.isMax,
+            isMin: loser.isMin,                  // Min if the lower roll was min
+            isMax: roll1.isMax && roll2.isMax,   // Only max if both rolls were max
             disadvantage: true
         };
     }
