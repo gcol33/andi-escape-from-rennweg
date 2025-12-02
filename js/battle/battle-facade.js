@@ -719,6 +719,11 @@ var BattleEngine = (function() {
         // NOTE: Don't updateDisplay() here - wait until animation completes
         // so MP bar updates at the same time as the "Recovered +X MP!" text
 
+        // But DO refresh battle choices immediately to show defending countdown
+        if (typeof VNEngine !== 'undefined' && VNEngine.refreshBattleChoices) {
+            VNEngine.refreshBattleChoices();
+        }
+
         var battleLogContent = document.getElementById('battle-log-content');
         battleLogContent.innerHTML = '';
         // Create wrapper div for consistent styling with attack rolls
@@ -1114,6 +1119,7 @@ var BattleEngine = (function() {
 
     /**
      * Process the result of a defend QTE
+     * Flow: QTE done -> Show enemy attack roll -> Show result (parry/dodge/hit)
      */
     function processDefendQTEResult(style, player, enemy, move, qteResult, callback) {
         var enemyName = enemy.name || 'Enemy';
@@ -1128,7 +1134,37 @@ var BattleEngine = (function() {
         // Check if stance wore off
         var stanceWoreOff = player.defending <= 0;
 
-        // Build result based on defend outcome
+        // Force end defend on fumble
+        if (mods.defendEnds) {
+            player.defending = 0;
+            stanceWoreOff = true;
+        }
+
+        // Execute enemy attack to get the roll (but don't apply damage yet for parry/dodge)
+        var attackResult = style.enemyTurn ? style.enemyTurn() : null;
+        var rollData = null;
+        var damage = 0;
+
+        if (attackResult && attackResult.attackResult) {
+            rollData = attackResult.attackResult;
+            damage = rollData.damage || 0;
+        }
+
+        // Show enemy attack roll animation, then show outcome
+        if (rollData && rollData.roll !== undefined) {
+            showAttackRoll(enemyName, rollData, false, function() {
+                showDefendOutcome(style, player, playerName, mods, damage, stanceWoreOff, attackResult, callback);
+            });
+        } else {
+            // No roll data, just show outcome
+            showDefendOutcome(style, player, playerName, mods, damage, stanceWoreOff, attackResult, callback);
+        }
+    }
+
+    /**
+     * Show the outcome of a defend QTE after the attack roll is displayed
+     */
+    function showDefendOutcome(style, player, playerName, mods, damage, stanceWoreOff, attackResult, callback) {
         var defendMessages = [];
 
         // Apply confused status for normal/bad outcomes
@@ -1141,42 +1177,42 @@ var BattleEngine = (function() {
 
         // Handle defend outcomes
         if (mods.result === 'parry') {
-            // PARRY: Reflect damage back
+            // PARRY: Reflect damage back, take no damage
             var counterDice = mods.counterDamageDice || '1d5';
             var counterDamage = style.rollDamage ? style.rollDamage(counterDice) : Math.floor(Math.random() * 5) + 1;
             BattleCore.damageEnemy(counterDamage, { source: 'parry', type: 'physical' });
-            defendMessages.push('PARRY! ' + playerName + ' reflects ' + counterDamage + ' damage!');
+            defendMessages.push('PARRY! ' + playerName + ' reflects <span class="roll-damage-normal">' + counterDamage + ' DAMAGE</span>!');
             showDamageNumber(counterDamage, 'enemy', 'damage');
+            // Heal back damage that was applied during enemyTurn
+            if (damage > 0) {
+                BattleCore.healPlayer(damage, 'parry_refund');
+            }
         } else if (mods.result === 'dodge') {
-            // DODGE: No damage
+            // DODGE: No damage taken
             defendMessages.push('DODGE! ' + playerName + ' avoids the attack!');
             showDamageNumber(0, 'player', 'miss');
+            // Heal back damage that was applied during enemyTurn
+            if (damage > 0) {
+                BattleCore.healPlayer(damage, 'dodge_refund');
+            }
         } else {
-            // CONFUSE or FUMBLE: Take full damage
-            // Execute the enemy attack to get damage
-            var attackResult = style.enemyTurn ? style.enemyTurn() : null;
+            // CONFUSE or FUMBLE: Take full damage (already applied in enemyTurn)
+            if (damage > 0) {
+                showDamageNumber(damage, 'player', 'damage');
+            }
 
-            if (attackResult && attackResult.attackResult) {
-                var damage = attackResult.attackResult.damage || 0;
-                if (damage > 0) {
-                    showDamageNumber(damage, 'player', 'damage');
-                }
-
-                // Add attack messages
-                if (attackResult.messages) {
-                    defendMessages = defendMessages.concat(attackResult.messages);
-                }
+            // Add attack messages (but filter out the "uses X" message since we showed it before QTE)
+            if (attackResult && attackResult.messages) {
+                attackResult.messages.forEach(function(msg) {
+                    if (msg.indexOf(' uses ') === -1) {
+                        defendMessages.push(msg);
+                    }
+                });
             }
 
             // Lose AC bonus on fumble
             if (mods.loseACBonus) {
                 defendMessages.push(playerName + '\'s guard is broken!');
-            }
-
-            // Force end defend on fumble
-            if (mods.defendEnds) {
-                player.defending = 0;
-                stanceWoreOff = true;
             }
         }
 
@@ -1660,6 +1696,11 @@ var BattleEngine = (function() {
             prevDisplayState.playerLimit = state.player.limitCharge;
             prevDisplayState.playerAC = effectiveAC;
             prevDisplayState.enemyHP = state.enemy.hp;
+
+            // Refresh battle choices to update cooldown display (especially during defending)
+            if (typeof VNEngine !== 'undefined' && VNEngine.refreshBattleChoices) {
+                VNEngine.refreshBattleChoices();
+            }
         }
         // Check for music transitions based on HP thresholds
         checkMusicTransitions();

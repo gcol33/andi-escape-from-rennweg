@@ -619,7 +619,7 @@ var BattleUI = (function() {
 
             elements.battleLog.innerHTML = html;
             // Scroll to bottom so newest content is visible
-            elements.battleLog.scrollTop = elements.battleLog.scrollHeight;
+            scrollToBottomIfNeeded(elements.battleLog);
 
             var diceNum = elements.battleLog.querySelector('.dice-number');
             if (diceNum) {
@@ -779,38 +779,29 @@ var BattleUI = (function() {
     }
 
     /**
+     * Scroll container to bottom if content overflows significantly
+     * Only scrolls when there's actually hidden content below the current view
+     * @param {HTMLElement} container - The scrollable container
+     */
+    function scrollToBottomIfNeeded(container) {
+        if (!container) return;
+        // Only scroll if there's content hidden below the current scroll position
+        // (scrollHeight - scrollTop - clientHeight > threshold means there's hidden content below)
+        var hiddenBelow = container.scrollHeight - container.scrollTop - container.clientHeight;
+        if (hiddenBelow > 5) {  // 5px threshold to avoid micro-scrolls from rounding
+            container.scrollTop = container.scrollHeight - container.clientHeight;
+        }
+    }
+
+    /**
      * Typewriter effect for text
-     * Uses transparent text to reserve exact space and prevent layout jumps
+     * Types text character by character, scrolling when content overflows
      */
     function typewriterEffect(container, text, callback) {
         var index = 0;
         var speed = config.dice.typewriterSpeed;
 
         container.innerHTML = '';
-
-        // Create wrapper with relative positioning
-        var wrapper = document.createElement('div');
-        wrapper.className = 'typewriter-wrapper';
-        wrapper.style.position = 'relative';
-
-        // Full text rendered invisibly - reserves exact final space
-        // Use visibility:hidden (not color:transparent) to hide styled child elements too
-        var placeholder = document.createElement('div');
-        placeholder.innerHTML = text;
-        placeholder.style.visibility = 'hidden';
-        placeholder.style.userSelect = 'none';
-        placeholder.style.pointerEvents = 'none';
-
-        // Visible text overlaid on top - typed character by character
-        var visible = document.createElement('div');
-        visible.style.position = 'absolute';
-        visible.style.top = '0';
-        visible.style.left = '0';
-        visible.style.right = '0';
-
-        wrapper.appendChild(placeholder);
-        wrapper.appendChild(visible);
-        container.appendChild(wrapper);
 
         function typeNext() {
             if (index < text.length) {
@@ -828,28 +819,38 @@ var BattleUI = (function() {
                             var closeIndex = text.indexOf(closingTag, tagEnd);
                             if (closeIndex !== -1) {
                                 // Add the entire styled element at once (opening tag + content + closing tag)
-                                visible.innerHTML += text.substring(index, closeIndex + closingTag.length);
+                                container.innerHTML += text.substring(index, closeIndex + closingTag.length);
                                 index = closeIndex + closingTag.length;
+                                scrollToBottomIfNeeded(container);
                                 typeNext();
                                 return;
                             }
                         }
                         // Regular tag without class - just add the tag
-                        visible.innerHTML += tagContent;
+                        container.innerHTML += tagContent;
                         index = tagEnd + 1;
+                        // Check for <br> tags that add new lines
+                        if (tagContent.toLowerCase() === '<br>' || tagContent.toLowerCase() === '<br/>') {
+                            scrollToBottomIfNeeded(container);
+                        }
                         typeNext();
                         return;
                     }
                 }
 
-                visible.innerHTML += text[index];
+                container.innerHTML += text[index];
                 index++;
+
+                // Scroll on newlines
+                if (text[index - 1] === '\n') {
+                    scrollToBottomIfNeeded(container);
+                }
 
                 var t = setTimeout(typeNext, 1000 / speed);
                 animationState.timeouts.push(t);
             } else {
-                // Animation complete - replace wrapper with final text
-                container.innerHTML = text;
+                // Animation complete - final scroll
+                scrollToBottomIfNeeded(container);
                 if (callback) {
                     callback();
                 }
@@ -1682,6 +1683,7 @@ var BattleUI = (function() {
 
         // Animation utilities
         animateDiceRoll: animateDiceRoll,
+        scrollToBottomIfNeeded: scrollToBottomIfNeeded,
         typewriterEffect: typewriterEffect,
 
         // Expose config for external timing needs

@@ -661,25 +661,34 @@ const VNEngine = (function() {
                 labelText += ' [+' + choice.heals + ' HP]';
             }
 
-            // Check if player is in defensive stance (all buttons greyed, show cooldown)
+            // Check if player is in defensive stance or defend is on cooldown
             var isDefending = false;
             var isOnCooldown = false;
             if (typeof BattleCore !== 'undefined') {
                 var player = BattleCore.getPlayer();
                 if (player) {
-                    // If player is in defensive stance, grey out all buttons and show cooldown
-                    if (player.defending && player.defending > 0 && player.defendCooldown > 0) {
+                    // If player is in defensive stance, grey out all buttons (but only Defend shows countdown)
+                    if (player.defending && player.defending > 0) {
                         isDefending = true;
-                        labelText += ' (' + player.defendCooldown + ')';
                         button.classList.add('on-cooldown');
                         button.disabled = true;
+                        // Only Defend button shows the countdown during stance
+                        if (action === 'defend' && player.defendCooldown > 0) {
+                            // Subtract 1 because defendCooldown was set +1 for turn increment timing
+                            var displayCooldown = Math.max(0, player.defendCooldown - 1);
+                            labelText += ' (' + displayCooldown + ')';
+                        }
                     }
-                    // Defend button specifically has its own cooldown even after stance ends
+                    // Defend button has cooldown even after stance ends
                     else if (action === 'defend' && player.defendCooldown > 0) {
                         isOnCooldown = true;
-                        labelText += ' (' + player.defendCooldown + ')';
-                        button.classList.add('on-cooldown');
-                        button.disabled = true;
+                        // Subtract 1 because defendCooldown was set +1 for turn increment timing
+                        var displayCooldown = Math.max(0, player.defendCooldown - 1);
+                        if (displayCooldown > 0) {
+                            labelText += ' (' + displayCooldown + ')';
+                            button.classList.add('on-cooldown');
+                            button.disabled = true;
+                        }
                     }
                 }
             }
@@ -3282,6 +3291,13 @@ const VNEngine = (function() {
         reset: reset,
         registerActionHandler: function(type, handler) {
             actionHandlers[type] = handler;
+        },
+        // Battle UI refresh (for updating cooldowns/defending state)
+        refreshBattleChoices: function() {
+            var scene = story[state.currentSceneId];
+            if (scene && typeof BattleEngine !== 'undefined' && BattleEngine.isActive()) {
+                renderBattleChoices(scene.battle_actions || scene.choices);
+            }
         }
     };
 

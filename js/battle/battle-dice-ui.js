@@ -635,34 +635,14 @@ var BattleDiceUI = (function() {
         var scrollContainer = element.closest('.battle-log-content') ||
                               document.getElementById('battle-log-content');
 
-        // Track if we've started scrolling (once we start, keep scrolling)
-        var hasStartedScrolling = false;
-
-        // Scroll to bottom - keeps newest content visible
-        function scrollToBottom() {
-            if (scrollContainer) {
-                scrollContainer.scrollTop = scrollContainer.scrollHeight;
-            }
-        }
-
-        // Check if content overflows and we need to scroll
+        // Check if content overflows and scroll if needed
+        // Uses the same logic as BattleUI.scrollToBottomIfNeeded
         function checkAndScroll() {
             if (!scrollContainer) return;
-
-            // Once we start scrolling, always scroll to keep up with new content
-            if (hasStartedScrolling) {
-                scrollToBottom();
-                return;
-            }
-
-            // Calculate half a line height as buffer (prevents false triggers during line wrap)
-            var lineHeight = parseFloat(getComputedStyle(scrollContainer).lineHeight) || 16;
-            var buffer = lineHeight * 0.5;
-
-            // Start scrolling only when content overflows by more than half a line
-            if (scrollContainer.scrollHeight > scrollContainer.clientHeight + buffer) {
-                hasStartedScrolling = true;
-                scrollToBottom();
+            // Only scroll if there's content hidden below the current scroll position
+            var hiddenBelow = scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight;
+            if (hiddenBelow > 5) {  // 5px threshold to avoid micro-scrolls from rounding
+                scrollContainer.scrollTop = scrollContainer.scrollHeight - scrollContainer.clientHeight;
             }
         }
 
@@ -1402,8 +1382,9 @@ var BattleDiceUI = (function() {
                     loser.remove();
                     separator.remove();
 
-                    // Remove advantage classes for normal modifier collapse behavior
+                    // Remove advantage classes and neutral color for normal modifier collapse behavior
                     winner.classList.remove('advantage-die', 'advantage-winner');
+                    winner.classList.remove(getRollClass('neutral', 'normal'));
 
                     // Apply green heal color based on max/min status
                     var healResultCategory = rollResult.isMaxHeal ? 'max' : (rollResult.isMinHeal ? 'min' : 'normal');

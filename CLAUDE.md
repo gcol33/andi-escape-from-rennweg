@@ -1875,6 +1875,8 @@ Test the Agnes (HR) battle specifically:
   - After: All action buttons (Attack, Skill, Item, Defend) show "(5)" countdown while player is defending
   - Countdown counts down through QTEs: (5) => first QTE => (4) => second QTE => (3) => resume normal turns
   - Updated `renderBattleChoices()` in engine.js to check `player.defending` state
+  - Added `VNEngine.refreshBattleChoices()` API for battle-facade to trigger UI updates
+  - Called `refreshBattleChoices()` from `updateDisplay()` in battle-facade.js to keep countdown synced
 
 ### 2025-12-01
 - **UI Improvement**: Improved "cannot act" message when enemies are stunned/frozen
