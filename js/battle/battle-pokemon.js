@@ -323,7 +323,7 @@ var BattleStylePokemon = (function() {
                 var healAmount = typeof move.healAmount === 'number' ?
                     move.healAmount : randomRange(10, 20);
                 var healResult = BattleCore.healPlayer(healAmount, 'move');
-                messages.push('Restored <span class="battle-number">' + healResult.healed + ' HP</span>!');
+                messages.push('Restored <span class="battle-number-hp">' + healResult.healed + ' HP</span>!');
             }
 
             BattleCore.playSfx(move.isHeal ? 'heal' : 'buff_apply');
@@ -564,7 +564,7 @@ var BattleStylePokemon = (function() {
                 var healAmount = typeof move.healAmount === 'number' ?
                     move.healAmount : randomRange(10, 20);
                 var healResult = BattleCore.healEnemy(healAmount, 'move');
-                messages.push('Restored <span class="battle-number">' + healResult.healed + ' HP</span>!');
+                messages.push('Restored <span class="battle-number-hp">' + healResult.healed + ' HP</span>!');
             }
 
             BattleCore.playSfx(move.isHeal ? 'heal' : 'buff_apply');

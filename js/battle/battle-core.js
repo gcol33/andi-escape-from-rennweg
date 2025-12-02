@@ -1067,11 +1067,11 @@ var BattleCore = (function() {
 
         // Build combined restoration message
         if (hpRestored > 0 && mpRestored > 0) {
-            messages.push('Restored <span class="battle-number">' + hpRestored + ' HP</span>, <span class="battle-number">' + mpRestored + ' MP</span>!');
+            messages.push('Restored <span class="battle-number-hp">' + hpRestored + ' HP</span>, <span class="battle-number-mp">' + mpRestored + ' MP</span>!');
         } else if (hpRestored > 0) {
-            messages.push('Restored <span class="battle-number">' + hpRestored + ' HP</span>!');
+            messages.push('Restored <span class="battle-number-hp">' + hpRestored + ' HP</span>!');
         } else if (mpRestored > 0) {
-            messages.push('Restored <span class="battle-number">' + mpRestored + ' MP</span>!');
+            messages.push('Restored <span class="battle-number-mp">' + mpRestored + ' MP</span>!');
         }
 
         if (itemDef.curesStatus) {

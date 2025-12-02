@@ -325,15 +325,16 @@ var TUNING = (function() {
             // === Zone Sizes (% from center) ===
             // Finalized 4-tier system: Perfect / Good / Normal / Bad
             // Total bar is 100%, center is at 50%
+            // Standard QTE layout: perfect in center, zones radiate outward
             zones: {
-                perfect: 5,                 // ±5% = 10% total (blue, tiny center)
-                good: 15,                   // ±15% = 30% total (green)
-                normal: 30,                 // ±30% = 60% total (yellow)
-                // Remaining 40% = bad zone (red, outer edges)
+                perfect: 10,                // ±10% = 20% total (blue center)
+                good: 25,                   // ±25% = 50% total (green)
+                normal: 40,                 // ±40% = 80% total (yellow)
+                // Remaining 20% = bad zone (red, 10% each edge)
 
                 // Legacy mapping (for backward compatibility)
-                success: 15,                // Maps to 'good'
-                partial: 30                 // Maps to 'normal'
+                success: 25,                // Maps to 'good'
+                partial: 40                 // Maps to 'normal'
             },
 
             // === Result Modifiers ===

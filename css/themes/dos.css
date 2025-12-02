@@ -17,6 +17,15 @@
     --damage-font: var(--theme-font);
 }
 
+/* === Font Face === */
+@font-face {
+    font-family: 'VT323 Password';
+    src: url('../../assets/fonts/password/VT323-Password.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
 /* === Password Overlay === */
 #password-overlay {
     position: fixed;
@@ -83,7 +92,7 @@
 
 /* Password char - sizes from shared.css variables, theme styling only */
 .password-char {
-    font-family: 'VT323', 'Courier New', monospace;
+    font-family: 'VT323 Password', 'VT323', 'Courier New', monospace;
     font-weight: normal;
     text-align: center;
     text-transform: uppercase;

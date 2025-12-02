@@ -119,6 +119,12 @@ var QTEUI = (function() {
         // Determine if using finalized 4-tier system
         uiState.finalized = (type === 'skill' || type === 'defend');
 
+        // Use target position from options (set by engine) or generate random fallback
+        // Target is within middle 80% of bar (10% to 90%)
+        uiState.targetPosition = options.targetPosition !== undefined
+            ? options.targetPosition
+            : 10 + Math.random() * 80;
+
         // Create container
         var qteContainer = document.createElement('div');
         qteContainer.id = 'qte-container';
@@ -161,7 +167,7 @@ var QTEUI = (function() {
         // Create instructions
         var instructions = document.createElement('div');
         instructions.className = 'qte-instructions';
-        instructions.innerHTML = 'Press <span class="qte-key">SPACE</span> or <span class="qte-key">TAP</span>';
+        instructions.innerHTML = '<span class="qte-hit-red">HIT RED</span> - Press <span class="qte-key">SPACE</span> or <span class="qte-key">CLICK</span>';
 
         // Create result display (hidden initially)
         var result = document.createElement('div');
@@ -269,38 +275,57 @@ var QTEUI = (function() {
 
     /**
      * Create zone visualization for finalized battle system (4-tier: Perfect/Good/Normal/Bad)
+     * Perfect zone is positioned at a random target within 80% of bar width
      * @param {object} zones - Zone sizes { perfect, good, normal }
      * @returns {HTMLElement}
      */
     function createZoneVisualizationFinalized(zones) {
         var container = document.createElement('div');
         container.className = 'qte-zones qte-zones-finalized';
+        container.style.position = 'relative';
 
-        // Calculate zone widths
-        // The zones are mirrored around the center
-        // bad | normal | good | perfect | good | normal | bad
+        // Target position is randomly placed within 10-90% of the bar
+        var target = uiState.targetPosition;
 
-        var perfectWidth = zones.perfect * 2;     // Perfect is centered
-        var goodWidth = (zones.good - zones.perfect) * 2;
-        var normalWidth = (zones.normal - zones.good) * 2;
-        var badWidth = (50 - zones.normal) * 2;
+        // Zone half-widths (zones extend both directions from target)
+        var perfectHalf = zones.perfect;
+        var goodHalf = zones.good;
+        var normalHalf = zones.normal;
 
-        // Create zones (left to right)
-        var leftBad = createZoneSegment('bad', badWidth / 2);
-        var leftNormal = createZoneSegment('normal', normalWidth / 2);
-        var leftGood = createZoneSegment('good', goodWidth / 2);
-        var center = createZoneSegment('perfect', perfectWidth);
-        var rightGood = createZoneSegment('good', goodWidth / 2);
-        var rightNormal = createZoneSegment('normal', normalWidth / 2);
-        var rightBad = createZoneSegment('bad', badWidth / 2);
+        // Calculate zone boundaries (clamped to 0-100)
+        var perfectLeft = Math.max(0, target - perfectHalf);
+        var perfectRight = Math.min(100, target + perfectHalf);
+        var goodLeft = Math.max(0, target - goodHalf);
+        var goodRight = Math.min(100, target + goodHalf);
+        var normalLeft = Math.max(0, target - normalHalf);
+        var normalRight = Math.min(100, target + normalHalf);
 
-        container.appendChild(leftBad);
-        container.appendChild(leftNormal);
-        container.appendChild(leftGood);
-        container.appendChild(center);
-        container.appendChild(rightGood);
-        container.appendChild(rightNormal);
-        container.appendChild(rightBad);
+        // Create zones using absolute positioning
+        // Bad zone is the background (full width)
+        var badZone = document.createElement('div');
+        badZone.className = 'qte-zone qte-zone-bad';
+        badZone.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;';
+
+        // Normal zone
+        var normalZone = document.createElement('div');
+        normalZone.className = 'qte-zone qte-zone-normal';
+        normalZone.style.cssText = 'position:absolute;top:0;height:100%;left:' + normalLeft + '%;width:' + (normalRight - normalLeft) + '%;';
+
+        // Good zone
+        var goodZone = document.createElement('div');
+        goodZone.className = 'qte-zone qte-zone-good';
+        goodZone.style.cssText = 'position:absolute;top:0;height:100%;left:' + goodLeft + '%;width:' + (goodRight - goodLeft) + '%;';
+
+        // Perfect zone
+        var perfectZone = document.createElement('div');
+        perfectZone.className = 'qte-zone qte-zone-perfect';
+        perfectZone.style.cssText = 'position:absolute;top:0;height:100%;left:' + perfectLeft + '%;width:' + (perfectRight - perfectLeft) + '%;';
+
+        // Add in order (bad first as background, then layers on top)
+        container.appendChild(badZone);
+        container.appendChild(normalZone);
+        container.appendChild(goodZone);
+        container.appendChild(perfectZone);
 
         return container;
     }
@@ -347,19 +372,21 @@ var QTEUI = (function() {
 
     /**
      * Determine zone from position for finalized battle system
+     * Uses distance from random target position (not center)
      * @param {number} position - 0-100
      * @returns {string} - 'perfect', 'good', 'normal', or 'bad'
      */
     function getZoneFromPositionFinalized(position) {
         if (!uiState.zones) return 'bad';
 
-        var distanceFromCenter = Math.abs(position - 50);
+        // Distance from the random target position
+        var distanceFromTarget = Math.abs(position - uiState.targetPosition);
 
-        if (distanceFromCenter <= uiState.zones.perfect) {
+        if (distanceFromTarget <= uiState.zones.perfect) {
             return 'perfect';
-        } else if (distanceFromCenter <= uiState.zones.good) {
+        } else if (distanceFromTarget <= uiState.zones.good) {
             return 'good';
-        } else if (distanceFromCenter <= uiState.zones.normal) {
+        } else if (distanceFromTarget <= uiState.zones.normal) {
             return 'normal';
         } else {
             return 'bad';
@@ -484,14 +511,14 @@ var QTEUI = (function() {
             // Defend QTE result text
             switch (result) {
                 case 'perfect':
-                    return 'PARRY! Counter!';
+                    return 'PARRY! Reflect 1d5!';
                 case 'good':
-                    return 'DODGE! Evaded!';
+                    return 'DODGE!';
                 case 'normal':
-                    return 'BLOCK! Half damage';
+                    return 'CONFUSED! Hit!';
                 case 'bad':
                 default:
-                    return 'GUARD BROKEN!';
+                    return 'FUMBLE! Hit + No AC!';
             }
         }
 

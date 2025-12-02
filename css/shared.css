@@ -341,7 +341,8 @@
 }
 
 /* Defend cooldown text - grey/muted */
-.defend-cooldown-text {
+.defend-cooldown-text,
+.defend-cooldown-number {
     color: #888 !important;
     font-size: 0.9em;
     text-shadow: 1px 1px 0 #000;
@@ -869,6 +870,14 @@
     max-width: 200px;
 }
 
+/* Hide inventory display during battle (including intro) - items accessible via ITEM button */
+#battle-ui ~ #inventory-display,
+#battle-intro-overlay ~ #inventory-display,
+#vn-container:has(#battle-ui) #inventory-display,
+#vn-container:has(#battle-intro-overlay) #inventory-display {
+    display: none !important;
+}
+
 .inventory-label {
     color: #ffd700;
     font-size: 0.75rem;
@@ -982,6 +991,9 @@
 
 /* Panel header (character name) */
 .stats-header {
+    display: flex;
+    align-items: center;
+    gap: 0.3em;
     font-size: 0.85rem;
     font-weight: bold;
     text-transform: uppercase;
@@ -989,8 +1001,8 @@
     margin-bottom: 10px;
     color: var(--battle-text);
     white-space: nowrap;
-    min-height: 1.3em;  /* Reserve vertical space for status icons to prevent layout shift */
-    line-height: 1.3;
+    min-height: 1.5em;  /* Reserve vertical space for status icons to prevent layout shift */
+    line-height: 1;
 }
 
 .stats-header .ac-display {
@@ -1004,18 +1016,16 @@
 
 /* Status icon slot next to player name - fixed size reserved box */
 .status-icon-slot {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
     min-width: 4em;  /* Reserve space for ~3-4 status icons to prevent layout shift */
-    min-height: 1em;  /* Reserve vertical space to prevent HP bar shift */
-    text-align: left;
-    vertical-align: middle;
+    height: 1.2em;  /* Fixed height to prevent HP bar shift */
 }
 
 .status-icon-slot .status-icon {
     font-size: 0.85rem;
     cursor: help;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-    vertical-align: middle;
     line-height: 1;
 }
 
@@ -1124,14 +1134,14 @@
 /* Regen text colors in battle log - pulsing */
 .regen-hp {
     color: #2ecc71;
-    font-size: var(--battle-special-size, 1.2rem);
+    font-size: var(--battle-text-size, 0.95rem);
     font-weight: bold;
     animation: regen-text-pulse 1s ease-in-out infinite;
 }
 
 .regen-mp {
     color: #3498db;
-    font-size: var(--battle-special-size, 1.2rem);
+    font-size: var(--battle-text-size, 0.95rem);
     font-weight: bold;
     animation: regen-text-pulse 1s ease-in-out infinite;
 }
@@ -1855,13 +1865,17 @@
     /* Line height must match TUNING.ui.battleLogLineHeight for consistent calculation */
     height: var(--battle-log-content-height, 4.2rem);
     box-sizing: border-box;  /* Include padding in height */
-    overflow: hidden;  /* Never scroll - JS truncates to max lines */
+    overflow: hidden;  /* Hide overflow - JS handles scrolling to show latest content */
     padding: 0.5rem 1rem;  /* Reduced vertical padding for tighter fit */
     font-size: var(--battle-text-size);
     line-height: 1.6rem;  /* Fixed rem value, not multiplier - must match TUNING.ui.battleLogLineHeight */
     color: var(--battle-text-color);
     /* Text starts at top - space is pre-reserved for 2 lines */
     flex-shrink: 0;  /* Don't shrink when in flex container */
+}
+
+.battle-log-content::-webkit-scrollbar {
+    display: none;  /* Chrome/Safari */
 }
 
 .battle-log-content .roll-result {
@@ -1898,7 +1912,7 @@
 /* Battle number - for inline numbers in messages (e.g., "Restored 12 MP!") */
 .battle-number {
     color: var(--battle-number-color, #ffd700);
-    font-size: var(--battle-special-size, 1.2rem);
+    font-size: var(--battle-text-size, 0.95rem);
     font-weight: bold;
     vertical-align: baseline;
 }
@@ -1945,6 +1959,7 @@
     text-align: center;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    color: var(--btn-color, #fff);
 }
 
 .battle-choices .choice-button:disabled,
@@ -2047,12 +2062,22 @@
     font-style: italic;
 }
 
-/* Status damage numbers in battle log - red color for damage */
-.battle-log-content .battle-number,
-.battle-log-messages .battle-number,
-#battle-log-content .battle-number {
+/* Battle number variants for different stat types */
+.battle-number-hp {
+    color: var(--roll-color-heal, #2ecc71) !important;
+    font-size: var(--battle-text-size, 0.95rem);
+    font-weight: bold;
+}
+
+.battle-number-mp {
+    color: var(--roll-color-status, #3498db) !important;
+    font-size: var(--battle-text-size, 0.95rem);
+    font-weight: bold;
+}
+
+.battle-number-damage {
     color: var(--roll-color-damage, #ff4444) !important;
-    font-size: var(--battle-special-size, 1.2rem);
+    font-size: var(--battle-text-size, 0.95rem);
     font-weight: bold;
 }
 
@@ -2165,7 +2190,7 @@
 
 .skill-submenu-title {
     color: #ffd700;
-    font-size: 0.75rem;
+    font-size: var(--battle-text-size, 0.95rem);
     font-weight: bold;
     margin-bottom: 8px;
     text-align: center;
@@ -2206,7 +2231,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 10px 8px;
+    padding: 8px 8px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 4px;
     cursor: pointer;
@@ -2214,7 +2239,6 @@
     text-align: center;
     box-sizing: border-box;
     width: 100%;
-    min-height: 50px;
 }
 
 .skill-item:hover {
@@ -2245,13 +2269,13 @@
 .skill-name {
     color: #fff;
     font-weight: bold;
-    font-size: 0.85rem;
+    font-size: var(--battle-text-size, 0.95rem);
 }
 
 .skill-cost {
     color: #60a5fa;
-    font-size: 0.8rem;
-    margin-top: 3px;
+    font-size: var(--battle-text-size, 0.95rem);
+    margin-top: 2px;
 }
 
 .skill-cost.insufficient {
@@ -2496,7 +2520,8 @@
 .roll-result, .damage-result {
     display: block;
     margin: 4px 0;
-    line-height: 1.8;  /* Tall enough to fit larger dice numbers without shifting */
+    line-height: 1.4;
+    min-height: 1.4em;
     /* Reset theme overrides that may interfere */
     -webkit-text-stroke: 0 !important;
 }
@@ -2548,6 +2573,65 @@
 }
 
 @keyframes dice-number-pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.4); }
+    100% { transform: scale(1); }
+}
+
+/* =========================================================================
+   ADVANTAGE/DISADVANTAGE DICE
+   Two dice shown side by side, loser collapses into winner, winner pops up
+   ========================================================================= */
+
+/* Both advantage dice - inline display with spacing, fixed width to prevent jumping */
+.dice-number.advantage-die {
+    display: inline-block;
+    margin: 0 2px;
+    position: relative;
+    min-width: 2ch; /* Reserve space for 2 digits (up to 99) */
+    text-align: center;
+}
+
+/* Separator between the two dice */
+.advantage-separator {
+    display: inline;
+    opacity: 0.6;
+    transition: opacity 0.25s ease;
+}
+
+.advantage-separator-fade {
+    opacity: 0;
+    width: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+/* Loser die - collapses left into winner */
+.dice-number.advantage-loser-left {
+    animation: advantage-collapse-left 0.3s ease-out forwards;
+}
+
+@keyframes advantage-collapse-left {
+    0% { opacity: 1; transform: translateX(0) scale(1); }
+    100% { opacity: 0; transform: translateX(-20px) scale(0.5); }
+}
+
+/* Loser die - collapses right into winner */
+.dice-number.advantage-loser-right {
+    animation: advantage-collapse-right 0.3s ease-out forwards;
+}
+
+@keyframes advantage-collapse-right {
+    0% { opacity: 1; transform: translateX(0) scale(1); }
+    100% { opacity: 0; transform: translateX(20px) scale(0.5); }
+}
+
+/* Winner die - pops up after loser collapses into it */
+.dice-number.advantage-winner {
+    animation: advantage-winner-pop 0.25s ease-out;
+}
+
+@keyframes advantage-winner-pop {
     0% { transform: scale(1); }
     50% { transform: scale(1.4); }
     100% { transform: scale(1); }
@@ -2824,6 +2908,11 @@ div.battle-log-content span.defend-duration {
     transform: translateX(-50%);
     z-index: var(--z-battle-effects);
     animation: dialogue-appear 0.3s ease-out;
+    max-width: 95%;
+    width: 95%;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
 }
 
 .dialogue-bubble {
@@ -2833,13 +2922,13 @@ div.battle-log-content span.defend-duration {
     border-radius: 16px;
     font-size: var(--base-font-size, 1.35rem);
     font-style: italic;
-    max-width: 80vw;
-    width: max-content;
+    max-width: 100%;
     text-align: center;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     position: relative;
     word-wrap: break-word;
     overflow-wrap: break-word;
+    box-sizing: border-box;
 }
 
 .dialogue-bubble::after {
@@ -3240,18 +3329,25 @@ div.battle-log-content span.defend-duration {
 */
 
 /* === QTE Theme Variables ===
-   Themes should override these to match their visual style */
+   Themes should override these to match their visual style
+
+   Color progression (dark to bright):
+   Bad = Black (worst)
+   Normal = Grey (miss)
+   Good = Slight red (decent)
+   Perfect = Pure red (best)
+*/
 :root {
     /* Zone colors - Legacy (miss/partial/success/perfect) */
-    --qte-zone-miss: #e74c3c;        /* Red - outer edges */
-    --qte-zone-partial: #f39c12;     /* Yellow/Orange - glancing */
-    --qte-zone-success: #27ae60;     /* Green - solid hit */
-    --qte-zone-perfect: #3498db;     /* Blue - center sweet spot */
+    --qte-zone-miss: #1a1a1a;        /* Black - outer edges */
+    --qte-zone-partial: #4a4a4a;     /* Grey - glancing */
+    --qte-zone-success: #8b3030;     /* Slight red - solid hit */
+    --qte-zone-perfect: #ff0000;     /* Pure red - center sweet spot */
 
     /* Zone colors - Finalized Battle System (bad/normal/good/perfect) */
-    --qte-zone-bad: #e74c3c;         /* Red - outer edges, worst result */
-    --qte-zone-normal: #f39c12;      /* Yellow/Orange - standard roll */
-    --qte-zone-good: #27ae60;        /* Green - advantage */
+    --qte-zone-bad: #1a1a1a;         /* Black - outer edges, worst result */
+    --qte-zone-normal: #4a4a4a;      /* Grey - standard roll */
+    --qte-zone-good: #8b3030;        /* Slight red - advantage */
     /* --qte-zone-perfect already defined above */
 
     /* Marker colors */
@@ -3278,14 +3374,14 @@ div.battle-log-content span.defend-duration {
     --qte-bar-height: 40px;
 
     /* Result text colors */
-    --qte-result-perfect: #ffd700;
-    --qte-result-success: #4caf50;
-    --qte-result-partial: #ff9800;
-    --qte-result-miss: #f44336;
+    --qte-result-perfect: #ff0000;
+    --qte-result-success: #8b3030;
+    --qte-result-partial: #666666;
+    --qte-result-miss: #333333;
     /* Finalized result colors */
-    --qte-result-good: #4caf50;
-    --qte-result-normal: #ff9800;
-    --qte-result-bad: #f44336;
+    --qte-result-good: #8b3030;
+    --qte-result-normal: #666666;
+    --qte-result-bad: #333333;
 }
 
 /* === QTE Container === */
@@ -3320,25 +3416,25 @@ div.battle-log-content span.defend-duration {
 
 /* === QTE Type Variations === */
 .qte-container.qte-accuracy {
-    border-color: var(--qte-zone-success);
-    box-shadow: 0 0 20px rgba(39, 174, 96, 0.3);
+    border-color: var(--qte-zone-perfect);
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
 }
 
 .qte-container.qte-dodge {
-    border-color: var(--qte-zone-partial);
-    box-shadow: 0 0 20px rgba(243, 156, 18, 0.3);
+    border-color: var(--qte-zone-good);
+    box-shadow: 0 0 20px rgba(139, 48, 48, 0.3);
 }
 
 /* Finalized Battle System - Skill QTE */
 .qte-container.qte-skill {
-    border-color: var(--qte-zone-good);
-    box-shadow: 0 0 20px rgba(39, 174, 96, 0.4);
+    border-color: var(--qte-zone-perfect);
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
 }
 
 /* Finalized Battle System - Defend QTE */
 .qte-container.qte-defend {
     border-color: var(--qte-zone-perfect);
-    box-shadow: 0 0 20px rgba(52, 152, 219, 0.4);
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
 }
 
 /* === QTE Label === */
@@ -3354,15 +3450,15 @@ div.battle-log-content span.defend-duration {
 }
 
 .qte-accuracy .qte-label {
-    color: var(--qte-zone-success);
+    color: var(--qte-zone-perfect);
 }
 
 .qte-dodge .qte-label {
-    color: var(--qte-zone-partial);
+    color: var(--qte-zone-good);
 }
 
 .qte-skill .qte-label {
-    color: var(--qte-zone-good);
+    color: var(--qte-zone-perfect);
 }
 
 .qte-defend .qte-label {
@@ -3397,6 +3493,11 @@ div.battle-log-content span.defend-duration {
     overflow: hidden;
 }
 
+/* For finalized zones using absolute positioning */
+.qte-zones-finalized {
+    display: block;
+}
+
 .qte-zone {
     height: 100%;
     transition: filter 0.1s ease;
@@ -3416,7 +3517,8 @@ div.battle-log-content span.defend-duration {
 
 .qte-zone-perfect {
     background: var(--qte-zone-perfect);
-    box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.3);
+    box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.3),
+                0 0 8px var(--qte-zone-perfect);
 }
 
 /* Finalized Battle System Zones */
@@ -3614,6 +3716,12 @@ div.battle-log-content span.defend-duration {
     border-radius: 4px;
     font-weight: bold;
     margin: 0 4px;
+}
+
+.qte-hit-red {
+    color: var(--qte-zone-perfect);
+    font-weight: bold;
+    text-shadow: 0 0 8px var(--qte-zone-perfect);
 }
 
 /* === QTE Result Display === */

@@ -311,13 +311,18 @@ var BattleDiceUI = (function() {
     }
 
     /**
-     * Animate advantage roll (show both dice)
+     * Animate advantage/disadvantage roll (show both dice rolling simultaneously)
+     * Both dice roll grey, then loser collapses into winner, winner pops up with color
      * @param {Element} container - Container for dice elements
-     * @param {Object} rollResult - { roll, rolls, isCrit, isFumble } with rolls array
-     * @param {function} callback - Called when done
+     * @param {Object} rollResult - { roll, rolls, advantage, disadvantage, isCrit, isFumble }
+     * @param {function} callback - Called with winner element when done
+     * @param {Object} hitInfo - Optional { defenderAC, hit } to determine color
      */
-    function animateAdvantageRoll(container, rollResult, callback) {
-        // Create two dice elements
+    function animateAdvantageRoll(container, rollResult, callback, hitInfo) {
+        var isDisadvantage = rollResult.disadvantage;
+        hitInfo = hitInfo || {};
+
+        // Create two dice elements - both start grey
         var dice1 = document.createElement('span');
         dice1.className = 'dice-number advantage-die';
         dice1.textContent = '?';
@@ -334,28 +339,239 @@ var BattleDiceUI = (function() {
         container.appendChild(separator);
         container.appendChild(dice2);
 
-        // Individual rolls don't have crit/fumble - those are determined by the final chosen roll
+        // Individual rolls
         var roll1 = { roll: rollResult.rolls[0], sides: 20, isCrit: false, isFumble: false };
         var roll2 = { roll: rollResult.rolls[1], sides: 20, isCrit: false, isFumble: false };
 
-        // Animate first die (hit type, normal result during spin)
-        animateRoll(dice1, roll1, function() {
-            // Animate second die
-            animateRoll(dice2, roll2, function() {
-                // Highlight the winning die
-                var winner = rollResult.rolls[0] >= rollResult.rolls[1] ? dice1 : dice2;
-                var loser = rollResult.rolls[0] >= rollResult.rolls[1] ? dice2 : dice1;
+        // Track when both dice finish rolling
+        var diceFinished = 0;
 
+        function onDiceFinished() {
+            diceFinished++;
+            if (diceFinished < 2) return; // Wait for both
+
+            // Both dice finished - determine winner
+            var roll1Higher = rollResult.rolls[0] >= rollResult.rolls[1];
+            var winner, loser, loserIsLeft;
+
+            if (isDisadvantage) {
+                // Disadvantage: lower roll wins
+                winner = roll1Higher ? dice2 : dice1;
+                loser = roll1Higher ? dice1 : dice2;
+                loserIsLeft = roll1Higher; // dice1 is on the left
+            } else {
+                // Advantage: higher roll wins
+                winner = roll1Higher ? dice1 : dice2;
+                loser = roll1Higher ? dice2 : dice1;
+                loserIsLeft = !roll1Higher; // loser is dice2 (right) when roll1 is higher
+            }
+
+            // Collapse loser into winner (direction depends on position)
+            // Left loser collapses right (->), right loser collapses left (<-)
+            if (loserIsLeft) {
+                loser.classList.add('advantage-loser-right'); // left die moves right toward winner
+            } else {
+                loser.classList.add('advantage-loser-left'); // right die moves left toward winner
+            }
+            separator.classList.add('advantage-separator-fade');
+
+            // After collapse animation, pop winner and remove loser from DOM
+            diceTimeout(function() {
+                // Remove loser and separator from DOM
+                if (loser.parentNode) loser.parentNode.removeChild(loser);
+                if (separator.parentNode) separator.parentNode.removeChild(separator);
+
+                // Remove grey class from rolling
+                winner.classList.remove(getRollClass('neutral', 'normal'));
+
+                // Determine color based on hit/miss result
+                var rollType, resultCategory;
+                if (rollResult.isCrit) {
+                    rollType = 'hit';
+                    resultCategory = 'crit';
+                } else if (rollResult.isFumble) {
+                    rollType = 'neutral';
+                    resultCategory = 'fail';
+                } else if (hitInfo.hit) {
+                    rollType = 'hit';
+                    resultCategory = 'normal';
+                } else {
+                    rollType = 'neutral';
+                    resultCategory = 'normal';
+                }
+
+                winner.classList.add(getRollClass(rollType, resultCategory));
                 winner.classList.add('advantage-winner');
-                loser.classList.add('advantage-loser');
 
-                // Apply unified styling to the winning die based on crit/fumble
-                var resultCategory = rollResult.isCrit ? 'crit' : (rollResult.isFumble ? 'fail' : 'normal');
-                winner.classList.add(getRollClass('hit', resultCategory));
+                diceTimeout(function() {
+                    // Clean up advantage-specific classes so collapse animation works normally
+                    winner.classList.remove('advantage-die', 'advantage-winner');
+                    callback(winner);
+                }, config.lingerDelay);
+            }, 300); // Match CSS animation duration
+        }
 
-                diceTimeout(callback, config.lingerDelay);
-            });
-        }, 'hit');
+        // Animate BOTH dice simultaneously (start at the same time)
+        animateRollGrey(dice1, roll1, onDiceFinished);
+        animateRollGrey(dice2, roll2, onDiceFinished);
+    }
+
+    /**
+     * Animate a dice roll that stays grey (for advantage/disadvantage display)
+     * @param {Element} element - The dice element
+     * @param {Object} rollResult - { roll, sides }
+     * @param {function} callback - Called when done
+     */
+    function animateRollGrey(element, rollResult, callback) {
+        var duration = config.spinDuration;
+        var interval = config.spinInterval;
+        var elapsed = 0;
+        var sides = rollResult.sides || 20;
+        var finished = false;
+
+        // Ensure click listener is set up
+        ensureClickListener();
+
+        function finishAnimation() {
+            if (finished) return;
+            finished = true;
+
+            // Remove from active animations
+            for (var i = activeAnimations.length - 1; i >= 0; i--) {
+                if (activeAnimations[i].element === element) {
+                    activeAnimations.splice(i, 1);
+                    break;
+                }
+            }
+
+            // Show final value - stays grey (neutral)
+            element.textContent = rollResult.roll;
+            element.classList.remove('dice-spinning');
+            element.classList.add('dice-final');
+            element.classList.add(getRollClass('neutral', 'normal'));
+
+            diceTimeout(function() {
+                if (callback) callback();
+            }, 100); // Short delay between the two dice
+        }
+
+        // Register this animation for click-to-skip
+        var animationState = {
+            element: element,
+            skip: finishAnimation
+        };
+        activeAnimations.push(animationState);
+
+        playSfx('dice_roll.ogg');
+        element.classList.add('dice-spinning');
+        element.classList.add('dice-d' + sides);
+
+        function spin() {
+            if (finished || _isPaused) return;
+
+            if (elapsed >= duration) {
+                finishAnimation();
+                return;
+            }
+
+            element.textContent = Math.floor(Math.random() * sides) + 1;
+            elapsed += interval;
+
+            var nextInterval = interval;
+            if (elapsed > duration * 0.7) nextInterval = interval * 2;
+            if (elapsed > duration * 0.9) nextInterval = interval * 3;
+
+            diceTimeout(spin, nextInterval);
+        }
+
+        spin();
+    }
+
+    /**
+     * Animate advantage/disadvantage damage roll (show both totals rolling simultaneously)
+     * Both roll grey, then loser collapses into winner, winner pops up with color
+     * @param {Element} container - Container for dice elements
+     * @param {Object} rollResult - { roll, rolls (both totals), advantage, disadvantage, isCrit, isMax, isMin }
+     * @param {function} callback - Called with winning dice element
+     */
+    function animateAdvantageDamageRoll(container, rollResult, callback) {
+        var isDisadvantage = rollResult.disadvantage;
+
+        // Create two damage dice elements - both start grey
+        var dice1 = document.createElement('strong');
+        dice1.className = 'dice-number damage-dice advantage-die';
+        dice1.textContent = '?';
+
+        var dice2 = document.createElement('strong');
+        dice2.className = 'dice-number damage-dice advantage-die';
+        dice2.textContent = '?';
+
+        var separator = document.createElement('span');
+        separator.className = 'advantage-separator';
+        separator.textContent = ' / ';
+
+        container.appendChild(dice1);
+        container.appendChild(separator);
+        container.appendChild(dice2);
+
+        // Individual rolls
+        var roll1 = { roll: rollResult.rolls[0], sides: 6, isCrit: false, isFumble: false };
+        var roll2 = { roll: rollResult.rolls[1], sides: 6, isCrit: false, isFumble: false };
+
+        // Track when both dice finish rolling
+        var diceFinished = 0;
+
+        function onDiceFinished() {
+            diceFinished++;
+            if (diceFinished < 2) return; // Wait for both
+
+            // Both dice finished - determine winner
+            var roll1Higher = rollResult.rolls[0] >= rollResult.rolls[1];
+            var winner, loser, loserIsLeft;
+
+            if (isDisadvantage) {
+                // Disadvantage: lower roll wins
+                winner = roll1Higher ? dice2 : dice1;
+                loser = roll1Higher ? dice1 : dice2;
+                loserIsLeft = roll1Higher;
+            } else {
+                // Advantage: higher roll wins
+                winner = roll1Higher ? dice1 : dice2;
+                loser = roll1Higher ? dice2 : dice1;
+                loserIsLeft = !roll1Higher;
+            }
+
+            // Collapse loser into winner
+            if (loserIsLeft) {
+                loser.classList.add('advantage-loser-right');
+            } else {
+                loser.classList.add('advantage-loser-left');
+            }
+            separator.classList.add('advantage-separator-fade');
+
+            // After collapse animation, pop winner and remove loser from DOM
+            diceTimeout(function() {
+                // Remove loser and separator from DOM
+                if (loser.parentNode) loser.parentNode.removeChild(loser);
+                if (separator.parentNode) separator.parentNode.removeChild(separator);
+
+                // Remove grey class from rolling, apply damage color
+                winner.classList.remove(getRollClass('neutral', 'normal'));
+                var resultCategory = rollResult.isCrit ? 'crit' : (rollResult.isMax ? 'max' : (rollResult.isMin ? 'min' : 'normal'));
+                winner.classList.add(getRollClass('damage', resultCategory));
+                winner.classList.add('advantage-winner');
+
+                diceTimeout(function() {
+                    // Clean up advantage-specific classes so collapse animation works normally
+                    winner.classList.remove('advantage-die', 'advantage-winner');
+                    callback(winner);
+                }, config.lingerDelay);
+            }, 300); // Match CSS animation duration
+        }
+
+        // Animate BOTH dice simultaneously (start at the same time)
+        animateRollGrey(dice1, roll1, onDiceFinished);
+        animateRollGrey(dice2, roll2, onDiceFinished);
     }
 
     // =========================================================================
@@ -374,8 +590,19 @@ var BattleDiceUI = (function() {
         var isTag = false;
         var tagBuffer = '';
 
+        // Find scrollable container (battle-log-content)
+        var scrollContainer = element.closest('.battle-log-content') ||
+                              document.getElementById('battle-log-content');
+
+        function scrollToBottom() {
+            if (scrollContainer) {
+                scrollContainer.scrollTop = scrollContainer.scrollHeight;
+            }
+        }
+
         function type() {
             if (index >= text.length) {
+                scrollToBottom();
                 if (callback) callback();
                 return;
             }
@@ -405,6 +632,7 @@ var BattleDiceUI = (function() {
 
             element.innerHTML += char;
             index++;
+            scrollToBottom();
             diceTimeout(type, speed);
         }
 
@@ -445,12 +673,6 @@ var BattleDiceUI = (function() {
 
         // Phase 1: Type attacker name
         typewriter(line, options.attacker + ' rolled ', function() {
-            // Create dice element for attack roll
-            var attackNum = document.createElement('strong');
-            attackNum.className = 'dice-number';
-            attackNum.textContent = '?';
-            line.appendChild(attackNum);
-
             // Get AC for determining when roll "hits"
             var defenderAC = options.defenderAC || 10;
 
@@ -466,10 +688,25 @@ var BattleDiceUI = (function() {
             }
             // Otherwise stays neutral/grey until bonuses push it over
 
+            // Variable to track the winning dice element (for modifier collapse later)
+            var attackNum;
+
             // Animate the d20 roll
             if (rollResult.advantage || rollResult.disadvantage) {
-                animateAdvantageRoll(line, rollResult, afterAttackRoll);
+                // Pass hit info so winner color depends on whether attack hits
+                animateAdvantageRoll(line, rollResult, function(winnerElement) {
+                    attackNum = winnerElement;
+                    afterAttackRoll();
+                }, {
+                    defenderAC: defenderAC,
+                    hit: options.hit
+                });
             } else {
+                // Create dice element for single attack roll
+                attackNum = document.createElement('strong');
+                attackNum.className = 'dice-number';
+                attackNum.textContent = '?';
+                line.appendChild(attackNum);
                 animateRoll(attackNum, rollResult, afterAttackRoll, initialRollType);
             }
 
@@ -547,16 +784,15 @@ var BattleDiceUI = (function() {
             function showDamage() {
                 // Add " deals " text
                 typewriter(line, ' deals ', function() {
-                    var damageNum = document.createElement('strong');
-                    damageNum.className = 'dice-number damage-dice';
-                    damageNum.textContent = '?';
-                    line.appendChild(damageNum);
-
                     // IMPORTANT: Use final damage value for consistency
                     // options.damage is the authoritative value from battle-dnd.js
                     var finalDamage = options.damage;
                     var baseDamageRoll = options.baseDamageRoll || finalDamage;
                     var damageModifiers = options.damageModifiers || [];
+
+                    // Check if damage has advantage/disadvantage
+                    var hasDamageAdvantage = options.damageAdvantage && options.damageRolls;
+                    var hasDamageDisadvantage = options.damageDisadvantage && options.damageRolls;
 
                     // If no modifiers to show, animate directly to final damage
                     var displayRoll = (isPlayer && damageModifiers.length > 0) ? baseDamageRoll : finalDamage;
@@ -571,35 +807,68 @@ var BattleDiceUI = (function() {
                         damageResultCategory = 'min';
                     }
 
-                    var damageRollResult = {
-                        roll: displayRoll,
-                        sides: 6,
-                        isCrit: rollResult.isCrit,
-                        isFumble: false,
-                        isMax: options.isMaxDamage === true,
-                        isMin: options.isMinDamage === true
-                    };
-
                     // Shorter spin for damage
                     var originalDuration = config.spinDuration;
                     config.spinDuration = 1000;
 
-                    // Pass 'damage' as roll type for unified styling
-                    animateRoll(damageNum, damageRollResult, function() {
-                        config.spinDuration = originalDuration;
+                    if (hasDamageAdvantage || hasDamageDisadvantage) {
+                        // Show two damage dice for advantage/disadvantage
+                        var damageAdvResult = {
+                            roll: displayRoll,
+                            rolls: options.damageRolls,
+                            sides: 6,
+                            advantage: hasDamageAdvantage,
+                            disadvantage: hasDamageDisadvantage,
+                            isCrit: rollResult.isCrit,
+                            isMax: options.isMaxDamage === true,
+                            isMin: options.isMinDamage === true
+                        };
 
-                        if (isPlayer && damageModifiers.length > 0) {
-                            // Collapse modifiers, ensuring final value equals options.damage
-                            showAllThenCollapse(line, damageNum, baseDamageRoll, damageModifiers, function(collapsedTotal) {
-                                // Safety: ensure displayed value matches actual damage
-                                damageNum.textContent = finalDamage;
+                        animateAdvantageDamageRoll(line, damageAdvResult, function(damageNum) {
+                            config.spinDuration = originalDuration;
+
+                            if (isPlayer && damageModifiers.length > 0) {
+                                showAllThenCollapse(line, damageNum, baseDamageRoll, damageModifiers, function(collapsedTotal) {
+                                    damageNum.textContent = finalDamage;
+                                    showDamageText(damageResultCategory);
+                                });
+                            } else {
                                 showDamageText(damageResultCategory);
-                            });
-                        } else {
-                            // No modifiers - value already shows finalDamage
-                            showDamageText(damageResultCategory);
-                        }
-                    }, 'damage');
+                            }
+                        });
+                    } else {
+                        // Single damage die (normal roll)
+                        var damageNum = document.createElement('strong');
+                        damageNum.className = 'dice-number damage-dice';
+                        damageNum.textContent = '?';
+                        line.appendChild(damageNum);
+
+                        var damageRollResult = {
+                            roll: displayRoll,
+                            sides: 6,
+                            isCrit: rollResult.isCrit,
+                            isFumble: false,
+                            isMax: options.isMaxDamage === true,
+                            isMin: options.isMinDamage === true
+                        };
+
+                        // Pass 'damage' as roll type for unified styling
+                        animateRoll(damageNum, damageRollResult, function() {
+                            config.spinDuration = originalDuration;
+
+                            if (isPlayer && damageModifiers.length > 0) {
+                                // Collapse modifiers, ensuring final value equals options.damage
+                                showAllThenCollapse(line, damageNum, baseDamageRoll, damageModifiers, function(collapsedTotal) {
+                                    // Safety: ensure displayed value matches actual damage
+                                    damageNum.textContent = finalDamage;
+                                    showDamageText(damageResultCategory);
+                                });
+                            } else {
+                                // No modifiers - value already shows finalDamage
+                                showDamageText(damageResultCategory);
+                            }
+                        }, 'damage');
+                    }
                 });
             }
 
@@ -894,8 +1163,9 @@ var BattleDiceUI = (function() {
     /**
      * Show animated heal roll for player/enemy recovery
      * Format: "Andi rolled 5 HEALED!" or "Andi rolled 5 (-2) → 3 HEALED!" for overheal
+     * Supports advantage/disadvantage: shows 2 dice rolling, winner pops up
      *
-     * @param {Object} options - { container, healAmount, healRolled, healer, isMaxHeal, isMinHeal }
+     * @param {Object} options - { container, healAmount, healRolled, healer, isMaxHeal, isMinHeal, hasHealAdvantage, hasHealDisadvantage, healRolls }
      * @param {function} callback
      */
     function showHealRoll(options, callback) {
@@ -927,39 +1197,162 @@ var BattleDiceUI = (function() {
 
         // Phase 1: Type healer name
         typewriter(line, healerName + ' rolled ', function() {
-            // Create dice element for heal roll
-            var healNum = document.createElement('strong');
-            healNum.className = 'dice-number';
-            healNum.textContent = '?';
-            line.appendChild(healNum);
+            // Check for advantage/disadvantage heal roll
+            if ((options.hasHealAdvantage || options.hasHealDisadvantage) && options.healRolls && options.healRolls.length === 2) {
+                // Show advantage animation for heal (2 dice, winner pops up green)
+                var healAdvResult = {
+                    rolls: options.healRolls,
+                    total: healRolled,
+                    advantage: options.hasHealAdvantage,
+                    disadvantage: options.hasHealDisadvantage
+                };
 
-            // Create roll result for animation - show the ROLLED amount first
-            var healRollResult = {
-                roll: healRolled,
-                sides: 6,
-                isCrit: false,
-                isFumble: false,
-                isMax: options.isMaxHeal && overheal === 0,  // Only show max if no overheal
-                isMin: options.isMinHeal
-            };
+                animateAdvantageHealRoll(line, healAdvResult, function(healNum) {
+                    // If there's overheal, show the reduction then collapse
+                    if (overheal > 0) {
+                        showOverhealCollapse(line, healNum, healRolled, overheal, healAmount, healResultCategory, callback);
+                    } else {
+                        // No overheal - just show HEALED!
+                        finishHealDisplay(line, healResultCategory, callback);
+                    }
+                });
+            } else {
+                // Normal single dice roll
+                var healNum = document.createElement('strong');
+                healNum.className = 'dice-number';
+                healNum.textContent = '?';
+                line.appendChild(healNum);
 
-            // Shorter spin for heal
-            var originalDuration = config.spinDuration;
-            config.spinDuration = 1000;
+                // Create roll result for animation - show the ROLLED amount first
+                var healRollResult = {
+                    roll: healRolled,
+                    sides: 6,
+                    isCrit: false,
+                    isFumble: false,
+                    isMax: options.isMaxHeal && overheal === 0,  // Only show max if no overheal
+                    isMin: options.isMinHeal
+                };
 
-            // Pass 'heal' as roll type for unified styling (green base color)
-            animateRoll(healNum, healRollResult, function() {
-                config.spinDuration = originalDuration;
+                // Shorter spin for heal
+                var originalDuration = config.spinDuration;
+                config.spinDuration = 1000;
 
-                // If there's overheal, show the reduction then collapse
-                if (overheal > 0) {
-                    showOverhealCollapse(line, healNum, healRolled, overheal, healAmount, healResultCategory, callback);
-                } else {
-                    // No overheal - just show HEALED!
-                    finishHealDisplay(line, healResultCategory, callback);
-                }
-            }, 'heal');
+                // Pass 'heal' as roll type for unified styling (green base color)
+                animateRoll(healNum, healRollResult, function() {
+                    config.spinDuration = originalDuration;
+
+                    // If there's overheal, show the reduction then collapse
+                    if (overheal > 0) {
+                        showOverhealCollapse(line, healNum, healRolled, overheal, healAmount, healResultCategory, callback);
+                    } else {
+                        // No overheal - just show HEALED!
+                        finishHealDisplay(line, healResultCategory, callback);
+                    }
+                }, 'heal');
+            }
         });
+    }
+
+    /**
+     * Animate advantage/disadvantage roll for heal (2 grey dice, winner turns green)
+     * Similar to animateAdvantageDamageRoll but uses green for heal
+     */
+    function animateAdvantageHealRoll(container, rollResult, callback) {
+        var isDisadvantage = rollResult.disadvantage;
+
+        // Create two heal dice elements - both start grey
+        var dice1 = document.createElement('strong');
+        dice1.className = 'dice-number heal-dice advantage-die';
+        dice1.textContent = '?';
+        dice1.style.minWidth = '2ch';
+        dice1.style.textAlign = 'center';
+        dice1.style.display = 'inline-block';
+
+        var dice2 = document.createElement('strong');
+        dice2.className = 'dice-number heal-dice advantage-die';
+        dice2.textContent = '?';
+        dice2.style.minWidth = '2ch';
+        dice2.style.textAlign = 'center';
+        dice2.style.display = 'inline-block';
+
+        // Add separator
+        var separator = document.createElement('span');
+        separator.textContent = ' / ';
+        separator.className = 'advantage-separator';
+
+        container.appendChild(dice1);
+        container.appendChild(separator);
+        container.appendChild(dice2);
+
+        var rolls = rollResult.rolls || [rollResult.total, rollResult.total];
+        var roll1 = rolls[0];
+        var roll2 = rolls[1];
+
+        // Determine winner and loser
+        var winner, loser, winnerRoll, loserRoll;
+        if (isDisadvantage) {
+            // Disadvantage: take lower
+            if (roll1 <= roll2) {
+                winner = dice1; loser = dice2;
+                winnerRoll = roll1; loserRoll = roll2;
+            } else {
+                winner = dice2; loser = dice1;
+                winnerRoll = roll2; loserRoll = roll1;
+            }
+        } else {
+            // Advantage: take higher
+            if (roll1 >= roll2) {
+                winner = dice1; loser = dice2;
+                winnerRoll = roll1; loserRoll = roll2;
+            } else {
+                winner = dice2; loser = dice1;
+                winnerRoll = roll2; loserRoll = roll1;
+            }
+        }
+
+        // Create roll results for both dice (grey during roll)
+        var rollResult1 = { roll: roll1, sides: 6, isCrit: false, isFumble: false };
+        var rollResult2 = { roll: roll2, sides: 6, isCrit: false, isFumble: false };
+
+        // Animate both dice simultaneously
+        var completed = 0;
+        var originalDuration = config.spinDuration;
+        config.spinDuration = 1000;
+
+        function onBothComplete() {
+            completed++;
+            if (completed < 2) return;
+
+            config.spinDuration = originalDuration;
+
+            // Brief pause then collapse loser into winner
+            diceTimeout(function() {
+                // Determine collapse direction
+                var loserIsLeft = (loser === dice1);
+                loser.classList.add(loserIsLeft ? 'advantage-loser-right' : 'advantage-loser-left');
+
+                // Pop up winner with green color
+                winner.classList.add('advantage-winner');
+
+                diceTimeout(function() {
+                    // Remove loser and separator
+                    loser.remove();
+                    separator.remove();
+
+                    // Remove advantage classes for normal modifier collapse behavior
+                    winner.classList.remove('advantage-die', 'advantage-winner');
+
+                    // Apply green heal color
+                    winner.classList.add('roll-heal-normal');
+
+                    if (callback) callback(winner);
+                }, 300);
+            }, 200);
+        }
+
+        // Roll both dice simultaneously (grey)
+        animateRollGrey(dice1, rollResult1, onBothComplete);
+        animateRollGrey(dice2, rollResult2, onBothComplete);
     }
 
     /**
@@ -1063,9 +1456,9 @@ var BattleDiceUI = (function() {
                 cooldownLabel.textContent = ' Cooldown ';
                 line.appendChild(cooldownLabel);
 
-                // Add cooldown number with dice-number styling for larger font
+                // Add cooldown number (normal size, same style as label)
                 var cooldownNum = document.createElement('span');
-                cooldownNum.className = 'dice-number defend-cooldown-number';
+                cooldownNum.className = 'defend-cooldown-number';
                 cooldownNum.textContent = cooldown;
                 line.appendChild(cooldownNum);
             }
@@ -1073,11 +1466,11 @@ var BattleDiceUI = (function() {
             diceTimeout(callback, config.lingerDelay * 2);
         }
 
-        // Phase 1: Type defender name (like attack does)
-        typewriter(line, defenderName + ' increases defense ', function() {
-            // Show AC bonus in dark grey (separate from main stats)
+        // Phase 1: Type test text + defender name (like attack does)
+        typewriter(line, 'hello we\'re testing if we\'re scrolling up to line 3 ' + defenderName + ' increases defense ', function() {
+            // Show AC bonus in dark green (normal font size)
             var acSpan = document.createElement('span');
-            acSpan.className = 'dice-number ac-bonus-text';
+            acSpan.className = 'ac-bonus-text';
             line.appendChild(acSpan);
 
             typewriter(acSpan, '+' + acBonus + ' AC', function() {
@@ -1151,6 +1544,70 @@ var BattleDiceUI = (function() {
     }
 
     // =========================================================================
+    // SIMPLE DAMAGE ROLL (for confusion, status effects, etc.)
+    // =========================================================================
+
+    /**
+     * Show a simple damage roll with animated dice
+     * Format: "Name hits themselves! [dice] DAMAGE"
+     *
+     * @param {Object} options
+     * @param {Element} options.container - Container element to append to
+     * @param {string} options.text - Text before the roll (e.g., "Andi hits themselves! ")
+     * @param {number} options.damage - Final damage value
+     * @param {number} options.sides - Dice sides (default 5 for confusion d5)
+     * @param {string} options.damageText - Text after damage (default "DAMAGE")
+     * @param {function} callback - Called when animation completes
+     */
+    function showSimpleDamageRoll(options, callback) {
+        var container = options.container;
+        var damage = options.damage;
+        var sides = options.sides || 5;
+        var damageText = options.damageText || 'DAMAGE';
+
+        // Clear container and create roll result line
+        container.innerHTML = '';
+        var line = document.createElement('div');
+        line.className = 'roll-result';
+        container.appendChild(line);
+
+        // Phase 1: Type the intro text
+        typewriter(line, options.text, function() {
+            // Phase 2: Create and animate the damage dice
+            var damageNum = document.createElement('strong');
+            damageNum.className = 'dice-number';
+            damageNum.textContent = '?';
+            line.appendChild(damageNum);
+
+            // Shorter spin for simple damage rolls
+            var originalDuration = config.spinDuration;
+            config.spinDuration = 800;
+
+            animateRoll(damageNum, {
+                roll: damage,
+                sides: sides,
+                isCrit: false,
+                isFumble: false,
+                isMax: damage === sides,
+                isMin: damage === 1
+            }, function() {
+                config.spinDuration = originalDuration;
+
+                // Phase 3: Add damage text
+                var textSpan = document.createElement('span');
+                textSpan.className = 'damage-text roll-type-damage';
+                textSpan.textContent = ' ' + damageText;
+                line.appendChild(textSpan);
+
+                // Linger then callback
+                diceTimeout(function() {
+                    if (callback) callback();
+                }, config.lingerDelay);
+            }, 'damage');
+        });
+    }
+
+    // =========================================================================
     // PUBLIC API
     // =========================================================================
 
@@ -1174,6 +1631,7 @@ var BattleDiceUI = (function() {
         showAttackRollLegacy: showAttackRollLegacy,
         showHealRoll: showHealRoll,
         showDefendRoll: showDefendRoll,
+        showSimpleDamageRoll: showSimpleDamageRoll,
 
         // Individual phase functions (for custom flows)
         showModifiersAnimated: showModifiersAnimated,

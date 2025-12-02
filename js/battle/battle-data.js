@@ -49,6 +49,14 @@ var BattleData = (function() {
      * @type {Object.<string, Object>}
      */
     var statusEffects = {
+        // Special pseudo-status for defending stance (shown via player.defending flag)
+        defending: {
+            name: 'Defending',
+            icon: '🛡️',
+            color: '#3498db',
+            duration: 1,
+            description: 'Bracing for impact - AC boosted, recovers mana'
+        },
         burn: {
             name: 'Burn',
             icon: '🔥',

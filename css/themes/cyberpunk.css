@@ -19,6 +19,15 @@
     --damage-font: var(--theme-font);
 }
 
+/* === Font Face === */
+@font-face {
+    font-family: 'Share Tech Mono Password';
+    src: url('../../assets/fonts/password/ShareTechMono-Password.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
 /* === Password Overlay === */
 #password-overlay {
     position: fixed;
@@ -86,7 +95,7 @@
 
 /* Password char - sizes from shared.css variables, theme styling only */
 .password-char {
-    font-family: 'Share Tech Mono', 'Courier New', monospace;
+    font-family: 'Share Tech Mono Password', 'Share Tech Mono', 'Courier New', monospace;
     font-weight: bold;
     text-align: center;
     text-transform: uppercase;

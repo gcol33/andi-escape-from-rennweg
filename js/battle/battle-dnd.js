@@ -204,15 +204,33 @@ var BattleStyleDnD = (function() {
         var isMinDamage = false;
         var isMaxDamage = false;
 
+        // Track damage advantage for UI display
+        var hasDamageAdvantage = false;
+        var hasDamageDisadvantage = false;
+        var damageRolls = null;
+
         if (hit) {
             // Roll base damage with detailed result for min/max detection
             var damageDice = skill.damage || attacker.damage || '1d6';
             var damageRollResult;
-            if (typeof BattleDice !== 'undefined' && BattleDice.rollDamageDetailed) {
-                damageRollResult = BattleDice.rollDamageDetailed(damageDice);
+            if (typeof BattleDice !== 'undefined') {
+                // Use advantage/disadvantage for damage if specified
+                if (qteResult.damageAdvantage && BattleDice.rollDamageWithAdvantage) {
+                    damageRollResult = BattleDice.rollDamageWithAdvantage(damageDice);
+                    hasDamageAdvantage = true;
+                    damageRolls = damageRollResult.bothRolls;
+                } else if (qteResult.damageDisadvantage && BattleDice.rollDamageWithDisadvantage) {
+                    damageRollResult = BattleDice.rollDamageWithDisadvantage(damageDice);
+                    hasDamageDisadvantage = true;
+                    damageRolls = damageRollResult.bothRolls;
+                } else if (BattleDice.rollDamageDetailed) {
+                    damageRollResult = BattleDice.rollDamageDetailed(damageDice);
+                } else {
+                    damageRollResult = { total: rollDamage(damageDice) };
+                }
                 baseDamageRoll = damageRollResult.total;
-                isMinDamage = damageRollResult.isMin;
-                isMaxDamage = damageRollResult.isMax;
+                isMinDamage = damageRollResult.isMin || false;
+                isMaxDamage = damageRollResult.isMax || false;
             } else {
                 baseDamageRoll = rollDamage(damageDice);
             }
@@ -304,7 +322,10 @@ var BattleStyleDnD = (function() {
             statusResult: statusResult,
             fumbleStatusResult: fumbleStatusResult,
             isMinDamage: isMinDamage,
-            isMaxDamage: isMaxDamage
+            isMaxDamage: isMaxDamage,
+            hasDamageAdvantage: hasDamageAdvantage,
+            hasDamageDisadvantage: hasDamageDisadvantage,
+            damageRolls: damageRolls
         };
         return result;
     }
@@ -449,19 +470,46 @@ var BattleStyleDnD = (function() {
         var isHealSkill = skill.isHeal || (skill.healAmount && !skill.damage);
         if (isHealSkill) {
             if (skill.healAmount) {
+                // Check for advantage/disadvantage from QTE result
+                qteResult = qteResult || {};
+                var hasHealAdvantage = qteResult.advantage || false;
+                var hasHealDisadvantage = qteResult.disadvantage || false;
+                var healBonusMultiplier = 1 + (qteResult.bonusHealing || 0);
+
                 // Use rollDamageDetailed to get min/max info for heal rolls
                 var healRollResult;
                 var healAmount;
                 var isMinHeal = false;
                 var isMaxHeal = false;
-                if (typeof BattleDice !== 'undefined' && BattleDice.rollDamageDetailed) {
-                    healRollResult = BattleDice.rollDamageDetailed(skill.healAmount);
-                    healAmount = healRollResult.total;
-                    isMinHeal = healRollResult.isMin;
-                    isMaxHeal = healRollResult.isMax;
+
+                if (typeof BattleDice !== 'undefined') {
+                    if (hasHealAdvantage && BattleDice.rollDamageWithAdvantage) {
+                        healRollResult = BattleDice.rollDamageWithAdvantage(skill.healAmount);
+                        healAmount = healRollResult.total;
+                        result.hasHealAdvantage = true;
+                        result.healRolls = healRollResult.rolls;
+                    } else if (hasHealDisadvantage && BattleDice.rollDamageWithDisadvantage) {
+                        healRollResult = BattleDice.rollDamageWithDisadvantage(skill.healAmount);
+                        healAmount = healRollResult.total;
+                        result.hasHealDisadvantage = true;
+                        result.healRolls = healRollResult.rolls;
+                    } else if (BattleDice.rollDamageDetailed) {
+                        healRollResult = BattleDice.rollDamageDetailed(skill.healAmount);
+                        healAmount = healRollResult.total;
+                        isMinHeal = healRollResult.isMin;
+                        isMaxHeal = healRollResult.isMax;
+                    } else {
+                        healAmount = rollHeal(skill.healAmount);
+                    }
                 } else {
                     healAmount = rollHeal(skill.healAmount);
                 }
+
+                // Apply bonus healing from perfect QTE
+                if (healBonusMultiplier !== 1) {
+                    healAmount = Math.floor(healAmount * healBonusMultiplier);
+                }
+
                 var healResult = BattleCore.healPlayer(healAmount, 'skill');
                 messages.push('Healed for <span class="battle-number">' + healResult.healed + ' HP</span>!');
                 result.healed = healResult.healed;
@@ -591,11 +639,7 @@ var BattleStyleDnD = (function() {
             acBonus: config.defendACBonus,
             cooldown: cooldown,  // Return cooldown for UI display
             roll: roll,
-            rollResult: rollResult,
-            messages: [
-                'Defending! <span class="battle-number">+' + config.defendACBonus + ' AC</span> (2 turns)',
-                'Rolled <span class="battle-number">' + roll + '</span> - Recovered <span class="battle-number">+' + actualMana + ' MP</span>'
-            ]
+            rollResult: rollResult
         };
     }
 
@@ -998,13 +1042,17 @@ var BattleStyleDnD = (function() {
         }, function(qteResult) {
             // Get modifiers based on QTE zone (perfect/good/normal/bad)
             var zone = qteResult.zone || 'normal';
-            var skillMods = T && T.qte && T.qte.skillModifiers ? T.qte.skillModifiers[zone] : {};
+            // Use QTEEngine.getSkillModifiers for proper fallback defaults
+            var skillMods = (typeof QTEEngine !== 'undefined' && QTEEngine.getSkillModifiers)
+                ? QTEEngine.getSkillModifiers(zone)
+                : (qteResult.modifiers || {});
 
             // Build modifiers for the skill
             var modifiers = {};
-            if (skillMods.advantage) modifiers.useAdvantage = true;
-            if (skillMods.disadvantage) modifiers.useDisadvantage = true;
+            if (skillMods.advantage) modifiers.advantage = true;
+            if (skillMods.disadvantage) modifiers.disadvantage = true;
             if (skillMods.bonusDamage) modifiers.damageMultiplier = 1 + skillMods.bonusDamage;
+            if (skillMods.bonusHealing) modifiers.bonusHealing = skillMods.bonusHealing;
             if (skillMods.statusChanceBonus) modifiers.statusChanceBonus = skillMods.statusChanceBonus;
 
             var result = playerSkillWithModifiers(skillId, modifiers);
@@ -1027,9 +1075,9 @@ var BattleStyleDnD = (function() {
             return { success: false, reason: 'unknown_skill', messages: ['Unknown skill!'] };
         }
 
-        // Handle heal/buff skills by delegating to playerSkill (avoid double mana spend)
+        // Handle heal/buff skills by delegating to playerSkill with modifiers
         if (skill.isHeal || skill.isBuff || (skill.healAmount && !skill.damage)) {
-            return playerSkill(skillId);
+            return playerSkill(skillId, modifiers);
         }
 
         if (skill.manaCost && player.mana < skill.manaCost) {
@@ -1044,10 +1092,13 @@ var BattleStyleDnD = (function() {
         var result = { success: true, messages: messages, skill: skill };
 
         // Roll with advantage/disadvantage for attack skills
+        var hasAdvantage = modifiers.advantage || modifiers.useAdvantage;
+        var hasDisadvantage = modifiers.disadvantage || modifiers.useDisadvantage;
+
         var rollResult;
-        if (modifiers.useAdvantage && _hasBattleDice) {
+        if (hasAdvantage && _hasBattleDice) {
             rollResult = BattleDice.rollWithAdvantage();
-        } else if (modifiers.useDisadvantage && _hasBattleDice) {
+        } else if (hasDisadvantage && _hasBattleDice) {
             rollResult = BattleDice.rollWithDisadvantage();
         } else {
             rollResult = rollD20();
@@ -1056,7 +1107,9 @@ var BattleStyleDnD = (function() {
         // Build attack with custom roll
         var qteResult = {
             damageMultiplier: modifiers.damageMultiplier || 1,
-            statusChanceBonus: modifiers.statusChanceBonus || 0
+            statusChanceBonus: modifiers.statusChanceBonus || 0,
+            damageAdvantage: hasAdvantage || false,
+            damageDisadvantage: hasDisadvantage || false
         };
 
         var attackResult = resolveAttackWithRoll(player, enemy, skill, qteResult, rollResult);
@@ -1141,14 +1194,32 @@ var BattleStyleDnD = (function() {
         var isMinDamage = false;
         var isMaxDamage = false;
 
+        // Track damage advantage for UI display
+        var hasDamageAdvantage = false;
+        var hasDamageDisadvantage = false;
+        var damageRolls = null;
+
         if (hit) {
             var damageDice = skill.damage || attacker.damage || '1d6';
             var damageRollResult;
-            if (typeof BattleDice !== 'undefined' && BattleDice.rollDamageDetailed) {
-                damageRollResult = BattleDice.rollDamageDetailed(damageDice);
+            if (typeof BattleDice !== 'undefined') {
+                // Use advantage/disadvantage for damage if specified
+                if (qteResult.damageAdvantage && BattleDice.rollDamageWithAdvantage) {
+                    damageRollResult = BattleDice.rollDamageWithAdvantage(damageDice);
+                    hasDamageAdvantage = true;
+                    damageRolls = damageRollResult.bothRolls;
+                } else if (qteResult.damageDisadvantage && BattleDice.rollDamageWithDisadvantage) {
+                    damageRollResult = BattleDice.rollDamageWithDisadvantage(damageDice);
+                    hasDamageDisadvantage = true;
+                    damageRolls = damageRollResult.bothRolls;
+                } else if (BattleDice.rollDamageDetailed) {
+                    damageRollResult = BattleDice.rollDamageDetailed(damageDice);
+                } else {
+                    damageRollResult = { total: rollDamage(damageDice) };
+                }
                 baseDamageRoll = damageRollResult.total;
-                isMinDamage = damageRollResult.isMin;
-                isMaxDamage = damageRollResult.isMax;
+                isMinDamage = damageRollResult.isMin || false;
+                isMaxDamage = damageRollResult.isMax || false;
             } else {
                 baseDamageRoll = rollDamage(damageDice);
             }
@@ -1195,7 +1266,10 @@ var BattleStyleDnD = (function() {
             hasAdvantage: rollResult.advantage || false,
             hasDisadvantage: rollResult.disadvantage || false,
             isMinDamage: isMinDamage,
-            isMaxDamage: isMaxDamage
+            isMaxDamage: isMaxDamage,
+            hasDamageAdvantage: hasDamageAdvantage,
+            hasDamageDisadvantage: hasDamageDisadvantage,
+            damageRolls: damageRolls
         };
     }
 

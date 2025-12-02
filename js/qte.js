@@ -115,6 +115,7 @@ var QTEEngine = (function() {
         phase: 'idle',        // 'idle', 'waiting', 'running', 'input', 'result'
         markerPosition: 0,    // 0-100 (center = 50)
         markerDirection: 1,   // 1 = right, -1 = left
+        targetPosition: 50,   // Random target for perfect zone (10-90%)
         startTime: 0,
         inputTime: null,      // When player pressed
         result: null,         // 'perfect', 'success', 'partial', 'miss'
@@ -195,24 +196,29 @@ var QTEEngine = (function() {
 
     /**
      * Calculate zone for finalized battle system (Perfect/Good/Normal/Bad)
-     * @param {number} position - Marker position (0-100, center = 50)
+     * Uses distance from random target position (not fixed center)
+     * @param {number} position - Marker position (0-100)
      * @returns {string} - 'perfect', 'good', 'normal', or 'bad'
      */
     function getZoneForPositionFinalized(position) {
-        var distanceFromCenter = Math.abs(position - 50);
+        // Distance from the random target position
+        var distanceFromTarget = Math.abs(position - state.targetPosition);
         var diffMod = config.difficulty[state.difficulty];
         var zoneMult = diffMod ? diffMod.zoneMultiplier : 1;
 
-        // Use finalized zone names, fallback to legacy if not present
-        var perfectZone = (config.zones.perfect || 5) * zoneMult;
-        var goodZone = (config.zones.good || config.zones.success || 15) * zoneMult;
-        var normalZone = (config.zones.normal || config.zones.partial || 30) * zoneMult;
+        // Apply zone scale (defend QTE uses 0.7, skill uses 1.0)
+        var zoneScale = state.zoneScale || 1;
 
-        if (distanceFromCenter <= perfectZone) {
+        // Use finalized zone names, fallback to legacy if not present
+        var perfectZone = (config.zones.perfect || 5) * zoneMult * zoneScale;
+        var goodZone = (config.zones.good || config.zones.success || 15) * zoneMult * zoneScale;
+        var normalZone = (config.zones.normal || config.zones.partial || 30) * zoneMult * zoneScale;
+
+        if (distanceFromTarget <= perfectZone) {
             return 'perfect';
-        } else if (distanceFromCenter <= goodZone) {
+        } else if (distanceFromTarget <= goodZone) {
             return 'good';
-        } else if (distanceFromCenter <= normalZone) {
+        } else if (distanceFromTarget <= normalZone) {
             return 'normal';
         } else {
             return 'bad';
@@ -398,6 +404,8 @@ var QTEEngine = (function() {
         state.phase = 'idle';
         state.markerPosition = 0;
         state.markerDirection = 1;
+        state.targetPosition = 50;
+        state.zoneScale = 1.0;
         state.startTime = 0;
         state.inputTime = null;
         state.result = null;
@@ -554,7 +562,13 @@ var QTEEngine = (function() {
             state.difficulty = params.difficulty;
         }
 
-        // Show UI with skill label
+        // Generate random target position within middle 80% of bar (10% to 90%)
+        state.targetPosition = 10 + Math.random() * 80;
+
+        // Skill QTE uses normal zone sizes
+        state.zoneScale = 1.0;
+
+        // Show UI with skill label and target position
         if (qteUI) {
             qteUI.show('skill', config, state.difficulty, {
                 label: state.skillName.toUpperCase() + '!',
@@ -562,7 +576,8 @@ var QTEEngine = (function() {
                     perfect: config.zones.perfect,
                     good: config.zones.good || config.zones.success,
                     normal: config.zones.normal || config.zones.partial
-                }
+                },
+                targetPosition: state.targetPosition
             });
         }
 
@@ -625,16 +640,23 @@ var QTEEngine = (function() {
             state.difficulty = params.difficulty;
         }
 
-        // Show UI with defend label
+        // Generate random target position within middle 80% of bar (10% to 90%)
+        state.targetPosition = 10 + Math.random() * 80;
+
+        // Defend QTE has tighter zones (harder than skill)
+        state.zoneScale = 0.7; // 70% of normal zone sizes
+
+        // Show UI with defend label and tighter zones
         if (qteUI) {
             qteUI.show('defend', config, state.difficulty, {
                 label: 'DEFEND!',
                 subLabel: state.enemyAttackName,
                 zones: {
-                    perfect: config.zones.perfect,
-                    good: config.zones.good || config.zones.success,
-                    normal: config.zones.normal || config.zones.partial
-                }
+                    perfect: (config.zones.perfect || 5) * state.zoneScale,
+                    good: (config.zones.good || config.zones.success || 15) * state.zoneScale,
+                    normal: (config.zones.normal || config.zones.partial || 30) * state.zoneScale
+                },
+                targetPosition: state.targetPosition
             });
         }
 
@@ -647,8 +669,8 @@ var QTEEngine = (function() {
             // Begin animation
             state.animationFrame = requestAnimationFrame(updateMarkerPosition);
 
-            // Defense QTE is slightly faster (more pressure)
-            var totalDuration = (config.bar.duration * 0.85) * config.bar.oscillations;
+            // Defense QTE is faster (more pressure) - 65% of normal duration
+            var totalDuration = (config.bar.duration * 0.65) * config.bar.oscillations;
             var diffMod = config.difficulty[state.difficulty];
             if (diffMod) {
                 totalDuration /= diffMod.speedMultiplier;
@@ -660,7 +682,7 @@ var QTEEngine = (function() {
                 }
             }, totalDuration + 100);
 
-        }, config.timing.startDelay * 0.6); // Faster start for defend
+        }, config.timing.startDelay * 0.4); // Even faster start for defend
 
         return true;
     }
@@ -792,6 +814,12 @@ var QTEEngine = (function() {
      * Get defend QTE modifiers based on result
      * @param {string} zone - 'perfect', 'good', 'normal', or 'bad'
      * @returns {object} - Modifier values for defense resolution
+     *
+     * Results:
+     *   - Perfect (PARRY): Reflect 1d5 damage back to attacker, no damage taken
+     *   - Good (DODGE): Avoid the attack completely
+     *   - Normal (CONFUSE): Get confused AND hit (full damage)
+     *   - Bad (FUMBLE): Get confused AND hit, lose AC bonus
      */
     function getDefendModifiers(zone) {
         var T = typeof TUNING !== 'undefined' ? TUNING : null;
@@ -803,10 +831,10 @@ var QTEEngine = (function() {
 
         // Fallback defaults
         var defaults = {
-            perfect: { result: 'parry', damageReduction: 1.0, counterAttack: true, counterDamagePercent: 0.5, defendEnds: false },
+            perfect: { result: 'parry', damageReduction: 1.0, counterAttack: true, counterDamageDice: '1d5', defendEnds: false },
             good: { result: 'dodge', damageReduction: 1.0, counterAttack: false, defendEnds: false },
-            normal: { result: 'block', damageReduction: 0.5, counterAttack: false, defendEnds: false },
-            bad: { result: 'broken', damageReduction: 0, counterAttack: false, defendEnds: true }
+            normal: { result: 'confuse', damageReduction: 0, counterAttack: false, confused: true, defendEnds: false },
+            bad: { result: 'fumble', damageReduction: 0, counterAttack: false, confused: true, loseACBonus: true, defendEnds: true }
         };
 
         return defaults[zone] || defaults.normal;
@@ -1204,6 +1232,15 @@ var QTEEngine = (function() {
     // === State Queries ===
 
     /**
+     * Check if QTE system is enabled globally
+     * @returns {boolean}
+     */
+    function isEnabled() {
+        var T = window.TUNING;
+        return T && T.qte && T.qte.enabled;
+    }
+
+    /**
      * Check if QTE is currently active
      * @returns {boolean}
      */
@@ -1269,6 +1306,7 @@ var QTEEngine = (function() {
         handleComboInput: handleComboInput,
 
         // State queries
+        isEnabled: isEnabled,
         isActive: isActive,
         getType: getType,
         getPhase: getPhase,

@@ -377,6 +377,18 @@ var BattleEngine = (function() {
             BattleDiceUI.setSfxCallback(playSfx);
         }
 
+        // Initialize QTE system
+        if (typeof QTEEngine !== 'undefined') {
+            QTEEngine.init(window.BattleEngine);
+            // Initialize and set UI reference if QTEUI is available
+            if (typeof QTEUI !== 'undefined') {
+                QTEUI.init(elements.container);
+                QTEEngine.setUI(QTEUI);
+            }
+            // Bind input handlers for QTE (keyboard/click/touch)
+            QTEEngine.bindInputs();
+        }
+
         _initialized = true;
     }
 
@@ -679,36 +691,26 @@ var BattleEngine = (function() {
         // NOTE: Don't updateDisplay() here - wait until animation completes
         // so MP bar updates at the same time as the "Recovered +X MP!" text
 
-        // Use animated dice roll display for defend
         var battleLogContent = document.getElementById('battle-log-content');
-        if (battleLogContent && typeof BattleDiceUI !== 'undefined' && result.rollResult) {
-            battleLogContent.innerHTML = '';
-            BattleDiceUI.showDefendRoll({
-                container: battleLogContent,
-                defender: BattleCore.getPlayer().name,
-                rollResult: result.rollResult,
-                acBonus: result.acBonus,
-                manaRecovered: result.manaRecovered,
-                manaRolled: result.manaRolled,
-                cooldown: result.cooldown,
-                isMinMana: result.isMinMana,
-                isMaxMana: result.isMaxMana,
-                onACComplete: function(acBonus) {
-                    // Show floating +AC number on player after AC text completes
-                    showDamageNumber(acBonus, 'player', 'ac-boost');
-                }
-            }, function() {
-                updateDisplay();  // Update MP bar after animation completes
-                processEnemyTurn(messages, callback, { playerAction: 'defend' });
-            });
-        } else {
-            // Fallback to simple messages
-            updateDisplay();
-            messages = messages.concat(result.messages || []);
-            updateBattleLog(messages.join('<br>'), null, function() {
-                processEnemyTurn(messages, callback, { playerAction: 'defend' });
-            });
-        }
+        battleLogContent.innerHTML = '';
+        BattleDiceUI.showDefendRoll({
+            container: battleLogContent,
+            defender: BattleCore.getPlayer().name,
+            rollResult: result.rollResult,
+            acBonus: result.acBonus,
+            manaRecovered: result.manaRecovered,
+            manaRolled: result.manaRolled,
+            cooldown: result.cooldown,
+            isMinMana: result.isMinMana,
+            isMaxMana: result.isMaxMana,
+            onACComplete: function(acBonus) {
+                // Show floating +AC number on player after AC text completes
+                showDamageNumber(acBonus, 'player', 'ac-boost');
+            }
+        }, function() {
+            updateDisplay();  // Update MP bar after animation completes
+            processEnemyTurn(messages, callback, { playerAction: 'defend' });
+        });
     }
 
     function handleFleeAction(style, messages, callback) {
@@ -778,7 +780,10 @@ var BattleEngine = (function() {
             var healRolled = result.healRolled || result.healed;  // Rolled amount (before cap)
             showHealRoll(playerName, result.healed, healRolled, {
                 isMinHeal: result.isMinHeal,
-                isMaxHeal: result.isMaxHeal
+                isMaxHeal: result.isMaxHeal,
+                hasHealAdvantage: result.hasHealAdvantage,
+                hasHealDisadvantage: result.hasHealDisadvantage,
+                healRolls: result.healRolls
             }, function() {
                 // Show floating heal number on player (only if > 0)
                 if (result.healed > 0) {
@@ -920,16 +925,59 @@ var BattleEngine = (function() {
             showDamageNumber(statusResult.heal, 'enemy', 'heal');
         }
 
-        // Handle enemy confusion self-damage with attack-style display
+        // Handle enemy confusion self-damage with animated dice roll (using modular BattleDiceUI)
         if (statusResult.confusionDamage > 0) {
             var confusionDmg = statusResult.confusionDamage;
-            // Apply damage to enemy
-            enemy.hp -= confusionDmg;
-            // Show floating damage number
-            showDamageNumber(confusionDmg, 'enemy', 'damage');
-            // Add message to show in battle log (matching attack damage format)
-            // Uses roll-damage-normal class for red damage number like normal attacks
-            messages.push(enemy.name + ' hits themselves! <strong class="dice-number roll-damage-normal">' + confusionDmg + '</strong> <span class="damage-text roll-type-damage">DAMAGE</span>');
+            var enemyName = enemy.name;
+
+            // Show any other status messages first, then show confusion roll
+            function showEnemyConfusionRoll() {
+                // Apply damage to enemy
+                enemy.hp -= confusionDmg;
+
+                // Get battle log container
+                var battleLog = document.getElementById('battle-log-content');
+                if (!battleLog) {
+                    finishEnemyConfusionTurn();
+                    return;
+                }
+
+                // Use modular BattleDiceUI.showSimpleDamageRoll for animated dice
+                if (typeof BattleDiceUI !== 'undefined' && BattleDiceUI.showSimpleDamageRoll) {
+                    BattleDiceUI.showSimpleDamageRoll({
+                        container: battleLog,
+                        text: enemyName + ' hits themselves! ',
+                        damage: confusionDmg,
+                        sides: 5  // d5 for confusion damage
+                    }, function() {
+                        showDamageNumber(confusionDmg, 'enemy', 'damage');
+                        updateDisplay();
+                        finishEnemyConfusionTurn();
+                    });
+                } else {
+                    // Fallback without animation
+                    battleLog.innerHTML = '<div class="roll-result">' + enemyName + ' hits themselves! <strong class="dice-number roll-damage-normal">' + confusionDmg + '</strong> <span class="damage-text roll-type-damage">DAMAGE</span></div>';
+                    showDamageNumber(confusionDmg, 'enemy', 'damage');
+                    updateDisplay();
+                    setTimeout(finishEnemyConfusionTurn, 800);
+                }
+            }
+
+            function finishEnemyConfusionTurn() {
+                // Check if enemy died from confusion damage
+                if (checkEnd()) return;
+
+                // Confusion means enemy can't act - end their turn
+                finishEnemyTurn([], callback);
+            }
+
+            // If there are other status messages, show them first
+            if (messages.length > 0) {
+                updateBattleLog(messages.join('<br>'), null, showEnemyConfusionRoll);
+            } else {
+                showEnemyConfusionRoll();
+            }
+            return;
         }
 
         // Check if enemy died from status
@@ -1127,21 +1175,70 @@ var BattleEngine = (function() {
             BattleCore.restoreMana(statusResult.mana);
         }
 
-        // Handle confusion self-damage with attack-style display
-        if (statusResult.confusionDamage > 0) {
-            var confusionDmg = statusResult.confusionDamage;
-            // Apply damage to player
-            BattleCore.getPlayer().hp -= confusionDmg;
-            // Show floating damage number
-            showDamageNumber(confusionDmg, 'player', 'damage');
-            // Add message to show in battle log (matching attack damage format)
-            // Uses roll-damage-normal class for red damage number like normal attacks
-            var playerName = state.player.name || 'Player';
-            statusResult.messages.push(playerName + ' hits themselves! <strong class="dice-number roll-damage-normal">' + confusionDmg + '</strong> <span class="damage-text roll-type-damage">DAMAGE</span>');
-        }
-
         // Store status result for executeAction to check canAct
         state._playerStatusResult = statusResult;
+
+        // Handle confusion self-damage with animated dice roll (using modular BattleDiceUI)
+        if (statusResult.confusionDamage > 0) {
+            var confusionDmg = statusResult.confusionDamage;
+            var playerName = state.player.name || 'Player';
+
+            // Show any other status messages first (regen, etc.), then show confusion roll
+            var otherMessages = statusResult.messages.slice(); // Copy messages without confusion
+
+            function showConfusionRoll() {
+                // Apply damage to player
+                BattleCore.getPlayer().hp -= confusionDmg;
+
+                // Get battle log container
+                var battleLog = document.getElementById('battle-log-content');
+                if (!battleLog) {
+                    finishConfusionTurn();
+                    return;
+                }
+
+                // Use modular BattleDiceUI.showSimpleDamageRoll for animated dice
+                if (typeof BattleDiceUI !== 'undefined' && BattleDiceUI.showSimpleDamageRoll) {
+                    BattleDiceUI.showSimpleDamageRoll({
+                        container: battleLog,
+                        text: playerName + ' hits themselves! ',
+                        damage: confusionDmg,
+                        sides: 5  // d5 for confusion damage
+                    }, function() {
+                        // Show floating damage number
+                        showDamageNumber(confusionDmg, 'player', 'damage');
+                        updateDisplay();
+                        finishConfusionTurn();
+                    });
+                } else {
+                    // Fallback without animation
+                    battleLog.innerHTML = '<div class="roll-result">' + playerName + ' hits themselves! <strong class="dice-number roll-damage-normal">' + confusionDmg + '</strong> <span class="damage-text roll-type-damage">DAMAGE</span></div>';
+                    showDamageNumber(confusionDmg, 'player', 'damage');
+                    updateDisplay();
+                    setTimeout(finishConfusionTurn, 800);
+                }
+            }
+
+            function finishConfusionTurn() {
+                // Check death from confusion damage
+                if (state.player.hp <= 0) {
+                    checkEnd();
+                    return;
+                }
+
+                // Confusion always means can't act - skip to enemy turn
+                state._playerStatusResult = null;
+                processEnemyTurn([], callback, { playerAction: 'stunned' });
+            }
+
+            // If there are other status messages, show them first
+            if (otherMessages.length > 0) {
+                updateBattleLog(otherMessages.join('<br>'), null, showConfusionRoll);
+            } else {
+                showConfusionRoll();
+            }
+            return;
+        }
 
         // Show regen messages if any, waiting for text to complete before UI update
         if (statusResult.messages.length > 0) {
@@ -1152,7 +1249,7 @@ var BattleEngine = (function() {
                     return;
                 }
 
-                // If player can't act (confusion self-hit, stun, etc.), skip to enemy turn
+                // If player can't act (stun, etc.), skip to enemy turn
                 if (!statusResult.canAct) {
                     state._playerStatusResult = null;  // Clear stored result
                     processEnemyTurn([], callback, { playerAction: 'stunned' });
@@ -1180,7 +1277,7 @@ var BattleEngine = (function() {
             return;
         }
 
-        // If player can't act (confusion self-hit, stun, etc.), skip to enemy turn
+        // If player can't act (stun, etc.), skip to enemy turn
         if (!statusResult.canAct) {
             state._playerStatusResult = null;  // Clear stored result
             processEnemyTurn([], callback, { playerAction: 'stunned' });
@@ -1335,8 +1432,28 @@ var BattleEngine = (function() {
             BattleUI.updateHP('player', state.player.hp, state.player.maxHP, null, hasHPRegen);
             BattleUI.updateHP('enemy', state.enemy.hp, state.enemy.maxHP);
             BattleUI.updateMana(state.player.mana, state.player.maxMana, hasManaRegen);
-            BattleUI.updateStatuses('player', state.player.statuses, _hasBattleData ? BattleData.statusEffects : {});
-            BattleUI.updateStatuses('enemy', state.enemy.statuses, _hasBattleData ? BattleData.statusEffects : {});
+
+            // Build player statuses list, including defending stance icon if active
+            var playerStatuses = (state.player.statuses || []).slice(); // Clone array
+            if (state.player.defending) {
+                // Add defending as a pseudo-status at the front
+                // Use defending value as duration if it's a number, otherwise 1
+                var defendDuration = typeof state.player.defending === 'number' ? state.player.defending : 1;
+                playerStatuses.unshift({ type: 'defending', duration: defendDuration });
+            }
+            // Get status definitions - include defending as fallback even if BattleData not loaded
+            var statusDefs = _hasBattleData ? BattleData.statusEffects : {};
+            if (!statusDefs.defending) {
+                statusDefs.defending = {
+                    name: 'Defending',
+                    icon: '🛡️',
+                    color: '#3498db',
+                    duration: 1,
+                    description: 'Bracing for impact - AC boosted'
+                };
+            }
+            BattleUI.updateStatuses('player', playerStatuses, statusDefs);
+            BattleUI.updateStatuses('enemy', state.enemy.statuses || [], statusDefs);
             BattleUI.updateStagger('player', state.player.stagger, state.player.staggerThreshold);
             BattleUI.updateStagger('enemy', state.enemy.stagger, state.enemy.staggerThreshold);
             BattleUI.updateLimitBar(state.player.limitCharge, BattleCore.getCombatConfig().limitChargeMax);
@@ -1446,7 +1563,10 @@ var BattleEngine = (function() {
                 roll: attackResult.roll,
                 sides: 20,
                 isCrit: attackResult.isCrit,
-                isFumble: attackResult.isFumble
+                isFumble: attackResult.isFumble,
+                advantage: attackResult.hasAdvantage,
+                disadvantage: attackResult.hasDisadvantage,
+                rolls: attackResult.rolls
             },
             attackTotal: attackResult.attackTotal,
             attackModifiers: attackResult.attackModifiers || [],
@@ -1457,7 +1577,10 @@ var BattleEngine = (function() {
             damageModifiers: attackResult.damageModifiers || [],
             isPlayer: isPlayer,
             isMinDamage: attackResult.isMinDamage,
-            isMaxDamage: attackResult.isMaxDamage
+            isMaxDamage: attackResult.isMaxDamage,
+            damageAdvantage: attackResult.hasDamageAdvantage,
+            damageDisadvantage: attackResult.hasDamageDisadvantage,
+            damageRolls: attackResult.damageRolls
         }, callback);
     }
 
@@ -1509,7 +1632,10 @@ var BattleEngine = (function() {
             healAmount: healAmount,
             healRolled: healRolled,
             isMinHeal: options.isMinHeal,
-            isMaxHeal: options.isMaxHeal
+            isMaxHeal: options.isMaxHeal,
+            hasHealAdvantage: options.hasHealAdvantage,
+            hasHealDisadvantage: options.hasHealDisadvantage,
+            healRolls: options.healRolls
         }, callback);
     }
 

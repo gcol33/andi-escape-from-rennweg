@@ -30,6 +30,14 @@
     font-display: swap;
 }
 
+@font-face {
+    font-family: 'Press Start 2P Password';
+    src: url('../../assets/fonts/password/PressStart2P-Password.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
 /* === Password Overlay === */
 #password-overlay {
     position: fixed;
@@ -98,7 +106,7 @@
 
 /* Password char - sizes from shared.css variables, theme styling only */
 .password-char {
-    font-family: 'Press Start 2P', monospace;
+    font-family: 'Press Start 2P Password', 'Press Start 2P', monospace;
     font-weight: normal;
     text-align: center;
     text-transform: uppercase;
@@ -109,8 +117,6 @@
     outline: none;
     transition: all 0.3s ease;
     box-shadow: inset 0 0 0 2px var(--menu-border);
-    /* Fix horizontal centering for Press Start 2P font */
-    padding-left: 0.15em;
 }
 
 .password-char:focus {

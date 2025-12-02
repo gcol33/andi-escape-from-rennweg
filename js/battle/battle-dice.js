@@ -150,13 +150,13 @@ var BattleDice = (function() {
             return Math.max(minDamage, notation);
         }
 
-        // Parse dice notation: XdY+Z or XdY-Z
-        var match = String(notation).match(/(\d+)d(\d+)([+-]\d+)?/i);
+        // Parse dice notation: XdY+Z, XdY-Z, or dY (defaults to 1dY)
+        var match = String(notation).match(/(\d*)d(\d+)([+-]\d+)?/i);
         if (!match) {
             return Math.max(minDamage, parseInt(notation) || minDamage);
         }
 
-        var count = parseInt(match[1]);
+        var count = parseInt(match[1]) || 1;  // Default to 1 if no number before 'd'
         var sides = parseInt(match[2]);
         var modifier = match[3] ? parseInt(match[3]) : 0;
 
@@ -174,13 +174,14 @@ var BattleDice = (function() {
      * @returns {Object} { total, rolls, modifier }
      */
     function rollDamageDetailed(notation) {
-        var match = String(notation).match(/(\d+)d(\d+)([+-]\d+)?/i);
+        // Support formats: "1d6", "d6", "2d6+3", "d8-1"
+        var match = String(notation).match(/(\d*)d(\d+)([+-]\d+)?/i);
         if (!match) {
             var val = parseInt(notation) || 1;
             return { total: val, rolls: [val], modifier: 0, isMin: false, isMax: false };
         }
 
-        var count = parseInt(match[1]);
+        var count = parseInt(match[1]) || 1;  // Default to 1 if no number before 'd'
         var sides = parseInt(match[2]);
         var modifier = match[3] ? parseInt(match[3]) : 0;
 
@@ -201,6 +202,52 @@ var BattleDice = (function() {
             notation: notation,
             isMin: diceTotal === minPossible,
             isMax: diceTotal === maxPossible
+        };
+    }
+
+    /**
+     * Roll damage with advantage (roll twice, take higher)
+     * @param {string} notation - Dice notation (e.g., "2d6+3")
+     * @returns {Object} { total, rolls, bothRolls, modifier, advantage }
+     */
+    function rollDamageWithAdvantage(notation) {
+        var roll1 = rollDamageDetailed(notation);
+        var roll2 = rollDamageDetailed(notation);
+
+        var winner = roll1.total >= roll2.total ? roll1 : roll2;
+
+        return {
+            total: winner.total,
+            rolls: winner.rolls,
+            bothRolls: [roll1.total, roll2.total],
+            modifier: winner.modifier,
+            notation: notation,
+            isMin: winner.isMin,
+            isMax: winner.isMax,
+            advantage: true
+        };
+    }
+
+    /**
+     * Roll damage with disadvantage (roll twice, take lower)
+     * @param {string} notation - Dice notation
+     * @returns {Object} { total, rolls, bothRolls, modifier, disadvantage }
+     */
+    function rollDamageWithDisadvantage(notation) {
+        var roll1 = rollDamageDetailed(notation);
+        var roll2 = rollDamageDetailed(notation);
+
+        var loser = roll1.total <= roll2.total ? roll1 : roll2;
+
+        return {
+            total: loser.total,
+            rolls: loser.rolls,
+            bothRolls: [roll1.total, roll2.total],
+            modifier: loser.modifier,
+            notation: notation,
+            isMin: loser.isMin,
+            isMax: loser.isMax,
+            disadvantage: true
         };
     }
 
@@ -231,6 +278,8 @@ var BattleDice = (function() {
 
         // Damage
         rollDamage: rollDamage,
-        rollDamageDetailed: rollDamageDetailed
+        rollDamageDetailed: rollDamageDetailed,
+        rollDamageWithAdvantage: rollDamageWithAdvantage,
+        rollDamageWithDisadvantage: rollDamageWithDisadvantage
     };
 })();

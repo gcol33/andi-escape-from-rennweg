@@ -28,6 +28,15 @@
     --damage-font: var(--theme-font);
 }
 
+/* === Font Face === */
+@font-face {
+    font-family: 'Press Start 2P Password';
+    src: url('../../assets/fonts/password/PressStart2P-Password.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
 /* === Password Overlay === */
 #password-overlay {
     position: fixed;
@@ -97,7 +106,7 @@
 
 /* Password char - sizes from shared.css variables, theme styling only */
 .password-char {
-    font-family: 'SNES', 'Press Start 2P', 'Courier New', monospace;
+    font-family: 'Press Start 2P Password', 'SNES', 'Press Start 2P', 'Courier New', monospace;
     font-weight: normal;
     text-align: center;
     text-transform: uppercase;
@@ -109,8 +118,6 @@
     outline: none;
     transition: all 0.15s ease-out;
     text-shadow: 2px 2px 0 var(--snes-blue);
-    /* Fix horizontal centering for pixel fonts */
-    padding-left: 0.15em;
 }
 
 .password-char:focus {
