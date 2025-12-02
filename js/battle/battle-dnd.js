@@ -929,6 +929,10 @@ var BattleStyleDnD = (function() {
 
         messages.push(enemy.name + ' uses ' + (move.name || 'Attack') + '!');
 
+        // Store pending damage info - will be applied after animation completes
+        var pendingDamage = null;
+        var pendingCounter = null;
+
         if (attackResult.hit) {
             // Apply QTE dodge reduction
             var finalDamage = attackResult.damage;
@@ -937,11 +941,13 @@ var BattleStyleDnD = (function() {
             }
 
             if (finalDamage > 0) {
-                BattleCore.damagePlayer(finalDamage, {
+                // Don't apply damage yet - store it for later
+                pendingDamage = {
+                    amount: finalDamage,
                     source: 'enemy',
                     type: attackResult.damageType,
                     isCrit: attackResult.isCrit
-                });
+                };
 
                 messages.push('<span class="roll-damage-normal">' + finalDamage + ' DAMAGE</span>');
 
@@ -954,10 +960,14 @@ var BattleStyleDnD = (function() {
                     messages.push(attackResult.statusResult.message);
                 }
 
-                // Counter attack from perfect dodge
+                // Counter attack from perfect dodge - also defer
                 if (qteResult && qteResult.counterAttack) {
                     var counterDamage = Math.floor(attackResult.damage * 0.5);
-                    BattleCore.damageEnemy(counterDamage, { source: 'counter', type: 'physical' });
+                    pendingCounter = {
+                        amount: counterDamage,
+                        source: 'counter',
+                        type: 'physical'
+                    };
                     messages.push('Counter attack for <span class="roll-damage-normal">' + counterDamage + ' DAMAGE</span>!');
                 }
 
@@ -979,6 +989,8 @@ var BattleStyleDnD = (function() {
         return {
             success: true,
             attackResult: attackResult,
+            pendingDamage: pendingDamage,
+            pendingCounter: pendingCounter,
             messages: messages
         };
     }

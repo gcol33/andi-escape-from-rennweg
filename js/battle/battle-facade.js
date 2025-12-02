@@ -1426,20 +1426,21 @@ var BattleEngine = (function() {
             BattleCore.damageEnemy(counterDamage, { source: 'parry', type: 'physical' });
             defendMessages.push('PARRY! ' + playerName + ' reflects <span class="roll-damage-normal">' + counterDamage + ' DAMAGE</span>!');
             showDamageNumber(counterDamage, 'enemy', 'damage');
-            // Heal back damage that was applied during enemyTurn
-            if (damage > 0) {
-                BattleCore.healPlayer(damage, 'parry_refund');
-            }
+            // Don't apply pending damage - parry blocks it
         } else if (mods.result === 'dodge') {
             // DODGE: No damage taken
             defendMessages.push('DODGE! ' + playerName + ' avoids the attack!');
             showDamageNumber(0, 'player', 'miss');
-            // Heal back damage that was applied during enemyTurn
-            if (damage > 0) {
-                BattleCore.healPlayer(damage, 'dodge_refund');
-            }
+            // Don't apply pending damage - dodge avoids it
         } else {
-            // CONFUSE or FUMBLE: Take full damage (already applied in enemyTurn)
+            // CONFUSE or FUMBLE: Take full damage - apply pending damage now
+            if (attackResult && attackResult.pendingDamage) {
+                BattleCore.damagePlayer(attackResult.pendingDamage.amount, {
+                    source: attackResult.pendingDamage.source,
+                    type: attackResult.pendingDamage.type,
+                    isCrit: attackResult.pendingDamage.isCrit
+                });
+            }
             if (damage > 0) {
                 showDamageNumber(damage, 'player', 'damage');
             }
@@ -1599,6 +1600,23 @@ var BattleEngine = (function() {
             // Show heal dialogue if available
             var healLine = BattleCore.triggerDialogue('move_break_room_retreat');
             if (healLine) showDialogueBubble(healLine);
+        }
+
+        // Apply pending damage now that animation is complete
+        if (result.pendingDamage) {
+            BattleCore.damagePlayer(result.pendingDamage.amount, {
+                source: result.pendingDamage.source,
+                type: result.pendingDamage.type,
+                isCrit: result.pendingDamage.isCrit
+            });
+        }
+
+        // Apply pending counter damage
+        if (result.pendingCounter) {
+            BattleCore.damageEnemy(result.pendingCounter.amount, {
+                source: result.pendingCounter.source,
+                type: result.pendingCounter.type
+            });
         }
 
         updateDisplay();
