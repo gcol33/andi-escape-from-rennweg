@@ -618,7 +618,8 @@ var BattleUI = (function() {
             }
 
             elements.battleLog.innerHTML = html;
-            scrollLogToBottom();
+            // Scroll to bottom so newest content is visible
+            elements.battleLog.scrollTop = elements.battleLog.scrollHeight;
 
             var diceNum = elements.battleLog.querySelector('.dice-number');
             if (diceNum) {
@@ -635,18 +636,9 @@ var BattleUI = (function() {
             animationState.active = true;
             animationState.onComplete = lingerCallback;
             typewriterEffect(elements.battleLog, html, function() {
-                scrollLogToBottom();
+                // Typewriter uses placeholder that reserves space, so scroll is already correct
                 completeAnimation();
             });
-        }
-    }
-
-    /**
-     * Scroll battle log to bottom to show latest content
-     */
-    function scrollLogToBottom() {
-        if (elements.battleLog) {
-            elements.battleLog.scrollTop = elements.battleLog.scrollHeight;
         }
     }
 
@@ -959,7 +951,15 @@ var BattleUI = (function() {
             hitLabel = document.createElement('div');
             hitLabel.className = 'damage-number wow-style min-label ' + rollClass;
             hitLabel.textContent = 'MIN';
-        } else if (!isHeal && !isDot && !isMiss && !isACBoost) {
+        } else if (isDot) {
+            // DOT damage (bleed, poison, etc.) shows "DAMAGE" label in red
+            hitLabel = document.createElement('div');
+            var dotLabelClass = (typeof BattleDiceUI !== 'undefined' && BattleDiceUI.getRollClass)
+                ? BattleDiceUI.getRollClass('damage', 'normal')
+                : 'roll-damage-normal';
+            hitLabel.className = 'damage-number wow-style dot-label ' + dotLabelClass;
+            hitLabel.textContent = 'DAMAGE';
+        } else if (!isHeal && !isMiss && !isACBoost) {
             // Normal hits show "Hit" label (yellow, normal emphasis)
             hitLabel = document.createElement('div');
             var hitLabelClass = (typeof BattleDiceUI !== 'undefined' && BattleDiceUI.getRollClass)

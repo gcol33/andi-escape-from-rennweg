@@ -943,7 +943,7 @@ var BattleStyleDnD = (function() {
                     isCrit: attackResult.isCrit
                 });
 
-                messages.push('Hits for ' + finalDamage + ' damage!');
+                messages.push('<span class="roll-damage-normal">' + finalDamage + ' DAMAGE</span>');
 
                 if (attackResult.isCrit) {
                     messages.push('Critical hit!');
@@ -958,7 +958,7 @@ var BattleStyleDnD = (function() {
                 if (qteResult && qteResult.counterAttack) {
                     var counterDamage = Math.floor(attackResult.damage * 0.5);
                     BattleCore.damageEnemy(counterDamage, { source: 'counter', type: 'physical' });
-                    messages.push('Counter attack for ' + counterDamage + ' damage!');
+                    messages.push('Counter attack for <span class="roll-damage-normal">' + counterDamage + ' DAMAGE</span>!');
                 }
 
                 BattleCore.playSfx('attack_' + (attackResult.damageType || 'physical'));

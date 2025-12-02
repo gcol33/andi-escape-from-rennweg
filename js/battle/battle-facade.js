@@ -693,8 +693,12 @@ var BattleEngine = (function() {
 
         var battleLogContent = document.getElementById('battle-log-content');
         battleLogContent.innerHTML = '';
+        // Create wrapper div for consistent styling with attack rolls
+        var logEntry = document.createElement('div');
+        logEntry.className = 'battle-log-messages';
+        battleLogContent.appendChild(logEntry);
         BattleDiceUI.showDefendRoll({
-            container: battleLogContent,
+            container: logEntry,
             defender: BattleCore.getPlayer().name,
             rollResult: result.rollResult,
             acBonus: result.acBonus,
@@ -1049,98 +1053,123 @@ var BattleEngine = (function() {
         var state = BattleCore.getState();
         var player = state.player;
         var enemy = state.enemy;
+        var enemyName = enemy.name || 'Enemy';
+        var playerName = player.name || 'Andi';
 
         // Select enemy move first to know incoming attack
         var move = style.selectEnemyMove ? style.selectEnemyMove() : { name: 'Attack' };
+        var moveName = move.name || 'Attack';
 
-        QTEEngine.startDefendQTE({
-            difficulty: 'normal',
-            enemyAttackName: move.name || 'Attack'
-        }, function(qteResult) {
-            var zone = qteResult.zone || 'normal';
-            var mods = qteResult.modifiers || QTEEngine.getDefendModifiers(zone);
+        // Check if this is an attack move (not a heal or buff)
+        var isAttackMove = !move.isHeal && !move.isBuff && !move.isDefend;
 
-            // Decrement defending counter
-            player.defending--;
+        // If not an attack, skip the defend QTE and just execute the enemy turn normally
+        if (!isAttackMove) {
+            var result = style.enemyTurn();
+            finishEnemyAction(result, messages, callback);
+            return;
+        }
 
-            // Check if stance wore off
-            var stanceWoreOff = player.defending <= 0;
+        // Show enemy attack announcement and player bracing before QTE
+        var preQTEMessage = enemyName + ' uses ' + moveName + '!<br>' + playerName + ' braces himself!';
 
-            // Build result based on defend outcome
-            var defendMessages = [];
-            var enemyName = enemy.name || 'Enemy';
-            var playerName = player.name || 'Andi';
-
-            // Apply confused status for normal/bad outcomes
-            if (mods.confused) {
-                var confuseResult = BattleCore.applyStatus(player, 'confusion', 1);
-                if (confuseResult && confuseResult.applied) {
-                    defendMessages.push(playerName + ' is confused!');
-                }
-            }
-
-            // Handle defend outcomes
-            if (mods.result === 'parry') {
-                // PARRY: Reflect damage back
-                var counterDice = mods.counterDamageDice || '1d5';
-                var counterDamage = style.rollDamage ? style.rollDamage(counterDice) : Math.floor(Math.random() * 5) + 1;
-                BattleCore.damageEnemy(counterDamage, { source: 'parry', type: 'physical' });
-                defendMessages.push('PARRY! ' + playerName + ' reflects ' + counterDamage + ' damage!');
-                showDamageNumber(counterDamage, 'enemy', 'damage');
-            } else if (mods.result === 'dodge') {
-                // DODGE: No damage
-                defendMessages.push('DODGE! ' + playerName + ' avoids the attack!');
-                showDamageNumber(0, 'player', 'miss');
-            } else {
-                // CONFUSE or FUMBLE: Take full damage
-                // Execute the enemy attack to get damage
-                var attackResult = style.enemyTurn ? style.enemyTurn() : null;
-
-                if (attackResult && attackResult.attackResult) {
-                    var damage = attackResult.attackResult.damage || 0;
-                    if (damage > 0) {
-                        showDamageNumber(damage, 'player', 'damage');
-                    }
-
-                    // Add attack messages
-                    if (attackResult.messages) {
-                        defendMessages = defendMessages.concat(attackResult.messages);
-                    }
-                }
-
-                // Lose AC bonus on fumble
-                if (mods.loseACBonus) {
-                    // AC bonus is already lost because defending counter was decremented
-                    // and will become 0 on fumble (defendEnds: true)
-                    defendMessages.push(playerName + '\'s guard is broken!');
-                }
-
-                // Force end defend on fumble
-                if (mods.defendEnds) {
-                    player.defending = 0;
-                    stanceWoreOff = true;
-                }
-            }
-
-            // Show stance wore off message
-            if (stanceWoreOff) {
-                defendMessages.push('Defensive stance wore off!');
-            }
-
-            updateDisplay();
-
-            // Check if player died
-            if (checkEnd()) return;
-
-            // Show messages and finish turn
-            if (defendMessages.length > 0) {
-                updateBattleLog(defendMessages.join('<br>'), null, function() {
-                    finishEnemyTurn([], callback);
-                });
-            } else {
-                finishEnemyTurn([], callback);
-            }
+        updateBattleLog(preQTEMessage, null, function() {
+            // Now launch the defend QTE
+            QTEEngine.startDefendQTE({
+                difficulty: 'normal',
+                enemyAttackName: moveName
+            }, function(qteResult) {
+                processDefendQTEResult(style, player, enemy, move, qteResult, callback);
+            });
         });
+    }
+
+    /**
+     * Process the result of a defend QTE
+     */
+    function processDefendQTEResult(style, player, enemy, move, qteResult, callback) {
+        var enemyName = enemy.name || 'Enemy';
+        var playerName = player.name || 'Andi';
+
+        var zone = qteResult.zone || 'normal';
+        var mods = qteResult.modifiers || QTEEngine.getDefendModifiers(zone);
+
+        // Decrement defending counter
+        player.defending--;
+
+        // Check if stance wore off
+        var stanceWoreOff = player.defending <= 0;
+
+        // Build result based on defend outcome
+        var defendMessages = [];
+
+        // Apply confused status for normal/bad outcomes
+        if (mods.confused) {
+            var confuseResult = BattleCore.applyStatus(player, 'confusion', 1);
+            if (confuseResult && confuseResult.applied) {
+                defendMessages.push(playerName + ' is confused!');
+            }
+        }
+
+        // Handle defend outcomes
+        if (mods.result === 'parry') {
+            // PARRY: Reflect damage back
+            var counterDice = mods.counterDamageDice || '1d5';
+            var counterDamage = style.rollDamage ? style.rollDamage(counterDice) : Math.floor(Math.random() * 5) + 1;
+            BattleCore.damageEnemy(counterDamage, { source: 'parry', type: 'physical' });
+            defendMessages.push('PARRY! ' + playerName + ' reflects ' + counterDamage + ' damage!');
+            showDamageNumber(counterDamage, 'enemy', 'damage');
+        } else if (mods.result === 'dodge') {
+            // DODGE: No damage
+            defendMessages.push('DODGE! ' + playerName + ' avoids the attack!');
+            showDamageNumber(0, 'player', 'miss');
+        } else {
+            // CONFUSE or FUMBLE: Take full damage
+            // Execute the enemy attack to get damage
+            var attackResult = style.enemyTurn ? style.enemyTurn() : null;
+
+            if (attackResult && attackResult.attackResult) {
+                var damage = attackResult.attackResult.damage || 0;
+                if (damage > 0) {
+                    showDamageNumber(damage, 'player', 'damage');
+                }
+
+                // Add attack messages
+                if (attackResult.messages) {
+                    defendMessages = defendMessages.concat(attackResult.messages);
+                }
+            }
+
+            // Lose AC bonus on fumble
+            if (mods.loseACBonus) {
+                defendMessages.push(playerName + '\'s guard is broken!');
+            }
+
+            // Force end defend on fumble
+            if (mods.defendEnds) {
+                player.defending = 0;
+                stanceWoreOff = true;
+            }
+        }
+
+        // Show stance wore off message
+        if (stanceWoreOff) {
+            defendMessages.push('Defensive stance wore off!');
+        }
+
+        updateDisplay();
+
+        // Check if player died
+        if (checkEnd()) return;
+
+        // Show messages and finish turn
+        if (defendMessages.length > 0) {
+            updateBattleLog(defendMessages.join('<br>'), null, function() {
+                finishEnemyTurn([], callback);
+            });
+        } else {
+            finishEnemyTurn([], callback);
+        }
     }
 
     function finishEnemyAction(result, messages, callback) {

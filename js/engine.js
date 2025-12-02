@@ -907,12 +907,16 @@ const VNEngine = (function() {
                 // Remove submenu
                 var menu = document.getElementById('item-submenu');
                 if (menu) menu.parentNode.removeChild(menu);
-                // Show battle choices again
+                // Show battle choices and log content again
                 var battleChoices = document.getElementById('battle-choices');
+                var battleLogContent = document.getElementById('battle-log-content');
                 var battleLogPanel = document.querySelector('.battle-log-panel');
                 var playerStats = document.getElementById('player-stats-panel');
                 if (battleChoices) {
                     battleChoices.style.display = '';
+                }
+                if (battleLogContent) {
+                    battleLogContent.style.display = '';
                 }
                 // Remove expanded class
                 if (battleLogPanel) {
@@ -945,12 +949,16 @@ const VNEngine = (function() {
         backBtn.onclick = function() {
             var menu = document.getElementById('item-submenu');
             if (menu) menu.parentNode.removeChild(menu);
-            // Show battle choices again
+            // Show battle choices and log content again
             var battleChoices = document.getElementById('battle-choices');
+            var battleLogContent = document.getElementById('battle-log-content');
             var battleLogPanel = document.querySelector('.battle-log-panel');
             var playerStats = document.getElementById('player-stats-panel');
             if (battleChoices) {
                 battleChoices.style.display = '';
+            }
+            if (battleLogContent) {
+                battleLogContent.style.display = '';
             }
             // Remove expanded class
             if (battleLogPanel) {
@@ -967,10 +975,14 @@ const VNEngine = (function() {
         // Add inside the battle-log-panel (replaces battle-choices area)
         var battleLogPanel = document.querySelector('.battle-log-panel');
         var battleChoices = document.getElementById('battle-choices');
+        var battleLogContent = document.getElementById('battle-log-content');
         var playerStats = document.getElementById('player-stats-panel');
         if (battleLogPanel && battleChoices) {
-            // Hide the battle choices temporarily
+            // Hide both battle choices and log content - item menu takes full space
             battleChoices.style.display = 'none';
+            if (battleLogContent) {
+                battleLogContent.style.display = 'none';
+            }
             // Add class to indicate expanded menu (for player stats positioning)
             battleLogPanel.classList.add('menu-expanded');
             if (playerStats) {

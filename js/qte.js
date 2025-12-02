@@ -590,18 +590,29 @@ var QTEEngine = (function() {
             // Begin animation
             state.animationFrame = requestAnimationFrame(updateMarkerPosition);
 
-            // Set timeout for auto-fail
-            var totalDuration = config.bar.duration * config.bar.oscillations;
-            var diffMod = config.difficulty[state.difficulty];
-            if (diffMod) {
-                totalDuration /= diffMod.speedMultiplier;
-            }
-
-            setTimeout(function() {
-                if (state.active && state.phase === 'running') {
-                    handleTimeoutFinalized();
+            // Start countdown timer (5,4,3,2,1,0 then auto-commit after 1 second)
+            // The countdown handles timeout - auto-commits when countdown ends
+            if (qteUI && qteUI.startCountdown) {
+                qteUI.startCountdown(null, function() {
+                    // Timeout callback - auto-commit at current position
+                    if (state.active && state.phase === 'running') {
+                        handleTimeoutFinalized();
+                    }
+                });
+            } else {
+                // Fallback: use old timeout system if countdown not available
+                var totalDuration = config.bar.duration * config.bar.oscillations;
+                var diffMod = config.difficulty[state.difficulty];
+                if (diffMod) {
+                    totalDuration /= diffMod.speedMultiplier;
                 }
-            }, totalDuration + 100);
+
+                setTimeout(function() {
+                    if (state.active && state.phase === 'running') {
+                        handleTimeoutFinalized();
+                    }
+                }, totalDuration + 100);
+            }
 
         }, config.timing.startDelay);
 
@@ -669,18 +680,28 @@ var QTEEngine = (function() {
             // Begin animation
             state.animationFrame = requestAnimationFrame(updateMarkerPosition);
 
-            // Defense QTE is faster (more pressure) - 65% of normal duration
-            var totalDuration = (config.bar.duration * 0.65) * config.bar.oscillations;
-            var diffMod = config.difficulty[state.difficulty];
-            if (diffMod) {
-                totalDuration /= diffMod.speedMultiplier;
-            }
-
-            setTimeout(function() {
-                if (state.active && state.phase === 'running') {
-                    handleTimeoutFinalized();
+            // Start countdown timer (5,4,3,2,1,0 then auto-commit after 1 second)
+            if (qteUI && qteUI.startCountdown) {
+                qteUI.startCountdown(null, function() {
+                    // Timeout callback - auto-commit at current position
+                    if (state.active && state.phase === 'running') {
+                        handleTimeoutFinalized();
+                    }
+                });
+            } else {
+                // Fallback: use old timeout system if countdown not available
+                var totalDuration = (config.bar.duration * 0.65) * config.bar.oscillations;
+                var diffMod = config.difficulty[state.difficulty];
+                if (diffMod) {
+                    totalDuration /= diffMod.speedMultiplier;
                 }
-            }, totalDuration + 100);
+
+                setTimeout(function() {
+                    if (state.active && state.phase === 'running') {
+                        handleTimeoutFinalized();
+                    }
+                }, totalDuration + 100);
+            }
 
         }, config.timing.startDelay * 0.4); // Even faster start for defend
 
@@ -701,6 +722,11 @@ var QTEEngine = (function() {
 
         state.inputTime = performance.now();
         state.phase = 'input';
+
+        // Stop countdown timer
+        if (qteUI && qteUI.stopCountdown) {
+            qteUI.stopCountdown();
+        }
 
         // Stop animation
         if (state.animationFrame) {
@@ -724,21 +750,31 @@ var QTEEngine = (function() {
 
     /**
      * Handle timeout for finalized battle QTEs
-     * Timeout always results in 'bad'
+     * Auto-commits at current marker position (countdown mechanic)
+     * This gives players time to position the marker, then it locks in
      */
     function handleTimeoutFinalized() {
         if (!state.active || state.phase !== 'running') return;
 
         state.phase = 'timeout';
-        state.result = 'bad'; // Timeout = worst result
+
+        // Stop countdown if still running
+        if (qteUI && qteUI.stopCountdown) {
+            qteUI.stopCountdown();
+        }
 
         if (state.animationFrame) {
             cancelAnimationFrame(state.animationFrame);
             state.animationFrame = null;
         }
 
+        // Auto-commit at current position (not forced 'bad')
+        // This is the gaming trick - countdown gives you time to position,
+        // then it commits wherever you are
+        state.result = getZoneForPositionFinalized(state.markerPosition);
+
         if (qteUI) {
-            qteUI.showResultFinalized('bad', state.markerPosition, state.type);
+            qteUI.showResultFinalized(state.result, state.markerPosition, state.type);
         }
 
         setTimeout(function() {

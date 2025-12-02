@@ -233,13 +233,14 @@ var TUNING = (function() {
 
             // Battle log sizing
             battleLogMaxLines: 2,           // Max lines visible in battle log
-            battleLogLineHeight: 1.6,       // Height per line in rem (must match CSS line-height)
+            battleLogLineHeight: 1.6,       // Line-height multiplier (not rem) - CSS uses this as multiplier of font-size
 
             // Damage numbers (WoW-style floating text)
             damageNumberDuration: 4000,     // How long damage numbers show (matches CSS animation)
-            damageNumberFontSize: 1,        // Font size in rem (1 = normal text size)
-            critFontSize: 1.4,              // Crit damage font size in rem
-            labelFontSize: 0.85,            // Hit/Crit label font size in rem
+
+            // Animated battle text font size - UNIFIED for damage numbers, dice, labels
+            // Does NOT apply to buttons or QTE UI - those keep their own sizes
+            battleTextSize: 0.95,           // Font size in rem - damage numbers, dice rolls, hit/crit labels
 
             // Battle log dice colors (CSS variables in shared.css)
             // --battle-hit-dice-color: #ffd700 (yellow) - d20 attack/hit rolls

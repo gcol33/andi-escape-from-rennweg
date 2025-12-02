@@ -60,7 +60,8 @@ var QTEUI = (function() {
         qteLabel: null,       // "ATTACK!" or "DODGE!" label
         qteZones: null,       // Zone visualization
         qteResult: null,      // Result text display
-        qteInstructions: null // "Press SPACE" text
+        qteInstructions: null, // "Press SPACE" text
+        qteCountdown: null    // Countdown timer display
     };
 
     // Current state
@@ -174,9 +175,15 @@ var QTEUI = (function() {
         result.className = 'qte-result';
         result.style.display = 'none';
 
+        // Create countdown display (hidden initially, shown during countdown)
+        var countdown = document.createElement('div');
+        countdown.className = 'qte-countdown';
+        countdown.style.display = 'none';
+
         // Assemble
         qteContainer.appendChild(label);
         qteContainer.appendChild(barWrapper);
+        qteContainer.appendChild(countdown);
         qteContainer.appendChild(instructions);
         qteContainer.appendChild(result);
 
@@ -188,6 +195,7 @@ var QTEUI = (function() {
         elements.qteZones = zones;
         elements.qteResult = result;
         elements.qteInstructions = instructions;
+        elements.qteCountdown = countdown;
 
         // Add to container
         if (elements.container) {
@@ -526,6 +534,97 @@ var QTEUI = (function() {
         return result.toUpperCase() + '!';
     }
 
+    // === Countdown Display ===
+
+    /**
+     * Start countdown animation: 5,4,3,2,1 then auto-commit
+     * Uses a gaming trick - commits when 1 ends (not on 1, but after showing it)
+     * @param {function} onComplete - Called when countdown finishes
+     * @param {function} onTimeout - Called if player doesn't input during countdown (auto-commit)
+     */
+    function startCountdown(onComplete, onTimeout) {
+        if (!elements.qteCountdown) return;
+
+        elements.qteCountdown.style.display = 'block';
+        uiState.countdownActive = true;
+        uiState.countdownValue = 5;
+
+        // Store callbacks
+        uiState.countdownOnComplete = onComplete;
+        uiState.countdownOnTimeout = onTimeout;
+
+        // Start the countdown
+        updateCountdownDisplay(5);
+        uiState.countdownInterval = setInterval(function() {
+            uiState.countdownValue--;
+
+            if (uiState.countdownValue >= 1) {
+                updateCountdownDisplay(uiState.countdownValue);
+            }
+
+            // After showing 1, auto-commit (the gaming trick - commit when 1 ends)
+            if (uiState.countdownValue < 1) {
+                clearInterval(uiState.countdownInterval);
+                uiState.countdownInterval = null;
+                uiState.countdownActive = false;
+
+                // Commit immediately when 1 ends
+                if (uiState.countdownOnTimeout) {
+                    uiState.countdownOnTimeout();
+                }
+            }
+        }, 1000);
+    }
+
+    /**
+     * Update the countdown display with animation
+     * @param {number} value - Current countdown value (5,4,3,2,1,0)
+     */
+    function updateCountdownDisplay(value) {
+        if (!elements.qteCountdown) return;
+
+        // Remove previous animation class
+        elements.qteCountdown.classList.remove('qte-countdown-pulse');
+
+        // Update text
+        elements.qteCountdown.textContent = value;
+
+        // Add urgency class for low numbers
+        elements.qteCountdown.classList.remove('qte-countdown-urgent', 'qte-countdown-critical');
+        if (value <= 1) {
+            elements.qteCountdown.classList.add('qte-countdown-critical');
+        } else if (value <= 2) {
+            elements.qteCountdown.classList.add('qte-countdown-urgent');
+        }
+
+        // Trigger pulse animation
+        void elements.qteCountdown.offsetWidth; // Force reflow
+        elements.qteCountdown.classList.add('qte-countdown-pulse');
+    }
+
+    /**
+     * Stop countdown (player pressed input)
+     */
+    function stopCountdown() {
+        if (uiState.countdownInterval) {
+            clearInterval(uiState.countdownInterval);
+            uiState.countdownInterval = null;
+        }
+        uiState.countdownActive = false;
+
+        if (elements.qteCountdown) {
+            elements.qteCountdown.style.display = 'none';
+        }
+    }
+
+    /**
+     * Check if countdown is currently active
+     * @returns {boolean}
+     */
+    function isCountdownActive() {
+        return uiState.countdownActive || false;
+    }
+
     // === Combo Display (Future Enhancement) ===
 
     /**
@@ -668,6 +767,9 @@ var QTEUI = (function() {
     function hide() {
         if (!elements.qteContainer) return;
 
+        // Stop countdown if running
+        stopCountdown();
+
         // Animate out
         elements.qteContainer.classList.remove('qte-visible');
         elements.qteContainer.classList.add('qte-hiding');
@@ -685,10 +787,12 @@ var QTEUI = (function() {
             elements.qteZones = null;
             elements.qteResult = null;
             elements.qteInstructions = null;
+            elements.qteCountdown = null;
 
             uiState.visible = false;
             uiState.type = null;
             uiState.zones = null;
+            uiState.countdownActive = false;
         }, config.timing.fadeOut);
     }
 
@@ -696,6 +800,9 @@ var QTEUI = (function() {
      * Immediately destroy QTE UI (no animation)
      */
     function destroy() {
+        // Stop countdown if running
+        stopCountdown();
+
         if (elements.qteContainer && elements.qteContainer.parentNode) {
             elements.qteContainer.parentNode.removeChild(elements.qteContainer);
         }
@@ -707,10 +814,12 @@ var QTEUI = (function() {
         elements.qteZones = null;
         elements.qteResult = null;
         elements.qteInstructions = null;
+        elements.qteCountdown = null;
 
         uiState.visible = false;
         uiState.type = null;
         uiState.zones = null;
+        uiState.countdownActive = false;
     }
 
     // === State Queries ===
@@ -747,6 +856,11 @@ var QTEUI = (function() {
         // Result display
         showResult: showResult,
         showResultFinalized: showResultFinalized,  // NEW: For skill/defend QTEs
+
+        // Countdown display
+        startCountdown: startCountdown,
+        stopCountdown: stopCountdown,
+        isCountdownActive: isCountdownActive,
 
         // Chain combo display
         showCombo: showCombo,

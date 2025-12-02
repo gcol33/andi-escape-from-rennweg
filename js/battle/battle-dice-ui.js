@@ -342,21 +342,14 @@ var BattleDiceUI = (function() {
         hitInfo = hitInfo || {};
 
         // Create two dice elements - both start grey
-        // Use minWidth + left-align so single digits don't shift (e.g., [2 ] not [ 2])
-        // d20 needs 3ch to fit numbers 10-20
-        var dice1 = document.createElement('span');
+        // Use <strong> to match normal dice behavior
+        var dice1 = document.createElement('strong');
         dice1.className = 'dice-number advantage-die';
         dice1.textContent = '?';
-        dice1.style.minWidth = '3ch';
-        dice1.style.textAlign = 'left';
-        dice1.style.display = 'inline-block';
 
-        var dice2 = document.createElement('span');
+        var dice2 = document.createElement('strong');
         dice2.className = 'dice-number advantage-die';
         dice2.textContent = '?';
-        dice2.style.minWidth = '3ch';
-        dice2.style.textAlign = 'left';
-        dice2.style.display = 'inline-block';
 
         var separator = document.createElement('span');
         separator.className = 'advantage-separator';
@@ -393,25 +386,34 @@ var BattleDiceUI = (function() {
                 loserIsLeft = !roll1Higher; // loser is dice2 (right) when roll1 is higher
             }
 
-            // Clear minWidth on winner BEFORE collapse so we don't see [ ]7 during animation
-            winner.style.minWidth = '';
-            winner.style.textAlign = '';
-            winner.style.display = '';
+            // Clear minWidth on BOTH dice BEFORE collapse so numbers snap to correct positions
+            dice1.style.minWidth = '';
+            dice1.style.textAlign = '';
+            dice1.style.display = '';
+            dice2.style.minWidth = '';
+            dice2.style.textAlign = '';
+            dice2.style.display = '';
 
-            // Collapse loser into winner (direction depends on position)
-            // Left loser collapses right (->), right loser collapses left (<-)
+            // Fade out loser and separator
+            loser.style.opacity = '0';
+            loser.style.transition = 'opacity 0.2s ease';
+            separator.style.opacity = '0';
+            separator.style.transition = 'opacity 0.2s ease';
+
+            // If winner is on right (loser is left), collapse loser/separator width so winner slides left
             if (loserIsLeft) {
-                loser.classList.add('advantage-loser-right'); // left die moves right toward winner
-            } else {
-                loser.classList.add('advantage-loser-left'); // right die moves left toward winner
+                loser.style.width = '0';
+                loser.style.overflow = 'hidden';
+                loser.style.transition = 'opacity 0.2s ease, width 0.2s ease';
+                separator.style.width = '0';
+                separator.style.transition = 'opacity 0.2s ease, width 0.2s ease';
             }
-            separator.classList.add('advantage-separator-fade');
 
-            // After collapse animation, pop winner and remove loser from DOM
+            // After animation, finalize (keep loser/separator in DOM but hidden)
             diceTimeout(function() {
-                // Remove loser and separator from DOM
-                if (loser.parentNode) loser.parentNode.removeChild(loser);
-                if (separator.parentNode) separator.parentNode.removeChild(separator);
+                // Don't remove - just hide completely
+                loser.style.display = 'none';
+                separator.style.display = 'none';
 
                 // Remove grey class from rolling
                 winner.classList.remove(getRollClass('neutral', 'normal'));
@@ -432,15 +434,16 @@ var BattleDiceUI = (function() {
                     resultCategory = 'normal';
                 }
 
+                winner.classList.remove('advantage-die');
                 winner.classList.add(getRollClass(rollType, resultCategory));
                 winner.classList.add('advantage-winner');
 
                 diceTimeout(function() {
-                    // Clean up advantage-specific classes so collapse animation works normally
-                    winner.classList.remove('advantage-die', 'advantage-winner');
+                    // Clean up advantage-specific classes
+                    winner.classList.remove('advantage-winner');
                     callback(winner);
                 }, config.lingerDelay);
-            }, 300); // Match CSS animation duration
+            }, 200); // Match fade duration
         }
 
         // Animate BOTH dice simultaneously (start at the same time)
@@ -521,7 +524,7 @@ var BattleDiceUI = (function() {
 
     /**
      * Animate advantage/disadvantage damage roll (show both totals rolling simultaneously)
-     * Both roll grey, then loser collapses into winner, winner pops up with color
+     * Both roll grey, then winner slides to first position while loser/separator fade
      * @param {Element} container - Container for dice elements
      * @param {Object} rollResult - { roll, rolls (both totals), advantage, disadvantage, isCrit, isMax, isMin }
      * @param {function} callback - Called with winning dice element
@@ -530,21 +533,14 @@ var BattleDiceUI = (function() {
         var isDisadvantage = rollResult.disadvantage;
 
         // Create two damage dice elements - both start grey
-        // Use minWidth + left-align so single digits don't shift (e.g., [2 ] not [ 2])
-        // d6 needs 2ch to fit numbers 1-6
+        // Use <strong> to match normal dice behavior
         var dice1 = document.createElement('strong');
-        dice1.className = 'dice-number damage-dice advantage-die';
+        dice1.className = 'dice-number advantage-die';
         dice1.textContent = '?';
-        dice1.style.minWidth = '2ch';
-        dice1.style.textAlign = 'left';
-        dice1.style.display = 'inline-block';
 
         var dice2 = document.createElement('strong');
-        dice2.className = 'dice-number damage-dice advantage-die';
+        dice2.className = 'dice-number advantage-die';
         dice2.textContent = '?';
-        dice2.style.minWidth = '2ch';
-        dice2.style.textAlign = 'left';
-        dice2.style.display = 'inline-block';
 
         var separator = document.createElement('span');
         separator.className = 'advantage-separator';
@@ -567,51 +563,50 @@ var BattleDiceUI = (function() {
 
             // Both dice finished - determine winner
             var roll1Higher = rollResult.rolls[0] >= rollResult.rolls[1];
-            var winner, loser, loserIsLeft;
+            var winner, loser, winnerIsRight;
 
             if (isDisadvantage) {
                 // Disadvantage: lower roll wins
                 winner = roll1Higher ? dice2 : dice1;
                 loser = roll1Higher ? dice1 : dice2;
-                loserIsLeft = roll1Higher;
+                winnerIsRight = roll1Higher; // if roll1 is higher, winner (dice2) is on right
             } else {
                 // Advantage: higher roll wins
                 winner = roll1Higher ? dice1 : dice2;
                 loser = roll1Higher ? dice2 : dice1;
-                loserIsLeft = !roll1Higher;
+                winnerIsRight = !roll1Higher; // if roll1 is higher, winner (dice1) is on left
             }
 
-            // Clear minWidth on winner BEFORE collapse so we don't see [ ]7 during animation
-            winner.style.minWidth = '';
-            winner.style.textAlign = '';
-            winner.style.display = '';
+            // Fade out loser and separator
+            loser.style.opacity = '0';
+            loser.style.transition = 'opacity 0.2s ease';
+            separator.style.opacity = '0';
+            separator.style.transition = 'opacity 0.2s ease';
 
-            // Collapse loser into winner
-            if (loserIsLeft) {
-                loser.classList.add('advantage-loser-right');
-            } else {
-                loser.classList.add('advantage-loser-left');
+            // If winner is on right, it needs to slide left to take first position
+            if (winnerIsRight) {
+                // Collapse separator and loser width so winner slides left
+                separator.style.width = '0';
+                separator.style.transition = 'opacity 0.2s ease, width 0.2s ease';
+                loser.style.width = '0';
+                loser.style.overflow = 'hidden';
+                loser.style.transition = 'opacity 0.2s ease, width 0.2s ease';
             }
-            separator.classList.add('advantage-separator-fade');
 
-            // After collapse animation, pop winner and remove loser from DOM
+            // After animation, clean up and finalize
             diceTimeout(function() {
-                // Remove loser and separator from DOM
-                if (loser.parentNode) loser.parentNode.removeChild(loser);
-                if (separator.parentNode) separator.parentNode.removeChild(separator);
+                // Remove loser and separator completely - they've served their purpose
+                loser.remove();
+                separator.remove();
 
-                // Remove grey class from rolling, apply damage color
+                // Apply damage color
                 winner.classList.remove(getRollClass('neutral', 'normal'));
+                winner.classList.remove('advantage-die');
                 var resultCategory = rollResult.isCrit ? 'crit' : (rollResult.isMax ? 'max' : (rollResult.isMin ? 'min' : 'normal'));
                 winner.classList.add(getRollClass('damage', resultCategory));
-                winner.classList.add('advantage-winner');
 
-                diceTimeout(function() {
-                    // Clean up advantage-specific classes so collapse animation works normally
-                    winner.classList.remove('advantage-die', 'advantage-winner');
-                    callback(winner);
-                }, config.lingerDelay);
-            }, 300); // Match CSS animation duration
+                callback(winner);
+            }, 200);
         }
 
         // Animate BOTH dice simultaneously (start at the same time)
@@ -625,6 +620,7 @@ var BattleDiceUI = (function() {
 
     /**
      * Typewriter text effect
+     * Always scrolls to bottom as content is typed to keep it visible
      * @param {Element} element - Element to type into
      * @param {string} text - Text (can include HTML tags)
      * @param {function} callback - Called when done
@@ -677,6 +673,7 @@ var BattleDiceUI = (function() {
 
             element.innerHTML += char;
             index++;
+            // Always scroll to keep newest content visible
             scrollToBottom();
             diceTimeout(type, speed);
         }
@@ -1306,21 +1303,14 @@ var BattleDiceUI = (function() {
         var isDisadvantage = rollResult.disadvantage;
 
         // Create two heal dice elements - both start grey
-        // Use minWidth + left-align so single digits don't shift (e.g., [2 ] not [ 2])
-        // d6 needs 2ch to fit numbers 1-6
-        var dice1 = document.createElement('strong');
-        dice1.className = 'dice-number heal-dice advantage-die';
+        // d6 only has 1 digit (1-6), no minWidth needed
+        var dice1 = document.createElement('span');
+        dice1.className = 'dice-number advantage-die';
         dice1.textContent = '?';
-        dice1.style.minWidth = '2ch';
-        dice1.style.textAlign = 'left';
-        dice1.style.display = 'inline-block';
 
-        var dice2 = document.createElement('strong');
-        dice2.className = 'dice-number heal-dice advantage-die';
+        var dice2 = document.createElement('span');
+        dice2.className = 'dice-number advantage-die';
         dice2.textContent = '?';
-        dice2.style.minWidth = '2ch';
-        dice2.style.textAlign = 'left';
-        dice2.style.display = 'inline-block';
 
         // Add separator
         var separator = document.createElement('span');
@@ -1371,11 +1361,6 @@ var BattleDiceUI = (function() {
             if (completed < 2) return;
 
             config.spinDuration = originalDuration;
-
-            // Clear minWidth on winner BEFORE collapse so we don't see [ ]7 during animation
-            winner.style.minWidth = '';
-            winner.style.textAlign = '';
-            winner.style.display = '';
 
             // Brief pause then collapse loser into winner
             diceTimeout(function() {
@@ -1518,8 +1503,8 @@ var BattleDiceUI = (function() {
             diceTimeout(callback, config.lingerDelay * 2);
         }
 
-        // Phase 1: Type test text + defender name (like attack does)
-        typewriter(line, 'hello we\'re testing if we\'re scrolling up to line 3 ' + defenderName + ' increases defense ', function() {
+        // Phase 1: Type intro text then defender name
+        typewriter(line, defenderName + ' assumes a defensive stance, Kung-Fu Panda style! ' + defenderName + ' increases defense ', function() {
             // Show AC bonus in dark green (normal font size)
             var acSpan = document.createElement('span');
             acSpan.className = 'ac-bonus-text';
