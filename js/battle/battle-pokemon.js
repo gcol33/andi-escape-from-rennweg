@@ -21,10 +21,12 @@ var BattleStylePokemon = (function() {
     'use strict';
 
     // =========================================================================
-    // MODULE DEPENDENCY CHECK
+    // MODULE DEPENDENCY CHECK (uses BattleUtils if available)
     // =========================================================================
 
-    var _hasBattleData = typeof BattleData !== 'undefined';
+    var _hasBattleUtils = typeof BattleUtils !== 'undefined';
+    var _hasBattleData = _hasBattleUtils ? BattleUtils.hasBattleData() : typeof BattleData !== 'undefined';
+
     if (!_hasBattleData) {
         console.warn('[BattleStylePokemon] BattleData module not loaded - some features will be unavailable');
     }
@@ -211,8 +213,18 @@ var BattleStylePokemon = (function() {
         };
     }
 
+    /**
+     * Try to apply status effect from move
+     * Delegates to BattleUtils if available
+     */
     function tryApplyStatus(move, target) {
-        if (!move.statusEffect) return null;
+        // Use BattleUtils if available for centralized status application
+        if (_hasBattleUtils && BattleUtils.tryApplyStatus) {
+            return BattleUtils.tryApplyStatus(move, target);
+        }
+
+        // Fallback implementation
+        if (!move || !move.statusEffect) return null;
 
         var statusInfo = move.statusEffect;
         var baseChance = statusInfo.chance || 0;

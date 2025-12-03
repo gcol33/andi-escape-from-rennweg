@@ -22,17 +22,17 @@ var BattleCore = (function() {
     'use strict';
 
     // =========================================================================
-    // MODULE DEPENDENCY CHECK
+    // MODULE DEPENDENCY CHECK (uses BattleUtils if available)
     // =========================================================================
 
-    // BattleData is required for this module to function
-    var _hasBattleData = typeof BattleData !== 'undefined';
+    // Use BattleUtils for dependency checks if available, otherwise fall back
+    var _hasBattleUtils = typeof BattleUtils !== 'undefined';
+    var _hasBattleData = _hasBattleUtils ? BattleUtils.hasBattleData() : typeof BattleData !== 'undefined';
+    var _hasBattleSummon = _hasBattleUtils ? BattleUtils.hasBattleSummon() : typeof BattleSummon !== 'undefined';
+
     if (!_hasBattleData) {
         console.warn('[BattleCore] BattleData module not loaded - some features will be unavailable');
     }
-
-    // BattleSummon handles summon logic
-    var _hasBattleSummon = typeof BattleSummon !== 'undefined';
 
     // Dev mode: callback to check if status effects should be guaranteed
     var guaranteeStatusCallback = null;

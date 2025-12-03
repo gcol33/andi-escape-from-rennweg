@@ -20,10 +20,12 @@ var BattleStyleExp33 = (function() {
     'use strict';
 
     // =========================================================================
-    // MODULE DEPENDENCY CHECK
+    // MODULE DEPENDENCY CHECK (uses BattleUtils if available)
     // =========================================================================
 
-    var _hasBattleData = typeof BattleData !== 'undefined';
+    var _hasBattleUtils = typeof BattleUtils !== 'undefined';
+    var _hasBattleData = _hasBattleUtils ? BattleUtils.hasBattleData() : typeof BattleData !== 'undefined';
+
     if (!_hasBattleData) {
         console.warn('[BattleStyleExp33] BattleData module not loaded - some features will be unavailable');
     }
@@ -217,8 +219,15 @@ var BattleStyleExp33 = (function() {
 
     /**
      * Roll base damage from dice or flat number
+     * Delegates to BattleUtils if available
      */
     function rollBaseDamage(diceStr) {
+        // Use BattleUtils if available for centralized dice rolling
+        if (_hasBattleUtils && BattleUtils.rollDamage) {
+            return BattleUtils.rollDamage(diceStr, 1);
+        }
+
+        // Fallback implementation
         if (typeof diceStr === 'number') return diceStr;
 
         var match = diceStr.match(/(\d*)d(\d+)([+-]\d+)?/i);
@@ -298,13 +307,23 @@ var BattleStyleExp33 = (function() {
         };
     }
 
+    /**
+     * Try to apply status effect from skill
+     * Delegates to BattleUtils if available
+     */
     function tryApplyStatus(skill, target) {
-        if (!skill.statusEffect) return null;
+        // Use BattleUtils if available for centralized status application
+        if (_hasBattleUtils && BattleUtils.tryApplyStatus) {
+            return BattleUtils.tryApplyStatus(skill, target);
+        }
+
+        // Fallback implementation
+        if (!skill || !skill.statusEffect) return null;
 
         var statusInfo = skill.statusEffect;
         var chance = statusInfo.chance || 0.5;
 
-        if (Math.random() < chance) {
+        if (BattleCore.shouldApplyStatus(chance)) {
             return BattleCore.applyStatus(target, statusInfo.type, statusInfo.stacks || 1);
         }
         return { applied: false };

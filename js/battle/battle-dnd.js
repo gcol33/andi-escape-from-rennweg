@@ -16,13 +16,14 @@ var BattleStyleDnD = (function() {
     'use strict';
 
     // =========================================================================
-    // MODULE DEPENDENCY CHECK
+    // MODULE DEPENDENCY CHECK (uses BattleUtils if available)
     // =========================================================================
 
-    var _hasBattleData = typeof BattleData !== 'undefined';
-    var _hasBattleBarrier = typeof BattleBarrier !== 'undefined';
-    var _hasBattleIntent = typeof BattleIntent !== 'undefined';
-    var _hasBattleDice = typeof BattleDice !== 'undefined';
+    var _hasBattleUtils = typeof BattleUtils !== 'undefined';
+    var _hasBattleData = _hasBattleUtils ? BattleUtils.hasBattleData() : typeof BattleData !== 'undefined';
+    var _hasBattleBarrier = _hasBattleUtils ? BattleUtils.hasBattleBarrier() : typeof BattleBarrier !== 'undefined';
+    var _hasBattleIntent = _hasBattleUtils ? BattleUtils.hasBattleIntent() : typeof BattleIntent !== 'undefined';
+    var _hasBattleDice = _hasBattleUtils ? BattleUtils.hasBattleDice() : typeof BattleDice !== 'undefined';
 
     if (!_hasBattleData) {
         console.warn('[BattleStyleDnD] BattleData module not loaded - some features will be unavailable');
@@ -334,9 +335,16 @@ var BattleStyleDnD = (function() {
 
     /**
      * Try to apply status effect from skill
+     * Delegates to BattleUtils if available, otherwise uses local implementation
      */
-    function tryApplyStatus(skill, target) {
-        if (!skill.statusEffect) return null;
+    function tryApplyStatus(skill, target, options) {
+        // Use BattleUtils if available for centralized status application
+        if (_hasBattleUtils && BattleUtils.tryApplyStatus) {
+            return BattleUtils.tryApplyStatus(skill, target, options);
+        }
+
+        // Fallback implementation
+        if (!skill || !skill.statusEffect) return null;
 
         var statusInfo = skill.statusEffect;
         var baseChance = statusInfo.chance || 0;
@@ -349,7 +357,7 @@ var BattleStyleDnD = (function() {
             }
         }
 
-        if (Math.random() < baseChance) {
+        if (BattleCore.shouldApplyStatus(baseChance)) {
             var stacks = statusInfo.stacks || 1;
             return BattleCore.applyStatus(target, statusInfo.type, stacks);
         }
