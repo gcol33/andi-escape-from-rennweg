@@ -31,11 +31,14 @@ const EditorConfig = {
     },
 
     // Graph rendering defaults
+    // Note: horizontalSpacing and verticalSpacing must match values in
+    // graph-logic.js autoLayout() and both editor renderGraph() functions
     graph: {
         nodeWidth: 140,
         nodeHeight: 50,
-        horizontalSpacing: 200,
-        verticalSpacing: 100,
+        horizontalSpacing: 180,  // Matches layout algorithm
+        verticalSpacing: 50,    // Matches layout algorithm
+        startX: 100,
         defaultZoom: 1,
         minZoom: 0.1,
         maxZoom: 3,

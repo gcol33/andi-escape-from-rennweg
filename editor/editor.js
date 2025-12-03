@@ -16,7 +16,7 @@ const Editor = (function() {
     // Get shared modules (loaded via script tags)
     const SharedConfig = window.EditorConfig || {};
     const Storage = window.EditorStorage;
-    const { SPECIAL_TARGETS } = window.GraphModule || {};
+    const { SPECIAL_TARGETS, ChainCompressor } = window.GraphModule || {};
 
     // === Configuration ===
     // Merge shared config with editor-specific settings
@@ -2081,108 +2081,74 @@ const Editor = (function() {
         svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
         svg.innerHTML = '';
 
-        // Collect all nodes and edges
+        // Use shared GraphModule to build graph (single source of truth)
+        const { GraphData } = window.GraphModule || {};
+        if (!GraphData) {
+            console.error('GraphModule not loaded');
+            return;
+        }
+
+        const graphData = new GraphData();
+        graphData.buildFromScenes(state.scenes);
+
+        // Convert GraphData to the format expected by chain compression and rendering
         const nodes = {};
-        const edges = [];
-        const missingTargets = new Set();
+        const edges = [...graphData.edges]; // Copy edges array
 
-        // Special targets that are handled by the engine (not actual scenes)
-        // Use shared constant if available, otherwise fallback
-        const specialTargets = SPECIAL_TARGETS || new Set(['_roll']);
-
-        // Build node list from existing scenes
-        Object.keys(state.scenes).forEach(id => {
-            const scene = state.scenes[id];
+        for (const [id, node] of graphData.nodes) {
             nodes[id] = {
-                id,
-                exists: true,
-                hasFlags: scene.require_flags && scene.require_flags.length > 0
+                id: node.id,
+                exists: node.exists,
+                hasFlags: node.hasFlags,
+                isStart: node.isStart,
+                isEnding: node.isEnding,
+                type: node.type
             };
-        });
+        }
 
-        // Build edges and find missing targets
-        Object.values(state.scenes).forEach(scene => {
-            if (scene.choices) {
-                scene.choices.forEach(choice => {
-                    if (choice.target && !specialTargets.has(choice.target)) {
-                        edges.push({ from: scene.id, to: choice.target, type: 'choice' });
-                        if (!nodes[choice.target]) {
-                            missingTargets.add(choice.target);
-                        }
-                    }
-                });
-            }
-            if (scene.actions) {
-                scene.actions.forEach(action => {
-                    // Dice roll actions
-                    if (action.success_target && !specialTargets.has(action.success_target)) {
-                        edges.push({ from: scene.id, to: action.success_target, type: 'success' });
-                        if (!nodes[action.success_target]) {
-                            missingTargets.add(action.success_target);
-                        }
-                    }
-                    if (action.failure_target && !specialTargets.has(action.failure_target)) {
-                        edges.push({ from: scene.id, to: action.failure_target, type: 'failure' });
-                        if (!nodes[action.failure_target]) {
-                            missingTargets.add(action.failure_target);
-                        }
-                    }
-                    // Battle actions (win_target/lose_target or victory_target/defeat_target)
-                    const winTarget = action.win_target || action.victory_target;
-                    const loseTarget = action.lose_target || action.defeat_target;
-                    if (winTarget && !specialTargets.has(winTarget)) {
-                        edges.push({ from: scene.id, to: winTarget, type: 'success' });
-                        if (!nodes[winTarget]) {
-                            missingTargets.add(winTarget);
-                        }
-                    }
-                    if (loseTarget && !specialTargets.has(loseTarget)) {
-                        edges.push({ from: scene.id, to: loseTarget, type: 'failure' });
-                        if (!nodes[loseTarget]) {
-                            missingTargets.add(loseTarget);
-                        }
-                    }
-                    if (action.flee_target && !specialTargets.has(action.flee_target)) {
-                        edges.push({ from: scene.id, to: action.flee_target, type: 'choice' });
-                        if (!nodes[action.flee_target]) {
-                            missingTargets.add(action.flee_target);
-                        }
-                    }
-                });
-            }
-        });
-
-        // Add missing targets as nodes
-        missingTargets.forEach(id => {
-            nodes[id] = { id, exists: false, hasFlags: false };
-        });
-
-        // Find start scene (no incoming edges) and ending scenes (no outgoing edges)
-        const hasIncoming = new Set(edges.map(e => e.to));
-        const hasOutgoing = new Set(edges.map(e => e.from));
-
-        Object.values(nodes).forEach(node => {
-            if (node.exists) {
-                if (!hasIncoming.has(node.id)) node.isStart = true;
-                if (!hasOutgoing.has(node.id)) node.isEnding = true;
-            }
-        });
-
-        // Compress linear chains if enabled
+        // Compress linear chains if enabled (using shared ChainCompressor)
         let displayNodes = nodes;
         let displayEdges = edges;
         const chains = {}; // chainId -> { nodes: [...], start: id, end: id }
 
-        if (state.graph.compressChains) {
-            const result = compressLinearChains(nodes, edges, state.graph.expandedChains);
+        if (state.graph.compressChains && ChainCompressor) {
+            const result = ChainCompressor.compress(nodes, edges, state.graph.expandedChains);
             displayNodes = result.nodes;
             displayEdges = result.edges;
             Object.assign(chains, result.chains);
         }
 
-        // Layout: simple layered layout
+        // Layout using shared algorithm (via GraphData)
+        // Convert displayNodes to GraphData format for layout
+        const layoutGraphData = new GraphData();
+        for (const [id, node] of Object.entries(displayNodes)) {
+            layoutGraphData.nodes.set(id, {
+                id,
+                exists: node.exists !== false,
+                isStart: node.isStart || false,
+                isEnding: node.isEnding || false,
+                hasFlags: node.hasFlags || false,
+                type: node.type || 'scene',
+                x: 0,
+                y: 0
+            });
+        }
+        layoutGraphData.edges = displayEdges;
+
+        // Use shared layout algorithm
+        layoutGraphData.autoLayout({
+            horizontalSpacing: 180,
+            verticalSpacing: 50,
+            startX: 100,
+            centerY: height / 2
+        });
+
+        // Build positions map from layoutGraphData
         const nodeList = Object.values(displayNodes);
-        const positions = layoutGraph(nodeList, displayEdges, height);
+        const positions = {};
+        for (const [id, node] of layoutGraphData.nodes) {
+            positions[id] = { x: node.x, y: node.y };
+        }
 
         // Apply any custom positions from dragging
         Object.keys(state.graph.nodePositions).forEach(nodeId => {
@@ -2295,270 +2261,8 @@ const Editor = (function() {
         updateGraphTransform();
     }
 
-    // Compress linear chains (nodes with exactly 1 in and 1 out edge) into single nodes
-    function compressLinearChains(nodes, edges, expandedChains) {
-        // Build adjacency
-        const outgoing = {}; // nodeId -> [{ to, edge }]
-        const incoming = {}; // nodeId -> [{ from, edge }]
-
-        Object.keys(nodes).forEach(id => {
-            outgoing[id] = [];
-            incoming[id] = [];
-        });
-
-        edges.forEach(edge => {
-            if (outgoing[edge.from]) outgoing[edge.from].push({ to: edge.to, edge });
-            if (incoming[edge.to]) incoming[edge.to].push({ from: edge.from, edge });
-        });
-
-        // Find chain-able nodes: exactly 1 incoming, exactly 1 outgoing, same edge type
-        const isChainable = (nodeId) => {
-            const node = nodes[nodeId];
-            if (!node || !node.exists) return false;
-            if (node.isStart || node.isEnding) return false;
-            if (node.hasFlags) return false; // Don't compress nodes with flags
-            const inc = incoming[nodeId];
-            const out = outgoing[nodeId];
-            if (inc.length !== 1 || out.length !== 1) return false;
-            // Must be same edge type (all choices)
-            if (inc[0].edge.type !== 'choice' || out[0].edge.type !== 'choice') return false;
-            return true;
-        };
-
-        // Find chains
-        const visited = new Set();
-        const chains = {};
-        let chainId = 0;
-
-        Object.keys(nodes).forEach(startId => {
-            if (visited.has(startId)) return;
-            if (!nodes[startId].exists) return;
-
-            // Try to build a chain starting from this node
-            const chain = [];
-            let current = startId;
-
-            // First, go backwards to find the start of any chain this node is part of
-            while (true) {
-                const inc = incoming[current];
-                if (inc.length !== 1) break;
-                const prevId = inc[0].from;
-                if (!isChainable(prevId) && !isChainable(current)) break;
-                if (visited.has(prevId)) break;
-                current = prevId;
-            }
-
-            // Now go forward and collect the chain
-            while (true) {
-                if (visited.has(current)) break;
-
-                const out = outgoing[current];
-                if (out.length !== 1) {
-                    // End of potential chain
-                    if (chain.length > 0) chain.push(current);
-                    break;
-                }
-
-                const nextId = out[0].to;
-
-                // Current node can be part of chain if it's chainable
-                if (isChainable(current)) {
-                    chain.push(current);
-                    visited.add(current);
-                    current = nextId;
-                } else {
-                    // Not chainable, but might start a new chain
-                    if (chain.length > 0) break;
-                    current = nextId;
-                }
-            }
-
-            // Only create chain if we have 2+ consecutive chainable nodes
-            if (chain.length >= 2) {
-                const id = `chain_${chainId++}`;
-                chains[id] = {
-                    nodes: chain,
-                    start: incoming[chain[0]][0].from,
-                    end: outgoing[chain[chain.length - 1]][0].to,
-                    startEdge: incoming[chain[0]][0].edge,
-                    endEdge: outgoing[chain[chain.length - 1]][0].edge
-                };
-            }
-        });
-
-        // Build new nodes and edges
-        const newNodes = {};
-        const newEdges = [];
-        const chainedNodes = new Set();
-
-        // Mark all nodes that are part of chains
-        Object.values(chains).forEach(chain => {
-            chain.nodes.forEach(id => chainedNodes.add(id));
-        });
-
-        // Add non-chained nodes
-        Object.keys(nodes).forEach(id => {
-            if (!chainedNodes.has(id)) {
-                newNodes[id] = { ...nodes[id] };
-            }
-        });
-
-        // Add chain nodes (or expanded chain nodes)
-        Object.entries(chains).forEach(([chainId, chain]) => {
-            if (expandedChains.has(chainId)) {
-                // Expanded - add all individual nodes
-                chain.nodes.forEach(id => {
-                    newNodes[id] = { ...nodes[id] };
-                });
-            } else {
-                // Collapsed - add single chain node
-                newNodes[chainId] = {
-                    id: chainId,
-                    exists: true,
-                    isChain: true,
-                    chainNodes: chain.nodes,
-                    chainLength: chain.nodes.length,
-                    displayName: `${chain.nodes[0]} → ... → ${chain.nodes[chain.nodes.length - 1]}`,
-                    shortName: `[${chain.nodes.length} scenes]`
-                };
-            }
-        });
-
-        // Add edges
-        edges.forEach(edge => {
-            // Find which chain (if any) contains from/to
-            let fromChainId = null, toChainId = null;
-            Object.entries(chains).forEach(([cid, chain]) => {
-                if (chain.nodes.includes(edge.from)) fromChainId = cid;
-                if (chain.nodes.includes(edge.to)) toChainId = cid;
-            });
-
-            // Skip internal chain edges
-            if (fromChainId && toChainId && fromChainId === toChainId && !expandedChains.has(fromChainId)) {
-                return;
-            }
-
-            let newFrom = edge.from;
-            let newTo = edge.to;
-
-            // Replace with chain node if collapsed
-            if (fromChainId && !expandedChains.has(fromChainId)) {
-                // Only if this is the exit edge from the chain
-                const chain = chains[fromChainId];
-                if (edge.from === chain.nodes[chain.nodes.length - 1]) {
-                    newFrom = fromChainId;
-                } else {
-                    return; // Internal edge, skip
-                }
-            }
-            if (toChainId && !expandedChains.has(toChainId)) {
-                // Only if this is the entry edge to the chain
-                const chain = chains[toChainId];
-                if (edge.to === chain.nodes[0]) {
-                    newTo = toChainId;
-                } else {
-                    return; // Internal edge, skip
-                }
-            }
-
-            // Avoid duplicate edges
-            const edgeKey = `${newFrom}->${newTo}`;
-            if (!newEdges.find(e => `${e.from}->${e.to}` === edgeKey)) {
-                newEdges.push({ ...edge, from: newFrom, to: newTo });
-            }
-        });
-
-        return { nodes: newNodes, edges: newEdges, chains };
-    }
-
-    function layoutGraph(nodes, edges, height) {
-        const positions = {};
-        if (nodes.length === 0) return positions;
-
-        // Build adjacency maps - initialize for ALL nodes first
-        const outgoing = {};
-        const incoming = {};
-        const nodeIds = new Set(nodes.map(n => n.id));
-
-        nodes.forEach(n => {
-            outgoing[n.id] = [];
-            incoming[n.id] = [];
-        });
-
-        // Add edges only between known nodes
-        edges.forEach(e => {
-            if (nodeIds.has(e.from) && nodeIds.has(e.to)) {
-                outgoing[e.from].push(e.to);
-                incoming[e.to].push(e.from);
-            }
-        });
-
-        // Calculate depth for each node using longest path from any root
-        const depth = {};
-        const visited = new Set();
-
-        function calcDepth(nodeId, currentDepth) {
-            if (visited.has(nodeId)) {
-                // Already visited - take max depth
-                depth[nodeId] = Math.max(depth[nodeId] || 0, currentDepth);
-                return;
-            }
-            visited.add(nodeId);
-            depth[nodeId] = Math.max(depth[nodeId] || 0, currentDepth);
-
-            outgoing[nodeId].forEach(targetId => {
-                calcDepth(targetId, currentDepth + 1);
-            });
-        }
-
-        // Start from nodes with no incoming edges
-        const roots = nodes.filter(n => incoming[n.id].length === 0);
-        if (roots.length === 0) {
-            // No clear roots, start from first node
-            roots.push(nodes[0]);
-        }
-
-        roots.forEach(root => calcDepth(root.id, 0));
-
-        // Handle any unvisited nodes (disconnected or in cycles)
-        nodes.forEach(n => {
-            if (!visited.has(n.id)) {
-                calcDepth(n.id, 0);
-            }
-        });
-
-        // Group nodes by depth (layer)
-        const layers = {};
-        nodes.forEach(n => {
-            const d = depth[n.id] || 0;
-            if (!layers[d]) layers[d] = [];
-            layers[d].push(n.id);
-        });
-
-        // Convert to array and sort by layer index
-        const layerIndices = Object.keys(layers).map(Number).sort((a, b) => a - b);
-
-        // Position nodes
-        const layerGap = 180;
-        const nodeGap = 50;
-        const startX = 100;
-        const startY = height / 2;
-
-        layerIndices.forEach((layerIdx, i) => {
-            const layer = layers[layerIdx];
-            const layerHeight = layer.length * nodeGap;
-            const layerStartY = startY - layerHeight / 2 + nodeGap / 2;
-
-            layer.forEach((nodeId, nodeIndex) => {
-                positions[nodeId] = {
-                    x: startX + i * layerGap,
-                    y: layerStartY + nodeIndex * nodeGap
-                };
-            });
-        });
-
-        return positions;
-    }
+    // Note: Chain compression is now handled by shared ChainCompressor in graph-logic.js
+    // Note: Layout is now handled by shared GraphData.autoLayout() in graph-logic.js
 
     function createEdgePath(fromNode, toNode) {
         const nodeWidth = 100;

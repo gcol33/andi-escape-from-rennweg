@@ -19,6 +19,10 @@
                 <button id="btn-add" class="btn btn-primary">+ Add Node</button>
                 <button id="btn-layout" class="btn">Auto Layout</button>
                 <button id="btn-fit" class="btn">Fit View</button>
+                <div class="btn-group">
+                    <button id="btn-compress" class="btn" title="Compress linear chains">Compress</button>
+                    <button id="btn-expand" class="btn" title="Expand all chains">Expand</button>
+                </div>
             </div>
             <div class="toolbar-section toolbar-right">
                 <button id="btn-back" class="btn btn-icon" title="Back to Scene Editor">⛋</button>
@@ -53,6 +57,9 @@
             <button data-action="connect">Add Connection</button>
             <button data-action="attach">Attach New Node</button>
             <hr>
+            <button data-action="expand-chain" id="ctx-expand-chain" class="hidden">Expand Chain</button>
+            <button data-action="compress-chain" id="ctx-compress-chain" class="hidden">Compress Chain</button>
+            <hr class="chain-separator hidden">
             <button data-action="delete" class="danger">Delete Node</button>
         </div>
 
