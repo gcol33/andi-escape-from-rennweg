@@ -74,6 +74,8 @@ const Editor = (function() {
         resizingSprite: null, // Sprite being resized with Shift
         initialResizeData: null, // Initial data for resize operation
         musicPlaying: false,
+        // File System Access API
+        scenesDirectoryHandle: null, // Handle to scenes folder for saving .md files
         // Text block navigation
         textBlocks: [''],     // Current text blocks array
         currentTextBlockIndex: 0,
@@ -119,9 +121,71 @@ const Editor = (function() {
         setupEventListeners();
         populateAssetSelectors();
         populateSpriteGallery();
+        initThemeSelector();
 
         // Auto-load scenes on startup
         autoLoadScenes();
+    }
+
+    /**
+     * Initialize theme selector dropdown
+     * Note: Theme CSS is NOT loaded in the editor - it would override editor styles.
+     * The selector only saves the preference to localStorage for the game to use.
+     */
+    function initThemeSelector() {
+        const select = elements.themeSelect;
+        if (!select) return;
+
+        // Get available themes from themeConfig (loaded from theme.js)
+        const themes = (typeof themeConfig !== 'undefined' && themeConfig.available)
+            ? themeConfig.available
+            : ['prototype'];
+
+        // Populate options
+        themes.forEach(theme => {
+            const option = document.createElement('option');
+            option.value = theme;
+            option.textContent = theme.charAt(0).toUpperCase() + theme.slice(1);
+            select.appendChild(option);
+        });
+
+        // Set current theme from localStorage or themeConfig
+        const currentTheme = getCurrentTheme();
+        select.value = currentTheme;
+
+        // Handle theme change - only saves to localStorage for the game
+        select.addEventListener('change', () => {
+            setTheme(select.value);
+        });
+    }
+
+    /**
+     * Get the current theme from localStorage or themeConfig
+     */
+    function getCurrentTheme() {
+        const savedTheme = localStorage.getItem('andi_vn_theme');
+        if (savedTheme && typeof themeConfig !== 'undefined' &&
+            themeConfig.available && themeConfig.available.includes(savedTheme)) {
+            return savedTheme;
+        }
+        return (typeof themeConfig !== 'undefined') ? themeConfig.selected : 'prototype';
+    }
+
+    /**
+     * Set the theme - updates editor via body class and saves to localStorage for the game
+     */
+    function setTheme(themeName) {
+        // Remove all existing theme classes from body
+        const body = document.body;
+        const themeClasses = Array.from(body.classList).filter(c => c.startsWith('theme-'));
+        themeClasses.forEach(c => body.classList.remove(c));
+
+        // Add new theme class
+        body.classList.add('theme-' + themeName);
+
+        // Save to localStorage so the game uses the same theme
+        localStorage.setItem('andi_vn_theme', themeName);
+        log.info('Theme changed to: ' + themeName);
     }
 
     async function autoLoadScenes() {
@@ -181,6 +245,7 @@ const Editor = (function() {
             saveBtn: document.getElementById('save-btn'),
             downloadBtn: document.getElementById('download-btn'),
             exportAllBtn: document.getElementById('export-all-btn'),
+            themeSelect: document.getElementById('theme-select'),
             canvasPreview: document.getElementById('canvas-preview'),
             previewBackground: document.getElementById('preview-background'),
             previewSprites: document.getElementById('preview-sprites'),
@@ -2543,6 +2608,9 @@ const Editor = (function() {
         // Save to localStorage
         saveScenesToStorage();
 
+        // Save .md file to scenes folder
+        saveSceneToFile(scene);
+
         // Update UI
         elements.currentSceneName.textContent = newId;
         renderSceneList();
@@ -2550,6 +2618,62 @@ const Editor = (function() {
         updateNodeConnections(scene);
 
         log.info('Scene saved: ' + scene.id);
+    }
+
+    /**
+     * Save scene as .md file to the scenes directory
+     * Uses File System Access API if available
+     */
+    async function saveSceneToFile(scene) {
+        const md = generateMarkdown(scene);
+        const fileName = `${scene.id}.md`;
+
+        // Try to use existing directory handle
+        if (state.scenesDirectoryHandle) {
+            try {
+                const fileHandle = await state.scenesDirectoryHandle.getFileHandle(fileName, { create: true });
+                const writable = await fileHandle.createWritable();
+                await writable.write(md);
+                await writable.close();
+                log.info(`Saved ${fileName} to scenes folder`);
+                return;
+            } catch (err) {
+                // Permission may have been revoked, clear handle
+                log.warn('Lost access to scenes folder: ' + err.message);
+                state.scenesDirectoryHandle = null;
+            }
+        }
+
+        // Check if File System Access API is supported
+        if (!('showDirectoryPicker' in window)) {
+            log.warn('File System Access API not supported - scene saved to localStorage only');
+            return;
+        }
+
+        // First save - ask user to select the scenes folder
+        try {
+            const handle = await window.showDirectoryPicker({
+                id: 'scenes-folder',
+                mode: 'readwrite',
+                startIn: 'documents'
+            });
+
+            // Verify it looks like a scenes folder (optional)
+            state.scenesDirectoryHandle = handle;
+
+            // Now save the file
+            const fileHandle = await handle.getFileHandle(fileName, { create: true });
+            const writable = await fileHandle.createWritable();
+            await writable.write(md);
+            await writable.close();
+            log.info(`Saved ${fileName} to scenes folder (folder selected: ${handle.name})`);
+        } catch (err) {
+            if (err.name === 'AbortError') {
+                log.info('User cancelled folder selection - scene saved to localStorage only');
+            } else {
+                log.error('Error saving to file: ' + err.message);
+            }
+        }
     }
 
     function downloadCurrentScene() {

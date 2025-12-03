@@ -197,7 +197,7 @@ class GraphRenderer {
             const fromNode = model.nodes.get(edge.from);
             const toNode = model.nodes.get(edge.to);
             if (fromNode && toNode) {
-                const edgeEl = this.renderEdge(edge, fromNode, toNode, selectedEdge);
+                const edgeEl = this.renderEdge(edge, fromNode, toNode, selectedEdge, selectedNode);
                 g.appendChild(edgeEl);
             }
         }
@@ -282,7 +282,7 @@ class GraphRenderer {
             const fromNode = nodes[edge.from];
             const toNode = nodes[edge.to];
             if (fromNode && toNode) {
-                const edgeEl = this.renderEdge(edge, fromNode, toNode, selectedEdge);
+                const edgeEl = this.renderEdge(edge, fromNode, toNode, selectedEdge, selectedNode);
                 g.appendChild(edgeEl);
             }
         }
@@ -297,7 +297,7 @@ class GraphRenderer {
         this.svg.appendChild(g);
     }
 
-    renderEdge(edge, fromNode, toNode, selectedEdge) {
+    renderEdge(edge, fromNode, toNode, selectedEdge, selectedNode = null) {
         const group = this.createSvgElement('g');
         group.dataset.from = edge.from;
         group.dataset.to = edge.to;
@@ -311,15 +311,30 @@ class GraphRenderer {
         line.classList.add('edge', edge.type);
         line.setAttribute('d', path);
 
+        // Draw arrow
+        const arrow = this.createArrow(fromNode, toNode, edge.type);
+
+        // Check if edge is selected
         if (selectedEdge && selectedEdge.from === edge.from &&
             selectedEdge.to === edge.to && selectedEdge.type === edge.type) {
             line.classList.add('selected');
         }
 
-        group.appendChild(line);
+        // Check if edge is connected to selected node
+        if (selectedNode) {
+            if (edge.from === selectedNode) {
+                line.classList.add('connected-from');
+                arrow.classList.add('connected-from');
+            } else if (edge.to === selectedNode) {
+                line.classList.add('connected-to');
+                arrow.classList.add('connected-to');
+            } else {
+                line.classList.add('dimmed');
+                arrow.classList.add('dimmed');
+            }
+        }
 
-        // Draw arrow
-        const arrow = this.createArrow(fromNode, toNode, edge.type);
+        group.appendChild(line);
         group.appendChild(arrow);
 
         return group;
@@ -741,11 +756,39 @@ class NodeEditorController {
         this.showToast('Layout updated', 'success');
     }
 
+    /**
+     * Find node at screen position, handling both normal and compressed modes
+     */
+    findNodeAtPosition(clientX, clientY) {
+        const pos = this.renderer.screenToGraph(clientX, clientY, this.viewState);
+
+        if (this.chainState.compressChains && this.chainState.cachedDisplayData) {
+            // When compressed, search in cached display data
+            const displayData = this.chainState.cachedDisplayData;
+            for (const node of Object.values(displayData.nodes)) {
+                const nodeWidth = node.isChain
+                    ? this.renderer.nodeWidth + CHAIN_NODE_EXTRA_WIDTH
+                    : this.renderer.nodeWidth;
+                if (pos.x >= node.x - nodeWidth / 2 &&
+                    pos.x <= node.x + nodeWidth / 2 &&
+                    pos.y >= node.y - this.renderer.nodeHeight / 2 &&
+                    pos.y <= node.y + this.renderer.nodeHeight / 2) {
+                    return node;
+                }
+            }
+            return null;
+        } else {
+            // Normal mode: use renderer's findNodeAt
+            return this.renderer.findNodeAt(clientX, clientY, this.model, this.viewState);
+        }
+    }
+
     // Mouse handlers
     onMouseDown(e) {
         if (e.button === 2) return; // Right click handled by contextmenu
 
-        const node = this.renderer.findNodeAt(e.clientX, e.clientY, this.model, this.viewState);
+        // Use appropriate hit testing based on compression state
+        const node = this.findNodeAtPosition(e.clientX, e.clientY);
 
         if (node) {
             this.viewState.selectedNode = node.id;
@@ -757,7 +800,8 @@ class NodeEditorController {
                 startY: e.clientY,
                 nodeId: node.id,
                 nodeStartX: node.x,
-                nodeStartY: node.y
+                nodeStartY: node.y,
+                isChainNode: node.isChain || false
             };
         } else {
             this.viewState.selectedNode = null;
@@ -776,13 +820,27 @@ class NodeEditorController {
 
     onMouseMove(e) {
         if (this.dragState.isDragging && this.dragState.nodeId) {
-            const node = this.model.nodes.get(this.dragState.nodeId);
-            if (node) {
-                const dx = (e.clientX - this.dragState.startX) / this.viewState.zoom;
-                const dy = (e.clientY - this.dragState.startY) / this.viewState.zoom;
-                node.x = this.dragState.nodeStartX + dx;
-                node.y = this.dragState.nodeStartY + dy;
-                this.render();
+            const dx = (e.clientX - this.dragState.startX) / this.viewState.zoom;
+            const dy = (e.clientY - this.dragState.startY) / this.viewState.zoom;
+            const newX = this.dragState.nodeStartX + dx;
+            const newY = this.dragState.nodeStartY + dy;
+
+            if (this.chainState.compressChains && this.chainState.cachedDisplayData) {
+                // When compressed, update position in cached display data
+                const displayNode = this.chainState.cachedDisplayData.nodes[this.dragState.nodeId];
+                if (displayNode) {
+                    displayNode.x = newX;
+                    displayNode.y = newY;
+                    this.render();
+                }
+            } else {
+                // Normal mode: update model directly
+                const node = this.model.nodes.get(this.dragState.nodeId);
+                if (node) {
+                    node.x = newX;
+                    node.y = newY;
+                    this.render();
+                }
             }
         } else if (this.dragState.isPanning) {
             this.viewState.panX = this.dragState.panStartX + (e.clientX - this.dragState.startX);
@@ -820,7 +878,8 @@ class NodeEditorController {
             e.clientX, e.clientY, this.viewState
         );
 
-        const node = this.renderer.findNodeAt(e.clientX, e.clientY, this.model, this.viewState);
+        // Use appropriate hit testing based on compression state
+        const node = this.findNodeAtPosition(e.clientX, e.clientY);
         if (node) {
             this.viewState.selectedNode = node.id;
             this.showContextMenu(e.clientX, e.clientY);

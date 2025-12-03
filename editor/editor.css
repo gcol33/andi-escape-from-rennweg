@@ -713,6 +713,28 @@ button:disabled {
     color: var(--text-primary);
 }
 
+a.btn-icon {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+
+a.btn-icon:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+/* Theme selector in toolbar */
+#theme-select {
+    width: auto;
+    min-width: 100px;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
 /* === Inputs === */
 input[type="text"],
 input[type="number"],

@@ -7,18 +7,15 @@
     <link rel="stylesheet" href="../css/fonts.css">
     <link rel="stylesheet" href="editor.css">
     <link rel="stylesheet" href="graph-colors.css">
+    <script src="../js/theme.js"></script>
     <script>
-        // Load theme configuration and apply theme class before body renders
+        // Apply saved theme or default from themeConfig using body class
         (function() {
-            var script = document.createElement('script');
-            script.src = '../js/theme.js';
-            script.async = false;
-            document.head.appendChild(script);
-            script.onload = function() {
-                if (typeof themeConfig !== 'undefined' && themeConfig.selected) {
-                    document.body.classList.add('theme-' + themeConfig.selected);
-                }
-            };
+            var savedTheme = localStorage.getItem('andi_vn_theme');
+            var theme = savedTheme || (typeof themeConfig !== 'undefined' ? themeConfig.selected : null);
+            if (theme) {
+                document.body.classList.add('theme-' + theme);
+            }
         })();
     </script>
 </head>
@@ -44,11 +41,13 @@
             <div id="canvas-toolbar">
                 <span id="current-scene-name">No scene selected</span>
                 <div class="toolbar-actions">
+                    <a href="node_editor.html" id="graph-editor-link" class="btn-icon" title="Open full graph editor">⛶</a>
                     <button id="graph-btn" class="btn-icon" title="View story graph">Graph</button>
                     <button id="preview-btn" class="btn-icon" title="Preview in game">Preview</button>
                     <button id="save-btn" class="btn-primary" disabled>Save Scene</button>
                     <button id="download-btn" class="btn-secondary" title="Download .md file">Download</button>
                     <button id="export-all-btn" class="btn-secondary" title="Export all scenes as .md files">Export All</button>
+                    <select id="theme-select" class="btn-secondary" title="Select theme"></select>
                 </div>
             </div>
 

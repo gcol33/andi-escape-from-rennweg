@@ -199,22 +199,32 @@ class GraphData {
         }
 
         // Calculate depth using longest path from any root
+        // We need to ensure children always come after their parents
         const depth = new Map();
-        const visited = new Set();
+        const inProgress = new Set(); // For cycle detection
 
         const calcDepth = (nodeId, currentDepth) => {
-            if (visited.has(nodeId)) {
-                // Already visited - take max depth
-                depth.set(nodeId, Math.max(depth.get(nodeId) || 0, currentDepth));
+            // Cycle detection - don't recurse into nodes we're currently processing
+            if (inProgress.has(nodeId)) {
                 return;
             }
-            visited.add(nodeId);
-            depth.set(nodeId, Math.max(depth.get(nodeId) || 0, currentDepth));
+
+            const existingDepth = depth.get(nodeId) || 0;
+
+            // Only process if this path gives us a greater depth
+            if (currentDepth <= existingDepth && depth.has(nodeId)) {
+                return;
+            }
+
+            depth.set(nodeId, currentDepth);
+            inProgress.add(nodeId);
 
             const targets = outgoing.get(nodeId) || [];
             for (const targetId of targets) {
                 calcDepth(targetId, currentDepth + 1);
             }
+
+            inProgress.delete(nodeId);
         };
 
         // Start from nodes with no incoming edges (roots)
@@ -230,7 +240,7 @@ class GraphData {
 
         // Handle any unvisited nodes (disconnected or in cycles)
         for (const node of nodeList) {
-            if (!visited.has(node.id)) {
+            if (!depth.has(node.id)) {
                 calcDepth(node.id, 0);
             }
         }

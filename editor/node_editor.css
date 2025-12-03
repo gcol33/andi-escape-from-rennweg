@@ -402,6 +402,33 @@ dialog select:focus {
     stroke-width: 3;
 }
 
+/* Connected edges - highlighted when source/target node is selected */
+.edge.connected-from {
+    stroke-width: 3;
+    filter: drop-shadow(0 0 4px currentColor);
+    opacity: 1;
+}
+
+.edge.connected-to {
+    stroke-width: 3;
+    filter: drop-shadow(0 0 4px currentColor);
+    opacity: 1;
+}
+
+.edge-arrow.connected-from,
+.edge-arrow.connected-to {
+    filter: drop-shadow(0 0 4px currentColor);
+}
+
+/* Dim non-connected edges when a node is selected */
+.edge.dimmed {
+    opacity: 0.3;
+}
+
+.edge-arrow.dimmed {
+    opacity: 0.3;
+}
+
 .edge-arrow {
     transition: transform 0.15s;
 }
