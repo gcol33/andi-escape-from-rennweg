@@ -57,6 +57,14 @@ const playerConfig = {
         "chance": 0.25
       },
       "description": "A shard of ice that may slow the target."
+    },
+    {
+      "id": "summon_intern",
+      "name": "Summon Intern",
+      "isSummon": true,
+      "summonId": "office_intern",
+      "manaCost": 5,
+      "description": "Call upon a helpful office intern to assist in battle!"
     }
   ]
 };

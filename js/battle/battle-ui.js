@@ -1693,6 +1693,221 @@ var BattleUI = (function() {
         }
     }
 
+    // === Summon Display (Enemy/Player summons with HP) ===
+
+    /**
+     * Show a spawned summon on the battlefield
+     * @param {Object} displayData - Display data from BattleSummon.getDisplayData()
+     */
+    function showSummonSprite(displayData) {
+        if (!displayData) return;
+
+        var spriteLayer = document.getElementById('sprite-layer');
+        if (!spriteLayer) return;
+
+        // Remove existing summon with same UID
+        hideSummonSprite(displayData.uid);
+
+        // Create summon container
+        var container = document.createElement('div');
+        container.id = 'summon-' + displayData.uid;
+        container.className = 'summon-container summon-' + displayData.side + ' summon-appear';
+        container.dataset.uid = displayData.uid;
+        container.dataset.side = displayData.side;
+
+        // Sprite wrapper
+        var spriteWrapper = document.createElement('div');
+        spriteWrapper.className = 'summon-sprite-wrapper';
+
+        // HP container (hidden by default)
+        var hpContainer = document.createElement('div');
+        hpContainer.className = 'summon-hp-container';
+
+        var hpBar = document.createElement('div');
+        hpBar.className = 'summon-hp-bar';
+        hpBar.style.width = displayData.hpPercent + '%';
+        hpContainer.appendChild(hpBar);
+        spriteWrapper.appendChild(hpContainer);
+
+        // Sprite image
+        if (displayData.sprite) {
+            var sprite = document.createElement('img');
+            sprite.className = 'summon-sprite';
+            sprite.src = 'images/sprites/' + displayData.sprite;
+            sprite.alt = displayData.name;
+            sprite.onerror = function() {
+                // Fallback to icon if sprite not found
+                this.style.display = 'none';
+                var iconFallback = document.createElement('div');
+                iconFallback.className = 'summon-sprite summon-icon-fallback';
+                iconFallback.textContent = displayData.icon || '?';
+                iconFallback.style.fontSize = '3rem';
+                spriteWrapper.appendChild(iconFallback);
+            };
+            spriteWrapper.appendChild(sprite);
+        } else {
+            // No sprite, use icon
+            var iconEl = document.createElement('div');
+            iconEl.className = 'summon-sprite summon-icon-fallback';
+            iconEl.textContent = displayData.icon || '?';
+            iconEl.style.fontSize = '3rem';
+            spriteWrapper.appendChild(iconEl);
+        }
+
+        container.appendChild(spriteWrapper);
+
+        // Name label
+        var nameLabel = document.createElement('div');
+        nameLabel.className = 'summon-name';
+        nameLabel.textContent = displayData.name;
+        container.appendChild(nameLabel);
+
+        // Add click handler for selection
+        container.addEventListener('click', function() {
+            if (container.classList.contains('summon-targetable')) {
+                // Dispatch custom event for target selection
+                var event = new CustomEvent('summon-selected', {
+                    detail: { uid: displayData.uid, side: displayData.side }
+                });
+                document.dispatchEvent(event);
+            }
+        });
+
+        spriteLayer.appendChild(container);
+
+        // Play spawn sound
+        playSfx('summon_appear');
+
+        // Remove appear animation class after animation completes
+        setTimeout(function() {
+            container.classList.remove('summon-appear');
+        }, 500);
+    }
+
+    /**
+     * Update summon display state (HP, expiring, etc.)
+     * @param {Object} displayData - Updated display data
+     */
+    function updateSummonSprite(displayData) {
+        if (!displayData) return;
+
+        var container = document.getElementById('summon-' + displayData.uid);
+        if (!container) return;
+
+        // Update HP bar
+        var hpBar = container.querySelector('.summon-hp-bar');
+        if (hpBar) {
+            hpBar.style.width = displayData.hpPercent + '%';
+        }
+
+        // Update low HP state
+        if (displayData.isLowHp) {
+            container.classList.add('summon-low-hp');
+        } else {
+            container.classList.remove('summon-low-hp');
+        }
+
+        // Update expiring warning state
+        if (displayData.isExpiringWarning) {
+            container.classList.add('summon-expiring');
+
+            // Add/update expiring indicator
+            var indicator = container.querySelector('.summon-expiring-indicator');
+            if (!indicator) {
+                indicator = document.createElement('div');
+                indicator.className = 'summon-expiring-indicator';
+                var wrapper = container.querySelector('.summon-sprite-wrapper');
+                if (wrapper) {
+                    wrapper.appendChild(indicator);
+                }
+            }
+            indicator.textContent = displayData.turnsRemaining;
+        } else {
+            container.classList.remove('summon-expiring');
+            var indicator = container.querySelector('.summon-expiring-indicator');
+            if (indicator) {
+                indicator.parentNode.removeChild(indicator);
+            }
+        }
+    }
+
+    /**
+     * Hide/remove a summon sprite
+     * @param {string} uid - Summon unique ID
+     * @param {string} animationType - 'dismiss', 'death', or null for immediate
+     */
+    function hideSummonSprite(uid, animationType) {
+        var container = document.getElementById('summon-' + uid);
+        if (!container) return;
+
+        if (animationType) {
+            container.classList.add('summon-' + animationType);
+
+            // Play appropriate sound
+            if (animationType === 'death') {
+                playSfx('summon_death');
+            } else if (animationType === 'dismiss') {
+                playSfx('summon_expire');
+            }
+
+            // Remove after animation
+            setTimeout(function() {
+                if (container.parentNode) {
+                    container.parentNode.removeChild(container);
+                }
+            }, 600);
+        } else {
+            // Remove immediately
+            if (container.parentNode) {
+                container.parentNode.removeChild(container);
+            }
+        }
+    }
+
+    /**
+     * Set summons as targetable (for player target selection)
+     * @param {string} side - 'enemy' or 'player'
+     * @param {boolean} targetable - Whether summons can be targeted
+     */
+    function setSummonsTargetable(side, targetable) {
+        var containers = document.querySelectorAll('.summon-container.summon-' + side);
+        containers.forEach(function(container) {
+            if (targetable) {
+                container.classList.add('summon-targetable');
+            } else {
+                container.classList.remove('summon-targetable');
+            }
+        });
+    }
+
+    /**
+     * Show intercept animation on a summon
+     * @param {string} uid - Summon unique ID
+     */
+    function showSummonIntercept(uid) {
+        var container = document.getElementById('summon-' + uid);
+        if (!container) return;
+
+        container.classList.add('summon-intercept');
+        playSfx('summon_intercept');
+
+        setTimeout(function() {
+            container.classList.remove('summon-intercept');
+        }, 400);
+    }
+
+    /**
+     * Clear all summon sprites from the battlefield
+     */
+    function clearAllSummons() {
+        var containers = document.querySelectorAll('.summon-container');
+        containers.forEach(function(container) {
+            if (container.parentNode) {
+                container.parentNode.removeChild(container);
+            }
+        });
+    }
+
     // === Public API ===
     return {
         // Initialization
@@ -1845,6 +2060,14 @@ var BattleUI = (function() {
         showIntentIndicator: showIntentIndicator,
         hideIntentIndicator: hideIntentIndicator,
         updateIntentIndicator: updateIntentIndicator,
+
+        // Summon display (enemy/player summons with HP)
+        showSummonSprite: showSummonSprite,
+        updateSummonSprite: updateSummonSprite,
+        hideSummonSprite: hideSummonSprite,
+        setSummonsTargetable: setSummonsTargetable,
+        showSummonIntercept: showSummonIntercept,
+        clearAllSummons: clearAllSummons,
 
         // Expose config for external timing needs
         config: config,

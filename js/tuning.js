@@ -174,7 +174,9 @@ var TUNING = (function() {
             // === Combat Balance ===
             combat: {
                 // Defense
-                defendACBonus: 4,               // AC bonus when defending
+                defendACBonus: 0,               // AC bonus when defending (removed - can be a skill later)
+                defendDuration: 2,              // How many enemy attacks defensive stance lasts
+                defendCooldown: 5,              // Turns before defend can be used again
                 defendManaRecoveryMin: 2,       // Min mana on defend
                 defendManaRecoveryMax: 4,       // Max mana on defend
                 defendStaggerReduction: 15,     // Stagger reduced on defend
@@ -220,6 +222,16 @@ var TUNING = (function() {
                 defaultStacks: 3,           // Default barrier stacks for enemies
                 maxStacks: 6,               // Maximum barrier stacks possible
                 breakStagger: 30            // Bonus stagger when barrier breaks
+            },
+
+            // === Summon System ===
+            // Enemy/player summons with their own HP bars
+            summon: {
+                maxPerSummoner: 1,          // Max active summons per summoner
+                defaultDuration: 4,         // Default turns before expiring
+                masterLowHpThreshold: 0.4,  // HP% below which summon may intercept
+                interceptChance: 0.4,       // 40% chance to intercept when master low HP
+                expiringWarnTurns: 2        // Turns remaining to show "expiring soon" warning
             }
         },
 
@@ -391,11 +403,47 @@ var TUNING = (function() {
                     defendEnds: false       // Defend persists
                 },
                 bad: {
-                    result: 'broken',       // Guard broken
+                    result: 'fumble',       // Fumbled defense - take full damage + confusion
                     damageReduction: 0,     // Full damage
                     counterAttack: false,
-                    defendEnds: true        // Defend immediately ends!
+                    defendEnds: false,      // Defend stance continues (lasts full defendDuration)
+                    confused: true          // Player gets confused
                 }
+            },
+
+            // Flavored text for dodge/parry outcomes (shown after enemy roll)
+            defendFlavorText: {
+                dodge: [
+                    "Sidestepped like a pro!",
+                    "Not even close!",
+                    "Too slow!",
+                    "Whiffed!",
+                    "Nice try!",
+                    "Nope!",
+                    "Can't touch this!",
+                    "Swing and a miss!"
+                ],
+                parry: [
+                    "Right back at you!",
+                    "Counter!",
+                    "Deflected!",
+                    "Redirected with style!",
+                    "Taste your own medicine!",
+                    "No u!",
+                    "Reflected!",
+                    "Uno reverse card!"
+                ],
+                // When enemy can't attack (stunned/frozen/confused) during defensive stance
+                enemyDisabled: [
+                    "Free pass!",
+                    "Taking a breather...",
+                    "Easy turn!",
+                    "Standing by...",
+                    "Waiting patiently...",
+                    "Guard still up!",
+                    "Staying ready!",
+                    "No sweat!"
+                ]
             },
 
             // Accuracy QTE (legacy - kept for backward compatibility)

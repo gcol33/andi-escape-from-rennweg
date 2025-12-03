@@ -31,6 +31,9 @@ var BattleCore = (function() {
         console.warn('[BattleCore] BattleData module not loaded - some features will be unavailable');
     }
 
+    // BattleSummon handles summon logic
+    var _hasBattleSummon = typeof BattleSummon !== 'undefined';
+
     // Dev mode: callback to check if status effects should be guaranteed
     var guaranteeStatusCallback = null;
 
@@ -62,7 +65,7 @@ var BattleCore = (function() {
         defaultAI: 'default'
     };
     var combatConfig = T ? T.battle.combat : {
-        defendACBonus: 4,
+        defendACBonus: 0,   // AC bonus removed (can be a skill later)
         defendManaRecoveryMin: 2,
         defendManaRecoveryMax: 4,
         defendStaggerReduction: 15,
@@ -250,6 +253,11 @@ var BattleCore = (function() {
         state.battleLog = [];
         state.summon = null;
 
+        // Reset summon system
+        if (_hasBattleSummon) {
+            BattleSummon.reset();
+        }
+
         // Set up targets
         state.targets = {
             win: config.win_target,
@@ -317,7 +325,8 @@ var BattleCore = (function() {
             moves: enemy.moves || [{ name: 'Attack', damage: '1d6', type: 'physical' }],
             passives: enemy.passives || [],
             dialogue: enemy.dialogue || null,
-            summons: enemy.summons || null
+            summons: enemy.summons || null,
+            intents: enemy.intents || null
         };
 
         // Reset music state
@@ -792,7 +801,8 @@ var BattleCore = (function() {
             // Logic:
             // - 40% chance: hurt self (roll 1-5 damage), can't act this turn, confusion stays (will auto-clear next turn)
             // - 60% chance: shake off confusion immediately, can act this turn
-            if (def.selfDamageChance) {
+            // Skip on first turn (justApplied) - confusion shouldn't tick the turn it's applied
+            if (def.selfDamageChance && !skipDOT) {
                 if (Math.random() < def.selfDamageChance) {
                     // Hit self - roll 1-5 damage like a combat attack
                     var selfDamage = Math.floor(Math.random() * 5) + 1;  // 1-5 damage
@@ -1141,9 +1151,20 @@ var BattleCore = (function() {
     // =========================================================================
 
     /**
-     * Create a summon
+     * Create a player summon (legacy support - uses BattleSummon module)
      */
     function createSummon(summonId) {
+        if (_hasBattleSummon) {
+            var result = BattleSummon.spawnPlayerSummon(summonId);
+            if (result.success) {
+                state.summon = BattleSummon.getPlayerSummon();
+                triggerDialogue('summon_appears');
+                playSfx('summon_appear');
+            }
+            return result;
+        }
+
+        // Fallback to legacy implementation if BattleSummon not loaded
         if (!_hasBattleData) {
             return { success: false, reason: 'no_data' };
         }
@@ -1177,9 +1198,53 @@ var BattleCore = (function() {
     }
 
     /**
-     * Process summon turn
+     * Process player summon turn (legacy support - uses BattleSummon module)
      */
     function processSummonTurn() {
+        if (_hasBattleSummon) {
+            var summon = BattleSummon.getPlayerSummon();
+            if (!summon) return { acted: false, messages: [] };
+
+            var turnResult = BattleSummon.processPlayerSummonTurn(state.enemy, activeStyle);
+            var messages = turnResult.messages.slice();
+
+            // Apply heal if any
+            if (turnResult.healResult && turnResult.healResult.amount > 0) {
+                var healResult = healPlayer(turnResult.healResult.amount, 'summon');
+                if (healResult.healed > 0) {
+                    messages.unshift(summon.icon + ' ' + summon.name + ' heals you for <span class="battle-number">' + healResult.healed + ' HP</span>!');
+                }
+            }
+
+            // Apply damage if attack hit
+            if (turnResult.attackResult && turnResult.attackResult.hit) {
+                var dmgResult = damageEnemy(turnResult.attackResult.damage, { source: 'summon', type: summon.attack.type });
+                // Replace the generic attack message with one that includes damage
+                for (var i = 0; i < messages.length; i++) {
+                    if (messages[i].indexOf(' uses ') !== -1 && messages[i].indexOf('!') === messages[i].length - 1) {
+                        messages[i] = summon.icon + ' ' + summon.name + ' uses ' +
+                            summon.attack.name + ' for <span class="battle-number">' + dmgResult.damage + ' damage</span>!';
+                        break;
+                    }
+                }
+            }
+
+            // Play expiration sound
+            if (turnResult.expired) {
+                playSfx('summon_expire');
+            }
+
+            // Sync state
+            state.summon = BattleSummon.getPlayerSummon();
+
+            return {
+                acted: true,
+                messages: messages,
+                attackResult: turnResult.attackResult
+            };
+        }
+
+        // Fallback to legacy implementation
         if (!state.summon) return { acted: false, messages: [] };
 
         var messages = [];
@@ -1222,9 +1287,14 @@ var BattleCore = (function() {
     }
 
     /**
-     * Dismiss summon early
+     * Dismiss player summon early (uses BattleSummon module)
      */
     function dismissSummon() {
+        if (_hasBattleSummon) {
+            var result = BattleSummon.dismissPlayerSummon();
+            state.summon = null;
+            return result;
+        }
         if (!state.summon) return false;
         state.summon = null;
         return true;
@@ -1339,6 +1409,14 @@ var BattleCore = (function() {
     }
 
     /**
+     * Check if it's currently the player's turn
+     * @returns {boolean} true if player can act, false otherwise
+     */
+    function isPlayerTurn() {
+        return state.phase === 'player';
+    }
+
+    /**
      * Update battle button states based on current phase
      * Buttons are only interactive during 'player' phase
      */
@@ -1346,23 +1424,27 @@ var BattleCore = (function() {
         var battleChoices = document.getElementById('battle-choices');
         if (!battleChoices) return;
 
-        var buttons = battleChoices.querySelectorAll('.choice-button');
-        var isPlayerTurn = (phase === 'player');
+        var playerTurn = (phase === 'player');
 
-        buttons.forEach(function(button) {
-            button.disabled = !isPlayerTurn;
-            if (isPlayerTurn) {
-                button.classList.remove('waiting');
-            } else {
-                button.classList.add('waiting');
-            }
-        });
+        // When enabling buttons for player turn, ensure battle log is clear
+        // This prevents "Stun wore off!" from showing alongside active buttons
+        if (playerTurn) {
+            var battleLogContent = document.getElementById('battle-log-content');
+            if (battleLogContent) battleLogContent.innerHTML = '';
+        }
 
-        // Also update battle choices container class for styling
-        if (isPlayerTurn) {
+        // Update container class for styling
+        if (playerTurn) {
             battleChoices.classList.remove('waiting');
         } else {
             battleChoices.classList.add('waiting');
+        }
+
+        // Always refresh battle choices - this handles both:
+        // - Disabling all buttons when NOT player turn
+        // - Re-enabling buttons (respecting cooldowns) when player turn
+        if (typeof VNEngine !== 'undefined' && VNEngine.refreshBattleChoices) {
+            VNEngine.refreshBattleChoices();
         }
     }
 
@@ -1373,8 +1455,15 @@ var BattleCore = (function() {
     function incrementTurn() {
         state.turn++;
         tickDialogueCooldown();
+        // Tick defend cooldown at end of each full turn cycle
+        // A turn = enemy action + player action (or QTE during defensive stance)
+        tickDefendCooldown();
+    }
 
-        // Decrement defend cooldown
+    /**
+     * Decrement the defend cooldown (called when player takes an action)
+     */
+    function tickDefendCooldown() {
         if (state.player.defendCooldown > 0) {
             state.player.defendCooldown--;
         }
@@ -1477,8 +1566,10 @@ var BattleCore = (function() {
         isActive: isActive,
         getPhase: getPhase,
         setPhase: setPhase,
+        isPlayerTurn: isPlayerTurn,
         getTurn: getTurn,
         incrementTurn: incrementTurn,
+        tickDefendCooldown: tickDefendCooldown,
         getPlayer: getPlayer,
         getEnemy: getEnemy,
         getSummon: getSummon,

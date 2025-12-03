@@ -128,6 +128,7 @@ const VNEngine = (function() {
         devForcedRoll: null,  // Dev mode: force next hit roll to this value (null = random)
         devForcedDamage: null,  // Dev mode: force next damage roll to this value (null = random)
         devGuaranteeStatus: false,  // Dev mode: 100% status effect application
+        devIntentsEnabled: true,  // Dev mode: enable/disable intent system
         kenBurns: false,  // Subtle zoom effect on backgrounds (Apple-style)
         currentBackground: null  // Track current background to avoid Ken Burns reset on same bg
     };
@@ -661,36 +662,41 @@ const VNEngine = (function() {
                 labelText += ' [+' + choice.heals + ' HP]';
             }
 
-            // Check if player is in defensive stance or defend is on cooldown
-            var isDefending = false;
-            var isOnCooldown = false;
+            // Determine if button should be disabled
+            // Two conditions: NOT player's turn, OR specific cooldowns (defend)
+            var shouldDisable = false;
+
             if (typeof BattleCore !== 'undefined') {
                 var player = BattleCore.getPlayer();
+                var playerTurn = BattleCore.isPlayerTurn();
+
+                // Rule 1: Disable all buttons if it's NOT the player's turn
+                if (!playerTurn) {
+                    shouldDisable = true;
+                }
+
+                // Rule 2: Player-specific cooldowns (even on player turn)
                 if (player) {
-                    // If player is in defensive stance, grey out all buttons (but only Defend shows countdown)
+                    // If player is in defensive stance, disable all buttons
                     if (player.defending && player.defending > 0) {
-                        isDefending = true;
-                        button.classList.add('on-cooldown');
-                        button.disabled = true;
-                        // Only Defend button shows the countdown during stance
+                        shouldDisable = true;
+                        // Show cooldown on defend button
                         if (action === 'defend' && player.defendCooldown > 0) {
-                            // Subtract 1 because defendCooldown was set +1 for turn increment timing
-                            var displayCooldown = Math.max(0, player.defendCooldown - 1);
-                            labelText += ' (' + displayCooldown + ')';
+                            labelText += ' (' + player.defendCooldown + ')';
                         }
                     }
-                    // Defend button has cooldown even after stance ends
+                    // Defend button has its own cooldown
                     else if (action === 'defend' && player.defendCooldown > 0) {
-                        isOnCooldown = true;
-                        // Subtract 1 because defendCooldown was set +1 for turn increment timing
-                        var displayCooldown = Math.max(0, player.defendCooldown - 1);
-                        if (displayCooldown > 0) {
-                            labelText += ' (' + displayCooldown + ')';
-                            button.classList.add('on-cooldown');
-                            button.disabled = true;
-                        }
+                        shouldDisable = true;
+                        labelText += ' (' + player.defendCooldown + ')';
                     }
                 }
+            }
+
+            // Apply disabled state
+            if (shouldDisable) {
+                button.classList.add('on-cooldown');
+                button.disabled = true;
             }
 
             button.textContent = labelText;
@@ -1225,6 +1231,104 @@ const VNEngine = (function() {
         }
     }
 
+    /**
+     * Make an element draggable by a handle
+     * @param {HTMLElement} element - The element to make draggable
+     * @param {HTMLElement} handle - The drag handle element
+     */
+    function makeDraggable(element, handle) {
+        var isDragging = false;
+        var offsetX = 0;
+        var offsetY = 0;
+
+        handle.addEventListener('mousedown', startDrag);
+        handle.addEventListener('touchstart', startDrag, { passive: false });
+
+        function startDrag(e) {
+            // Don't drag if clicking on interactive elements
+            if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') {
+                return;
+            }
+
+            isDragging = true;
+            element.classList.add('dragging');
+
+            var clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            var clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+            var rect = element.getBoundingClientRect();
+            offsetX = clientX - rect.left;
+            offsetY = clientY - rect.top;
+
+            // Switch to fixed positioning for dragging
+            element.style.position = 'fixed';
+            element.style.right = 'auto';
+            element.style.left = rect.left + 'px';
+            element.style.top = rect.top + 'px';
+
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', stopDrag);
+            document.addEventListener('touchmove', drag, { passive: false });
+            document.addEventListener('touchend', stopDrag);
+
+            e.preventDefault();
+        }
+
+        function drag(e) {
+            if (!isDragging) return;
+
+            var clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            var clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+            var newX = clientX - offsetX;
+            var newY = clientY - offsetY;
+
+            // Keep within viewport bounds
+            var rect = element.getBoundingClientRect();
+            var maxX = window.innerWidth - rect.width;
+            var maxY = window.innerHeight - rect.height;
+
+            newX = Math.max(0, Math.min(newX, maxX));
+            newY = Math.max(0, Math.min(newY, maxY));
+
+            element.style.left = newX + 'px';
+            element.style.top = newY + 'px';
+
+            e.preventDefault();
+        }
+
+        function stopDrag() {
+            if (!isDragging) return;
+            isDragging = false;
+            element.classList.remove('dragging');
+
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('mouseup', stopDrag);
+            document.removeEventListener('touchmove', drag);
+            document.removeEventListener('touchend', stopDrag);
+
+            // Save position to localStorage
+            try {
+                localStorage.setItem('andi_dev_panel_pos', JSON.stringify({
+                    left: element.style.left,
+                    top: element.style.top
+                }));
+            } catch (e) {}
+        }
+
+        // Restore saved position
+        try {
+            var saved = localStorage.getItem('andi_dev_panel_pos');
+            if (saved) {
+                var pos = JSON.parse(saved);
+                element.style.position = 'fixed';
+                element.style.right = 'auto';
+                element.style.left = pos.left;
+                element.style.top = pos.top;
+            }
+        } catch (e) {}
+    }
+
     function showDevModeIndicator(show) {
         var indicator = document.getElementById('dev-mode-indicator');
         var themeSelector = document.getElementById('theme-selector');
@@ -1334,6 +1438,39 @@ const VNEngine = (function() {
         container.id = 'theme-selector';
         container.classList.add('visible');
         // No inline styles - let CSS handle theming
+
+        // Add draggable header with collapse button
+        var dragHeader = document.createElement('div');
+        dragHeader.className = 'dev-drag-header';
+
+        var headerText = document.createElement('span');
+        headerText.textContent = '⋮⋮ Dev Panel';
+        headerText.className = 'dev-header-text';
+        dragHeader.appendChild(headerText);
+
+        var collapseBtn = document.createElement('button');
+        collapseBtn.className = 'dev-collapse-btn';
+        collapseBtn.textContent = '−';
+        collapseBtn.title = 'Collapse/Expand';
+        collapseBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            container.classList.toggle('collapsed');
+            collapseBtn.textContent = container.classList.contains('collapsed') ? '+' : '−';
+            localStorage.setItem('devPanelCollapsed', container.classList.contains('collapsed'));
+        });
+        dragHeader.appendChild(collapseBtn);
+
+        // Restore collapsed state
+        if (localStorage.getItem('devPanelCollapsed') === 'true') {
+            container.classList.add('collapsed');
+            collapseBtn.textContent = '+';
+        }
+
+        dragHeader.title = 'Drag to move';
+        container.appendChild(dragHeader);
+
+        // Make panel draggable
+        makeDraggable(container, dragHeader);
 
         var label = document.createElement('label');
         label.textContent = 'Theme: ';
@@ -1491,6 +1628,151 @@ const VNEngine = (function() {
         statusContainer.appendChild(statusLabel);
         container.appendChild(statusContainer);
 
+        // Enable Intents toggle
+        var intentsContainer = document.createElement('div');
+        intentsContainer.className = 'ken-burns-toggle-container';
+
+        var intentsLabel = document.createElement('label');
+
+        var intentsCheckbox = document.createElement('input');
+        intentsCheckbox.type = 'checkbox';
+        intentsCheckbox.id = 'enable-intents-toggle';
+        intentsCheckbox.checked = state.devIntentsEnabled;
+
+        intentsCheckbox.addEventListener('change', function() {
+            state.devIntentsEnabled = this.checked;
+            log.debug('Intents enabled: ' + this.checked);
+            // Update battle system if available
+            if (typeof BattleEngine !== 'undefined' && BattleEngine.setIntentsEnabled) {
+                BattleEngine.setIntentsEnabled(this.checked);
+            }
+        });
+
+        intentsLabel.appendChild(intentsCheckbox);
+        intentsLabel.appendChild(document.createTextNode('Enable Intents'));
+
+        intentsContainer.appendChild(intentsLabel);
+        container.appendChild(intentsContainer);
+
+        // Battle dev controls section
+        var battleSection = document.createElement('div');
+        battleSection.className = 'dev-battle-section';
+        battleSection.innerHTML = '<div class="dev-section-title">Intent Controls</div>';
+
+        // Intent buttons - each has Trigger (prep phase) and Execute (immediate) modes
+        var intentButtons = [
+            { id: 'termination_notice', label: 'Big Attack', icon: '⚠', color: '#ff6600' },
+            { id: 'policy_barrage', label: 'Multi-Hit', icon: '⚔', color: '#ff3333' },
+            { id: 'call_intern', label: 'Summon', icon: '✦', color: '#9966ff' }
+        ];
+
+        intentButtons.forEach(function(intent) {
+            var row = document.createElement('div');
+            row.className = 'dev-intent-row';
+
+            // Trigger button (prep phase - shows icon, announces, executes next turn)
+            var triggerBtn = document.createElement('button');
+            triggerBtn.type = 'button';
+            triggerBtn.className = 'dev-intent-btn dev-intent-trigger';
+            triggerBtn.textContent = intent.icon + ' ' + intent.label;
+            triggerBtn.style.borderLeftColor = intent.color;
+            triggerBtn.title = 'Trigger intent prep phase (announces, shows icon, executes next turn)';
+            triggerBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (typeof BattleEngine !== 'undefined' && BattleEngine.devTriggerIntent) {
+                    var result = BattleEngine.devTriggerIntent(intent.id);
+                    log.debug('[Dev] ' + result.message);
+                    if (!result.success) {
+                        log.warn(result.message);
+                    }
+                } else {
+                    log.warn('Battle not active or devTriggerIntent not available');
+                }
+            });
+
+            // Execute button (immediate execution)
+            var execBtn = document.createElement('button');
+            execBtn.type = 'button';
+            execBtn.className = 'dev-intent-btn dev-intent-exec';
+            execBtn.textContent = '▶';
+            execBtn.style.borderLeftColor = intent.color;
+            execBtn.title = 'Execute immediately (skip prep phase)';
+            execBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (typeof BattleEngine !== 'undefined' && BattleEngine.devForceIntent) {
+                    var result = BattleEngine.devForceIntent(intent.id);
+                    log.debug('[Dev] ' + result.message);
+                    if (!result.success) {
+                        log.warn(result.message);
+                    }
+                } else {
+                    log.warn('Battle not active');
+                }
+            });
+
+            row.appendChild(triggerBtn);
+            row.appendChild(execBtn);
+            battleSection.appendChild(row);
+        });
+
+        // Quick action buttons
+        var quickActions = document.createElement('div');
+        quickActions.className = 'dev-quick-actions';
+
+        var healBtn = document.createElement('button');
+        healBtn.type = 'button';
+        healBtn.className = 'dev-quick-btn';
+        healBtn.textContent = '💚 Heal';
+        healBtn.title = 'Full heal player';
+        healBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (typeof BattleEngine !== 'undefined' && BattleEngine.healPlayer) {
+                var state = BattleEngine.getState();
+                if (state && state.player) {
+                    BattleEngine.healPlayer(state.player.maxHP);
+                    log.debug('[Dev] Healed player to full HP');
+                }
+            }
+        });
+
+        var killBtn = document.createElement('button');
+        killBtn.type = 'button';
+        killBtn.className = 'dev-quick-btn';
+        killBtn.textContent = '💀 Kill';
+        killBtn.title = 'Kill enemy instantly';
+        killBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (typeof BattleCore !== 'undefined') {
+                var enemy = BattleCore.getEnemy();
+                if (enemy) {
+                    BattleCore.damageEnemy(enemy.hp);
+                    log.debug('[Dev] Killed enemy');
+                }
+            }
+        });
+
+        var manaBtn = document.createElement('button');
+        manaBtn.type = 'button';
+        manaBtn.className = 'dev-quick-btn';
+        manaBtn.textContent = '💙 Mana';
+        manaBtn.title = 'Full mana restore';
+        manaBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (typeof BattleEngine !== 'undefined' && BattleEngine.restoreMana) {
+                BattleEngine.restoreMana(100);
+                log.debug('[Dev] Restored full mana');
+            }
+        });
+
+        quickActions.appendChild(healBtn);
+        quickActions.appendChild(killBtn);
+        quickActions.appendChild(manaBtn);
+        battleSection.appendChild(quickActions);
+
+        container.appendChild(battleSection);
+
         document.body.appendChild(container);
     }
 
@@ -1614,13 +1896,39 @@ const VNEngine = (function() {
         setMusic(musicToPlay);
 
         // Render the last text block
+        // For scenes with actions (battles, dice rolls), show Continue button instead of choices
+        // This lets the user read the text before the action triggers
         var currentText = textBlocks[state.currentBlockIndex] || '';
+        var hasActions = scene.actions && scene.actions.length > 0;
+        var hasRollChoice = scene.choices && scene.choices.some(function(c) {
+            return c.target === '_roll';
+        });
+
         renderText(currentText, '', function() {
-            // Show choices since we're on the last block
-            if (scene.choices && scene.choices.length > 0) {
+            if (hasActions && !hasRollChoice) {
+                // Scene has actions (battle, dice) - show Continue to trigger them
+                showContinueButton();
+                // Override Continue behavior to call renderCurrentBlock (which executes actions)
+                // Note: continueBtn normally calls advanceTextBlock which does nothing on last block
+                // We use a one-time handler to trigger actions
+                var continueBtn = elements.continueBtn;
+                var oneTimeHandler = function() {
+                    continueBtn.removeEventListener('click', oneTimeHandler);
+                    hideContinueButton();
+                    executeActions();
+                };
+                continueBtn.addEventListener('click', oneTimeHandler);
+            } else if (hasRollChoice) {
+                // Has _roll choice - show choices normally
                 renderChoices(scene.choices);
+                hideContinueButton();
+            } else if (scene.choices && scene.choices.length > 0) {
+                // Normal scene - show choices
+                renderChoices(scene.choices);
+                hideContinueButton();
+            } else {
+                hideContinueButton();
             }
-            hideContinueButton();
         });
 
         saveState();

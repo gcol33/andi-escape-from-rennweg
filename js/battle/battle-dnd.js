@@ -34,7 +34,8 @@ var BattleStyleDnD = (function() {
 
     var T = typeof TUNING !== 'undefined' ? TUNING : null;
     var config = T ? T.battle.combat : {
-        defendACBonus: 4,
+        defendACBonus: 0,   // AC bonus removed (can be a skill later)
+        defendDuration: 2,  // How many enemy attacks defensive stance lasts
         defendManaRecoveryMin: 2,
         defendManaRecoveryMax: 4,
         defendCooldown: 5,  // Turns before defend can be used again
@@ -295,8 +296,9 @@ var BattleStyleDnD = (function() {
         }
 
         // Try to apply status effect from skill
+        // Don't apply status if attack was parried/dodged (qteResult.noStatusEffect)
         var statusResult = null;
-        if (hit && skill.statusEffect) {
+        if (hit && skill.statusEffect && !qteResult.noStatusEffect) {
             statusResult = tryApplyStatus(skill, defender);
         }
 
@@ -381,6 +383,7 @@ var BattleStyleDnD = (function() {
 
         var attackResult = resolveAttack(player, enemy, null, qteResult);
         var barrierResult = null;
+        var pendingDamage = null;
 
         if (attackResult.hit) {
             // Check for barrier first
@@ -391,12 +394,14 @@ var BattleStyleDnD = (function() {
                 // Barrier absorbs the hit - no HP damage
                 console.log('[BattleDnD.playerAttack] Barrier absorbed hit!', barrierResult);
             } else {
-                console.log('[BattleDnD.playerAttack] Hit! Calling damageEnemy with:', attackResult.damage);
-                BattleCore.damageEnemy(attackResult.damage, {
+                // Don't apply damage yet - store for after animation completes
+                console.log('[BattleDnD.playerAttack] Hit! Storing pendingDamage:', attackResult.damage);
+                pendingDamage = {
+                    amount: attackResult.damage,
                     source: 'player',
                     type: attackResult.damageType,
                     isCrit: attackResult.isCrit
-                });
+                };
             }
 
             // Add stagger
@@ -410,6 +415,7 @@ var BattleStyleDnD = (function() {
             success: true,
             attackResult: attackResult,
             barrierResult: barrierResult,
+            pendingDamage: pendingDamage,
             messages: []
         };
     }
@@ -562,11 +568,13 @@ var BattleStyleDnD = (function() {
                 }
                 BattleCore.playSfx('barrier_hit');
             } else {
-                BattleCore.damageEnemy(attackResult.damage, {
+                // Don't apply damage yet - store for after animation completes
+                result.pendingDamage = {
+                    amount: attackResult.damage,
                     source: 'player',
                     type: attackResult.damageType,
                     isCrit: attackResult.isCrit
-                });
+                };
 
                 messages.push(skill.name + ' hits for <span class="battle-number">' + attackResult.damage + ' damage</span>!');
 
@@ -605,13 +613,13 @@ var BattleStyleDnD = (function() {
     function playerDefend() {
         var player = BattleCore.getPlayer();
 
-        // Defend lasts 2 turns (this turn + next turn)
-        player.defending = 2;
+        // Defend lasts for configured number of enemy attacks
+        var duration = config.defendDuration || 2;
+        player.defending = duration;
 
         // Set cooldown (turns before defend can be used again)
-        // Add 1 because incrementTurn() is called immediately after this turn ends
         var cooldown = config.defendCooldown || 5;
-        player.defendCooldown = cooldown + 1;
+        player.defendCooldown = cooldown;
 
         // Roll for mana recovery
         var rollResult = rollD20();
@@ -925,7 +933,8 @@ var BattleStyleDnD = (function() {
         }
 
         // Attack move
-        var attackResult = resolveAttack(enemy, player, move);
+        // Pass qteResult so status effects aren't applied on parried/dodged attacks
+        var attackResult = resolveAttack(enemy, player, move, qteResult);
 
         messages.push(enemy.name + ' uses ' + (move.name || 'Attack') + '!');
 
@@ -1141,11 +1150,13 @@ var BattleStyleDnD = (function() {
                 }
                 BattleCore.playSfx('barrier_hit');
             } else {
-                BattleCore.damageEnemy(attackResult.damage, {
+                // Don't apply damage yet - store for after animation completes
+                result.pendingDamage = {
+                    amount: attackResult.damage,
                     source: 'player',
                     type: attackResult.damageType,
                     isCrit: attackResult.isCrit
-                });
+                };
                 messages.push(skill.name + ' hits for <span class="battle-number">' + attackResult.damage + ' damage</span>!');
                 if (attackResult.isCrit) messages.push('Critical hit!');
                 BattleCore.playSfx('attack_' + attackResult.damageType);
@@ -1251,6 +1262,13 @@ var BattleStyleDnD = (function() {
                     damage = Math.floor(damage * qteResult.damageMultiplier);
                 }
             }
+
+            // Apply defend damage reduction (50% reduction shown as ÷2)
+            if (defender.defending && defender.defending > 0) {
+                damageModifiers.push({ value: 0.5, source: 'DEFEND', isDivisor: true });
+                damage = Math.floor(damage * 0.5);
+            }
+
             damage = Math.max(config.minDamage, damage);
         }
 

@@ -1869,7 +1869,70 @@ Test the Agnes (HR) battle specifically:
 
 ## 22. Changelog
 
+### 2025-12-03
+- **Balance Change**: Removed AC bonus from defensive stance
+  - Before: Defending gave +4 AC bonus, making enemies miss more often
+  - After: Defending no longer increases AC (defendACBonus = 0)
+  - Code kept in place for potential future skill that grants AC bonus
+  - Defensive stance now relies purely on QTE parry/dodge mechanics
+
 ### 2025-12-02
+- **Bug Fix**: Dev mode undo after battle now shows "Continue" button instead of battle choices
+  - Before: Undoing from victory/defeat back to battle scene showed non-functional battle menu (Attack!, Skills, Defend, Item)
+  - After: Shows "Continue" button that properly re-triggers the battle when clicked
+  - Fixed in `undoScene()` function in engine.js to check for action scenes and show Continue instead of choices
+
+- **Bug Fix**: Fixed race condition where status wore-off messages interleaved with attack roll typewriter
+  - Before: "Ag ❄️ Frozen wore off!" - text interleaved because attack roll started before status message finished
+  - After: Status messages (like "❄️ Frozen wore off!") display completely BEFORE enemy attack roll begins
+  - Added check in `processEnemyTurn()` to show status messages first, then continue with attack
+
+- **Bug Fix**: Fixed missing status effect application messages when enemy attacks (e.g., Bleed)
+  - Before: When Agnes's Papercut inflicted Bleed, no "🩸 Inflicted Bleed!" message appeared
+  - After: Status effect messages now correctly display after enemy attack rolls
+  - Added extraction of `statusResult.message` in `finishEnemyActionAfterRoll()` for attack results
+
+- **Bug Fix**: Fixed status effects (stun, bleed) applying when player parries/dodges during defensive stance
+  - Before: Even when player successfully parried/dodged, status effects like Stun from "Performance Review" still applied
+  - After: Status effects only apply when the attack actually hits (not parried/dodged)
+  - Added `noStatusEffect` flag to QTE modifiers for parry/dodge outcomes
+  - Modified `resolveAttack()` in battle-dnd.js to check `qteResult.noStatusEffect` before applying status
+
+- **UI Improvement**: Added flavored text for dodge/parry outcomes after enemy rolls
+  - When player successfully dodges: Shows random flavor like "Sidestepped like a pro!", "Not even close!", "Can't touch this!"
+  - When player successfully parries: Shows random flavor like "Right back at you!", "Counter!", "Uno reverse card!"
+  - Flavor text arrays defined in `TUNING.qte.defendFlavorText.dodge[]` and `TUNING.qte.defendFlavorText.parry[]`
+  - Added `getDefendFlavorText()` helper in battle-facade.js
+
+- **Bug Fix**: Fixed defensive stance wearing off after single enemy attack (double-decrement bug)
+  - Before: `player.defending` was decremented in BOTH `processDefendQTEResult()` AND `enemyTurn()`, causing it to go 2 -> 1 -> 0 in one attack
+  - After: Only `enemyTurn()` decrements `player.defending`, so it correctly goes 2 -> 1 (first attack) -> 0 (second attack)
+  - Defensive stance now properly lasts for 2 enemy attacks as intended
+
+- **Bug Fix**: Fixed enemy fumble (nat 1) not showing proper confusion message during defend QTE
+  - Before: When enemy fumbled during player's defensive stance, showed generic "But it missed!" text
+  - After: Shows "FUMBLE! [Enemy] stumbles and gets confused!" with proper confusion status on enemy
+  - Enemy fumble now takes priority over QTE outcome display in `showDefendOutcome()`
+
+- **Bug Fix**: Fixed defend cooldown display and timing
+  - Removed confusing "+1 then -1" offset logic
+  - Cooldown now set to exactly `config.defendCooldown` (5) without adjustment
+  - Display shows the actual cooldown value directly
+  - Each defensive QTE counts as a player turn (cooldown decrements during QTEs)
+  - Flow: Defend (5) → QTE (4) → QTE (3) → normal turn (2) → normal turn (1) → normal turn (0) → Defend available
+
+- **Balance Change**: Reworked bad defend QTE outcome
+  - Before: "broken" - guard breaks, stance ends immediately, confusing for players
+  - After: "fumble" - take full damage + player gets confused, but stance continues
+  - Removed `defendEnds` mechanic entirely - defensive stance now ALWAYS lasts full duration
+  - Added `defendDuration` config to tuning.js (default: 2 enemy attacks)
+  - Updated tuning.js `defendModifiers.bad` and removed legacy code from battle-facade.js
+
+- **Improvement**: Defensive stance and cooldown now tick when enemy can't attack
+  - When enemy is stunned/frozen: defensive stance decrements, cooldown decrements, no QTE
+  - When enemy hits themselves (confusion): defensive stance decrements, cooldown decrements, no QTE
+  - This means stance wears off faster if enemy is disabled, but cooldown also recovers faster
+
 - **Bug Fix**: Defensive stance countdown now shows on ALL greyed-out action buttons
   - Before: Only the Defend button showed "(5)" cooldown during defensive stance
   - After: All action buttons (Attack, Skill, Item, Defend) show "(5)" countdown while player is defending
@@ -1877,6 +1940,18 @@ Test the Agnes (HR) battle specifically:
   - Updated `renderBattleChoices()` in engine.js to check `player.defending` state
   - Added `VNEngine.refreshBattleChoices()` API for battle-facade to trigger UI updates
   - Called `refreshBattleChoices()` from `updateDisplay()` in battle-facade.js to keep countdown synced
+
+- **Code Refactor**: Added `BattleCore.isPlayerTurn()` helper for consistent turn checking
+  - Returns `true` when `phase === 'player'`, `false` otherwise (enemy, animating, ended)
+  - `renderBattleChoices()` now uses `isPlayerTurn()` to disable buttons during enemy turns
+  - `updateBattleButtonsState()` calls `refreshBattleChoices()` on phase change for proper state sync
+  - Button disable logic simplified to: `!isPlayerTurn() || defending || defendCooldown`
+
+- **Bug Fix**: Defend cooldown now only decrements on PLAYER actions, not enemy turns
+  - Before: Cooldown decremented in `incrementTurn()` which is called after every enemy turn
+  - After: Cooldown decrements via `BattleCore.tickDefendCooldown()` called in `executeAction()`
+  - Added new `tickDefendCooldown()` function to battle-core.js
+  - Flow: Defend (5) → player acts (4) → player acts (3) → player acts (2) → player acts (1) → player acts (0) → Defend available
 
 ### 2025-12-01
 - **UI Improvement**: Improved "cannot act" message when enemies are stunned/frozen

@@ -843,7 +843,9 @@ var BattleDiceUI = (function() {
                     var hasDamageDisadvantage = options.damageDisadvantage && options.damageRolls;
 
                     // If no modifiers to show, animate directly to final damage
-                    var displayRoll = (isPlayer && damageModifiers.length > 0) ? baseDamageRoll : finalDamage;
+                    // Show modifiers for player attacks OR for enemy attacks with defend reduction
+                    var hasCollapsibleModifiers = damageModifiers.length > 0;
+                    var displayRoll = hasCollapsibleModifiers ? baseDamageRoll : finalDamage;
 
                     // Determine damage result category
                     var damageResultCategory = 'normal';
@@ -875,7 +877,7 @@ var BattleDiceUI = (function() {
                         animateAdvantageDamageRoll(line, damageAdvResult, function(damageNum) {
                             config.spinDuration = originalDuration;
 
-                            if (isPlayer && damageModifiers.length > 0) {
+                            if (hasCollapsibleModifiers) {
                                 showAllThenCollapse(line, damageNum, baseDamageRoll, damageModifiers, function(collapsedTotal) {
                                     damageNum.textContent = finalDamage;
                                     showDamageText(damageResultCategory);
@@ -904,7 +906,7 @@ var BattleDiceUI = (function() {
                         animateRoll(damageNum, damageRollResult, function() {
                             config.spinDuration = originalDuration;
 
-                            if (isPlayer && damageModifiers.length > 0) {
+                            if (hasCollapsibleModifiers) {
                                 // Collapse modifiers, ensuring final value equals options.damage
                                 showAllThenCollapse(line, damageNum, baseDamageRoll, damageModifiers, function(collapsedTotal) {
                                     // Safety: ensure displayed value matches actual damage
@@ -982,6 +984,10 @@ var BattleDiceUI = (function() {
             if (mod.isMultiplier) {
                 modSpan.innerHTML = ' x ' + mod.value + ' <span class="mod-source">(' + mod.source + ')</span>';
                 runningTotal = Math.floor(runningTotal * mod.value);
+            } else if (mod.isDivisor) {
+                var divisorValue = Math.round(1 / mod.value);
+                modSpan.innerHTML = ' ÷ ' + divisorValue + ' <span class="mod-source">(' + mod.source + ')</span>';
+                runningTotal = Math.floor(runningTotal * mod.value);
             } else {
                 var sign = mod.value >= 0 ? ' + ' : ' - ';
                 modSpan.innerHTML = sign + Math.abs(mod.value) + ' <span class="mod-source">(' + mod.source + ')</span>';
@@ -989,7 +995,7 @@ var BattleDiceUI = (function() {
             }
 
             line.appendChild(modSpan);
-            modSpans.push({ span: modSpan, value: mod.value, isMultiplier: mod.isMultiplier });
+            modSpans.push({ span: modSpan, value: mod.value, isMultiplier: mod.isMultiplier, isDivisor: mod.isDivisor });
 
             // Check if this bonus pushed us over the AC threshold (but not on fumble - fumble absorbs everything)
             if (!isFumble && !hasHitThreshold && runningTotal >= targetAC) {
@@ -1020,6 +1026,8 @@ var BattleDiceUI = (function() {
             var newTotal;
 
             if (modData.isMultiplier) {
+                newTotal = Math.floor(currentTotal * modData.value);
+            } else if (modData.isDivisor) {
                 newTotal = Math.floor(currentTotal * modData.value);
             } else {
                 newTotal = currentTotal + modData.value;
@@ -1076,6 +1084,10 @@ var BattleDiceUI = (function() {
             if (mod.isMultiplier) {
                 // Multiplier display: " x 2 (CRIT)"
                 modSpan.innerHTML = ' x ' + mod.value + ' <span class="mod-source">(' + mod.source + ')</span>';
+            } else if (mod.isDivisor) {
+                // Divisor display: " ÷ 2 (DEFEND)"
+                var divisorValue = Math.round(1 / mod.value);  // 0.5 → 2
+                modSpan.innerHTML = ' ÷ ' + divisorValue + ' <span class="mod-source">(' + mod.source + ')</span>';
             } else {
                 // Additive display: " + 2 (ATK)" or " - 1 (Curse)"
                 var sign = mod.value >= 0 ? ' + ' : ' - ';
@@ -1083,7 +1095,7 @@ var BattleDiceUI = (function() {
             }
 
             line.appendChild(modSpan);
-            modSpans.push({ span: modSpan, value: mod.value, isMultiplier: mod.isMultiplier });
+            modSpans.push({ span: modSpan, value: mod.value, isMultiplier: mod.isMultiplier, isDivisor: mod.isDivisor });
 
             showIndex++;
             diceTimeout(showNext, 250);
@@ -1101,6 +1113,9 @@ var BattleDiceUI = (function() {
 
             if (modData.isMultiplier) {
                 // Multiplier: multiply current total
+                newTotal = Math.floor(currentTotal * modData.value);
+            } else if (modData.isDivisor) {
+                // Divisor: multiply by the divisor value (0.5 halves the damage)
                 newTotal = Math.floor(currentTotal * modData.value);
             } else {
                 // Additive: add to current total

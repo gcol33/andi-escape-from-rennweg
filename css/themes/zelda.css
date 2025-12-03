@@ -890,11 +890,47 @@ h1 {
     padding: 2px 4px;
 }
 
-#theme-selector label {
-    color: var(--triforce-gold);
+#theme-selector,
+#theme-selector label,
+#theme-selector span,
+#theme-selector div,
+#theme-selector .dev-checkbox-label {
+    color: var(--triforce-gold) !important;
     font-family: 'Press Start 2P', 'Courier New', monospace;
 }
 
 #theme-selector input[type="checkbox"] {
     accent-color: var(--triforce-gold);
+}
+
+#theme-selector input[type="number"],
+#theme-selector input[type="text"] {
+    color: var(--triforce-gold) !important;
+    background: var(--forest-green);
+    border: 1px solid var(--triforce-gold) !important;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+}
+
+#theme-selector button,
+#theme-selector .dev-intent-btn,
+#theme-selector .dev-quick-btn {
+    color: var(--triforce-gold) !important;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    border-color: var(--triforce-gold) !important;
+}
+
+#theme-selector .dev-section-title,
+#theme-selector .dev-battle-section {
+    color: var(--triforce-gold) !important;
+}
+
+#theme-selector .dev-drag-header,
+#theme-selector .dev-collapse-btn {
+    color: var(--triforce-gold) !important;
+    border-color: var(--triforce-gold) !important;
+}
+
+/* Summon name in Zelda theme */
+.summon-name {
+    color: var(--triforce-gold) !important;
 }

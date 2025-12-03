@@ -159,7 +159,7 @@ const enemies = {
         "executeDialogue": "Your employment is TERMINATED!",
         "skill": {
           "name": "Termination Notice",
-          "damage": "3d6",
+          "damage": 15,
           "type": "psychic",
           "description": "A devastating psychological attack. You should have defended!"
         }
@@ -172,12 +172,12 @@ const enemies = {
         "cooldown": 5,
         "prepTurns": 1,
         "dialogue": "Let me pull up ALL your violations...",
-        "executeDialogue": "Violation 1... 2... 3... 4!",
+        "executeDialogue": "Violation 1... 2... 3... 4... 5!",
         "skill": {
           "name": "Policy Barrage",
           "damage": "d4",
           "type": "physical",
-          "hits": 4,
+          "hits": 5,
           "description": "A rapid barrage of policy violations!"
         }
       }
