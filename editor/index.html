@@ -6,6 +6,7 @@
     <title>Andi VN - Scene Editor</title>
     <link rel="stylesheet" href="../css/fonts.css">
     <link rel="stylesheet" href="editor.css">
+    <link rel="stylesheet" href="graph-colors.css">
     <script>
         // Load theme configuration and apply theme class before body renders
         (function() {
@@ -217,10 +218,12 @@
             <div class="graph-header">
                 <h3>Story Graph</h3>
                 <div class="graph-controls">
+                    <button id="graph-full-editor" class="btn-icon" title="Open Full Graph Editor">⛶</button>
                     <button id="graph-zoom-in" class="btn-icon" title="Zoom in">+</button>
                     <button id="graph-zoom-out" class="btn-icon" title="Zoom out">−</button>
                     <button id="graph-reset" class="btn-icon" title="Reset pan/zoom">⟲</button>
                     <button id="graph-reset-layout" class="btn-icon" title="Reset node positions">⊞</button>
+                    <button id="graph-export-png" class="btn-icon" title="Export as PNG">📷</button>
                     <button id="graph-close" class="btn-icon" title="Close">✕</button>
                 </div>
             </div>
@@ -262,8 +265,15 @@
     <!-- Audio element for music preview -->
     <audio id="music-player"></audio>
 
+    <!-- Shared modules (must load before editor.js) -->
+    <script src="editor-config.js"></script>
+    <script src="editor-storage.js"></script>
+    <script src="graph-logic.js"></script>
+
     <!-- Load story data (for file:// protocol support) -->
     <script src="../js/story.js"></script>
+
+    <!-- Main editor -->
     <script src="editor.js"></script>
 </body>
 </html>

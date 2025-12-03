@@ -1797,7 +1797,8 @@ label textarea {
 
 .graph-node.ending rect {
     fill: var(--bg-secondary);
-    stroke: var(--success);
+    stroke: var(--accent);
+    stroke-width: 2;
 }
 
 .graph-node.start rect {
@@ -1811,6 +1812,10 @@ label textarea {
     text-anchor: middle;
     dominant-baseline: middle;
     pointer-events: none;
+}
+
+.graph-node.start text {
+    fill: #ffffff;
 }
 
 .graph-node.missing text {
@@ -1834,6 +1839,24 @@ label textarea {
     stroke: var(--accent);
     stroke-width: 2;
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+.graph-node.chain rect {
+    fill: var(--bg-secondary);
+    stroke: var(--border);
+    stroke-width: 1;
+    stroke-dasharray: 3 2;
+    rx: 8;
+}
+
+.graph-node.chain:hover rect {
+    stroke: var(--accent);
+    stroke-width: 2;
+}
+
+.graph-node.chain text {
+    fill: var(--text-secondary);
+    font-style: italic;
 }
 
 /* Graph edges */

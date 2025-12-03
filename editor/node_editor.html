@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Andi VN - Story Graph Editor</title>
+    <link rel="stylesheet" href="graph-colors.css">
+    <link rel="stylesheet" href="node_editor.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Toolbar -->
+        <header id="toolbar">
+            <div class="toolbar-section">
+                <h1>Story Graph</h1>
+                <span id="scene-count">0 scenes</span>
+            </div>
+            <div class="toolbar-section toolbar-center">
+                <button id="btn-add" class="btn btn-primary">+ Add Node</button>
+                <button id="btn-layout" class="btn">Auto Layout</button>
+                <button id="btn-fit" class="btn">Fit View</button>
+            </div>
+            <div class="toolbar-section toolbar-right">
+                <button id="btn-back" class="btn btn-icon" title="Back to Scene Editor">⛋</button>
+                <button id="btn-save" class="btn btn-primary">Save</button>
+            </div>
+        </header>
+
+        <!-- Canvas -->
+        <main id="canvas-container">
+            <svg id="canvas"></svg>
+
+            <!-- Zoom controls -->
+            <div id="zoom-controls">
+                <button id="btn-zoom-in" class="btn btn-icon">+</button>
+                <span id="zoom-level">100%</span>
+                <button id="btn-zoom-out" class="btn btn-icon">−</button>
+            </div>
+        </main>
+
+        <!-- Properties Panel -->
+        <aside id="properties-panel" class="hidden">
+            <div class="panel-header">
+                <h2>Properties</h2>
+                <button id="btn-close-panel" class="btn btn-icon">✕</button>
+            </div>
+            <div id="properties-content"></div>
+        </aside>
+
+        <!-- Context Menu (on node) -->
+        <div id="context-menu" class="hidden">
+            <button data-action="edit">Edit Scene</button>
+            <button data-action="connect">Add Connection</button>
+            <button data-action="attach">Attach New Node</button>
+            <hr>
+            <button data-action="delete" class="danger">Delete Node</button>
+        </div>
+
+        <!-- Canvas Context Menu (on empty space) -->
+        <div id="canvas-context-menu" class="hidden">
+            <button data-action="add-node">Add New Node</button>
+            <button data-action="fit-view">Fit View</button>
+            <button data-action="auto-layout">Auto Layout</button>
+        </div>
+
+        <!-- Add Node Dialog -->
+        <dialog id="add-dialog">
+            <form method="dialog">
+                <h3>Add New Node</h3>
+                <label>
+                    Scene ID
+                    <input type="text" id="new-node-id" placeholder="e.g., forest_clearing" required>
+                </label>
+                <label>
+                    Type
+                    <select id="new-node-type">
+                        <option value="scene">Scene</option>
+                        <option value="battle">Battle</option>
+                        <option value="dice">Dice Roll</option>
+                    </select>
+                </label>
+                <div class="dialog-buttons">
+                    <button type="button" id="btn-cancel-add" class="btn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add</button>
+                </div>
+            </form>
+        </dialog>
+
+        <!-- Connect Dialog -->
+        <dialog id="connect-dialog">
+            <form method="dialog">
+                <h3>Connect to Node</h3>
+                <label>
+                    Target
+                    <select id="connect-target"></select>
+                </label>
+                <label>
+                    Connection Type
+                    <select id="connect-type">
+                        <option value="choice">Choice</option>
+                        <option value="success">Success</option>
+                        <option value="failure">Failure</option>
+                    </select>
+                </label>
+                <label id="choice-text-label">
+                    Choice Text
+                    <input type="text" id="connect-choice-text" placeholder="e.g., Go north">
+                </label>
+                <div class="dialog-buttons">
+                    <button type="button" id="btn-cancel-connect" class="btn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Connect</button>
+                </div>
+            </form>
+        </dialog>
+
+        <!-- Toast container -->
+        <div id="toast-container"></div>
+    </div>
+
+    <!-- Shared modules (must load before node_editor.js) -->
+    <script src="editor-config.js"></script>
+    <script src="editor-storage.js"></script>
+    <script src="graph-logic.js"></script>
+
+    <!-- Fallback story data -->
+    <script src="../js/story.js"></script>
+
+    <!-- Node editor -->
+    <script src="node_editor.js"></script>
+</body>
+</html>

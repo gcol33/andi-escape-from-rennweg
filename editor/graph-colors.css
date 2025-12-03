@@ -1,0 +1,150 @@
+/**
+ * Shared Graph Colors - Used by both editors
+ * These provide defaults that can be overridden by editor.css
+ */
+
+:root {
+    /* Graph Background */
+    --graph-bg: #1a1a2e;
+    --graph-grid: #404060;
+
+    /* Node colors - use editor vars if available, else defaults */
+    --node-fill: var(--bg-tertiary, #2f2f4a);
+    --node-stroke: var(--border, #404060);
+    --node-text: var(--text-primary, #e8e8e8);
+    --node-selected-stroke: var(--accent, #4a9eff);
+    --node-hover-stroke: var(--accent, #4a9eff);
+
+    /* Node type colors */
+    --node-start-fill: var(--accent-dark, #3a7ecc);
+    --node-start-stroke: var(--accent, #4a9eff);
+    --node-missing-stroke: var(--warning, #ff9800);
+    --node-missing-text: var(--warning, #ff9800);
+    --node-battle-stroke: var(--danger, #f44336);
+    --node-dice-stroke: var(--warning, #ff9800);
+    --node-ending-stroke: var(--accent, #4a9eff);
+
+    /* Edge colors */
+    --edge-choice: var(--accent, #4a9eff);
+    --edge-success: var(--success, #4caf50);
+    --edge-failure: var(--danger, #f44336);
+}
+
+/* Graph Node Styles */
+.graph-node {
+    cursor: pointer;
+}
+
+.graph-node rect {
+    fill: var(--node-fill);
+    stroke: var(--node-stroke);
+    stroke-width: 1.5;
+    transition: stroke 0.15s, stroke-width 0.15s;
+}
+
+.graph-node:hover rect {
+    stroke: var(--node-hover-stroke);
+    stroke-width: 2;
+}
+
+.graph-node.selected rect {
+    stroke: var(--node-selected-stroke);
+    stroke-width: 2.5;
+    filter: drop-shadow(0 0 6px var(--node-selected-stroke));
+}
+
+.graph-node.start rect {
+    fill: var(--node-start-fill);
+    stroke: var(--node-start-stroke);
+}
+
+.graph-node.ending rect {
+    stroke-dasharray: 4 2;
+}
+
+.graph-node.missing rect {
+    fill: transparent;
+    stroke: var(--node-missing-stroke);
+    stroke-dasharray: 4 2;
+}
+
+.graph-node.battle rect {
+    stroke: var(--node-battle-stroke);
+    stroke-width: 2;
+}
+
+.graph-node.dice rect {
+    stroke: var(--node-dice-stroke);
+    stroke-width: 2;
+}
+
+.graph-node text {
+    fill: var(--node-text);
+    font-size: 11px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    pointer-events: none;
+}
+
+.graph-node.missing text {
+    fill: var(--node-missing-text);
+}
+
+.graph-node.start text {
+    fill: #ffffff;
+}
+
+/* Graph Edge Styles */
+.graph-edge {
+    cursor: pointer;
+}
+
+.graph-edge path {
+    fill: none;
+    stroke-width: 2;
+    transition: stroke-width 0.15s;
+}
+
+.graph-edge:hover path {
+    stroke-width: 3;
+}
+
+.graph-edge.selected path {
+    stroke-width: 3;
+}
+
+.graph-edge[data-type="choice"] path,
+.graph-edge.choice path {
+    stroke: var(--edge-choice);
+}
+
+.graph-edge[data-type="success"] path,
+.graph-edge.success path {
+    stroke: var(--edge-success);
+}
+
+.graph-edge[data-type="failure"] path,
+.graph-edge.failure path {
+    stroke: var(--edge-failure);
+}
+
+.graph-edge[data-type="choice"] polygon,
+.graph-edge.choice polygon {
+    fill: var(--edge-choice);
+}
+
+.graph-edge[data-type="success"] polygon,
+.graph-edge.success polygon {
+    fill: var(--edge-success);
+}
+
+.graph-edge[data-type="failure"] polygon,
+.graph-edge.failure polygon {
+    fill: var(--edge-failure);
+}
+
+/* Graph Container */
+.graph-container {
+    background: var(--graph-bg);
+    background-image: radial-gradient(circle, var(--graph-grid) 1px, transparent 1px);
+    background-size: 20px 20px;
+}

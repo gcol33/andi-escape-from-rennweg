@@ -3,133 +3,64 @@
  *
  * A visual editor for creating and editing VN scenes.
  * Generates .md files compatible with build_story_from_md.py
+ *
+ * Dependencies (loaded via script tags):
+ * - EditorConfig: Shared configuration (assets, paths, defaults)
+ * - EditorStorage: Shared localStorage operations
+ * - GraphModule: Shared graph logic
  */
 
 const Editor = (function() {
     'use strict';
 
+    // Get shared modules (loaded via script tags)
+    const SharedConfig = window.EditorConfig || {};
+    const Storage = window.EditorStorage;
+    const { SPECIAL_TARGETS } = window.GraphModule || {};
+
     // === Configuration ===
+    // Merge shared config with editor-specific settings
     const config = {
-        assetPaths: {
+        // Use shared config values
+        assetPaths: SharedConfig.assetPaths || {
             bg: '../assets/bg/',
             char: '../assets/char/',
             music: '../assets/music/',
             sfx: '../assets/sfx/'
         },
-        // Sprite positioning defaults
-        sprite: {
+        sprite: SharedConfig.sprite || {
             defaultX: 50,
             defaultY: 50,
             defaultScale: 1,
             minX: 5,
             maxX: 95,
             minY: 5,
-            maxY: 65,              // stay above text box
-            ySnapPositions: [10, 25, 45, 65],  // snap positions for Y
-            ySnapThresholds: [15, 35, 55],     // thresholds between snaps
-            scaleDragFactor: 100, // pixels of drag per 1x scale change
-            spacing: 25           // spacing between multiple sprites
+            maxY: 65,
+            ySnapPositions: [10, 25, 45, 65],
+            ySnapThresholds: [15, 35, 55],
+            scaleDragFactor: 100,
+            spacing: 25
         },
-        // UI timing
-        autocompleteDelay: 150,   // ms delay before hiding autocomplete
-        maxAutocompleteItems: 10,
-        // Graph defaults
-        graph: {
+        graph: SharedConfig.graph || {
             nodeWidth: 180,
             nodeHeight: 80,
             defaultZoom: 1,
             zoomStep: 1.2
         },
-        // Default dice values
-        dice: {
+        dice: SharedConfig.dice || {
             defaultType: 'd20',
             defaultThreshold: 10,
             maxThreshold: 100
         },
-        // Storage keys
-        storageKeys: {
-            scenes: 'andi_editor_scenes',
-            currentScene: 'andi_editor_current_scene'
+        assets: SharedConfig.assets || {
+            backgrounds: [],
+            sprites: [],
+            music: [],
+            sfx: []
         },
-        // These will be populated by scanning or hardcoded
-        assets: {
-            backgrounds: [
-                'back_stairwell_dim.jpg',
-                'bedroom_morning.jpg',
-                'dark_office_desk.jpg',
-                'desk_computer_code.jpg',
-                'hallway_dim.jpg',
-                'hallway_fluorescent.jpg',
-                'hallway_red_alert.jpg',
-                'meeting_room_whiteboard.jpg',
-                'office_corridor.jpg',
-                'office_kitchen.jpg',
-                'stairwell_escape.jpg',
-                'stairwell_landing.jpg',
-                'sunny_street_freedom.jpg'
-            ],
-            sprites: [
-                'agnes_angry.svg',
-                'agnes_blocking.svg',
-                'agnes_happy.svg',
-                'agnes_neutral.svg',
-                'agnes_surprised.svg',
-                'agnes_victorious.svg',
-                'ali_friendly.svg',
-                'fabio_friendly.svg',
-                'gilles_explaining.svg',
-                'joni_desperate.svg',
-                'michi_whiteboard.svg',
-                'norbert_grabbing.svg',
-                'norbert_pleading.svg',
-                'ruling_pointing.svg',
-                'security_guard_waving.svg'
-            ],
-            music: [
-                'BOSS_TIME.mp3',
-                'coding.mp3',
-                'coding_frenzy.mp3',
-                'coffee.mp3',
-                'default.mp3',
-                'dicey_decisions.mp3',
-                'game_over.mp3',
-                'glitch.mp3',
-                'i_can_do_it.mp3',
-                'last_day.mp3',
-                'legal_trap_stairwell.mp3',
-                'oh_oh.mp3',
-                'OH_SHIT.mp3',
-                'outside.mp3',
-                'questioning.mp3',
-                'reading_papers.mp3',
-                'rooftop.mp3',
-                'running_escape.mp3',
-                'spooky.mp3',
-                'too_much_coffee.mp3',
-                'victory.mp3',
-                'zen.mp3'
-            ],
-            sfx: [
-                'alarm.ogg',
-                'alarm_clock.ogg',
-                'alert.ogg',
-                'chain.ogg',
-                'click.ogg',
-                'dice_roll.ogg',
-                'door_open.ogg',
-                'door_slam.ogg',
-                'elevator_ding.ogg',
-                'failure.ogg',
-                'footstep.ogg',
-                'gulp.ogg',
-                'negative.ogg',
-                'success.ogg',
-                'thud.ogg',
-                'victory.ogg',
-                'warning.ogg',
-                'zap.ogg'
-            ]
-        }
+        // Editor-specific UI timing
+        autocompleteDelay: (SharedConfig.ui && SharedConfig.ui.autocompleteDelay) || 150,
+        maxAutocompleteItems: (SharedConfig.ui && SharedConfig.ui.maxAutocompleteItems) || 10
     };
 
     // === State ===
@@ -159,7 +90,9 @@ const Editor = (function() {
             draggingNode: null,
             dragOffsetX: 0,
             dragOffsetY: 0,
-            nodePositions: {}  // Custom positions keyed by node ID
+            nodePositions: {},  // Custom positions keyed by node ID
+            expandedChains: new Set(),  // Chain IDs that are expanded
+            compressChains: true  // Whether to compress linear chains
         }
     };
 
@@ -192,9 +125,24 @@ const Editor = (function() {
     }
 
     async function autoLoadScenes() {
-        // First priority: localStorage (has user's edits)
+        // Use shared EditorStorage for loading (same fallback chain as node editor)
+        if (Storage) {
+            const scenes = await Storage.autoLoad();
+            if (scenes) {
+                state.scenes = scenes;
+                log.info('Loaded ' + Object.keys(scenes).length + ' scenes via EditorStorage');
+                renderSceneList();
+                restoreCurrentScene();
+                return;
+            }
+        }
+
+        // Fallback if EditorStorage not available
+        log.warn('EditorStorage not available, using legacy loading');
+
+        // Try localStorage directly
         try {
-            const saved = localStorage.getItem(config.storageKeys.scenes);
+            const saved = localStorage.getItem('andi_editor_scenes');
             if (saved) {
                 const savedScenes = JSON.parse(saved);
                 if (Object.keys(savedScenes).length > 0) {
@@ -209,51 +157,13 @@ const Editor = (function() {
             log.warn('Could not load from localStorage: ' + e.message);
         }
 
-        // Second: check if story is already loaded (via script tag)
+        // Try global story object
         if (typeof story !== 'undefined' && story) {
-            let count = 0;
-            for (const [id, scene] of Object.entries(story)) {
-                state.scenes[id] = scene;
-                count++;
-            }
-            log.info('Auto-loaded ' + count + ' scenes from global story object');
+            state.scenes = { ...story };
+            log.info('Auto-loaded ' + Object.keys(story).length + ' scenes from global story object');
             renderSceneList();
             saveScenesToStorage();
             restoreCurrentScene();
-            return;
-        }
-
-        // Third: try to load from the compiled story.js via fetch
-        try {
-            const response = await fetch('../js/story.js');
-            if (response.ok) {
-                const jsContent = await response.text();
-                // Extract the story object from the JS file
-                // Find start after "const story = " and end at "};" on its own line
-                const startMarker = 'const story = ';
-                const startIdx = jsContent.indexOf(startMarker);
-                if (startIdx !== -1) {
-                    const jsonStart = startIdx + startMarker.length;
-                    // Find the closing }; that ends the object (on its own line or followed by newline)
-                    const endMatch = jsContent.indexOf('\n};', jsonStart);
-                    if (endMatch !== -1) {
-                        const jsonStr = jsContent.substring(jsonStart, endMatch + 2); // +2 to include the }
-                        const storyData = JSON.parse(jsonStr);
-                        let count = 0;
-                        for (const [id, scene] of Object.entries(storyData)) {
-                            state.scenes[id] = scene;
-                            count++;
-                        }
-                        log.info('Auto-loaded ' + count + ' scenes from story.js via fetch');
-                        renderSceneList();
-                        saveScenesToStorage();
-                        restoreCurrentScene();
-                        return;
-                    }
-                }
-            }
-        } catch (e) {
-            log.info('Could not load from story.js via fetch: ' + e.message);
         }
     }
 
@@ -342,6 +252,8 @@ const Editor = (function() {
             graphZoomOut: document.getElementById('graph-zoom-out'),
             graphReset: document.getElementById('graph-reset'),
             graphResetLayout: document.getElementById('graph-reset-layout'),
+            graphExportPng: document.getElementById('graph-export-png'),
+            graphFullEditor: document.getElementById('graph-full-editor'),
 
             // Graph context menu
             graphContextMenu: document.getElementById('graph-context-menu'),
@@ -416,6 +328,12 @@ const Editor = (function() {
         elements.graphZoomOut.addEventListener('click', () => zoomGraph(0.8));
         elements.graphReset.addEventListener('click', resetGraphView);
         elements.graphResetLayout.addEventListener('click', resetGraphLayout);
+        elements.graphExportPng.addEventListener('click', exportGraphAsPng);
+        if (elements.graphFullEditor) {
+            elements.graphFullEditor.addEventListener('click', openFullGraphEditor);
+        } else {
+            console.error('graphFullEditor element not found');
+        }
         elements.graphModal.addEventListener('click', (e) => {
             if (e.target === elements.graphModal) hideGraphModal();
         });
@@ -754,11 +672,9 @@ const Editor = (function() {
         state.currentSceneId = sceneId;
         state.modified = false;
 
-        // Save current scene ID to localStorage so it persists on refresh
-        try {
-            localStorage.setItem('andi_editor_current_scene', sceneId);
-        } catch (e) {
-            // Ignore storage errors
+        // Save current scene ID so it persists on refresh
+        if (Storage) {
+            Storage.setCurrentScene(sceneId);
         }
 
         loadSceneIntoEditor(scene);
@@ -1850,8 +1766,8 @@ const Editor = (function() {
     // === Story Graph ===
     function showGraphModal() {
         elements.graphModal.classList.remove('hidden');
-        resetGraphView();
         renderGraph();
+        resetGraphView(); // Call after renderGraph so nodes exist
         setupGraphPanning();
     }
 
@@ -1860,9 +1776,49 @@ const Editor = (function() {
     }
 
     function resetGraphView() {
-        state.graph.zoom = 1;
-        state.graph.panX = 0;
-        state.graph.panY = 0;
+        // Fit all nodes in view
+        const container = elements.graphContainer;
+        const containerWidth = container.clientWidth;
+        const containerHeight = container.clientHeight;
+        const nodes = elements.graphSvg.querySelectorAll('.graph-node rect');
+
+        if (nodes.length === 0) {
+            state.graph.zoom = 1;
+            state.graph.panX = 0;
+            state.graph.panY = 0;
+            updateGraphTransform();
+            return;
+        }
+
+        // Calculate bounding box of all nodes
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        nodes.forEach(rect => {
+            const x = parseFloat(rect.getAttribute('x'));
+            const y = parseFloat(rect.getAttribute('y'));
+            const width = parseFloat(rect.getAttribute('width'));
+            const height = parseFloat(rect.getAttribute('height'));
+            minX = Math.min(minX, x);
+            minY = Math.min(minY, y);
+            maxX = Math.max(maxX, x + width);
+            maxY = Math.max(maxY, y + height);
+        });
+
+        const graphWidth = maxX - minX;
+        const graphHeight = maxY - minY;
+        const padding = 50;
+
+        // Calculate zoom to fit
+        const scaleX = (containerWidth - padding * 2) / graphWidth;
+        const scaleY = (containerHeight - padding * 2) / graphHeight;
+        state.graph.zoom = Math.min(scaleX, scaleY, 1.5); // Cap at 1.5x zoom
+        state.graph.zoom = Math.max(state.graph.zoom, 0.2); // Min 0.2x zoom
+
+        // Center the graph
+        const scaledWidth = graphWidth * state.graph.zoom;
+        const scaledHeight = graphHeight * state.graph.zoom;
+        state.graph.panX = (containerWidth - scaledWidth) / 2 - minX * state.graph.zoom;
+        state.graph.panY = (containerHeight - scaledHeight) / 2 - minY * state.graph.zoom;
+
         updateGraphTransform();
     }
 
@@ -1882,6 +1838,144 @@ const Editor = (function() {
             g.setAttribute('transform',
                 `translate(${state.graph.panX}, ${state.graph.panY}) scale(${state.graph.zoom})`);
         }
+    }
+
+    function openFullGraphEditor() {
+        console.log('openFullGraphEditor called');
+        // Save current state first
+        saveScenesToStorage();
+        // Navigate to the full graph editor
+        window.location.href = 'node_editor.html';
+    }
+
+    function exportGraphAsPng() {
+        const svg = elements.graphSvg;
+        const g = svg.querySelector('g');
+        if (!g) return;
+
+        // Get bounding box of all content
+        const nodes = svg.querySelectorAll('.graph-node rect');
+        if (nodes.length === 0) return;
+
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        nodes.forEach(rect => {
+            const x = parseFloat(rect.getAttribute('x'));
+            const y = parseFloat(rect.getAttribute('y'));
+            const width = parseFloat(rect.getAttribute('width'));
+            const height = parseFloat(rect.getAttribute('height'));
+            minX = Math.min(minX, x);
+            minY = Math.min(minY, y);
+            maxX = Math.max(maxX, x + width);
+            maxY = Math.max(maxY, y + height);
+        });
+
+        const padding = 50;
+        const exportWidth = maxX - minX + padding * 2;
+        const exportHeight = maxY - minY + padding * 2;
+
+        // Get computed styles for inline embedding
+        const bgColor = getComputedStyle(elements.graphContainer).backgroundColor || '#1a1a2e';
+        const styles = getComputedStyle(document.documentElement);
+        const accentColor = styles.getPropertyValue('--accent').trim() || '#4a9eff';
+        const successColor = styles.getPropertyValue('--success').trim() || '#4ade80';
+        const dangerColor = styles.getPropertyValue('--danger').trim() || '#f87171';
+        const warningColor = styles.getPropertyValue('--warning').trim() || '#fbbf24';
+        const textColor = styles.getPropertyValue('--text-primary').trim() || '#ffffff';
+        const bgTertiary = styles.getPropertyValue('--bg-tertiary').trim() || '#2a2a4a';
+        const borderColor = styles.getPropertyValue('--border').trim() || '#444';
+
+        // Clone SVG for export
+        const clonedSvg = svg.cloneNode(true);
+        clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        clonedSvg.setAttribute('width', exportWidth);
+        clonedSvg.setAttribute('height', exportHeight);
+        clonedSvg.setAttribute('viewBox', `0 0 ${exportWidth} ${exportHeight}`);
+
+        // Reset transform and translate to fit content
+        const clonedG = clonedSvg.querySelector('g');
+        clonedG.setAttribute('transform', `translate(${-minX + padding}, ${-minY + padding})`);
+
+        // Add background rect
+        const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        bgRect.setAttribute('width', exportWidth);
+        bgRect.setAttribute('height', exportHeight);
+        bgRect.setAttribute('fill', bgColor);
+        clonedSvg.insertBefore(bgRect, clonedG);
+
+        // Apply inline styles to edges
+        clonedSvg.querySelectorAll('.graph-edge').forEach(path => {
+            path.setAttribute('fill', 'none');
+            path.setAttribute('stroke-width', '1.5');
+            if (path.classList.contains('choice')) {
+                path.setAttribute('stroke', accentColor);
+            } else if (path.classList.contains('success')) {
+                path.setAttribute('stroke', successColor);
+            } else if (path.classList.contains('failure')) {
+                path.setAttribute('stroke', dangerColor);
+            }
+        });
+
+        // Apply inline styles to arrowheads
+        clonedSvg.querySelectorAll('.graph-edge-arrow').forEach(arrow => {
+            if (arrow.classList.contains('success')) {
+                arrow.setAttribute('fill', successColor);
+            } else if (arrow.classList.contains('failure')) {
+                arrow.setAttribute('fill', dangerColor);
+            } else {
+                arrow.setAttribute('fill', accentColor);
+            }
+        });
+
+        // Apply inline styles to nodes
+        clonedSvg.querySelectorAll('.graph-node').forEach(node => {
+            const rect = node.querySelector('rect');
+            const text = node.querySelector('text');
+
+            if (rect) {
+                rect.setAttribute('rx', '4');
+                rect.setAttribute('stroke-width', '1.5');
+                if (node.classList.contains('start')) {
+                    rect.setAttribute('fill', accentColor);
+                    rect.setAttribute('stroke', accentColor);
+                } else if (node.classList.contains('missing')) {
+                    rect.setAttribute('fill', 'transparent');
+                    rect.setAttribute('stroke', warningColor);
+                    rect.setAttribute('stroke-dasharray', '4 2');
+                } else if (node.classList.contains('ending')) {
+                    rect.setAttribute('fill', bgTertiary);
+                    rect.setAttribute('stroke', accentColor);
+                    rect.setAttribute('stroke-width', '2');
+                } else {
+                    rect.setAttribute('fill', bgTertiary);
+                    rect.setAttribute('stroke', borderColor);
+                }
+            }
+
+            if (text) {
+                text.setAttribute('font-size', '11px');
+                text.setAttribute('font-family', 'sans-serif');
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('dominant-baseline', 'middle');
+                if (node.classList.contains('start')) {
+                    text.setAttribute('fill', '#ffffff');
+                } else if (node.classList.contains('missing')) {
+                    text.setAttribute('fill', warningColor);
+                } else {
+                    text.setAttribute('fill', textColor);
+                }
+            }
+        });
+
+        // Export as SVG
+        const svgData = new XMLSerializer().serializeToString(clonedSvg);
+        const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'story-graph.svg';
+        a.click();
+        URL.revokeObjectURL(url);
     }
 
     function setupGraphPanning() {
@@ -1958,11 +2052,23 @@ const Editor = (function() {
             state.graph.isPanning = false;
         };
 
-        // Mouse wheel zoom
+        // Mouse wheel zoom - zoom towards cursor position
         container.onwheel = (e) => {
             e.preventDefault();
+            const rect = container.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
             const factor = e.deltaY > 0 ? 0.9 : 1.1;
-            zoomGraph(factor);
+            const newZoom = Math.max(0.2, Math.min(3, state.graph.zoom * factor));
+
+            // Adjust pan to keep mouse position stable
+            const zoomRatio = newZoom / state.graph.zoom;
+            state.graph.panX = mouseX - (mouseX - state.graph.panX) * zoomRatio;
+            state.graph.panY = mouseY - (mouseY - state.graph.panY) * zoomRatio;
+            state.graph.zoom = newZoom;
+
+            updateGraphTransform();
         };
     }
 
@@ -1981,7 +2087,8 @@ const Editor = (function() {
         const missingTargets = new Set();
 
         // Special targets that are handled by the engine (not actual scenes)
-        const specialTargets = new Set(['_roll']);
+        // Use shared constant if available, otherwise fallback
+        const specialTargets = SPECIAL_TARGETS || new Set(['_roll']);
 
         // Build node list from existing scenes
         Object.keys(state.scenes).forEach(id => {
@@ -2007,6 +2114,7 @@ const Editor = (function() {
             }
             if (scene.actions) {
                 scene.actions.forEach(action => {
+                    // Dice roll actions
                     if (action.success_target && !specialTargets.has(action.success_target)) {
                         edges.push({ from: scene.id, to: action.success_target, type: 'success' });
                         if (!nodes[action.success_target]) {
@@ -2017,6 +2125,27 @@ const Editor = (function() {
                         edges.push({ from: scene.id, to: action.failure_target, type: 'failure' });
                         if (!nodes[action.failure_target]) {
                             missingTargets.add(action.failure_target);
+                        }
+                    }
+                    // Battle actions (win_target/lose_target or victory_target/defeat_target)
+                    const winTarget = action.win_target || action.victory_target;
+                    const loseTarget = action.lose_target || action.defeat_target;
+                    if (winTarget && !specialTargets.has(winTarget)) {
+                        edges.push({ from: scene.id, to: winTarget, type: 'success' });
+                        if (!nodes[winTarget]) {
+                            missingTargets.add(winTarget);
+                        }
+                    }
+                    if (loseTarget && !specialTargets.has(loseTarget)) {
+                        edges.push({ from: scene.id, to: loseTarget, type: 'failure' });
+                        if (!nodes[loseTarget]) {
+                            missingTargets.add(loseTarget);
+                        }
+                    }
+                    if (action.flee_target && !specialTargets.has(action.flee_target)) {
+                        edges.push({ from: scene.id, to: action.flee_target, type: 'choice' });
+                        if (!nodes[action.flee_target]) {
+                            missingTargets.add(action.flee_target);
                         }
                     }
                 });
@@ -2039,9 +2168,21 @@ const Editor = (function() {
             }
         });
 
+        // Compress linear chains if enabled
+        let displayNodes = nodes;
+        let displayEdges = edges;
+        const chains = {}; // chainId -> { nodes: [...], start: id, end: id }
+
+        if (state.graph.compressChains) {
+            const result = compressLinearChains(nodes, edges, state.graph.expandedChains);
+            displayNodes = result.nodes;
+            displayEdges = result.edges;
+            Object.assign(chains, result.chains);
+        }
+
         // Layout: simple layered layout
-        const nodeList = Object.values(nodes);
-        const positions = layoutGraph(nodeList, edges);
+        const nodeList = Object.values(displayNodes);
+        const positions = layoutGraph(nodeList, displayEdges, height);
 
         // Apply any custom positions from dragging
         Object.keys(state.graph.nodePositions).forEach(nodeId => {
@@ -2073,10 +2214,14 @@ const Editor = (function() {
         // Draw nodes
         const nodeWidth = 100;
         const nodeHeight = 30;
+        const chainNodeWidth = 120;
 
         nodeList.forEach(node => {
             const pos = positions[node.id];
             if (!pos) return;
+
+            const isChainNode = node.isChain;
+            const width = isChainNode ? chainNodeWidth : nodeWidth;
 
             const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
             group.classList.add('graph-node');
@@ -2085,27 +2230,43 @@ const Editor = (function() {
             if (node.isStart) group.classList.add('start');
             if (node.isEnding) group.classList.add('ending');
             if (node.hasFlags) group.classList.add('has-flags');
+            if (isChainNode) group.classList.add('chain');
             if (node.id === state.currentSceneId) group.classList.add('current');
             if (state.graph.draggingNode === node.id) group.classList.add('dragging');
 
             const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-            rect.setAttribute('x', pos.x - nodeWidth / 2);
+            rect.setAttribute('x', pos.x - width / 2);
             rect.setAttribute('y', pos.y - nodeHeight / 2);
-            rect.setAttribute('width', nodeWidth);
+            rect.setAttribute('width', width);
             rect.setAttribute('height', nodeHeight);
             group.appendChild(rect);
 
             const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
             text.setAttribute('x', pos.x);
             text.setAttribute('y', pos.y);
-            // Truncate long names
-            const displayName = node.id.length > 14 ? node.id.substring(0, 12) + '...' : node.id;
+
+            // Display name
+            let displayName;
+            if (isChainNode) {
+                displayName = node.shortName;
+            } else {
+                displayName = node.id.length > 14 ? node.id.substring(0, 12) + '...' : node.id;
+            }
             text.textContent = displayName;
             group.appendChild(text);
 
-            // Click to navigate
+            // Click handler
             group.addEventListener('click', () => {
-                if (node.exists) {
+                if (isChainNode) {
+                    // Toggle chain expansion
+                    if (state.graph.expandedChains.has(node.id)) {
+                        state.graph.expandedChains.delete(node.id);
+                    } else {
+                        state.graph.expandedChains.add(node.id);
+                    }
+                    renderGraph();
+                    resetGraphView();
+                } else if (node.exists) {
                     hideGraphModal();
                     loadScene(node.id);
                 } else {
@@ -2116,13 +2277,17 @@ const Editor = (function() {
                 }
             });
 
-            // Right-click for context menu
-            group.addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-                showGraphContextMenu(e, node);
-            });
+            // Right-click for context menu (not for chains)
+            if (!isChainNode) {
+                group.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    showGraphContextMenu(e, node);
+                });
+            }
 
-            group.setAttribute('title', node.id);
+            // Tooltip
+            const title = isChainNode ? node.displayName : node.id;
+            group.setAttribute('title', title);
             g.appendChild(group);
         });
 
@@ -2130,73 +2295,263 @@ const Editor = (function() {
         updateGraphTransform();
     }
 
-    function layoutGraph(nodes, edges) {
-        const positions = {};
+    // Compress linear chains (nodes with exactly 1 in and 1 out edge) into single nodes
+    function compressLinearChains(nodes, edges, expandedChains) {
+        // Build adjacency
+        const outgoing = {}; // nodeId -> [{ to, edge }]
+        const incoming = {}; // nodeId -> [{ from, edge }]
 
-        // Build adjacency for topological sort
+        Object.keys(nodes).forEach(id => {
+            outgoing[id] = [];
+            incoming[id] = [];
+        });
+
+        edges.forEach(edge => {
+            if (outgoing[edge.from]) outgoing[edge.from].push({ to: edge.to, edge });
+            if (incoming[edge.to]) incoming[edge.to].push({ from: edge.from, edge });
+        });
+
+        // Find chain-able nodes: exactly 1 incoming, exactly 1 outgoing, same edge type
+        const isChainable = (nodeId) => {
+            const node = nodes[nodeId];
+            if (!node || !node.exists) return false;
+            if (node.isStart || node.isEnding) return false;
+            if (node.hasFlags) return false; // Don't compress nodes with flags
+            const inc = incoming[nodeId];
+            const out = outgoing[nodeId];
+            if (inc.length !== 1 || out.length !== 1) return false;
+            // Must be same edge type (all choices)
+            if (inc[0].edge.type !== 'choice' || out[0].edge.type !== 'choice') return false;
+            return true;
+        };
+
+        // Find chains
+        const visited = new Set();
+        const chains = {};
+        let chainId = 0;
+
+        Object.keys(nodes).forEach(startId => {
+            if (visited.has(startId)) return;
+            if (!nodes[startId].exists) return;
+
+            // Try to build a chain starting from this node
+            const chain = [];
+            let current = startId;
+
+            // First, go backwards to find the start of any chain this node is part of
+            while (true) {
+                const inc = incoming[current];
+                if (inc.length !== 1) break;
+                const prevId = inc[0].from;
+                if (!isChainable(prevId) && !isChainable(current)) break;
+                if (visited.has(prevId)) break;
+                current = prevId;
+            }
+
+            // Now go forward and collect the chain
+            while (true) {
+                if (visited.has(current)) break;
+
+                const out = outgoing[current];
+                if (out.length !== 1) {
+                    // End of potential chain
+                    if (chain.length > 0) chain.push(current);
+                    break;
+                }
+
+                const nextId = out[0].to;
+
+                // Current node can be part of chain if it's chainable
+                if (isChainable(current)) {
+                    chain.push(current);
+                    visited.add(current);
+                    current = nextId;
+                } else {
+                    // Not chainable, but might start a new chain
+                    if (chain.length > 0) break;
+                    current = nextId;
+                }
+            }
+
+            // Only create chain if we have 2+ consecutive chainable nodes
+            if (chain.length >= 2) {
+                const id = `chain_${chainId++}`;
+                chains[id] = {
+                    nodes: chain,
+                    start: incoming[chain[0]][0].from,
+                    end: outgoing[chain[chain.length - 1]][0].to,
+                    startEdge: incoming[chain[0]][0].edge,
+                    endEdge: outgoing[chain[chain.length - 1]][0].edge
+                };
+            }
+        });
+
+        // Build new nodes and edges
+        const newNodes = {};
+        const newEdges = [];
+        const chainedNodes = new Set();
+
+        // Mark all nodes that are part of chains
+        Object.values(chains).forEach(chain => {
+            chain.nodes.forEach(id => chainedNodes.add(id));
+        });
+
+        // Add non-chained nodes
+        Object.keys(nodes).forEach(id => {
+            if (!chainedNodes.has(id)) {
+                newNodes[id] = { ...nodes[id] };
+            }
+        });
+
+        // Add chain nodes (or expanded chain nodes)
+        Object.entries(chains).forEach(([chainId, chain]) => {
+            if (expandedChains.has(chainId)) {
+                // Expanded - add all individual nodes
+                chain.nodes.forEach(id => {
+                    newNodes[id] = { ...nodes[id] };
+                });
+            } else {
+                // Collapsed - add single chain node
+                newNodes[chainId] = {
+                    id: chainId,
+                    exists: true,
+                    isChain: true,
+                    chainNodes: chain.nodes,
+                    chainLength: chain.nodes.length,
+                    displayName: `${chain.nodes[0]} → ... → ${chain.nodes[chain.nodes.length - 1]}`,
+                    shortName: `[${chain.nodes.length} scenes]`
+                };
+            }
+        });
+
+        // Add edges
+        edges.forEach(edge => {
+            // Find which chain (if any) contains from/to
+            let fromChainId = null, toChainId = null;
+            Object.entries(chains).forEach(([cid, chain]) => {
+                if (chain.nodes.includes(edge.from)) fromChainId = cid;
+                if (chain.nodes.includes(edge.to)) toChainId = cid;
+            });
+
+            // Skip internal chain edges
+            if (fromChainId && toChainId && fromChainId === toChainId && !expandedChains.has(fromChainId)) {
+                return;
+            }
+
+            let newFrom = edge.from;
+            let newTo = edge.to;
+
+            // Replace with chain node if collapsed
+            if (fromChainId && !expandedChains.has(fromChainId)) {
+                // Only if this is the exit edge from the chain
+                const chain = chains[fromChainId];
+                if (edge.from === chain.nodes[chain.nodes.length - 1]) {
+                    newFrom = fromChainId;
+                } else {
+                    return; // Internal edge, skip
+                }
+            }
+            if (toChainId && !expandedChains.has(toChainId)) {
+                // Only if this is the entry edge to the chain
+                const chain = chains[toChainId];
+                if (edge.to === chain.nodes[0]) {
+                    newTo = toChainId;
+                } else {
+                    return; // Internal edge, skip
+                }
+            }
+
+            // Avoid duplicate edges
+            const edgeKey = `${newFrom}->${newTo}`;
+            if (!newEdges.find(e => `${e.from}->${e.to}` === edgeKey)) {
+                newEdges.push({ ...edge, from: newFrom, to: newTo });
+            }
+        });
+
+        return { nodes: newNodes, edges: newEdges, chains };
+    }
+
+    function layoutGraph(nodes, edges, height) {
+        const positions = {};
+        if (nodes.length === 0) return positions;
+
+        // Build adjacency maps - initialize for ALL nodes first
         const outgoing = {};
         const incoming = {};
+        const nodeIds = new Set(nodes.map(n => n.id));
+
         nodes.forEach(n => {
             outgoing[n.id] = [];
             incoming[n.id] = [];
         });
+
+        // Add edges only between known nodes
         edges.forEach(e => {
-            if (outgoing[e.from]) outgoing[e.from].push(e.to);
-            if (incoming[e.to]) incoming[e.to].push(e.from);
+            if (nodeIds.has(e.from) && nodeIds.has(e.to)) {
+                outgoing[e.from].push(e.to);
+                incoming[e.to].push(e.from);
+            }
         });
 
-        // Find layers using BFS from start nodes
-        const layers = [];
-        const assigned = new Set();
+        // Calculate depth for each node using longest path from any root
+        const depth = {};
+        const visited = new Set();
 
-        // Start nodes (no incoming)
-        let currentLayer = nodes.filter(n => incoming[n.id].length === 0).map(n => n.id);
-        if (currentLayer.length === 0) {
-            // No clear start, pick first
-            currentLayer = nodes.length > 0 ? [nodes[0].id] : [];
-        }
-
-        while (currentLayer.length > 0) {
-            layers.push(currentLayer);
-            currentLayer.forEach(id => assigned.add(id));
-
-            const nextLayer = [];
-            currentLayer.forEach(id => {
-                outgoing[id].forEach(targetId => {
-                    if (!assigned.has(targetId) && !nextLayer.includes(targetId)) {
-                        // Check if all incoming are assigned
-                        const allIncomingAssigned = incoming[targetId].every(src => assigned.has(src));
-                        if (allIncomingAssigned) {
-                            nextLayer.push(targetId);
-                        }
-                    }
-                });
-            });
-
-            // Handle cycles - add remaining unassigned nodes
-            if (nextLayer.length === 0) {
-                const remaining = nodes.filter(n => !assigned.has(n.id));
-                if (remaining.length > 0) {
-                    nextLayer.push(remaining[0].id);
-                }
+        function calcDepth(nodeId, currentDepth) {
+            if (visited.has(nodeId)) {
+                // Already visited - take max depth
+                depth[nodeId] = Math.max(depth[nodeId] || 0, currentDepth);
+                return;
             }
+            visited.add(nodeId);
+            depth[nodeId] = Math.max(depth[nodeId] || 0, currentDepth);
 
-            currentLayer = nextLayer;
+            outgoing[nodeId].forEach(targetId => {
+                calcDepth(targetId, currentDepth + 1);
+            });
         }
 
-        // Position nodes - more spacing for readability
-        const layerGap = 200;
-        const nodeGap = 60;
-        const startX = 120;
+        // Start from nodes with no incoming edges
+        const roots = nodes.filter(n => incoming[n.id].length === 0);
+        if (roots.length === 0) {
+            // No clear roots, start from first node
+            roots.push(nodes[0]);
+        }
+
+        roots.forEach(root => calcDepth(root.id, 0));
+
+        // Handle any unvisited nodes (disconnected or in cycles)
+        nodes.forEach(n => {
+            if (!visited.has(n.id)) {
+                calcDepth(n.id, 0);
+            }
+        });
+
+        // Group nodes by depth (layer)
+        const layers = {};
+        nodes.forEach(n => {
+            const d = depth[n.id] || 0;
+            if (!layers[d]) layers[d] = [];
+            layers[d].push(n.id);
+        });
+
+        // Convert to array and sort by layer index
+        const layerIndices = Object.keys(layers).map(Number).sort((a, b) => a - b);
+
+        // Position nodes
+        const layerGap = 180;
+        const nodeGap = 50;
+        const startX = 100;
         const startY = height / 2;
 
-        layers.forEach((layer, layerIndex) => {
+        layerIndices.forEach((layerIdx, i) => {
+            const layer = layers[layerIdx];
             const layerHeight = layer.length * nodeGap;
             const layerStartY = startY - layerHeight / 2 + nodeGap / 2;
 
             layer.forEach((nodeId, nodeIndex) => {
                 positions[nodeId] = {
-                    x: startX + layerIndex * layerGap,
+                    x: startX + i * layerGap,
                     y: layerStartY + nodeIndex * nodeGap
                 };
             });
@@ -2861,22 +3216,38 @@ const Editor = (function() {
 
     // === Storage ===
     function saveScenesToStorage() {
-        try {
-            localStorage.setItem(config.storageKeys.scenes, JSON.stringify(state.scenes));
-            // Also save current scene ID
+        // Use shared EditorStorage
+        if (Storage) {
+            Storage.saveScenes(state.scenes);
             if (state.currentSceneId) {
-                localStorage.setItem(config.storageKeys.currentScene, state.currentSceneId);
+                Storage.setCurrentScene(state.currentSceneId);
             }
-        } catch (e) {
-            log.warn('Could not save to localStorage: ' + e.message);
+        } else {
+            // Fallback
+            try {
+                localStorage.setItem('andi_editor_scenes', JSON.stringify(state.scenes));
+                if (state.currentSceneId) {
+                    localStorage.setItem('andi_editor_current_scene', state.currentSceneId);
+                }
+            } catch (e) {
+                log.warn('Could not save to localStorage: ' + e.message);
+            }
         }
     }
 
     function restoreCurrentScene() {
+        // Use shared EditorStorage
+        const savedSceneId = Storage ? Storage.getCurrentScene() : null;
+        if (savedSceneId && state.scenes[savedSceneId]) {
+            loadScene(savedSceneId);
+            return;
+        }
+
+        // Fallback
         try {
-            const savedSceneId = localStorage.getItem(config.storageKeys.currentScene);
-            if (savedSceneId && state.scenes[savedSceneId]) {
-                loadScene(savedSceneId);
+            const legacyId = localStorage.getItem('andi_editor_current_scene');
+            if (legacyId && state.scenes[legacyId]) {
+                loadScene(legacyId);
             }
         } catch (e) {
             log.warn('Could not restore current scene: ' + e.message);
