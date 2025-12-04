@@ -628,18 +628,27 @@ var BattleUI = (function() {
      * @param {string} html - HTML content to display
      * @param {object} rollData - Optional roll animation data { roll, isCrit, isFumble }
      * @param {function} callback - Optional callback when animation/linger completes
+     * @param {object} options - Optional { onTextComplete: function } called when text finishes but BEFORE linger
      */
-    function updateBattleLog(html, rollData, callback) {
+    function updateBattleLog(html, rollData, callback, options) {
         if (!elements.battleLog) {
             elements.battleLog = document.getElementById('battle-log-content');
         }
-        if (!elements.battleLog) return;
+        if (!elements.battleLog) {
+            // Element not found - still call callbacks to prevent freeze
+            if (options && options.onTextComplete) options.onTextComplete();
+            if (callback) callback();
+            return;
+        }
 
         // Clear previous animation state
         clearAnimationState();
 
         // Clear entire log and show only the latest entry (like old battle.js)
         elements.battleLog.innerHTML = '';
+
+        // Store onTextComplete callback for completeAnimation to call
+        animationState.onTextComplete = options && options.onTextComplete ? options.onTextComplete : null;
 
         // Wrapper to add linger delay before callback
         var lingerCallback = function() {
@@ -699,15 +708,26 @@ var BattleUI = (function() {
         animationState.damageQueue = [];
         animationState.statUpdateQueue = [];
         animationState.onComplete = null;
+        animationState.onTextComplete = null;
         animationState.active = false;
     }
 
     /**
      * Complete animation and flush damage queue
+     * Order: flush damage queue -> onTextComplete -> linger -> onComplete
      */
     function completeAnimation() {
         flushDamageQueue();
         animationState.active = false;
+
+        // Call onTextComplete BEFORE linger (so effects apply immediately when text finishes)
+        if (animationState.onTextComplete) {
+            var textCb = animationState.onTextComplete;
+            animationState.onTextComplete = null;
+            textCb();
+        }
+
+        // Now start linger delay, then call onComplete
         if (animationState.onComplete) {
             var cb = animationState.onComplete;
             animationState.onComplete = null;
@@ -836,7 +856,11 @@ var BattleUI = (function() {
         // Only scroll if there's content hidden below the current scroll position
         // (scrollHeight - scrollTop - clientHeight > threshold means there's hidden content below)
         var hiddenBelow = container.scrollHeight - container.scrollTop - container.clientHeight;
-        if (hiddenBelow > 5) {  // 5px threshold to avoid micro-scrolls from rounding
+        // Use half a line height as threshold to avoid scrolling when
+        // 2-line messages fit but have minor rounding differences
+        var rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+        var threshold = 1.1 * rootFontSize;  // Half of --battle-log-line-height (2.2rem / 2)
+        if (hiddenBelow > threshold) {
             container.scrollTop = container.scrollHeight - container.clientHeight;
         }
     }
@@ -1733,7 +1757,7 @@ var BattleUI = (function() {
         if (displayData.sprite) {
             var sprite = document.createElement('img');
             sprite.className = 'summon-sprite';
-            sprite.src = 'images/sprites/' + displayData.sprite;
+            sprite.src = 'assets/sprites/' + displayData.sprite;
             sprite.alt = displayData.name;
             sprite.onerror = function() {
                 // Fallback to icon if sprite not found

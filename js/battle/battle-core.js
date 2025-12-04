@@ -472,6 +472,24 @@ var BattleCore = (function() {
     }
 
     /**
+     * Calculate how much healing would be applied (without actually applying it)
+     * Used for displaying heal amount before animation completes
+     * @param {number} amount - Heal amount to calculate
+     * @returns {Object} Result with calculated heal amount
+     */
+    function calculatePendingHeal(amount) {
+        var oldHP = state.player.hp;
+        var newHP = Math.min(state.player.maxHP, state.player.hp + amount);
+        var actualHeal = newHP - oldHP;
+
+        return {
+            healed: actualHeal,
+            oldHP: oldHP,
+            newHP: newHP
+        };
+    }
+
+    /**
      * Damage the enemy
      * @param {number} amount - Damage amount
      * @param {Object} options - { source, type, isCrit }
@@ -1198,10 +1216,92 @@ var BattleCore = (function() {
     }
 
     /**
-     * Process player summon turn (legacy support - uses BattleSummon module)
+     * Process HP-based player summons (new system)
+     */
+    function processSpawnedPlayerSummons(summons) {
+        var messages = [];
+        var allExpired = [];
+        var attackResult = null;
+
+        for (var i = 0; i < summons.length; i++) {
+            var summon = summons[i];
+
+            // Decrement duration
+            summon.turnsRemaining--;
+
+            // Check expiration
+            if (summon.turnsRemaining <= 0) {
+                var expireDialogue = BattleSummon.getDialogue(summon.uid, 'expire');
+                if (expireDialogue) {
+                    messages.push(summon.icon + ' "' + expireDialogue + '"');
+                }
+                messages.push(summon.icon + ' ' + summon.name + ' fades away...');
+                BattleSummon.dismiss(summon.uid, 'expired');
+                allExpired.push(summon);
+                playSfx('summon_expire');
+                continue;
+            }
+
+            // Summon attacks
+            if (summon.canAttack) {
+                // Select a move
+                var move = summon.moves && summon.moves.length > 0
+                    ? summon.moves[Math.floor(Math.random() * summon.moves.length)]
+                    : { name: 'Attack', damage: summon.damage, type: summon.damageType };
+
+                // Get attack dialogue
+                var attackDialogue = BattleSummon.getDialogue(summon.uid, 'attack');
+                if (attackDialogue) {
+                    messages.push(summon.icon + ' "' + attackDialogue + '"');
+                }
+
+                // Roll damage using BattleDice if available
+                var damageRoll = 0;
+                if (typeof BattleDice !== 'undefined' && BattleDice.rollDamage) {
+                    damageRoll = BattleDice.rollDamage(move.damage);
+                } else {
+                    // Simple dice roll fallback
+                    var diceMatch = (move.damage || 'd4').match(/(\d*)d(\d+)/);
+                    if (diceMatch) {
+                        var numDice = parseInt(diceMatch[1]) || 1;
+                        var dieSize = parseInt(diceMatch[2]);
+                        for (var d = 0; d < numDice; d++) {
+                            damageRoll += Math.floor(Math.random() * dieSize) + 1;
+                        }
+                    } else {
+                        damageRoll = parseInt(move.damage) || 1;
+                    }
+                }
+
+                // Apply damage to enemy
+                var dmgResult = damageEnemy(damageRoll, { source: 'summon', type: move.type || 'physical' });
+                messages.push(summon.icon + ' ' + summon.name + ' uses ' + move.name +
+                    ' for <span class="battle-number">' + dmgResult.damage + ' damage</span>!');
+
+                attackResult = { hit: true, damage: dmgResult.damage };
+            }
+        }
+
+        return {
+            acted: messages.length > 0,
+            messages: messages,
+            attackResult: attackResult,
+            expired: allExpired
+        };
+    }
+
+    /**
+     * Process player summon turn (supports both legacy and new HP-based summons)
      */
     function processSummonTurn() {
         if (_hasBattleSummon) {
+            // First check for new HP-based player summons
+            var spawnedSummons = BattleSummon.getActiveBySide('player');
+            if (spawnedSummons.length > 0) {
+                return processSpawnedPlayerSummons(spawnedSummons);
+            }
+
+            // Then check for legacy player summon
             var summon = BattleSummon.getPlayerSummon();
             if (!summon) return { acted: false, messages: [] };
 
@@ -1511,6 +1611,7 @@ var BattleCore = (function() {
         // HP/Mana
         damagePlayer: damagePlayer,
         healPlayer: healPlayer,
+        calculatePendingHeal: calculatePendingHeal,
         damageEnemy: damageEnemy,
         healEnemy: healEnemy,
         useMana: useMana,

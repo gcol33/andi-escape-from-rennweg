@@ -342,6 +342,43 @@ var BattleStylePokemon = (function() {
             return { success: true, messages: messages };
         }
 
+        // Summon move
+        if (move.isSummon) {
+            var summonId = move.summonId;
+            if (!summonId) {
+                return { success: false, reason: 'no_summon_id', messages: ['Summon move has no target!'] };
+            }
+
+            if (typeof BattleSummon === 'undefined') {
+                return { success: false, reason: 'no_summon_module', messages: ['Summon system not available!'] };
+            }
+
+            var spawnResult = BattleSummon.spawn(summonId, 'player', 'player');
+
+            if (!spawnResult.success) {
+                return {
+                    success: false,
+                    reason: spawnResult.reason,
+                    messages: [spawnResult.message || 'Cannot summon!']
+                };
+            }
+
+            messages.push(spawnResult.message);
+
+            var summonDialogue = BattleSummon.getDialogue(spawnResult.summon.uid, 'summon_appear');
+            if (summonDialogue) {
+                messages.push('"' + summonDialogue + '"');
+            }
+
+            BattleCore.playSfx('summon');
+            return {
+                success: true,
+                summonResult: spawnResult,
+                summon: spawnResult.summon,
+                messages: messages
+            };
+        }
+
         // Attack move
         var result = resolveAttack(player, enemy, move);
 
@@ -630,11 +667,31 @@ var BattleStylePokemon = (function() {
 
     /**
      * Resolve summon attack
+     * @param {Object} summon - The summon object
+     * @param {Object} defender - The target being attacked
+     * @param {Object} moveArg - Optional move object (for new enemy summon system)
      */
-    function resolveSummonAttack(summon, defender) {
-        var move = summon.attack || { power: 30, type: 'physical', accuracy: 100 };
+    function resolveSummonAttack(summon, defender, moveArg) {
+        // Handle both legacy player summons (summon.attack) and new enemy summons (move parameter)
+        var move;
+        if (moveArg) {
+            // New enemy summon system: move passed separately
+            move = {
+                power: 30,
+                type: moveArg.type || summon.damageType || 'physical',
+                accuracy: 100,
+                damage: moveArg.damage || summon.damage || 'd4'
+            };
+        } else if (summon.attack) {
+            // Legacy player summon system
+            move = summon.attack;
+        } else {
+            // Fallback
+            move = { power: 30, type: 'physical', accuracy: 100 };
+        }
+
         return resolveAttack(
-            { attack: 10, type: summon.attack ? summon.attack.type : 'physical' },
+            { attack: 10, type: move.type || 'physical' },
             defender,
             move
         );

@@ -331,13 +331,34 @@ var BattleStyleExp33 = (function() {
 
     /**
      * Resolve summon attack
+     * @param {Object} summon - The summon object
+     * @param {Object} defender - The target being attacked
+     * @param {Object} move - Optional move object (for new enemy summon system)
      */
-    function resolveSummonAttack(summon, defender) {
-        return resolveAttack(
-            { damage: summon.attack.damage, type: summon.attack.type },
-            defender,
-            summon.attack
-        );
+    function resolveSummonAttack(summon, defender, move) {
+        // Handle both legacy player summons (summon.attack) and new enemy summons (move parameter)
+        var attackData;
+        if (move) {
+            // New enemy summon system: move passed separately
+            attackData = {
+                damage: move.damage || summon.damage || 'd4',
+                type: move.type || summon.damageType || 'physical'
+            };
+        } else if (summon.attack) {
+            // Legacy player summon system
+            attackData = {
+                damage: summon.attack.damage,
+                type: summon.attack.type
+            };
+        } else {
+            // Fallback
+            attackData = {
+                damage: summon.damage || 'd4',
+                type: summon.damageType || 'physical'
+            };
+        }
+
+        return resolveAttack(attackData, defender, move || summon.attack);
     }
 
     // =========================================================================
@@ -441,6 +462,45 @@ var BattleStyleExp33 = (function() {
             }
             BattleCore.playSfx('buff_apply');
             return { success: true, messages: messages };
+        }
+
+        // Summon skill
+        if (skill.isSummon) {
+            var summonId = skill.summonId;
+            if (!summonId) {
+                return { success: false, reason: 'no_summon_id', messages: ['Summon skill has no target!'] };
+            }
+
+            if (typeof BattleSummon === 'undefined') {
+                return { success: false, reason: 'no_summon_module', messages: ['Summon system not available!'] };
+            }
+
+            var spawnResult = BattleSummon.spawn(summonId, 'player', 'player');
+
+            if (!spawnResult.success) {
+                // Refund AP if summon failed
+                battleState.playerAP = Math.min(config.maxAP, battleState.playerAP + apCost);
+                return {
+                    success: false,
+                    reason: spawnResult.reason,
+                    messages: [spawnResult.message || 'Cannot summon!']
+                };
+            }
+
+            messages.push(spawnResult.message);
+
+            var summonDialogue = BattleSummon.getDialogue(spawnResult.summon.uid, 'summon_appear');
+            if (summonDialogue) {
+                messages.push('"' + summonDialogue + '"');
+            }
+
+            BattleCore.playSfx('summon');
+            return {
+                success: true,
+                summonResult: spawnResult,
+                summon: spawnResult.summon,
+                messages: messages
+            };
         }
 
         // Attack skill

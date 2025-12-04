@@ -569,10 +569,17 @@ var BattleEngine = (function() {
 
         console.log('[DEV] Triggering intent prep phase:', intentId, current);
 
-        // Show the intent preparation (dialogue + icon)
+        // Lock actions during the simulated enemy turn
+        _actionInProgress = true;
+        BattleCore.setPhase('enemy');
+
+        // Show the intent preparation (dialogue + icon) and properly end enemy turn
         showIntentPreparation(enemy, current, function() {
-            // Intent is now active, player's turn
-            console.log('[DEV] Intent prep shown, player can now act');
+            // Intent announcement IS the enemy's action - end their turn properly
+            console.log('[DEV] Intent prep shown, finishing enemy turn');
+            finishEnemyTurn([], function() {
+                console.log('[DEV] Enemy turn finished, player can now act');
+            });
         });
 
         return { success: true, message: 'Triggered ' + intentId + ' prep phase - will execute next turn!', intent: current };
@@ -807,11 +814,19 @@ var BattleEngine = (function() {
      * @param {Function} callback - Completion callback
      */
     function executeAction(action, params, callback) {
+        console.log('[Action Debug] executeAction called:', action, '_actionInProgress:', _actionInProgress);
         // Guard against spam-clicking race conditions
-        if (_actionInProgress) return;
+        if (_actionInProgress) {
+            console.log('[Action Debug] BLOCKED - action in progress');
+            return;
+        }
 
         var state = BattleCore.getState();
-        if (!state.active || state.phase !== 'player') return;
+        console.log('[Action Debug] state.active:', state.active, 'state.phase:', state.phase);
+        if (!state.active || state.phase !== 'player') {
+            console.log('[Action Debug] BLOCKED - not active or not player phase');
+            return;
+        }
 
         // Lock action processing IMMEDIATELY to prevent any queued clicks
         _actionInProgress = true;
@@ -938,16 +953,13 @@ var BattleEngine = (function() {
             container: logEntry,
             defender: BattleCore.getPlayer().name,
             rollResult: result.rollResult,
-            acBonus: result.acBonus,
+            acBonus: 0,  // AC bonus removed from defending
             manaRecovered: result.manaRecovered,
             manaRolled: result.manaRolled,
             cooldown: result.cooldown,
             isMinMana: result.isMinMana,
-            isMaxMana: result.isMaxMana,
-            onACComplete: function(acBonus) {
-                // Show floating +AC number on player after AC text completes
-                showDamageNumber(acBonus, 'player', 'ac-boost');
-            }
+            isMaxMana: result.isMaxMana
+            // onACComplete removed - no AC bonus to show
         }, function() {
             updateDisplay();  // Update MP bar after animation completes
             processEnemyTurn(messages, callback, { playerAction: 'defend' });
@@ -1011,8 +1023,13 @@ var BattleEngine = (function() {
             var attackerName = state.player.name || 'Andi';
 
             showAttackRoll(attackerName, result.attackResult, true, function() {
-                // After animation, show result and continue
-                finishPlayerActionAfterRoll(actionType, result, messages, callback);
+                // Continue after linger completes
+                finishPlayerActionAfterRoll(actionType, result, messages, callback, { effectsApplied: true });
+            }, {
+                onTextComplete: function() {
+                    // Apply effects when text finishes (before linger)
+                    applyPlayerAttackEffects(result);
+                }
             });
         }
         // If player used a heal skill, show animated heal roll
@@ -1024,28 +1041,80 @@ var BattleEngine = (function() {
                 isMaxHeal: result.isMaxHeal,
                 hasHealAdvantage: result.hasHealAdvantage,
                 hasHealDisadvantage: result.hasHealDisadvantage,
-                healRolls: result.healRolls
-            }, function() {
-                // Show floating heal number on player (only if > 0)
-                if (result.healed > 0) {
-                    // Determine heal type for floating number styling
-                    var healType = 'heal';
-                    if (result.isMaxHeal) healType = 'maxheal';
-                    else if (result.isMinHeal) healType = 'minheal';
-                    showDamageNumber(result.healed, 'player', healType);
+                healRolls: result.healRolls,
+                onTextComplete: function() {
+                    // Apply pending heal when text finishes (before linger)
+                    applyPendingEffects(result, 'player');
+
+                    // Show floating heal number on player (only if > 0)
+                    if (result.healed > 0) {
+                        // Determine heal type for floating number styling
+                        var healType = 'heal';
+                        if (result.isMaxHeal) healType = 'maxheal';
+                        else if (result.isMinHeal) healType = 'minheal';
+                        showDamageNumber(result.healed, 'player', healType);
+                    }
+
+                    // Update display after heal applied
+                    updateDisplay();
                 }
+            }, function() {
+                // Continue after linger completes
                 finishPlayerActionAfterRoll(actionType, result, messages, callback);
             });
+        }
+        // Buff skill with pending status (no heal/damage roll)
+        else if (result.pendingStatus) {
+            // Show message first, then apply status
+            var statusMessages = messages.concat(result.messages || []);
+            if (statusMessages.length > 0) {
+                updateBattleLog(statusMessages.join('<br>'), null, function() {
+                    // Continue after linger completes
+                    finishPlayerActionAfterRoll(actionType, result, [], callback);
+                }, {
+                    onTextComplete: function() {
+                        // Apply pending status when text finishes (before linger)
+                        applyPendingEffects(result, 'player');
+                        updateDisplay();
+                    }
+                });
+            } else {
+                applyPendingEffects(result, 'player');
+                updateDisplay();
+                finishPlayerActionAfterRoll(actionType, result, messages, callback);
+            }
+        }
+        // Summon skill - show summon message and update UI
+        else if (result.summonResult) {
+            var summonMessages = messages.concat(result.messages || []);
+
+            // Show the summon sprite if UI supports it
+            if (_hasBattleUI && BattleUI.showSummonSprite && result.summon) {
+                var displayData = BattleSummon.getDisplayData(result.summon.uid);
+                if (displayData) {
+                    BattleUI.showSummonSprite(displayData);
+                }
+            }
+
+            // Show summon message
+            if (summonMessages.length > 0) {
+                updateBattleLog(summonMessages.join('<br>'), null, function() {
+                    finishPlayerActionAfterRoll(actionType, result, [], callback);
+                });
+            } else {
+                finishPlayerActionAfterRoll(actionType, result, messages, callback);
+            }
         } else {
             // No roll (e.g., defend, item), just show messages
             finishPlayerActionAfterRoll(actionType, result, messages, callback);
         }
     }
 
-    function finishPlayerActionAfterRoll(actionType, result, messages, callback) {
-        var state = BattleCore.getState();
-        messages = messages.concat(result.messages || []);
-
+    /**
+     * Apply player attack effects (damage number, pending effects, display update)
+     * Called from onTextComplete to apply effects before linger
+     */
+    function applyPlayerAttackEffects(result) {
         // Show damage number if attack hit
         if (result.attackResult && result.attackResult.hit) {
             var damageType = 'damage';
@@ -1057,8 +1126,56 @@ var BattleEngine = (function() {
                 damageType = 'mindamage';
             }
             showDamageNumber(result.attackResult.damage, 'enemy', damageType);
+        }
 
-            // Trigger crit/fumble dialogue
+        // Show miss via floating text
+        if (result.attackResult && !result.attackResult.hit) {
+            showDamageNumber(0, 'enemy', 'miss');
+        }
+
+        // Apply pending damage
+        applyPendingEffects(result, 'enemy');
+        updateDisplay();
+    }
+
+    function finishPlayerActionAfterRoll(actionType, result, messages, callback, options) {
+        options = options || {};
+        var state = BattleCore.getState();
+        messages = messages.concat(result.messages || []);
+
+        // If effects weren't already applied (via onTextComplete), apply them now
+        if (!options.effectsApplied) {
+            // Show damage number if attack hit
+            if (result.attackResult && result.attackResult.hit) {
+                var damageType = 'damage';
+                if (result.attackResult.isCrit) {
+                    damageType = 'crit';
+                } else if (result.attackResult.isMaxDamage) {
+                    damageType = 'maxdamage';
+                } else if (result.attackResult.isMinDamage) {
+                    damageType = 'mindamage';
+                }
+                showDamageNumber(result.attackResult.damage, 'enemy', damageType);
+            }
+
+            // Show miss via WoW-style floating text (battle log is for rolls only)
+            if (result.attackResult && !result.attackResult.hit) {
+                showDamageNumber(0, 'enemy', 'miss');
+            }
+
+            // Show damage for limit break
+            if (actionType === 'limit' && result.totalDamage) {
+                showDamageNumber(result.totalDamage, 'enemy', 'limit');
+            }
+
+            // Apply pending damage now that animation is complete
+            applyPendingEffects(result, 'enemy');
+            updateDisplay();
+        }
+
+        // These things should always run (dialogue, intent system, fumble messages)
+        if (result.attackResult && result.attackResult.hit) {
+            // Trigger crit dialogue
             if (result.attackResult.isCrit) {
                 var critLine = BattleCore.triggerDialogue('player_crit');
                 if (critLine) showDialogueBubble(critLine);
@@ -1118,21 +1235,6 @@ var BattleEngine = (function() {
             messages.push(fumbleMsg);
         }
 
-        // Show damage for limit break
-        if (actionType === 'limit' && result.totalDamage) {
-            showDamageNumber(result.totalDamage, 'enemy', 'limit');
-        }
-
-        // Show miss via WoW-style floating text (battle log is for rolls only)
-        if (result.attackResult && !result.attackResult.hit) {
-            showDamageNumber(0, 'enemy', 'miss');
-        }
-
-        // Apply pending damage now that animation is complete
-        applyPendingDamage(result, 'enemy');
-
-        updateDisplay();
-
         // Check if enemy died
         if (checkEnd()) return;
 
@@ -1170,6 +1272,7 @@ var BattleEngine = (function() {
      * Process enemy turn
      */
     function processEnemyTurn(playerMessages, callback, context) {
+        console.log('[Enemy Turn Debug] processEnemyTurn called with context:', context);
         var state = BattleCore.getState();
         var style = getActiveStyle();
         var enemy = state.enemy;
@@ -1303,25 +1406,37 @@ var BattleEngine = (function() {
             // === INTENT SYSTEM: Check for telegraphed attacks ===
             if (_hasBattleIntent && _intentsEnabled) {
                 var intent = BattleIntent.get();
+                console.log('[Intent Debug] Checking intent:', intent ? {
+                    id: intent.id,
+                    type: intent.type,
+                    isTelegraphed: intent.isTelegraphed,
+                    turnsRemaining: intent.turnsRemaining,
+                    isReady: BattleIntent.isReady()
+                } : 'null');
 
                 // If there's a ready intent, execute it instead of normal attack
                 if (intent && intent.isTelegraphed && BattleIntent.isReady()) {
+                    console.log('[Intent Debug] Executing intent attack!');
                     executeIntentAttack(style, intent, remainingMessages, callback);
                     return;
                 }
 
-                // If there's an active (not ready) intent, show the enemy is preparing
-                // and still do a normal attack
+                // If there's an active (not ready) intent that was already announced,
+                // just do a normal attack (the announcement was a previous turn)
                 if (intent && intent.isTelegraphed && intent.turnsRemaining > 0) {
-                    // Intent already displayed, just proceed with normal attack
+                    console.log('[Intent Debug] Intent already announced, doing normal attack');
+                    // Intent was announced on a previous turn, proceed with normal attack
                 } else {
                     // Check if a new intent should trigger
                     var newIntent = BattleIntent.generate(enemy, state.player);
+                    console.log('[Intent Debug] Generated new intent:', newIntent ? newIntent.id : 'none');
                     if (newIntent && newIntent.isTelegraphed) {
-                        // New intent triggered - show preparation
+                        // New intent triggered - show preparation and END TURN
+                        // The preparation IS the enemy's action for this turn
+                        console.log('[Intent Debug] Announcing new intent - this is the enemy turn action');
                         showIntentPreparation(enemy, newIntent, function() {
-                            // After showing intent, proceed with normal attack
-                            proceedWithNormalAttack();
+                            // End enemy turn WITHOUT attacking - announcement was the action
+                            finishEnemyTurn(remainingMessages, callback);
                         });
                         return;
                     }
@@ -1329,9 +1444,11 @@ var BattleEngine = (function() {
             }
 
             // Normal attack flow
+            console.log('[Intent Debug] Proceeding to normal attack');
             proceedWithNormalAttack();
 
             function proceedWithNormalAttack() {
+                console.log('[Intent Debug] In proceedWithNormalAttack');
                 // Try to get an enemy taunt based on context
                 var taunt = getEnemyTaunt(context);
                 if (taunt) {
@@ -1403,10 +1520,137 @@ var BattleEngine = (function() {
             BattleUI.hideIntentIndicator('execute');
         }
 
-        // Wait for dialogue, then execute the attack
+        // Check if player is defending - trigger defend QTE for intent attacks too
+        if (player.defending && player.defending > 0 && isQTEEnabledForDefend()) {
+            console.log('[Intent Debug] Player defending, triggering defend QTE for intent attack');
+            scheduleTimeout(function() {
+                processIntentDefendQTE(style, skill, intent, messages, callback);
+            }, config.timing.dialogueDuration);
+            return;
+        }
+
+        // Wait for dialogue, then execute the attack (no QTE)
         scheduleTimeout(function() {
             executeIntentSkill(style, skill, intent, messages, callback);
         }, config.timing.dialogueDuration);
+    }
+
+    /**
+     * Process defend QTE for intent attacks
+     * Similar to processDefendQTE but uses intent skill data
+     */
+    function processIntentDefendQTE(style, skill, intent, messages, callback) {
+        var state = BattleCore.getState();
+        var player = state.player;
+        var enemy = state.enemy;
+        var enemyName = enemy.name || 'Enemy';
+        var playerName = player.name || 'Andi';
+        var skillName = skill.name || 'Special Attack';
+
+        // Show pre-QTE message
+        var preQTEMessage = enemyName + ' uses ' + skillName + '!<br>' + playerName + ' braces himself!';
+
+        updateBattleLog(preQTEMessage, null, function() {
+            // Launch defend QTE
+            var qteStarted = QTEEngine.startDefendQTE({
+                difficulty: 'hard',  // Intent attacks are harder to defend
+                enemyAttackName: skillName
+            }, function(qteResult) {
+                processIntentDefendQTEResult(style, skill, intent, qteResult, messages, callback);
+            });
+
+            // Fallback if QTE fails to start
+            if (!qteStarted) {
+                console.warn('[BattleEngine] Intent defend QTE failed to start, executing normally');
+                executeIntentSkill(style, skill, intent, messages, callback);
+            }
+        });
+    }
+
+    /**
+     * Process the result of a defend QTE against an intent attack
+     */
+    function processIntentDefendQTEResult(style, skill, intent, qteResult, messages, callback) {
+        console.log('[Intent QTE Debug] processIntentDefendQTEResult called with:', qteResult);
+        var state = BattleCore.getState();
+        var player = state.player;
+        var enemy = state.enemy;
+        var enemyName = enemy.name || 'Enemy';
+        var playerName = player.name || 'Andi';
+
+        var zone = qteResult.zone || 'normal';
+        var mods = qteResult.modifiers || QTEEngine.getDefendModifiers(zone);
+        console.log('[Intent QTE Debug] Zone:', zone, 'Mods:', mods);
+
+        // Clear the intent
+        BattleIntent.clear(state.turn);
+
+        // Calculate damage
+        var baseDamage;
+        if (typeof skill.damage === 'number') {
+            baseDamage = skill.damage;
+        } else if (style.rollDamage) {
+            baseDamage = style.rollDamage(skill.damage || '2d6');
+        } else {
+            baseDamage = 10;
+        }
+
+        // Decrement defending counter
+        var stanceWoreOff = false;
+        if (player.defending > 0) {
+            player.defending--;
+            stanceWoreOff = player.defending <= 0;
+        }
+
+        var resultMessages = [];
+        var skillName = skill.name || 'Special Attack';
+
+        // Always show what attack was used
+        resultMessages.push(enemyName + ' uses ' + skillName + '!');
+
+        // Handle QTE outcomes
+        if (mods.result === 'parry') {
+            // PARRY: Reflect damage, take none
+            var counterDice = mods.counterDamageDice || '1d6';
+            var counterDamage = style.rollDamage ? style.rollDamage(counterDice) : Math.floor(Math.random() * 6) + 1;
+            resultMessages.push('PARRY! ' + playerName + ' deflects the attack!');
+            resultMessages.push('<span class="roll-damage-normal">' + counterDamage + ' DAMAGE</span> reflected!');
+            BattleCore.damageEnemy(counterDamage, { source: 'parry', type: 'physical' });
+            showDamageNumber(counterDamage, 'enemy', 'damage');
+        } else if (mods.result === 'dodge') {
+            // DODGE: Avoid completely
+            resultMessages.push('DODGE! ' + playerName + ' evades the attack!');
+            showDamageNumber(0, 'player', 'miss');
+        } else {
+            // CONFUSE/FUMBLE: Take damage (reduced by 50% for defending)
+            var damage = Math.floor(baseDamage * 0.5);
+            resultMessages.push('<span class="roll-damage-normal">' + damage + ' DAMAGE</span>');
+            resultMessages.push('Defending reduced the damage!');
+            BattleCore.damagePlayer(damage, { source: 'intent', type: skill.type });
+            showDamageNumber(damage, 'player', 'damage');
+
+            // Apply confusion for bad QTE
+            if (mods.confused) {
+                var confuseResult = BattleCore.applyStatus(player, 'confusion', 1);
+                if (confuseResult && confuseResult.applied) {
+                    resultMessages.push(playerName + ' is confused!');
+                }
+            }
+        }
+
+        if (stanceWoreOff) {
+            resultMessages.push('Defensive stance wore off!');
+        }
+
+        console.log('[Intent QTE Debug] Result messages:', resultMessages);
+        updateDisplay();
+        if (checkEnd()) return;
+
+        console.log('[Intent QTE Debug] Showing result messages, then finishing turn');
+        updateBattleLog(resultMessages.join('<br>'), null, function() {
+            console.log('[Intent QTE Debug] Result shown, calling finishEnemyTurn');
+            finishEnemyTurn(messages, callback);
+        });
     }
 
     /**
@@ -1449,18 +1693,25 @@ var BattleEngine = (function() {
         }
 
         // Apply defend damage reduction if player is defending
-        if (player.defending) {
+        var wasDefending = player.defending && player.defending > 0;
+        if (wasDefending) {
             var reduction = 0.5;  // 50% damage reduction when defending
             damage = Math.floor(damage * (1 - reduction));
             console.log('[Intent Attack] Player defending! Damage reduced to:', damage);
+            // Decrement defending counter (intent attack counts as an enemy attack)
+            player.defending--;
         }
 
         console.log('[Intent Attack] Always hits! Damage:', damage);
 
         var resultMsgs = [enemyName + ' uses ' + skill.name + '!'];
         resultMsgs.push('<span class="roll-damage-normal">' + damage + ' DAMAGE</span>');
-        if (player.defending) {
+        if (wasDefending) {
             resultMsgs.push('Defending reduced the damage!');
+            // Check if stance wore off
+            if (player.defending <= 0) {
+                resultMsgs.push('Defensive stance wore off!');
+            }
         }
 
         applyDirectDamage({
@@ -1488,7 +1739,12 @@ var BattleEngine = (function() {
         var hits = skill.hits || 1;
         var currentHit = 0;
         var totalDamage = 0;
-        var isDefending = player.defending;
+        var wasDefending = player.defending && player.defending > 0;
+
+        // Decrement defending counter at start (multi-hit counts as one enemy attack)
+        if (wasDefending) {
+            player.defending--;
+        }
 
         function executeHit() {
             currentHit++;
@@ -1498,8 +1754,12 @@ var BattleEngine = (function() {
             if (currentHit > hits || currentPlayer.hp <= 0) {
                 // All hits done
                 var totalMsg = 'Total: <span class="roll-damage-normal">' + totalDamage + ' DAMAGE</span>';
-                if (isDefending) {
+                if (wasDefending) {
                     totalMsg += '<br>Defending reduced the damage!';
+                    // Check if stance wore off
+                    if (player.defending <= 0) {
+                        totalMsg += '<br>Defensive stance wore off!';
+                    }
                 }
                 updateBattleLog(totalMsg, null, function() {
                     updateDisplay();
@@ -1521,8 +1781,8 @@ var BattleEngine = (function() {
                 damage = 2;
             }
 
-            // Apply defend damage reduction if player is defending
-            if (isDefending) {
+            // Apply defend damage reduction if player was defending when intent started
+            if (wasDefending) {
                 var reduction = 0.5;  // 50% damage reduction when defending
                 damage = Math.max(1, Math.floor(damage * (1 - reduction)));
             }
@@ -1612,7 +1872,9 @@ var BattleEngine = (function() {
      * @param {Function} callback - Completion callback
      */
     function processEnemySummonTurns(callback) {
+        console.log('[Turn Debug] processEnemySummonTurns called');
         if (!_hasBattleSummon || !BattleSummon.hasSummons('enemy')) {
+            console.log('[Turn Debug] No summons, calling callback');
             callback();
             return;
         }
@@ -1666,7 +1928,8 @@ var BattleEngine = (function() {
                 // Resolve summon attack against player
                 var attackResult = null;
                 if (style && style.resolveSummonAttack) {
-                    attackResult = style.resolveSummonAttack(action.summon, player);
+                    // Pass the move as third parameter for new enemy summon system
+                    attackResult = style.resolveSummonAttack(action.summon, player, action.move);
                 } else {
                     // Simple fallback
                     var damage = BattleCore.rollDamage ? BattleCore.rollDamage(action.move.damage) : 3;
@@ -1776,6 +2039,7 @@ var BattleEngine = (function() {
      *   - Bad (FUMBLE): Confused, hit, lose AC bonus
      */
     function processDefendQTE(style, messages, callback) {
+        console.log('[Defend Debug] processDefendQTE called');
         var state = BattleCore.getState();
         var player = state.player;
         var enemy = state.enemy;
@@ -1785,12 +2049,14 @@ var BattleEngine = (function() {
         // Select enemy move first to know incoming attack
         var move = style.selectEnemyMove ? style.selectEnemyMove() : { name: 'Attack' };
         var moveName = move.name || 'Attack';
+        console.log('[Defend Debug] Enemy move:', moveName, move);
 
         // Check if this is an attack move (not a heal or buff)
         var isAttackMove = !move.isHeal && !move.isBuff && !move.isDefend;
 
         // If not an attack, skip the defend QTE and just execute the enemy turn normally
         if (!isAttackMove) {
+            console.log('[Defend Debug] Not an attack move, skipping QTE');
             var result = style.enemyTurn();
             finishEnemyAction(result, messages, callback);
             return;
@@ -1798,15 +2064,26 @@ var BattleEngine = (function() {
 
         // Show enemy attack announcement and player bracing before QTE
         var preQTEMessage = enemyName + ' uses ' + moveName + '!<br>' + playerName + ' braces himself!';
+        console.log('[Defend Debug] Showing pre-QTE message');
 
         updateBattleLog(preQTEMessage, null, function() {
+            console.log('[Defend Debug] Pre-QTE message shown, starting QTE');
             // Now launch the defend QTE
-            QTEEngine.startDefendQTE({
+            var qteStarted = QTEEngine.startDefendQTE({
                 difficulty: 'normal',
                 enemyAttackName: moveName
             }, function(qteResult) {
+                console.log('[Defend Debug] QTE completed with result:', qteResult);
                 processDefendQTEResult(style, player, enemy, move, qteResult, callback);
             });
+            console.log('[Defend Debug] QTE started:', qteStarted);
+
+            // If QTE failed to start (e.g., already active), fall back to normal attack flow
+            if (!qteStarted) {
+                console.warn('[BattleEngine] Defend QTE failed to start, falling back to normal attack');
+                var result = style.enemyTurn();
+                finishEnemyAction(result, messages, callback);
+            }
         });
     }
 
@@ -1920,7 +2197,7 @@ var BattleEngine = (function() {
             // Don't apply pending damage - dodge avoids it
         } else {
             // CONFUSE or FUMBLE: Take full damage - apply pending damage now
-            applyPendingDamage(attackResult, 'player');
+            applyPendingEffects(attackResult, 'player');
             if (damage > 0) {
                 showDamageNumber(damage, 'player', 'damage');
             }
@@ -1943,17 +2220,21 @@ var BattleEngine = (function() {
         // Check if player died (before applying parry damage)
         if (checkEnd()) return;
 
-        // Show messages and finish turn - apply deferred damage in callback
+        // Show messages and finish turn - apply deferred damage when text completes
         if (defendMessages.length > 0) {
             updateBattleLog(defendMessages.join('<br>'), null, function() {
-                // Apply parry counter damage after message is shown
-                if (pendingParryDamage !== null) {
-                    BattleCore.damageEnemy(pendingParryDamage, { source: 'parry', type: 'physical' });
-                    showDamageNumber(pendingParryDamage, 'enemy', 'damage');
-                }
-                updateDisplay();
+                // Continue after linger
                 if (checkEnd()) return;
                 finishEnemyTurn([], callback);
+            }, {
+                onTextComplete: function() {
+                    // Apply parry counter damage when text finishes (before linger)
+                    if (pendingParryDamage !== null) {
+                        BattleCore.damageEnemy(pendingParryDamage, { source: 'parry', type: 'physical' });
+                        showDamageNumber(pendingParryDamage, 'enemy', 'damage');
+                    }
+                    updateDisplay();
+                }
             });
         } else {
             // No messages but still might have parry damage
@@ -1967,6 +2248,49 @@ var BattleEngine = (function() {
         }
     }
 
+    /**
+     * Apply enemy attack effects (damage number, pending effects, display update)
+     * Called from onTextComplete to apply effects before linger
+     */
+    function applyEnemyAttackEffects(result) {
+        // Show damage number if attack hit
+        if (result.attackResult && result.attackResult.hit) {
+            var damageType = 'damage';
+            if (result.attackResult.isCrit) {
+                damageType = 'crit';
+            } else if (result.attackResult.isMaxDamage) {
+                damageType = 'maxdamage';
+            } else if (result.attackResult.isMinDamage) {
+                damageType = 'mindamage';
+            }
+            showDamageNumber(result.attackResult.damage, 'player', damageType);
+        }
+
+        // Show miss via floating text
+        if (result.attackResult && !result.attackResult.hit) {
+            showDamageNumber(0, 'player', 'miss');
+        }
+
+        // Apply pending damage
+        applyPendingEffects(result, 'player');
+        updateDisplay();
+    }
+
+    /**
+     * Apply enemy heal effects (floating number, pending effects, display update)
+     * Called from onTextComplete to apply effects before linger
+     */
+    function applyEnemyHealEffects(result) {
+        // Show enemy heal with floating number
+        if (result.healed && result.healed > 0) {
+            showDamageNumber(result.healed, 'enemy', 'heal');
+        }
+
+        // Apply pending heal (if using pending pattern for enemy heals)
+        applyPendingEffects(result, 'enemy');
+        updateDisplay();
+    }
+
     function finishEnemyAction(result, messages, callback) {
         var state = BattleCore.getState();
 
@@ -1975,7 +2299,13 @@ var BattleEngine = (function() {
             var enemyName = state.enemy.name || 'Enemy';
 
             showAttackRoll(enemyName, result.attackResult, false, function() {
-                finishEnemyActionAfterRoll(result, messages, callback);
+                // Continue after linger completes
+                finishEnemyActionAfterRoll(result, messages, callback, { effectsApplied: true });
+            }, {
+                onTextComplete: function() {
+                    // Apply effects when text finishes (before linger)
+                    applyEnemyAttackEffects(result);
+                }
             });
         }
         // If enemy has a heal roll, show animated heal roll
@@ -1986,10 +2316,15 @@ var BattleEngine = (function() {
                 result.healRoll.healRolled || result.healRoll.amount,
                 {
                     isMinHeal: result.healRoll.isMinHeal,
-                    isMaxHeal: result.healRoll.isMaxHeal
+                    isMaxHeal: result.healRoll.isMaxHeal,
+                    onTextComplete: function() {
+                        // Apply effects when text finishes (before linger)
+                        applyEnemyHealEffects(result);
+                    }
                 },
                 function() {
-                    finishEnemyActionAfterRoll(result, messages, callback);
+                    // Continue after linger completes
+                    finishEnemyActionAfterRoll(result, messages, callback, { effectsApplied: true });
                 }
             );
         } else {
@@ -1997,7 +2332,9 @@ var BattleEngine = (function() {
         }
     }
 
-    function finishEnemyActionAfterRoll(result, messages, callback) {
+    function finishEnemyActionAfterRoll(result, messages, callback, options) {
+        options = options || {};
+
         // Only add result.messages for non-attacks and non-heals
         // Attack messages are shown via showAttackRoll
         // Heal messages are shown via showHealRoll
@@ -2011,19 +2348,39 @@ var BattleEngine = (function() {
             messages.push(result.attackResult.statusResult.message);
         }
 
-        // Show damage number
-        if (result.attackResult && result.attackResult.hit) {
-            var state = BattleCore.getState();
-            var damageType = 'damage';
-            if (result.attackResult.isCrit) {
-                damageType = 'crit';
-            } else if (result.attackResult.isMaxDamage) {
-                damageType = 'maxdamage';
-            } else if (result.attackResult.isMinDamage) {
-                damageType = 'mindamage';
+        // If effects weren't already applied (via onTextComplete), apply them now
+        if (!options.effectsApplied) {
+            // Show damage number
+            if (result.attackResult && result.attackResult.hit) {
+                var damageType = 'damage';
+                if (result.attackResult.isCrit) {
+                    damageType = 'crit';
+                } else if (result.attackResult.isMaxDamage) {
+                    damageType = 'maxdamage';
+                } else if (result.attackResult.isMinDamage) {
+                    damageType = 'mindamage';
+                }
+                showDamageNumber(result.attackResult.damage, 'player', damageType);
             }
-            showDamageNumber(result.attackResult.damage, 'player', damageType);
 
+            // Show miss via WoW-style floating text (battle log is for rolls only)
+            if (result.attackResult && !result.attackResult.hit) {
+                showDamageNumber(0, 'player', 'miss');
+            }
+
+            // Show enemy heal with floating number
+            if (result.healed && result.healed > 0) {
+                showDamageNumber(result.healed, 'enemy', 'heal');
+            }
+
+            // Apply pending damage/heal now that animation is complete
+            applyPendingEffects(result, 'player');
+            updateDisplay();
+        }
+
+        // These things should always run (dialogue, fumble messages)
+        var state = BattleCore.getState();
+        if (result.attackResult && result.attackResult.hit) {
             // Enemy crit dialogue (takes priority)
             if (result.attackResult.isCrit) {
                 var critLine = BattleCore.triggerDialogue('enemy_crit');
@@ -2042,63 +2399,50 @@ var BattleEngine = (function() {
             }
         }
 
-        // Show miss via WoW-style floating text (battle log is for rolls only)
-        if (result.attackResult && !result.attackResult.hit) {
-            showDamageNumber(0, 'player', 'miss');
+        // Enemy fumble handling (miss was already shown if !effectsApplied)
+        if (result.attackResult && !result.attackResult.hit && result.attackResult.isFumble) {
+            // Show fumble message - keep it short to avoid wrapping
+            var fumbleState = BattleCore.getState();
+            var enemyName = fumbleState.enemy.name || 'Enemy';
+            var fumbleText = BattleCore.triggerDialogue('fumble_text') || 'trips over their own feet';
+            var fumbleMsg = enemyName + ' ' + fumbleText + '!';
+            if (result.attackResult.fumbleStatusResult && result.attackResult.fumbleStatusResult.applied) {
+                // Check if confusion just expired this turn (re-applying = "stays confused")
+                var enemyStatusResult = fumbleState._enemyStatusResult;
+                var confusionJustExpired = enemyStatusResult && enemyStatusResult.expiredStatuses &&
+                    enemyStatusResult.expiredStatuses.indexOf('confusion') !== -1;
 
-            // Enemy fumble dialogue and confusion status
-            if (result.attackResult.isFumble) {
-                // Show fumble message - keep it short to avoid wrapping
-                var fumbleState = BattleCore.getState();
-                var enemyName = fumbleState.enemy.name || 'Enemy';
-                var fumbleText = BattleCore.triggerDialogue('fumble_text') || 'trips over their own feet';
-                var fumbleMsg = enemyName + ' ' + fumbleText + '!';
-                if (result.attackResult.fumbleStatusResult && result.attackResult.fumbleStatusResult.applied) {
-                    // Check if confusion just expired this turn (re-applying = "stays confused")
-                    var enemyStatusResult = fumbleState._enemyStatusResult;
-                    var confusionJustExpired = enemyStatusResult && enemyStatusResult.expiredStatuses &&
-                        enemyStatusResult.expiredStatuses.indexOf('confusion') !== -1;
-
-                    if (confusionJustExpired) {
-                        // Remove the "wore off" message since enemy is staying confused
-                        if (enemyStatusResult.messages) {
-                            for (var j = enemyStatusResult.messages.length - 1; j >= 0; j--) {
-                                if (enemyStatusResult.messages[j].indexOf('wore off') !== -1 &&
-                                    enemyStatusResult.messages[j].indexOf('Confusion') !== -1) {
-                                    enemyStatusResult.messages.splice(j, 1);
-                                    break;
-                                }
+                if (confusionJustExpired) {
+                    // Remove the "wore off" message since enemy is staying confused
+                    if (enemyStatusResult.messages) {
+                        for (var j = enemyStatusResult.messages.length - 1; j >= 0; j--) {
+                            if (enemyStatusResult.messages[j].indexOf('wore off') !== -1 &&
+                                enemyStatusResult.messages[j].indexOf('Confusion') !== -1) {
+                                enemyStatusResult.messages.splice(j, 1);
+                                break;
                             }
                         }
-                        fumbleMsg += ' 💫 Stays confused!';
-                    } else {
-                        fumbleMsg += ' 💫 Confused!';
                     }
-                    // Show confusion dialogue (takes priority over fumble dialogue)
-                    var confusionLine = BattleCore.triggerDialogue('status_confusion');
-                    if (confusionLine) showDialogueBubble(confusionLine);
+                    fumbleMsg += ' 💫 Stays confused!';
                 } else {
-                    // No confusion, show fumble dialogue
-                    var fumbleLine = BattleCore.triggerDialogue('enemy_fumble');
-                    if (fumbleLine) showDialogueBubble(fumbleLine);
+                    fumbleMsg += ' 💫 Confused!';
                 }
-                messages.push(fumbleMsg);
+                // Show confusion dialogue (takes priority over fumble dialogue)
+                var confusionLine = BattleCore.triggerDialogue('status_confusion');
+                if (confusionLine) showDialogueBubble(confusionLine);
+            } else {
+                // No confusion, show fumble dialogue
+                var fumbleLine = BattleCore.triggerDialogue('enemy_fumble');
+                if (fumbleLine) showDialogueBubble(fumbleLine);
             }
+            messages.push(fumbleMsg);
         }
 
-        // Show enemy heal with floating number and dialogue
+        // Show heal dialogue if available
         if (result.healed && result.healed > 0) {
-            showDamageNumber(result.healed, 'enemy', 'heal');
-
-            // Show heal dialogue if available
             var healLine = BattleCore.triggerDialogue('move_break_room_retreat');
             if (healLine) showDialogueBubble(healLine);
         }
-
-        // Apply pending damage now that animation is complete
-        applyPendingDamage(result, 'player');
-
-        updateDisplay();
 
         // Check if player died
         if (checkEnd()) return;
@@ -2107,6 +2451,7 @@ var BattleEngine = (function() {
     }
 
     function finishEnemyTurn(messages, callback) {
+        console.log('[Turn Debug] finishEnemyTurn called');
         // Display any messages (heal notifications, etc.) in the battle log
         // Don't add enemy name prefix - messages already include context
         if (messages && messages.length > 0) {
@@ -2133,6 +2478,7 @@ var BattleEngine = (function() {
      * Continue finishing enemy turn after summons have acted
      */
     function continueFinishEnemyTurn(callback) {
+        console.log('[Turn Debug] continueFinishEnemyTurn called');
         // incrementTurn() handles: turn counter++, dialogue cooldown, AND defend cooldown
         // Cooldown ticks once per full turn cycle (enemy action + player action)
         BattleCore.incrementTurn();
@@ -2141,6 +2487,7 @@ var BattleEngine = (function() {
         // Process player regen/status ticks AFTER enemy turn, BEFORE player can act
         var state = BattleCore.getState();
         var statusResult = BattleCore.tickStatuses(state.player, state.player.name);
+        console.log('[Turn Debug] Player status result:', statusResult);
 
         // Apply status damage/healing/mana
         if (statusResult.damage > 0) {
@@ -2234,6 +2581,14 @@ var BattleEngine = (function() {
                     return;
                 }
 
+                // If player is still in defensive stance, enemy attacks again automatically
+                if (state.player.defending && state.player.defending > 0) {
+                    console.log('[Turn Debug] Player still defending (' + state.player.defending + ' attacks remaining), enemy attacks again');
+                    state._playerStatusResult = null;
+                    processEnemyTurn([], callback, { playerAction: 'defending' });
+                    return;
+                }
+
                 // Clear the status message before returning control to player
                 var battleLogContent = document.getElementById('battle-log-content');
                 if (battleLogContent) battleLogContent.innerHTML = '';
@@ -2262,11 +2617,21 @@ var BattleEngine = (function() {
             return;
         }
 
+        // If player is still in defensive stance, enemy attacks again automatically
+        if (state.player.defending && state.player.defending > 0) {
+            console.log('[Turn Debug] Player still defending (' + state.player.defending + ' attacks remaining), enemy attacks again');
+            state._playerStatusResult = null;
+            processEnemyTurn([], callback, { playerAction: 'defending' });
+            return;
+        }
+
+        console.log('[Turn Debug] Setting phase to player, unlocking actions');
         BattleCore.setPhase('player');
         updateDisplay();
 
         // Clear action lock - player can now act again
         _actionInProgress = false;
+        console.log('[Turn Debug] Player can now act!');
 
         if (callback) callback();
     }
@@ -2301,9 +2666,14 @@ var BattleEngine = (function() {
             return;
         }
 
-        QTEEngine.startAttackQTE({}, function(qteResult) {
+        var qteStarted = QTEEngine.startAttackQTE({}, function(qteResult) {
             callback(qteResult || {});
         });
+        // If QTE failed to start, fall back with empty result
+        if (!qteStarted) {
+            console.warn('[BattleEngine] Attack QTE failed to start');
+            callback({});
+        }
     }
 
     function processEnemyAttackWithQTE(callback) {
@@ -2312,9 +2682,14 @@ var BattleEngine = (function() {
             return;
         }
 
-        QTEEngine.startDodgeQTE({}, function(qteResult) {
+        var qteStarted = QTEEngine.startDodgeQTE({}, function(qteResult) {
             callback(qteResult || {});
         });
+        // If QTE failed to start, fall back with empty result
+        if (!qteStarted) {
+            console.warn('[BattleEngine] Dodge QTE failed to start');
+            callback({});
+        }
     }
 
     // =========================================================================
@@ -2349,9 +2724,7 @@ var BattleEngine = (function() {
             // Calculate effective AC first (needed for change detection)
             var baseAC = state.player.baseAC || state.player.ac || 10;
             var effectiveAC = baseAC + BattleCore.getStatusACModifier(state.player);
-            if (state.player.defending) {
-                effectiveAC += BattleCore.getCombatConfig().defendACBonus || 2;
-            }
+            // Note: Defending no longer provides AC bonus (removed)
 
             // Show stat change notifications sequentially: HP/AC -> Mana -> LB
             // HP changes are shown via showDamageNumber calls in battle.js
@@ -2459,17 +2832,20 @@ var BattleEngine = (function() {
      * @param {string} html - HTML content to display
      * @param {object} rollData - Optional roll data { roll, isCrit, isFumble }
      * @param {function} callback - Called after typewriter + linger delay completes
+     * @param {object} options - Optional { onTextComplete: function } called when text finishes but BEFORE linger
      */
-    function updateBattleLog(html, rollData, callback) {
+    function updateBattleLog(html, rollData, callback, options) {
         // Apply glued tokens (emoji + word stay together with non-breaking space)
         if (html) {
             html = applyGluedTokens(html);
         }
 
         if (typeof BattleUI !== 'undefined') {
-            BattleUI.updateBattleLog(html, rollData, callback);
-        } else if (callback) {
-            callback();
+            BattleUI.updateBattleLog(html, rollData, callback, options);
+        } else {
+            // Fallback: call both callbacks immediately
+            if (options && options.onTextComplete) options.onTextComplete();
+            if (callback) callback();
         }
     }
 
@@ -2501,14 +2877,17 @@ var BattleEngine = (function() {
      * @param {string} attackerName - Name of attacker
      * @param {Object} attackResult - Result from BattleStyleDnD.resolveAttack
      * @param {boolean} isPlayer - Whether attacker is the player (shows modifier breakdown)
-     * @param {function} callback - Called when animation completes
+     * @param {function} callback - Called AFTER linger delay
+     * @param {Object} options - Optional { onTextComplete: function } called when text finishes but BEFORE linger
      */
-    function showAttackRoll(attackerName, attackResult, isPlayer, callback) {
+    function showAttackRoll(attackerName, attackResult, isPlayer, callback, options) {
         // Handle old signature (attackerName, attackResult, callback)
         if (typeof isPlayer === 'function') {
             callback = isPlayer;
             isPlayer = true; // Default to player for backwards compatibility
+            options = {};
         }
+        options = options || {};
 
         if (typeof BattleDiceUI === 'undefined') {
             // Fallback: just show text
@@ -2521,6 +2900,7 @@ var BattleEngine = (function() {
                 msg += ' MISS!';
             }
             updateBattleLog(msg);
+            if (options.onTextComplete) options.onTextComplete();
             if (callback) callback();
             return;
         }
@@ -2528,6 +2908,7 @@ var BattleEngine = (function() {
         // Get battle log container
         var battleLog = document.getElementById('battle-log-content');
         if (!battleLog) {
+            if (options.onTextComplete) options.onTextComplete();
             if (callback) callback();
             return;
         }
@@ -2563,7 +2944,8 @@ var BattleEngine = (function() {
             isMaxDamage: attackResult.isMaxDamage,
             damageAdvantage: attackResult.hasDamageAdvantage,
             damageDisadvantage: attackResult.hasDamageDisadvantage,
-            damageRolls: attackResult.damageRolls
+            damageRolls: attackResult.damageRolls,
+            onTextComplete: options.onTextComplete
         }, callback);
     }
 
@@ -2572,8 +2954,8 @@ var BattleEngine = (function() {
      * @param {string} healerName - Name of the healer
      * @param {number} healAmount - Actual amount healed (after HP cap)
      * @param {number} healRolled - Amount rolled (before HP cap), for overheal display
-     * @param {Object} options - Optional { isMinHeal, isMaxHeal }
-     * @param {function} callback - Called when animation completes
+     * @param {Object} options - Optional { isMinHeal, isMaxHeal, onTextComplete }
+     * @param {function} callback - Called AFTER linger delay
      */
     function showHealRoll(healerName, healAmount, healRolled, options, callback) {
         // Support old signature (healerName, healAmount, callback)
@@ -2591,6 +2973,7 @@ var BattleEngine = (function() {
             // Fallback: just show text
             var msg = healerName + ' rolled ' + healAmount + ' HEALED!';
             updateBattleLog(msg);
+            if (options.onTextComplete) options.onTextComplete();
             if (callback) callback();
             return;
         }
@@ -2598,6 +2981,7 @@ var BattleEngine = (function() {
         // Get battle log container
         var battleLog = document.getElementById('battle-log-content');
         if (!battleLog) {
+            if (options.onTextComplete) options.onTextComplete();
             if (callback) callback();
             return;
         }
@@ -2618,7 +3002,8 @@ var BattleEngine = (function() {
             isMaxHeal: options.isMaxHeal,
             hasHealAdvantage: options.hasHealAdvantage,
             hasHealDisadvantage: options.hasHealDisadvantage,
-            healRolls: options.healRolls
+            healRolls: options.healRolls,
+            onTextComplete: options.onTextComplete
         }, callback);
     }
 
@@ -2629,14 +3014,17 @@ var BattleEngine = (function() {
     }
 
     /**
-     * Apply pending damage from a result object
-     * Handles both player damage (to enemy) and enemy damage (to player)
-     * @param {Object} result - Result object containing pendingDamage and/or pendingCounter
-     * @param {string} target - 'enemy' or 'player' - who receives the damage
+     * Apply pending effects from a result object after animation completes
+     * Handles damage, healing, status effects, and counter damage with proper timing
+     * @param {Object} result - Result object containing pendingDamage, pendingHeal, pendingStatus, and/or pendingCounter
+     * @param {string} target - 'enemy' or 'player' - who receives the effect
      */
-    function applyPendingDamage(result, target) {
+    function applyPendingEffects(result, target) {
         if (!result) return;
 
+        var state = BattleCore.getState();
+
+        // Apply pending damage
         if (target === 'enemy' && result.pendingDamage) {
             BattleCore.damageEnemy(result.pendingDamage.amount, {
                 source: result.pendingDamage.source,
@@ -2649,6 +3037,19 @@ var BattleEngine = (function() {
                 type: result.pendingDamage.type,
                 isCrit: result.pendingDamage.isCrit
             });
+        }
+
+        // Apply pending heal
+        if (target === 'player' && result.pendingHeal) {
+            BattleCore.healPlayer(result.pendingHeal.amount, result.pendingHeal.source);
+        } else if (target === 'enemy' && result.pendingHeal) {
+            BattleCore.healEnemy(result.pendingHeal.amount, result.pendingHeal.source);
+        }
+
+        // Apply pending status effect
+        if (result.pendingStatus) {
+            var statusTarget = result.pendingStatus.target === 'player' ? state.player : state.enemy;
+            BattleCore.applyStatus(statusTarget, result.pendingStatus.type, result.pendingStatus.stacks || 1);
         }
 
         // Handle counter damage (player counters enemy)

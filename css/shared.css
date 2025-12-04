@@ -1156,27 +1156,29 @@
 
 .battle-stats-panel {
     position: absolute;
-    min-width: 200px;
+    min-width: 12.5rem;
     width: auto;
     z-index: var(--z-battle-ui);
-    padding: 12px 14px;
+    padding: 0.75rem 0.875rem;
     /* Base styling - themes SHOULD override these */
     background: var(--battle-panel-bg);
-    border: 2px solid var(--battle-panel-border);
-    border-radius: 6px;
+    border: 0.125rem solid var(--battle-panel-border);
+    border-radius: 0.375rem;
 }
 
 .battle-stats-panel.player-stats {
     /* Position just above the battle log panel with a small gap */
-    bottom: calc(var(--battle-log-height) + 10px);
-    left: 10px;
-    /* Fixed width to prevent layout shift when status icons appear */
-    min-width: 160px;
+    bottom: calc(var(--battle-log-height) + 0.625rem);
+    left: 0.625rem;
+    /* Fixed width for consistent summon positioning */
+    width: 18rem;
 }
 
 .battle-stats-panel.enemy-stats {
-    top: 10px;
-    right: 10px;
+    top: 0.625rem;
+    right: 0.625rem;
+    /* Fixed width for consistent summon positioning */
+    width: 18rem;
 }
 
 /* Panel header (character name) */
@@ -1187,8 +1189,8 @@
     font-size: 0.85rem;
     font-weight: bold;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 10px;
+    letter-spacing: 0.0625rem;
+    margin-bottom: 0.625rem;
     color: var(--battle-text);
     white-space: nowrap;
     min-height: 1.5em;  /* Reserve vertical space for status icons to prevent layout shift */
@@ -1215,7 +1217,7 @@
 .status-icon-slot .status-icon {
     font-size: 0.85rem;
     cursor: help;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    text-shadow: 0.0625rem 0.0625rem 0.125rem rgba(0, 0, 0, 0.8);
     line-height: 1;
 }
 
@@ -1225,20 +1227,20 @@
     display: -webkit-flex;
     display: flex;
     align-items: center;
-    margin-bottom: 6px;
+    margin-bottom: 0.375rem;
 }
 
 /* Fallback spacing for browsers without gap */
 .stat-row > * {
-    margin-right: 6px;
+    margin-right: 0.375rem;
 }
 .stat-row > *:last-child {
     margin-right: 0;
 }
 
-@supports (gap: 6px) {
+@supports (gap: 0.375rem) {
     .stat-row {
-        gap: 6px;
+        gap: 0.375rem;
     }
     .stat-row > * {
         margin-right: 0;
@@ -1249,28 +1251,28 @@
     font-size: 0.7rem;
     font-weight: bold;
     text-transform: uppercase;
-    min-width: 22px;
+    min-width: 1.375rem;
     color: var(--battle-text-dim);
 }
 
 .stat-bar-outer {
     flex: 1;
-    height: 12px;
+    height: 0.75rem;
     background: rgba(0, 0, 0, 0.5);
-    border-radius: 4px;
+    border-radius: 0.25rem;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 0.0625rem solid rgba(255, 255, 255, 0.1);
 }
 
 .stat-bar {
     height: 100%;
     transition: width 0.3s ease-out;
-    border-radius: 3px;
+    border-radius: 0.1875rem;
 }
 
 .stat-value {
     font-size: 0.65rem;
-    min-width: 36px;
+    min-width: 2.25rem;
     text-align: right;
     color: var(--battle-text);
 }
@@ -4805,72 +4807,83 @@ div.battle-log-content span.defend-duration {
    - Targeted by player attacks
    ========================================================================== */
 
-/* Summon container - positioned beside main sprite */
+/* Summon container - positioned in the battlefield area */
 .summon-container {
-    position: absolute;
-    bottom: 15%;
-    z-index: calc(var(--z-battle-ui) - 1);
+    position: fixed;  /* Use fixed to escape sprite-layer's positioning */
+    z-index: calc(var(--z-battle-ui) + 1);
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0.3rem;
     cursor: pointer;
     transition: transform 0.2s ease;
+    pointer-events: auto;  /* Override sprite-layer's pointer-events: none */
+    /* Ensure summon stays within viewport */
+    max-width: calc(100vw - 2rem);
 }
 
-/* Enemy summons appear on the right side */
+/* Enemy summons - centered below enemy stats (top right) */
 .summon-container.summon-enemy {
-    right: 8%;
+    /* Stats panel: right: 0.625rem, width: 18rem
+       Center from right = 0.625rem + 9rem = 9.625rem */
+    right: 9.625rem;
+    transform: translateX(50%);
+    /* Below enemy stats panel */
+    top: 10rem;
+    /* Ensure doesn't go off right edge */
+    max-width: calc(100vw - 4rem);
 }
 
-/* Player summons appear on the left side */
+/* Player summons - centered above player stats panel */
 .summon-container.summon-player {
-    left: 8%;
+    /* Stats panel: left: 0.625rem, width: 18rem
+       Center = 0.625rem + 9rem = 9.625rem */
+    left: 9.625rem;
+    transform: translateX(-50%);
+    top: 30%;
 }
 
 /* Summon sprite wrapper */
 .summon-sprite-wrapper {
     position: relative;
-    width: 80px;
-    height: 100px;
+    width: 5rem;
     display: flex;
-    align-items: flex-end;
     justify-content: center;
 }
 
 /* Summon sprite image */
 .summon-sprite {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
+    width: 100%;
+    height: auto;
     filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.5));
     transition: filter 0.3s ease;
 }
 
-/* Summon name label */
+/* Summon name label - never truncate */
 .summon-name {
     font-family: var(--font-ui);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     color: var(--text-main, #fff);
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8), 0 0 4px rgba(0, 0, 0, 0.6);
     text-align: center;
-    max-width: 10rem;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    /* Add background for readability */
+    background: rgba(0, 0, 0, 0.5);
+    padding: 0.15rem 0.4rem;
+    border-radius: 0.2rem;
 }
 
 /* Summon HP bar container - hidden by default, shown on hover/click */
 .summon-hp-container {
     position: absolute;
-    top: -15px;
+    top: -0.6rem;
     left: 50%;
     transform: translateX(-50%);
-    width: 60px;
-    height: 8px;
+    width: 3.75rem;
+    height: 0.4rem;
     background: rgba(0, 0, 0, 0.7);
     border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 4px;
+    border-radius: 0.2rem;
     overflow: hidden;
     opacity: 0;
     transition: opacity 0.2s ease;
@@ -4955,58 +4968,112 @@ div.battle-log-content span.defend-duration {
     }
 }
 
-/* Summon appear animation */
-.summon-container.summon-appear {
-    animation: summon-appear 0.5s ease-out forwards;
+/* Summon appear animation - separate for player/enemy to preserve centering transforms */
+.summon-container.summon-player.summon-appear {
+    animation: summon-appear-player 0.5s ease-out forwards;
 }
 
-@keyframes summon-appear {
+.summon-container.summon-enemy.summon-appear {
+    animation: summon-appear-enemy 0.5s ease-out forwards;
+}
+
+@keyframes summon-appear-player {
     0% {
-        transform: scale(0) translateY(50px);
+        transform: translateX(-50%) scale(0) translateY(3.125rem);
         opacity: 0;
     }
     70% {
-        transform: scale(1.1) translateY(-10px);
+        transform: translateX(-50%) scale(1.1) translateY(-0.625rem);
     }
     100% {
-        transform: scale(1) translateY(0);
+        transform: translateX(-50%) scale(1) translateY(0);
         opacity: 1;
     }
 }
 
-/* Summon dismiss/death animation */
-.summon-container.summon-dismiss {
-    animation: summon-dismiss 0.5s ease-in forwards;
-}
-
-@keyframes summon-dismiss {
+@keyframes summon-appear-enemy {
     0% {
-        transform: scale(1) translateY(0);
+        transform: translateX(50%) scale(0) translateY(3.125rem);
+        opacity: 0;
+    }
+    70% {
+        transform: translateX(50%) scale(1.1) translateY(-0.625rem);
+    }
+    100% {
+        transform: translateX(50%) scale(1) translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Summon dismiss/death animation - separate for player/enemy */
+.summon-container.summon-player.summon-dismiss {
+    animation: summon-dismiss-player 0.5s ease-in forwards;
+}
+
+.summon-container.summon-enemy.summon-dismiss {
+    animation: summon-dismiss-enemy 0.5s ease-in forwards;
+}
+
+@keyframes summon-dismiss-player {
+    0% {
+        transform: translateX(-50%) scale(1) translateY(0);
         opacity: 1;
     }
     100% {
-        transform: scale(0) translateY(30px);
+        transform: translateX(-50%) scale(0) translateY(1.875rem);
         opacity: 0;
     }
 }
 
-/* Summon death animation (when killed) */
-.summon-container.summon-death {
-    animation: summon-death 0.6s ease-in forwards;
+@keyframes summon-dismiss-enemy {
+    0% {
+        transform: translateX(50%) scale(1) translateY(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(50%) scale(0) translateY(1.875rem);
+        opacity: 0;
+    }
 }
 
-@keyframes summon-death {
+/* Summon death animation (when killed) - separate for player/enemy */
+.summon-container.summon-player.summon-death {
+    animation: summon-death-player 0.6s ease-in forwards;
+}
+
+.summon-container.summon-enemy.summon-death {
+    animation: summon-death-enemy 0.6s ease-in forwards;
+}
+
+@keyframes summon-death-player {
     0% {
-        transform: scale(1);
+        transform: translateX(-50%) scale(1);
         opacity: 1;
         filter: brightness(1);
     }
     30% {
-        transform: scale(1.1);
+        transform: translateX(-50%) scale(1.1);
         filter: brightness(2);
     }
     100% {
-        transform: scale(0) rotate(360deg);
+        transform: translateX(-50%) scale(0) rotate(360deg);
+        opacity: 0;
+        filter: brightness(0);
+    }
+}
+
+@keyframes summon-death-enemy {
+    0% {
+        transform: translateX(50%) scale(1);
+        opacity: 1;
+        filter: brightness(1);
+    }
+    30% {
+        transform: translateX(50%) scale(1.1);
+        filter: brightness(2);
+    }
+    100% {
+        transform: translateX(50%) scale(0) rotate(360deg);
         opacity: 0;
         filter: brightness(0);
     }
@@ -5066,30 +5133,31 @@ div.battle-log-content span.defend-duration {
 
 /* Mobile responsive summons */
 @media (max-width: 600px) {
-    .summon-container {
-        bottom: 10%;
-    }
-
     .summon-container.summon-enemy {
-        right: 5%;
+        /* Smaller panel on mobile - adjust center */
+        right: 6rem;
+        transform: translateX(50%);
+        top: 8rem;
     }
 
     .summon-container.summon-player {
-        left: 5%;
+        /* Smaller panel on mobile - adjust center */
+        left: 6rem;
+        transform: translateX(-50%);
+        top: 25%;
     }
 
     .summon-sprite-wrapper {
-        width: 60px;
-        height: 75px;
+        width: 3.5rem;
     }
 
     .summon-name {
-        font-size: 0.6rem;
+        font-size: 0.65rem;
     }
 
     .summon-hp-container {
-        width: 50px;
-        height: 6px;
+        width: 3rem;
+        height: 0.375rem;
     }
 
     .summon-expiring-indicator {

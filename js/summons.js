@@ -70,6 +70,63 @@ var summonDefinitions = {
       }
     ],
     "description": "The hapless office intern, eternally stuck in a cycle of coffee runs and paperwork. They try their best to help Agnes, though their enthusiasm often outpaces their competence. At least they're eager?"
+  },
+  "sentient_keyboard": {
+    "id": "sentient_keyboard",
+    "name": "Sentient Keyboard",
+    "sprite": "keyboard.svg",
+    "icon": "\u2328",
+    "hp": 12,
+    "ac": 10,
+    "damage": "d6",
+    "damageType": "physical",
+    "attackBonus": 2,
+    "duration": 5,
+    "canProtect": false,
+    "canAttack": true,
+    "dialogue": {
+      "summon_appear": [
+        "CLACK CLACK CLACK!",
+        "*mechanical keyboard sounds*",
+        "Ready to type some damage!"
+      ],
+      "attack": [
+        "CLICK CLACK!",
+        "*angry typing noises*",
+        "asdfghjkl;!"
+      ],
+      "low_hp": [
+        "*keys falling off*",
+        "Need... new... keycaps..."
+      ],
+      "death": [
+        "*sad beep*",
+        "Error 404: Keyboard not found..."
+      ],
+      "expire": [
+        "*powers down*",
+        "Going into sleep mode..."
+      ]
+    },
+    "moves": [
+      {
+        "name": "Key Smash",
+        "damage": "d6",
+        "type": "physical",
+        "description": "The keyboard types furiously at the enemy!"
+      },
+      {
+        "name": "Caps Lock",
+        "damage": "d4",
+        "type": "physical",
+        "statusEffect": {
+          "type": "stun",
+          "chance": 0.15
+        },
+        "description": "AN ANGRY ALL-CAPS MESSAGE STUNS THE TARGET!"
+      }
+    ],
+    "description": "A sentient mechanical keyboard that has gained consciousness through exposure to too many coffee spills and late-night coding sessions. It communicates primarily through aggressive typing sounds and occasionally coherent words."
   }
 };
 

@@ -181,10 +181,7 @@ var BattleStyleDnD = (function() {
         var defenderAC = defender.ac || 10;
         defenderAC += BattleCore.getStatusACModifier(defender);
 
-        // Add defend bonus if defending
-        if (defender.defending) {
-            defenderAC += config.defendACBonus;
-        }
+        // Note: Defending no longer provides AC bonus (removed)
 
         // Determine hit
         var hit = false;
@@ -367,13 +364,37 @@ var BattleStyleDnD = (function() {
 
     /**
      * Resolve a summon's attack
+     * @param {Object} summon - The summon object
+     * @param {Object} defender - The target being attacked
+     * @param {Object} move - Optional move object (for new enemy summon system)
      */
-    function resolveSummonAttack(summon, defender) {
-        return resolveAttack(
-            { attackBonus: 2, damage: summon.attack.damage, type: summon.attack.type },
-            defender,
-            summon.attack
-        );
+    function resolveSummonAttack(summon, defender, move) {
+        // Handle both legacy player summons (summon.attack) and new enemy summons (move parameter)
+        var attackData;
+        if (move) {
+            // New enemy summon system: move passed separately
+            attackData = {
+                attackBonus: summon.attackBonus || move.attackBonus || 0,
+                damage: move.damage || summon.damage || 'd4',
+                type: move.type || summon.damageType || 'physical'
+            };
+        } else if (summon.attack) {
+            // Legacy player summon system: attack data on summon object
+            attackData = {
+                attackBonus: 2,
+                damage: summon.attack.damage,
+                type: summon.attack.type
+            };
+        } else {
+            // Fallback: use summon's base stats
+            attackData = {
+                attackBonus: summon.attackBonus || 0,
+                damage: summon.damage || 'd4',
+                type: summon.damageType || 'physical'
+            };
+        }
+
+        return resolveAttack(attackData, defender, move || summon.attack);
     }
 
     // =========================================================================
@@ -524,19 +545,31 @@ var BattleStyleDnD = (function() {
                     healAmount = Math.floor(healAmount * healBonusMultiplier);
                 }
 
-                var healResult = BattleCore.healPlayer(healAmount, 'skill');
-                messages.push('Healed for <span class="battle-number">' + healResult.healed + ' HP</span>!');
-                result.healed = healResult.healed;
+                // Calculate pending heal (don't apply yet - wait for animation)
+                var healCalc = BattleCore.calculatePendingHeal(healAmount);
+                messages.push('Healed for <span class="battle-number">' + healCalc.healed + ' HP</span>!');
+                result.healed = healCalc.healed;
                 result.healRolled = healAmount;  // Store rolled amount for overheal display
                 result.isMinHeal = isMinHeal;
                 result.isMaxHeal = isMaxHeal;
+                // Store pending heal to apply after animation
+                result.pendingHeal = {
+                    amount: healAmount,
+                    source: 'skill'
+                };
             }
 
-            // Apply status to self (like regen)
+            // Store pending status to self (like regen) - apply after animation
             if (skill.statusEffect && skill.statusEffect.target === 'self') {
-                var selfStatus = BattleCore.applyStatus(player, skill.statusEffect.type, 1);
-                if (selfStatus.applied) {
-                    messages.push(selfStatus.message);
+                // Get the message preview without applying yet
+                var effectDef = typeof BattleData !== 'undefined' ? BattleData.getStatusEffect(skill.statusEffect.type) : null;
+                if (effectDef) {
+                    messages.push(effectDef.icon + ' Gained ' + effectDef.name + '!');
+                    result.pendingStatus = {
+                        target: 'player',
+                        type: skill.statusEffect.type,
+                        stacks: 1
+                    };
                 }
             }
 
@@ -547,12 +580,60 @@ var BattleStyleDnD = (function() {
         // Buff skill
         if (skill.isBuff) {
             if (skill.statusEffect) {
-                var buffStatus = BattleCore.applyStatus(player, skill.statusEffect.type, 1);
-                if (buffStatus.applied) {
-                    messages.push(buffStatus.message);
+                // Get the message preview without applying yet
+                var buffEffectDef = typeof BattleData !== 'undefined' ? BattleData.getStatusEffect(skill.statusEffect.type) : null;
+                if (buffEffectDef) {
+                    messages.push(buffEffectDef.icon + ' Gained ' + buffEffectDef.name + '!');
+                    result.pendingStatus = {
+                        target: 'player',
+                        type: skill.statusEffect.type,
+                        stacks: 1
+                    };
                 }
             }
             BattleCore.playSfx('buff_apply');
+            return result;
+        }
+
+        // Summon skill
+        if (skill.isSummon) {
+            var summonId = skill.summonId;
+            if (!summonId) {
+                return { success: false, reason: 'no_summon_id', messages: ['Summon skill has no target!'] };
+            }
+
+            // Check if BattleSummon module is available
+            if (typeof BattleSummon === 'undefined') {
+                return { success: false, reason: 'no_summon_module', messages: ['Summon system not available!'] };
+            }
+
+            // Spawn the player summon
+            var spawnResult = BattleSummon.spawn(summonId, 'player', 'player');
+
+            if (!spawnResult.success) {
+                // Refund mana if summon failed
+                if (skill.manaCost) {
+                    BattleCore.addMana(skill.manaCost);
+                }
+                return {
+                    success: false,
+                    reason: spawnResult.reason,
+                    messages: [spawnResult.message || 'Cannot summon!']
+                };
+            }
+
+            // Success
+            messages.push(spawnResult.message);
+
+            // Get summon dialogue if any
+            var summonDialogue = BattleSummon.getDialogue(spawnResult.summon.uid, 'summon_appear');
+            if (summonDialogue) {
+                messages.push('"' + summonDialogue + '"');
+            }
+
+            result.summonResult = spawnResult;
+            result.summon = spawnResult.summon;
+            BattleCore.playSfx('summon');
             return result;
         }
 
@@ -652,7 +733,7 @@ var BattleStyleDnD = (function() {
             manaRolled: manaRecovered,  // Amount rolled before MP cap
             isMinMana: isMinMana,
             isMaxMana: isMaxMana,
-            acBonus: config.defendACBonus,
+            acBonus: 0,  // AC bonus removed from defending
             cooldown: cooldown,  // Return cooldown for UI display
             roll: roll,
             rollResult: rollResult
@@ -1058,7 +1139,11 @@ var BattleStyleDnD = (function() {
 
         // Check if skill QTE is enabled
         var qteEnabled = T && T.qte && T.qte.enabledForSkills;
-        if (typeof QTEEngine === 'undefined' || !qteEnabled) {
+
+        // Skip QTE for summon/heal/buff skills - they don't benefit from it
+        var skipQTE = skill && (skill.isSummon || skill.isHeal || skill.isBuff);
+
+        if (typeof QTEEngine === 'undefined' || !qteEnabled || skipQTE) {
             var result = playerSkill(skillId);
             if (callback) callback(result);
             return;
@@ -1104,8 +1189,8 @@ var BattleStyleDnD = (function() {
             return { success: false, reason: 'unknown_skill', messages: ['Unknown skill!'] };
         }
 
-        // Handle heal/buff skills by delegating to playerSkill with modifiers
-        if (skill.isHeal || skill.isBuff || (skill.healAmount && !skill.damage)) {
+        // Handle heal/buff/summon skills by delegating to playerSkill with modifiers
+        if (skill.isHeal || skill.isBuff || skill.isSummon || (skill.healAmount && !skill.damage)) {
             return playerSkill(skillId, modifiers);
         }
 
@@ -1214,7 +1299,7 @@ var BattleStyleDnD = (function() {
 
         // Fumble (nat 1) absorbs bonuses but stays at 1
         var attackTotal = isFumble ? 1 : roll + attackBonus;
-        var defenderAC = (defender.ac || 10) + (defender.defending ? config.defendACBonus : 0);
+        var defenderAC = defender.ac || 10;  // Note: Defending no longer provides AC bonus
 
         var hit = isCrit ? true : (isFumble ? false : attackTotal >= defenderAC);
 
