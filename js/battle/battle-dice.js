@@ -59,7 +59,7 @@ var BattleDice = (function() {
         return {
             roll: result,
             sides: 20,
-            isCrit: result === 20,
+            isCrit: result >= 20,
             isFumble: result === 1
         };
     }
@@ -120,7 +120,7 @@ var BattleDice = (function() {
 
         return {
             roll: result,
-            isCrit: result === 20,
+            isCrit: result >= 20,
             isFumble: result === 1,
             rolls: [roll1, roll2],
             advantage: true
@@ -138,7 +138,7 @@ var BattleDice = (function() {
 
         return {
             roll: result,
-            isCrit: result === 20,
+            isCrit: result >= 20,
             isFumble: result === 1,
             rolls: [roll1, roll2],
             disadvantage: true

@@ -68,7 +68,7 @@ var BattleStyleDnD = (function() {
         }
         // Fallback
         var roll = Math.floor(Math.random() * 20) + 1;
-        return { roll: roll, isCrit: roll === 20, isFumble: roll === 1 };
+        return { roll: roll, isCrit: roll >= 20, isFumble: roll === 1 };
     }
 
     /**
