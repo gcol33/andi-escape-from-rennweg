@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 80">
+  <!-- Body - business casual shirt -->
+  <rect x="18" y="35" width="24" height="30" rx="3" fill="#4a90d9"/>
+
+  <!-- Collar -->
+  <polygon points="25,35 30,42 35,35" fill="#fff"/>
+
+  <!-- Tie -->
+  <polygon points="28,42 30,65 32,42" fill="#c44"/>
+
+  <!-- Arms -->
+  <rect x="10" y="38" width="8" height="20" rx="3" fill="#4a90d9"/>
+  <rect x="42" y="38" width="8" height="20" rx="3" fill="#4a90d9"/>
+
+  <!-- Hands holding clipboard -->
+  <circle cx="14" cy="60" r="4" fill="#e8b89d"/>
+  <circle cx="46" cy="60" r="4" fill="#e8b89d"/>
+
+  <!-- Clipboard -->
+  <rect x="16" y="55" width="28" height="20" rx="2" fill="#8b7355"/>
+  <rect x="18" y="58" width="24" height="15" fill="#fff"/>
+  <!-- Paper lines -->
+  <line x1="20" y1="62" x2="40" y2="62" stroke="#ccc" stroke-width="1"/>
+  <line x1="20" y1="66" x2="38" y2="66" stroke="#ccc" stroke-width="1"/>
+  <line x1="20" y1="70" x2="35" y2="70" stroke="#ccc" stroke-width="1"/>
+
+  <!-- Head -->
+  <ellipse cx="30" cy="20" rx="14" ry="16" fill="#e8b89d"/>
+
+  <!-- Hair - messy/nervous -->
+  <ellipse cx="30" cy="8" rx="12" ry="6" fill="#5c4033"/>
+  <ellipse cx="22" cy="10" rx="4" ry="5" fill="#5c4033"/>
+  <ellipse cx="38" cy="10" rx="4" ry="5" fill="#5c4033"/>
+
+  <!-- Nervous eyes - wide -->
+  <ellipse cx="24" cy="18" rx="4" ry="5" fill="#fff"/>
+  <ellipse cx="36" cy="18" rx="4" ry="5" fill="#fff"/>
+  <circle cx="24" cy="19" r="2.5" fill="#4a3728"/>
+  <circle cx="36" cy="19" r="2.5" fill="#4a3728"/>
+  <!-- Pupils -->
+  <circle cx="24" cy="19" r="1" fill="#111"/>
+  <circle cx="36" cy="19" r="1" fill="#111"/>
+
+  <!-- Worried eyebrows -->
+  <line x1="20" y1="12" x2="27" y2="14" stroke="#5c4033" stroke-width="2" stroke-linecap="round"/>
+  <line x1="40" y1="12" x2="33" y2="14" stroke="#5c4033" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Nervous smile -->
+  <path d="M24,28 Q30,31 36,28" stroke="#a87b5a" stroke-width="1.5" fill="none"/>
+
+  <!-- Sweat drop -->
+  <ellipse cx="44" cy="15" rx="2" ry="3" fill="#7cb9e8"/>
+
+  <!-- Neck -->
+  <rect x="26" y="33" width="8" height="4" fill="#e8b89d"/>
+</svg>

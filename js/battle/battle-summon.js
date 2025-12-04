@@ -56,8 +56,8 @@ var BattleSummon = (function() {
         interceptChance: _hasTuning && TUNING.battle.summon
             ? TUNING.battle.summon.interceptChance
             : 0.4,
-        // Turns remaining to trigger "expiring soon" warning
-        expiringWarnTurns: 2
+        // Turns remaining to trigger "expiring soon" warning (blink when 1 turn left)
+        expiringWarnTurns: 1
     };
 
     // =========================================================================
@@ -414,12 +414,13 @@ var BattleSummon = (function() {
     /**
      * Check if a summon should intercept an attack aimed at master
      * @param {string} summonerId - ID of the potential master
-     * @param {number} masterHpPercent - Master's HP as percentage (0-1)
+     * @param {number} masterCurrentHp - Master's current HP
+     * @param {number} incomingDamage - Damage that would be dealt to master
      * @returns {Object|null} Summon that will intercept, or null
      */
-    function checkIntercept(summonerId, masterHpPercent) {
-        // Only intercept if master is low HP
-        if (masterHpPercent > config.masterLowHpThreshold) {
+    function checkIntercept(summonerId, masterCurrentHp, incomingDamage) {
+        // Only intercept if attack would kill the master
+        if (masterCurrentHp > incomingDamage) {
             return null;
         }
 
@@ -430,10 +431,8 @@ var BattleSummon = (function() {
             if (!summon.canProtect) continue;
             if (summon.hp <= 0) continue;
 
-            // Roll for intercept
-            if (Math.random() < config.interceptChance) {
-                return summon;
-            }
+            // First available summon intercepts (100% chance)
+            return summon;
         }
 
         return null;

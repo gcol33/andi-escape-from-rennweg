@@ -1743,15 +1743,11 @@ var BattleUI = (function() {
         var spriteWrapper = document.createElement('div');
         spriteWrapper.className = 'summon-sprite-wrapper';
 
-        // HP container (hidden by default)
-        var hpContainer = document.createElement('div');
-        hpContainer.className = 'summon-hp-container';
-
-        var hpBar = document.createElement('div');
-        hpBar.className = 'summon-hp-bar';
-        hpBar.style.width = displayData.hpPercent + '%';
-        hpContainer.appendChild(hpBar);
-        spriteWrapper.appendChild(hpContainer);
+        // Duration indicator (always shown)
+        var durationIndicator = document.createElement('div');
+        durationIndicator.className = 'summon-duration-indicator';
+        durationIndicator.textContent = displayData.turnsRemaining;
+        spriteWrapper.appendChild(durationIndicator);
 
         // Sprite image
         if (displayData.sprite) {
@@ -1818,40 +1814,17 @@ var BattleUI = (function() {
         var container = document.getElementById('summon-' + displayData.uid);
         if (!container) return;
 
-        // Update HP bar
-        var hpBar = container.querySelector('.summon-hp-bar');
-        if (hpBar) {
-            hpBar.style.width = displayData.hpPercent + '%';
+        // Update duration indicator
+        var durationIndicator = container.querySelector('.summon-duration-indicator');
+        if (durationIndicator) {
+            durationIndicator.textContent = displayData.turnsRemaining;
         }
 
-        // Update low HP state
-        if (displayData.isLowHp) {
-            container.classList.add('summon-low-hp');
-        } else {
-            container.classList.remove('summon-low-hp');
-        }
-
-        // Update expiring warning state
+        // Update expiring warning state (blink when 1 turn left)
         if (displayData.isExpiringWarning) {
             container.classList.add('summon-expiring');
-
-            // Add/update expiring indicator
-            var indicator = container.querySelector('.summon-expiring-indicator');
-            if (!indicator) {
-                indicator = document.createElement('div');
-                indicator.className = 'summon-expiring-indicator';
-                var wrapper = container.querySelector('.summon-sprite-wrapper');
-                if (wrapper) {
-                    wrapper.appendChild(indicator);
-                }
-            }
-            indicator.textContent = displayData.turnsRemaining;
         } else {
             container.classList.remove('summon-expiring');
-            var indicator = container.querySelector('.summon-expiring-indicator');
-            if (indicator) {
-                indicator.parentNode.removeChild(indicator);
-            }
         }
     }
 

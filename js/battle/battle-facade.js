@@ -715,6 +715,12 @@ var BattleEngine = (function() {
 
         var endInfo = BattleCore.endBattle(result);
 
+        // Mark battle as won if victory
+        if (result === 'win' && vnEngine && vnEngine.markBattleWon) {
+            var battleSceneId = BattleCore.getState().sceneId;
+            vnEngine.markBattleWon(battleSceneId);
+        }
+
         // Show outro transition
         showBattleOutro(result, function() {
             hideUI();
@@ -1115,26 +1121,39 @@ var BattleEngine = (function() {
      * Called from onTextComplete to apply effects before linger
      */
     function applyPlayerAttackEffects(result) {
-        // Show damage number if attack hit
-        if (result.attackResult && result.attackResult.hit) {
-            var damageType = 'damage';
-            if (result.attackResult.isCrit) {
-                damageType = 'crit';
-            } else if (result.attackResult.isMaxDamage) {
-                damageType = 'maxdamage';
-            } else if (result.attackResult.isMinDamage) {
-                damageType = 'mindamage';
-            }
-            showDamageNumber(result.attackResult.damage, 'enemy', damageType);
-        }
-
-        // Show miss via floating text
-        if (result.attackResult && !result.attackResult.hit) {
-            showDamageNumber(0, 'enemy', 'miss');
-        }
-
-        // Apply pending damage
+        // Apply pending damage (includes intercept check)
         applyPendingEffects(result, 'enemy');
+
+        // Check if summon intercepted
+        if (result.intercepted) {
+            // Show damage on the summon sprite, not enemy
+            var damageType = result.attackResult && result.attackResult.isCrit ? 'crit' : 'damage';
+            showDamageNumber(result.intercepted.damage, 'summon', damageType);
+
+            // Hide summon sprite if it died
+            if (result.intercepted.killed && _hasBattleUI && BattleUI.hideSummonSprite) {
+                BattleUI.hideSummonSprite(result.intercepted.summon.uid, 'killed');
+            }
+        } else {
+            // Normal damage to enemy
+            if (result.attackResult && result.attackResult.hit) {
+                var damageType = 'damage';
+                if (result.attackResult.isCrit) {
+                    damageType = 'crit';
+                } else if (result.attackResult.isMaxDamage) {
+                    damageType = 'maxdamage';
+                } else if (result.attackResult.isMinDamage) {
+                    damageType = 'mindamage';
+                }
+                showDamageNumber(result.attackResult.damage, 'enemy', damageType);
+            }
+
+            // Show miss via floating text
+            if (result.attackResult && !result.attackResult.hit) {
+                showDamageNumber(0, 'enemy', 'miss');
+            }
+        }
+
         updateDisplay();
     }
 
@@ -1142,6 +1161,15 @@ var BattleEngine = (function() {
         options = options || {};
         var state = BattleCore.getState();
         messages = messages.concat(result.messages || []);
+
+        // Add intercept message if summon blocked the attack
+        if (result.intercepted) {
+            var interceptMsg = result.intercepted.summon.icon + ' ' + result.intercepted.summon.name + ' jumps in front!';
+            if (result.intercepted.killed) {
+                interceptMsg += ' ' + result.intercepted.summon.name + ' was defeated!';
+            }
+            messages.push(interceptMsg);
+        }
 
         // If effects weren't already applied (via onTextComplete), apply them now
         if (!options.effectsApplied) {
@@ -1263,9 +1291,12 @@ var BattleEngine = (function() {
     }
 
     function proceedToEnemyTurn(actionType, messages, callback) {
-        scheduleTimeout(function() {
-            processEnemyTurn(messages, callback, { playerAction: actionType });
-        }, config.timing.enemyTurnDelay);
+        // Process player summon turn first (decrement duration at end of player turn)
+        processPlayerSummonTurn(function() {
+            scheduleTimeout(function() {
+                processEnemyTurn(messages, callback, { playerAction: actionType });
+            }, config.timing.enemyTurnDelay);
+        });
     }
 
     /**
@@ -1905,13 +1936,12 @@ var BattleEngine = (function() {
 
         // Process each summon action
         var actionIndex = 0;
-        var allMessages = result.messages.slice();
 
         function processNextAction() {
             if (actionIndex >= result.actions.length) {
-                // All actions done
-                if (allMessages.length > 0) {
-                    updateBattleLog(allMessages.join('<br>'), null, function() {
+                // All actions done - show any remaining messages from expiration
+                if (result.messages && result.messages.length > 0) {
+                    updateBattleLog(result.messages.join('<br>'), null, function() {
                         updateDisplay();
                         callback();
                     });
@@ -1936,45 +1966,54 @@ var BattleEngine = (function() {
                     attackResult = { hit: true, damage: damage };
                 }
 
-                // Store result for deferred damage
-                var hitResult = attackResult.hit ? {
-                    damage: attackResult.damage,
-                    type: action.move.type || 'physical'
-                } : null;
-
+                // Build combined message (no dice roll animation for summons - too long)
+                var message;
                 if (attackResult.hit) {
-                    allMessages.push(action.summon.name + ' uses ' + action.move.name +
-                        ' for <span class="battle-number">' + attackResult.damage + ' damage</span>!');
+                    message = action.summon.name + ' attacks and deals ' +
+                        '<span class="battle-number">' + attackResult.damage + ' damage</span>!';
                 } else {
-                    allMessages.push(action.summon.name + '\'s ' + action.move.name + ' missed!');
+                    message = action.summon.name + ' attacks and misses!';
                 }
 
-                // Small delay between summon actions - apply damage after delay
-                scheduleTimeout(function() {
-                    if (hitResult) {
-                        BattleCore.damagePlayer(hitResult.damage, {
-                            source: 'summon',
-                            type: hitResult.type
-                        });
-                        showDamageNumber(hitResult.damage, 'player', 'damage');
-                    }
-                    updateDisplay();
+                // Show message with deferred damage application
+                updateBattleLog(message, null, function() {
+                    // After linger, check for death and continue
                     if (checkEnd()) return;
                     processNextAction();
-                }, 400);
+                }, {
+                    onTextComplete: function() {
+                        // Apply damage when text finishes (before linger)
+                        if (attackResult.hit) {
+                            BattleCore.damagePlayer(attackResult.damage, {
+                                source: 'summon',
+                                type: action.move.type || 'physical'
+                            });
+                            showDamageNumber(attackResult.damage, 'player', 'damage');
+                        } else {
+                            // Show miss floating number
+                            showDamageNumber(0, 'player', 'miss');
+                        }
+                        updateDisplay();
+                    }
+                });
             } else if (action.type === 'heal') {
                 // Summon healing (heals their master, the enemy)
                 var healAmount = action.amount;
-                allMessages.push(action.summon.name + ' heals ' + state.enemy.name +
-                    ' for <span class="battle-number">' + healAmount + ' HP</span>!');
+                var message = action.summon.name + ' heals ' + state.enemy.name +
+                    ' for <span class="battle-number">' + healAmount + ' HP</span>!';
 
-                // Apply heal after delay to sync with UI
-                scheduleTimeout(function() {
-                    BattleCore.healEnemy(healAmount, 'summon');
-                    showDamageNumber(healAmount, 'enemy', 'heal');
-                    updateDisplay();
+                // Show message with deferred heal application
+                updateBattleLog(message, null, function() {
+                    // After linger, continue
                     processNextAction();
-                }, 400);
+                }, {
+                    onTextComplete: function() {
+                        // Apply heal when text finishes (before linger)
+                        BattleCore.healEnemy(healAmount, 'summon');
+                        showDamageNumber(healAmount, 'enemy', 'heal');
+                        updateDisplay();
+                    }
+                });
             } else {
                 // Unknown action type
                 processNextAction();
@@ -1998,6 +2037,82 @@ var BattleEngine = (function() {
         }
 
         processNextAction();
+    }
+
+    /**
+     * Process player summon turn (called after enemy summons, before player turn starts)
+     * @param {Function} callback - Completion callback
+     */
+    function processPlayerSummonTurn(callback) {
+        if (!_hasBattleSummon) {
+            callback();
+            return;
+        }
+
+        var playerSummon = BattleSummon.getPlayerSummon();
+        if (!playerSummon) {
+            callback();
+            return;
+        }
+
+        var state = BattleCore.getState();
+        var style = getActiveStyle();
+        var result = BattleSummon.processPlayerSummonTurn(state.enemy, style);
+
+        if (!result.acted) {
+            callback();
+            return;
+        }
+
+        // Build messages
+        var messages = result.messages || [];
+
+        // Show messages and apply effects
+        if (messages.length > 0) {
+            updateBattleLog(messages.join('<br>'), null, function() {
+                // Update display to show summon is gone if expired
+                if (result.expired && _hasBattleUI && BattleUI.hideSummonSprite) {
+                    var summonData = BattleSummon.getDisplayData(playerSummon.uid);
+                    if (summonData) {
+                        BattleUI.hideSummonSprite(summonData.uid, 'dismiss');
+                    }
+                }
+                updateDisplay();
+                callback();
+            }, {
+                onTextComplete: function() {
+                    // Apply heal if any
+                    if (result.healResult) {
+                        BattleCore.healPlayer(result.healResult.amount, 'summon');
+                        showDamageNumber(result.healResult.amount, 'player', 'heal');
+                    }
+
+                    // Apply attack damage if any
+                    if (result.attackResult && result.attackResult.hit) {
+                        BattleCore.damageEnemy(result.attackResult.damage, {
+                            source: 'summon',
+                            type: result.attackResult.type || 'physical'
+                        });
+                        showDamageNumber(result.attackResult.damage, 'enemy', 'damage');
+                    }
+
+                    // Update display to show current summon state
+                    if (!result.expired) {
+                        var currentSummon = BattleSummon.getPlayerSummon();
+                        if (currentSummon && _hasBattleUI && BattleUI.updateSummonSprite) {
+                            var displayData = BattleSummon.getDisplayData(currentSummon.uid);
+                            if (displayData) {
+                                BattleUI.updateSummonSprite(displayData);
+                            }
+                        }
+                    }
+
+                    updateDisplay();
+                }
+            });
+        } else {
+            callback();
+        }
     }
 
     function executeEnemyAttack(style, messages, callback) {
@@ -3026,11 +3141,43 @@ var BattleEngine = (function() {
 
         // Apply pending damage
         if (target === 'enemy' && result.pendingDamage) {
-            BattleCore.damageEnemy(result.pendingDamage.amount, {
-                source: result.pendingDamage.source,
-                type: result.pendingDamage.type,
-                isCrit: result.pendingDamage.isCrit
-            });
+            // Check if enemy summon should intercept (only if attack would kill enemy)
+            var interceptingSummon = null;
+            if (_hasBattleSummon) {
+                var enemy = state.enemy;
+                interceptingSummon = BattleSummon.checkIntercept(
+                    enemy.id,
+                    enemy.hp,
+                    result.pendingDamage.amount
+                );
+            }
+
+            if (interceptingSummon) {
+                // Summon takes the hit instead!
+                var interceptResult = BattleSummon.takeDamage(
+                    interceptingSummon.uid,
+                    result.pendingDamage.amount,
+                    {
+                        source: result.pendingDamage.source,
+                        type: result.pendingDamage.type,
+                        isCrit: result.pendingDamage.isCrit
+                    }
+                );
+
+                // Store intercept info for later display
+                result.intercepted = {
+                    summon: interceptingSummon,
+                    damage: result.pendingDamage.amount,
+                    killed: interceptResult.killed
+                };
+            } else {
+                // Normal damage to enemy
+                BattleCore.damageEnemy(result.pendingDamage.amount, {
+                    source: result.pendingDamage.source,
+                    type: result.pendingDamage.type,
+                    isCrit: result.pendingDamage.isCrit
+                });
+            }
         } else if (target === 'player' && result.pendingDamage) {
             BattleCore.damagePlayer(result.pendingDamage.amount, {
                 source: result.pendingDamage.source,

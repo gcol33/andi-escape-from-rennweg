@@ -376,21 +376,24 @@ var BattleStyleDnD = (function() {
             attackData = {
                 attackBonus: summon.attackBonus || move.attackBonus || 0,
                 damage: move.damage || summon.damage || 'd4',
-                type: move.type || summon.damageType || 'physical'
+                type: move.type || summon.damageType || 'physical',
+                statuses: summon.statuses || []  // Ensure statuses array exists
             };
         } else if (summon.attack) {
             // Legacy player summon system: attack data on summon object
             attackData = {
                 attackBonus: 2,
                 damage: summon.attack.damage,
-                type: summon.attack.type
+                type: summon.attack.type,
+                statuses: summon.statuses || []  // Ensure statuses array exists
             };
         } else {
             // Fallback: use summon's base stats
             attackData = {
                 attackBonus: summon.attackBonus || 0,
                 damage: summon.damage || 'd4',
-                type: summon.damageType || 'physical'
+                type: summon.damageType || 'physical',
+                statuses: summon.statuses || []  // Ensure statuses array exists
             };
         }
 

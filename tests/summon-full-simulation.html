@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Summon Duration Simulation</title>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        .turn { margin: 10px 0; padding: 10px; background: #f0f0f0; }
+        .error { color: red; font-weight: bold; }
+        .success { color: green; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h2>Enemy Summon Duration Test</h2>
+    <div id="log"></div>
+
+    <script>
+        var log = document.getElementById('log');
+
+        function addLog(msg, className) {
+            var div = document.createElement('div');
+            div.textContent = msg;
+            if (className) div.className = className;
+            log.appendChild(div);
+        }
+
+        // Simulate BattleSummon.processTurn logic
+        function simulateSummonTurn(summon) {
+            addLog('  Before turn: turnsRemaining = ' + summon.turnsRemaining);
+
+            // This is what happens in processTurn
+            summon.turnsRemaining--;
+            summon.isExpiringWarning = summon.turnsRemaining <= 1 && summon.turnsRemaining > 0;
+
+            var expired = summon.turnsRemaining <= 0;
+
+            addLog('  After turn: turnsRemaining = ' + summon.turnsRemaining + ' (expired: ' + expired + ')');
+
+            return { expired: expired };
+        }
+
+        // Test setup
+        var summon = {
+            uid: 'test_intern_1',
+            name: 'Office Intern',
+            turnsRemaining: 4,
+            maxDuration: 4,
+            isExpiringWarning: false
+        };
+
+        addLog('=== SIMULATION START ===', 'turn');
+        addLog('Initial summon state:');
+        addLog('  turnsRemaining: ' + summon.turnsRemaining);
+        addLog('  maxDuration: ' + summon.maxDuration);
+        addLog('');
+
+        // Simulate battle turns
+        for (var turn = 1; turn <= 6; turn++) {
+            addLog('TURN ' + turn, 'turn');
+            addLog('Enemy summon acts:');
+
+            var result = simulateSummonTurn(summon);
+
+            if (result.expired) {
+                addLog('SUMMON EXPIRED!', 'success');
+                break;
+            }
+
+            if (summon.isExpiringWarning) {
+                addLog('  WARNING: Summon expiring next turn!');
+            }
+
+            addLog('');
+        }
+
+        addLog('');
+        addLog('=== SIMULATION COMPLETE ===', 'turn');
+        addLog('Expected: Summon should expire after 4 turns');
+        addLog('Actual: Summon expired after ' + turn + ' turns', turn === 4 ? 'success' : 'error');
+    </script>
+</body>
+</html>
