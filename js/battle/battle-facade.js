@@ -1121,8 +1121,13 @@ var BattleEngine = (function() {
      * Called from onTextComplete to apply effects before linger
      */
     function applyPlayerAttackEffects(result) {
+        console.log('[applyPlayerAttackEffects] Called with result:', result);
+        console.log('[applyPlayerAttackEffects] pendingDamage:', result.pendingDamage);
+
         // Apply pending damage (includes intercept check)
         applyPendingEffects(result, 'enemy');
+
+        console.log('[applyPlayerAttackEffects] After applyPendingEffects, intercepted:', result.intercepted);
 
         // Check if summon intercepted
         if (result.intercepted) {
@@ -3139,20 +3144,27 @@ var BattleEngine = (function() {
 
         var state = BattleCore.getState();
 
+        console.log('[applyPendingEffects] target:', target, 'pendingDamage:', result.pendingDamage);
+
         // Apply pending damage
         if (target === 'enemy' && result.pendingDamage) {
+            console.log('[applyPendingEffects] Processing enemy damage:', result.pendingDamage.amount);
             // Check if enemy summon should intercept (only if attack would kill enemy)
             var interceptingSummon = null;
+            console.log('[applyPendingEffects] _hasBattleSummon:', _hasBattleSummon);
             if (_hasBattleSummon) {
                 var enemy = state.enemy;
+                console.log('[applyPendingEffects] Checking intercept for enemy:', enemy.id, 'HP:', enemy.hp, 'damage:', result.pendingDamage.amount);
                 interceptingSummon = BattleSummon.checkIntercept(
                     enemy.id,
                     enemy.hp,
                     result.pendingDamage.amount
                 );
+                console.log('[applyPendingEffects] interceptingSummon:', interceptingSummon);
             }
 
             if (interceptingSummon) {
+                console.log('[applyPendingEffects] INTERCEPT! Summon takes damage instead');
                 // Summon takes the hit instead!
                 var interceptResult = BattleSummon.takeDamage(
                     interceptingSummon.uid,
@@ -3172,6 +3184,7 @@ var BattleEngine = (function() {
                 };
             } else {
                 // Normal damage to enemy
+                console.log('[applyPendingEffects] NO INTERCEPT - applying damage to enemy:', result.pendingDamage.amount);
                 BattleCore.damageEnemy(result.pendingDamage.amount, {
                     source: result.pendingDamage.source,
                     type: result.pendingDamage.type,
