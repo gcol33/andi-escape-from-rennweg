@@ -56,8 +56,7 @@ var battlePokemonCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle
 eval(battlePokemonCode);
 var battleExp33Code = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-exp33.js'), 'utf8');
 eval(battleExp33Code);
-var battleFinalizedCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-finalized.js'), 'utf8');
-eval(battleFinalizedCode);
+// Note: battle-finalized.js was removed/merged - skipping
 var battleFacadeCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-facade.js'), 'utf8');
 eval(battleFacadeCode);
 

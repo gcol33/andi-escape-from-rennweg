@@ -59,12 +59,12 @@ const playerConfig = {
       "description": "A shard of ice that may slow the target."
     },
     {
-      "id": "summon_intern",
-      "name": "Summon Intern",
+      "id": "summon_keyboard",
+      "name": "Summon Keyboard",
       "isSummon": true,
-      "summonId": "office_intern",
+      "summonId": "sentient_keyboard",
       "manaCost": 5,
-      "description": "Call upon a helpful office intern to assist in battle!"
+      "description": "Summon a sentient mechanical keyboard to type furiously at enemies!"
     }
   ]
 };

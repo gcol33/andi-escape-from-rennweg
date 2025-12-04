@@ -706,13 +706,14 @@ var BattleDiceUI = (function() {
      * "Agnes rolled 18 HIT! deals 6 + 2 (CRIT)"
      * "Agnes rolled 18 HIT! deals 8 DAMAGE"
      *
-     * @param {Object} options
-     * @param {function} callback
+     * @param {Object} options - { container, attacker, rollResult, hit, damage, ..., onTextComplete }
+     * @param {function} callback - Called AFTER linger delay
      */
     function showAttackRoll(options, callback) {
         var container = options.container;
         var rollResult = options.rollResult;
         var isPlayer = options.isPlayer !== false;
+        var onTextComplete = options.onTextComplete;  // Called BEFORE linger
 
         // Single line for everything
         var line = document.createElement('div');
@@ -821,6 +822,8 @@ var BattleDiceUI = (function() {
                 }
 
                 if (!options.hit) {
+                    // Miss - call onTextComplete before linger
+                    if (onTextComplete) onTextComplete();
                     diceTimeout(callback, config.lingerDelay);
                     return;
                 }
@@ -932,6 +935,8 @@ var BattleDiceUI = (function() {
                 damageText.textContent = KEYWORDS.DAMAGE;
                 line.appendChild(damageText);
 
+                // Call onTextComplete before linger (so effects apply when text finishes)
+                if (onTextComplete) onTextComplete();
                 diceTimeout(callback, config.lingerDelay);
             }
         });
@@ -1228,8 +1233,8 @@ var BattleDiceUI = (function() {
      * Format: "Andi rolled 5 HEALED!" or "Andi rolled 5 (-2) → 3 HEALED!" for overheal
      * Supports advantage/disadvantage: shows 2 dice rolling, winner pops up
      *
-     * @param {Object} options - { container, healAmount, healRolled, healer, isMaxHeal, isMinHeal, hasHealAdvantage, hasHealDisadvantage, healRolls }
-     * @param {function} callback
+     * @param {Object} options - { container, healAmount, healRolled, healer, isMaxHeal, isMinHeal, hasHealAdvantage, hasHealDisadvantage, healRolls, onTextComplete }
+     * @param {function} callback - Called AFTER linger delay
      */
     function showHealRoll(options, callback) {
         var container = options.container;
@@ -1237,10 +1242,12 @@ var BattleDiceUI = (function() {
         var healRolled = options.healRolled || healAmount;  // Rolled amount (before cap)
         var healerName = options.healer || 'Enemy';
         var overheal = healRolled - healAmount;     // Amount wasted due to HP cap
+        var onTextComplete = options.onTextComplete;  // Called BEFORE linger
 
         // Defensive check for container
         if (!container) {
             console.warn('[BattleDiceUI] showHealRoll: container is null');
+            if (onTextComplete) onTextComplete();
             if (callback) callback();
             return;
         }
@@ -1275,10 +1282,10 @@ var BattleDiceUI = (function() {
                 animateAdvantageHealRoll(line, healAdvResult, function(healNum) {
                     // If there's overheal, show the reduction then collapse
                     if (overheal > 0) {
-                        showOverhealCollapse(line, healNum, healRolled, overheal, healAmount, healResultCategory, callback);
+                        showOverhealCollapse(line, healNum, healRolled, overheal, healAmount, healResultCategory, callback, onTextComplete);
                     } else {
                         // No overheal - just show HEALED!
-                        finishHealDisplay(line, healResultCategory, callback);
+                        finishHealDisplay(line, healResultCategory, callback, onTextComplete);
                     }
                 });
             } else {
@@ -1308,10 +1315,10 @@ var BattleDiceUI = (function() {
 
                     // If there's overheal, show the reduction then collapse
                     if (overheal > 0) {
-                        showOverhealCollapse(line, healNum, healRolled, overheal, healAmount, healResultCategory, callback);
+                        showOverhealCollapse(line, healNum, healRolled, overheal, healAmount, healResultCategory, callback, onTextComplete);
                     } else {
                         // No overheal - just show HEALED!
-                        finishHealDisplay(line, healResultCategory, callback);
+                        finishHealDisplay(line, healResultCategory, callback, onTextComplete);
                     }
                 }, 'heal');
             }
@@ -1420,8 +1427,9 @@ var BattleDiceUI = (function() {
     /**
      * Show overheal modifier then collapse to final value
      * Example: 5 (-2) → 3
+     * @param {function} onTextComplete - Called BEFORE linger delay (optional)
      */
-    function showOverhealCollapse(line, healNum, healRolled, overheal, finalHeal, healResultCategory, callback) {
+    function showOverhealCollapse(line, healNum, healRolled, overheal, finalHeal, healResultCategory, callback, onTextComplete) {
         // Show the overheal modifier
         var modSpan = document.createElement('span');
         modSpan.className = 'mod-part mod-animate-in';
@@ -1441,7 +1449,7 @@ var BattleDiceUI = (function() {
                 diceTimeout(function() {
                     healNum.classList.remove('dice-pop');
                     // Show HEALED!
-                    finishHealDisplay(line, healResultCategory, callback);
+                    finishHealDisplay(line, healResultCategory, callback, onTextComplete);
                 }, 200);
             }, 250);
         }, 400);
@@ -1449,8 +1457,12 @@ var BattleDiceUI = (function() {
 
     /**
      * Finish heal display with HEALED! text
+     * @param {Element} line - The DOM element to append to
+     * @param {string} healResultCategory - 'normal', 'max', or 'min'
+     * @param {function} callback - Called AFTER linger delay
+     * @param {function} onTextComplete - Called BEFORE linger delay (optional)
      */
-    function finishHealDisplay(line, healResultCategory, callback) {
+    function finishHealDisplay(line, healResultCategory, callback, onTextComplete) {
         // Add space before result
         var space = document.createTextNode(' ');
         line.appendChild(space);
@@ -1463,6 +1475,11 @@ var BattleDiceUI = (function() {
 
         // Play heal sound
         playSfx('heal.ogg');
+
+        // Call onTextComplete BEFORE linger (so effects apply when text finishes)
+        if (onTextComplete) {
+            onTextComplete();
+        }
 
         diceTimeout(callback, config.lingerDelay);
     }
@@ -1529,49 +1546,64 @@ var BattleDiceUI = (function() {
         }
 
         // Phase 1: Type intro text then defender name
-        typewriter(line, defenderName + ' assumes a defensive stance, Kung-Fu Panda style! ' + defenderName + ' increases defense ', function() {
-            // Show AC bonus in dark green (normal font size)
-            var acSpan = document.createElement('span');
-            acSpan.className = 'ac-bonus-text';
-            line.appendChild(acSpan);
+        // If no AC bonus, use simpler text without AC mention
+        var introText = acBonus > 0
+            ? defenderName + ' assumes a defensive stance, Kung-Fu Panda style! ' + defenderName + ' increases defense '
+            : defenderName + ' assumes a defensive stance and rolls ';
 
-            typewriter(acSpan, '+' + acBonus + ' AC', function() {
-                // Fire the AC complete callback (for floating +AC number)
-                if (onACComplete) {
-                    onACComplete(acBonus);
-                }
+        typewriter(line, introText, function() {
+            // Only show AC bonus if > 0
+            if (acBonus > 0) {
+                // Show AC bonus in dark green (normal font size)
+                var acSpan = document.createElement('span');
+                acSpan.className = 'ac-bonus-text';
+                line.appendChild(acSpan);
 
-                // Add " and rolls " text with typewriter
-                typewriter(line, ' and rolls ', function() {
-                    // Create dice element
-                    var diceNum = document.createElement('strong');
-                    diceNum.className = 'dice-number';
-                    diceNum.textContent = '?';
-                    line.appendChild(diceNum);
+                typewriter(acSpan, '+' + acBonus + ' AC', function() {
+                    // Fire the AC complete callback (for floating +AC number)
+                    if (onACComplete) {
+                        onACComplete(acBonus);
+                    }
 
-                    // Animate the roll with appropriate type (grey if 0 MP, blue otherwise)
-                    animateRoll(diceNum, rollResult, function() {
-                        // Add result text with typewriter
-                        typewriter(line, '... Recovered ', function() {
-                            // Show MP - show rolled amount first if there's overmana
-                            var manaSpan = document.createElement('span');
-                            manaSpan.className = 'dice-number ' + manaColorClass;
-                            line.appendChild(manaSpan);
-
-                            var displayMana = overmana > 0 ? manaRolled : manaRecovered;
-                            typewriter(manaSpan, '+' + displayMana, function() {
-                                // If there's overmana, show collapse animation
-                                if (overmana > 0) {
-                                    showOvermanaCollapse(line, manaSpan, manaRolled, overmana, manaRecovered, cooldown, finishWithCooldown);
-                                } else {
-                                    // No overmana - just finish with MP! and cooldown
-                                    typewriter(line, ' ' + KEYWORDS.MP, finishWithCooldown);
-                                }
-                            });
-                        });
-                    }, rollType);
+                    // Add " and rolls " text with typewriter
+                    typewriter(line, ' and rolls ', function() {
+                        showDiceRoll();
+                    });
                 });
-            });
+            } else {
+                // No AC bonus - go straight to dice roll
+                showDiceRoll();
+            }
+
+            function showDiceRoll() {
+                // Create dice element
+                var diceNum = document.createElement('strong');
+                diceNum.className = 'dice-number';
+                diceNum.textContent = '?';
+                line.appendChild(diceNum);
+
+                // Animate the roll with appropriate type (grey if 0 MP, blue otherwise)
+                animateRoll(diceNum, rollResult, function() {
+                    // Add result text with typewriter
+                    typewriter(line, '... Recovered ', function() {
+                        // Show MP - show rolled amount first if there's overmana
+                        var manaSpan = document.createElement('span');
+                        manaSpan.className = 'dice-number ' + manaColorClass;
+                        line.appendChild(manaSpan);
+
+                        var displayMana = overmana > 0 ? manaRolled : manaRecovered;
+                        typewriter(manaSpan, '+' + displayMana, function() {
+                            // If there's overmana, show collapse animation
+                            if (overmana > 0) {
+                                showOvermanaCollapse(line, manaSpan, manaRolled, overmana, manaRecovered, cooldown, finishWithCooldown);
+                            } else {
+                                // No overmana - just finish with MP! and cooldown
+                                typewriter(line, ' ' + KEYWORDS.MP, finishWithCooldown);
+                            }
+                        });
+                    });
+                }, rollType);
+            }
         });
     }
 

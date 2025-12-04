@@ -8,15 +8,12 @@
     <link rel="stylesheet" href="editor.css">
     <link rel="stylesheet" href="graph-colors.css">
     <script src="../js/theme.js"></script>
+    <script src="../js/theme-utils.js"></script>
     <script>
-        // Apply saved theme or default from themeConfig using body class
-        (function() {
-            var savedTheme = localStorage.getItem('andi_vn_theme');
-            var theme = savedTheme || (typeof themeConfig !== 'undefined' ? themeConfig.selected : null);
-            if (theme) {
-                document.body.classList.add('theme-' + theme);
-            }
-        })();
+        // Apply saved theme using ThemeUtils
+        if (typeof ThemeUtils !== 'undefined') {
+            ThemeUtils.initTheme();
+        }
     </script>
 </head>
 <body>

@@ -365,8 +365,12 @@ var BattleIntent = (function() {
          * @returns {boolean} True if intent should execute next turn
          */
         tick: function() {
-            if (!currentIntent || !currentIntent.isTelegraphed) return false;
+            if (!currentIntent || !currentIntent.isTelegraphed) {
+                console.log('[Intent Debug] tick() - no telegraphed intent');
+                return false;
+            }
             currentIntent.turnsRemaining--;
+            console.log('[Intent Debug] tick() - turnsRemaining now:', currentIntent.turnsRemaining);
             return currentIntent.turnsRemaining <= 0;
         },
 

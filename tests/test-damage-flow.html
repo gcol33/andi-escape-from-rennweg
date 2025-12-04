@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Damage Flow Test</title>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        .log { margin: 5px 0; padding: 5px; background: #f0f0f0; }
+        .error { color: red; font-weight: bold; }
+        .success { color: green; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h2>Damage Application Flow Test</h2>
+    <button onclick="testNormalAttack()">Test Normal Attack</button>
+    <button onclick="testCritAttack()">Test Crit Attack</button>
+    <button onclick="testMiss()">Test Miss</button>
+    <button onclick="testBarrierHit()">Test Barrier Hit</button>
+    <div id="log"></div>
+
+    <script>
+        var log = document.getElementById('log');
+
+        function addLog(msg, className) {
+            var div = document.createElement('div');
+            div.textContent = msg;
+            div.className = 'log ' + (className || '');
+            log.appendChild(div);
+        }
+
+        function clearLog() {
+            log.innerHTML = '';
+        }
+
+        // Simulate the flow
+        function simulateAttack(attackResult, hasBarrier) {
+            addLog('=== Attack Simulation ===', 'log');
+            addLog('Hit: ' + attackResult.hit + ', Damage: ' + attackResult.damage + ', Barrier: ' + hasBarrier);
+
+            // This is what playerAttack does
+            var result = {
+                success: true,
+                attackResult: attackResult,
+                pendingDamage: null
+            };
+
+            if (attackResult.hit) {
+                if (hasBarrier) {
+                    addLog('Barrier absorbed hit - no pendingDamage set');
+                } else {
+                    result.pendingDamage = {
+                        amount: attackResult.damage,
+                        source: 'player',
+                        type: 'physical'
+                    };
+                    addLog('pendingDamage set: ' + result.pendingDamage.amount);
+                }
+            }
+
+            // This is what applyPlayerAttackEffects does
+            addLog('--- Applying effects ---');
+
+            // Check if pendingDamage exists
+            if (result.pendingDamage) {
+                addLog('Applying damage: ' + result.pendingDamage.amount, 'success');
+            } else {
+                addLog('NO pendingDamage - no damage applied!', hasBarrier ? '' : 'error');
+            }
+
+            // Show damage number
+            if (result.attackResult && result.attackResult.hit) {
+                addLog('Showing damage number: ' + result.attackResult.damage);
+            } else if (result.attackResult && !result.attackResult.hit) {
+                addLog('Showing miss');
+            }
+
+            addLog('');
+        }
+
+        function testNormalAttack() {
+            clearLog();
+            simulateAttack({ hit: true, damage: 8 }, false);
+        }
+
+        function testCritAttack() {
+            clearLog();
+            simulateAttack({ hit: true, damage: 12, isCrit: true }, false);
+        }
+
+        function testMiss() {
+            clearLog();
+            simulateAttack({ hit: false, damage: 0 }, false);
+        }
+
+        function testBarrierHit() {
+            clearLog();
+            simulateAttack({ hit: true, damage: 8 }, true);
+        }
+    </script>
+</body>
+</html>

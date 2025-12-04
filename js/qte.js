@@ -633,6 +633,7 @@ var QTEEngine = (function() {
      * @param {function} callback - Called with result when complete
      */
     function startDefendQTE(params, callback) {
+        console.log('[QTE Debug] startDefendQTE called, state.active:', state.active);
         if (state.active) {
             console.warn('QTE already active');
             return false;
@@ -657,8 +658,10 @@ var QTEEngine = (function() {
         // Defend QTE has tighter zones (harder than skill)
         state.zoneScale = 0.7; // 70% of normal zone sizes
 
+        console.log('[QTE Debug] qteUI available:', !!qteUI);
         // Show UI with defend label and tighter zones
         if (qteUI) {
+            console.log('[QTE Debug] Calling qteUI.show for defend');
             qteUI.show('defend', config, state.difficulty, {
                 label: 'DEFEND!',
                 subLabel: state.enemyAttackName,

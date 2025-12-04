@@ -106,6 +106,7 @@ const VNEngine = (function() {
         battle: null, // active battle state
         history: [],
         readBlocks: {}, // tracks which scene+block combos have been read
+        wonBattles: {}, // tracks which battles have been won (by sceneId)
         typewriter: {
             isTyping: false,
             timeoutId: null,
@@ -371,6 +372,25 @@ const VNEngine = (function() {
     function updateBattleDisplay() {
         updatePlayerHPDisplay();
         updateEnemyHPDisplay();
+    }
+
+    /**
+     * Mark a battle as won (for skip feature)
+     * @param {string} sceneId - The scene ID where the battle occurred
+     */
+    function markBattleWon(sceneId) {
+        state.wonBattles[sceneId] = true;
+        saveState();
+        log.debug('Battle marked as won: ' + sceneId);
+    }
+
+    /**
+     * Check if a battle has been won before
+     * @param {string} sceneId - The scene ID to check
+     * @returns {boolean}
+     */
+    function hasBattleBeenWon(sceneId) {
+        return state.wonBattles[sceneId] === true;
     }
 
     /**
@@ -1419,18 +1439,18 @@ const VNEngine = (function() {
     }
 
     function createThemeSelector() {
-        // Only create if themeConfig exists
-        if (typeof themeConfig === 'undefined' || !themeConfig.available) {
+        // Only create if ThemeUtils and themeConfig exist
+        if (typeof ThemeUtils === 'undefined' || typeof themeConfig === 'undefined' || !themeConfig.available) {
             return;
         }
 
         // Apply saved theme on load (if different from current)
-        var currentTheme = getCurrentTheme();
+        var currentTheme = ThemeUtils.getCurrentTheme();
         var link = document.getElementById('theme-css');
         if (link && link.href) {
             var activeTheme = link.href.match(/themes\/([^.]+)\.css/);
             if (activeTheme && activeTheme[1] !== currentTheme) {
-                setTheme(currentTheme);
+                ThemeUtils.setTheme(currentTheme);
             }
         }
 
@@ -1479,7 +1499,7 @@ const VNEngine = (function() {
         select.id = 'theme-select';
         // No inline styles - let CSS handle theming
 
-        themeConfig.available.forEach(function(theme) {
+        ThemeUtils.getAvailableThemes().forEach(function(theme) {
             var option = document.createElement('option');
             option.value = theme;
             option.textContent = theme;
@@ -1490,7 +1510,7 @@ const VNEngine = (function() {
         });
 
         select.addEventListener('change', function() {
-            setTheme(this.value);
+            ThemeUtils.setTheme(this.value);
         });
 
         container.appendChild(label);
@@ -1906,18 +1926,51 @@ const VNEngine = (function() {
 
         renderText(currentText, '', function() {
             if (hasActions && !hasRollChoice) {
-                // Scene has actions (battle, dice) - show Continue to trigger them
-                showContinueButton();
-                // Override Continue behavior to call renderCurrentBlock (which executes actions)
-                // Note: continueBtn normally calls advanceTextBlock which does nothing on last block
-                // We use a one-time handler to trigger actions
-                var continueBtn = elements.continueBtn;
-                var oneTimeHandler = function() {
-                    continueBtn.removeEventListener('click', oneTimeHandler);
-                    hideContinueButton();
-                    executeActions();
-                };
-                continueBtn.addEventListener('click', oneTimeHandler);
+                // Check if this is a battle that has been won before
+                var battleAction = scene.actions.find(function(a) { return a.type === 'start_battle'; });
+                var isBattleWon = battleAction && hasBattleBeenWon(state.currentSceneId);
+
+                if (isBattleWon) {
+                    // Show Skip Battle / Fight!! buttons
+                    showBattleSkipButtons(
+                        function onSkip() {
+                            // Skip battle - go directly to win scene
+                            if (battleAction.win) {
+                                loadScene(battleAction.win);
+                            }
+                        },
+                        function onFight() {
+                            // Fight battle normally
+                            executeActions();
+                        }
+                    );
+
+                    // Auto-skip if in skip mode
+                    if (config.currentSpeed === 'skip') {
+                        setTimeout(function() {
+                            if (battleAction.win) {
+                                var choicesContainer = document.getElementById('choices');
+                                if (choicesContainer) {
+                                    choicesContainer.innerHTML = '';
+                                }
+                                loadScene(battleAction.win);
+                            }
+                        }, 300); // Small delay to show buttons briefly
+                    }
+                } else {
+                    // Normal battle flow - show Continue to trigger them
+                    showContinueButton();
+                    // Override Continue behavior to call renderCurrentBlock (which executes actions)
+                    // Note: continueBtn normally calls advanceTextBlock which does nothing on last block
+                    // We use a one-time handler to trigger actions
+                    var continueBtn = elements.continueBtn;
+                    var oneTimeHandler = function() {
+                        continueBtn.removeEventListener('click', oneTimeHandler);
+                        hideContinueButton();
+                        executeActions();
+                    };
+                    continueBtn.addEventListener('click', oneTimeHandler);
+                }
             } else if (hasRollChoice) {
                 // Has _roll choice - show choices normally
                 renderChoices(scene.choices);
@@ -1967,26 +2020,30 @@ const VNEngine = (function() {
     }
 
     function getCurrentTheme() {
-        // Check localStorage first for persisted theme
+        // Delegate to ThemeUtils if available
+        if (typeof ThemeUtils !== 'undefined') {
+            return ThemeUtils.getCurrentTheme();
+        }
+        // Fallback for backwards compatibility
         var savedTheme = localStorage.getItem(config.themeKey);
         if (savedTheme && typeof themeConfig !== 'undefined' &&
             themeConfig.available && themeConfig.available.indexOf(savedTheme) !== -1) {
             return savedTheme;
         }
-
-        var link = document.getElementById('theme-css');
-        if (link && link.href) {
-            var match = link.href.match(/themes\/([^.]+)\.css/);
-            return match ? match[1] : 'prototype';
-        }
         return typeof themeConfig !== 'undefined' ? themeConfig.selected : 'prototype';
     }
 
     function setTheme(themeName) {
+        // Delegate to ThemeUtils if available
+        if (typeof ThemeUtils !== 'undefined') {
+            ThemeUtils.setTheme(themeName);
+            log.info('Theme changed to: ' + themeName);
+            return;
+        }
+        // Fallback for backwards compatibility
         var link = document.getElementById('theme-css');
         if (link) {
             link.href = 'css/themes/' + themeName + '.css';
-            // Persist theme choice to localStorage
             localStorage.setItem(config.themeKey, themeName);
             log.info('Theme changed to: ' + themeName);
         }
@@ -2334,6 +2391,43 @@ const VNEngine = (function() {
         if (elements.continueBtn) {
             elements.continueBtn.style.display = 'none';
         }
+    }
+
+    /**
+     * Show battle skip buttons (Skip Battle / Fight!!) for already-won battles
+     * @param {Function} onSkip - Callback for skip button
+     * @param {Function} onFight - Callback for fight button
+     */
+    function showBattleSkipButtons(onSkip, onFight) {
+        hideContinueButton();
+
+        var choicesContainer = document.getElementById('choices');
+        if (!choicesContainer) return;
+
+        // Clear existing choices
+        choicesContainer.innerHTML = '';
+
+        // Create Skip Battle button
+        var skipBtn = document.createElement('button');
+        skipBtn.className = 'choice-button battle-skip-button';
+        skipBtn.textContent = 'Skip Battle';
+        skipBtn.addEventListener('click', function() {
+            choicesContainer.innerHTML = '';
+            onSkip();
+        });
+
+        // Create Fight!! button
+        var fightBtn = document.createElement('button');
+        fightBtn.className = 'choice-button battle-fight-button';
+        fightBtn.textContent = 'Fight!!';
+        fightBtn.addEventListener('click', function() {
+            choicesContainer.innerHTML = '';
+            onFight();
+        });
+
+        choicesContainer.appendChild(skipBtn);
+        choicesContainer.appendChild(fightBtn);
+        choicesContainer.style.display = 'flex';
     }
 
     function renderText(text, prependContent, onComplete) {
@@ -3371,6 +3465,7 @@ const VNEngine = (function() {
                 playerHP: state.playerHP,
                 playerMaxHP: state.playerMaxHP,
                 readBlocks: state.readBlocks,
+                wonBattles: state.wonBattles,
                 history: state.history
             };
             log.debug('saveState: history=' + JSON.stringify(state.history));
@@ -3401,6 +3496,7 @@ const VNEngine = (function() {
             var defaultMaxHP = typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxHP : 20;
             state.playerMaxHP = saveData.playerMaxHP || defaultMaxHP;
             state.readBlocks = saveData.readBlocks || {};
+            state.wonBattles = saveData.wonBattles || {};
             state.history = saveData.history || [];
             log.debug('loadSavedState: loaded history=' + JSON.stringify(state.history));
 
@@ -3606,7 +3702,10 @@ const VNEngine = (function() {
             if (scene && typeof BattleEngine !== 'undefined' && BattleEngine.isActive()) {
                 renderBattleChoices(scene.battle_actions || scene.choices);
             }
-        }
+        },
+        // Battle skip feature
+        markBattleWon: markBattleWon,
+        hasBattleBeenWon: hasBattleBeenWon
     };
 
 })();

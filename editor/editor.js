@@ -128,20 +128,25 @@ const Editor = (function() {
     }
 
     /**
-     * Initialize theme selector dropdown
-     * Note: Theme CSS is NOT loaded in the editor - it would override editor styles.
-     * The selector only saves the preference to localStorage for the game to use.
+     * Initialize theme selector dropdown using ThemeUtils
      */
     function initThemeSelector() {
         const select = elements.themeSelect;
         if (!select) return;
 
-        // Get available themes from themeConfig (loaded from theme.js)
+        // Use ThemeUtils if available
+        if (typeof ThemeUtils !== 'undefined') {
+            ThemeUtils.initThemeSelector(select, (themeName) => {
+                log.info('Theme changed to: ' + themeName);
+            });
+            return;
+        }
+
+        // Fallback for backwards compatibility
         const themes = (typeof themeConfig !== 'undefined' && themeConfig.available)
             ? themeConfig.available
             : ['prototype'];
 
-        // Populate options
         themes.forEach(theme => {
             const option = document.createElement('option');
             option.value = theme;
@@ -149,11 +154,9 @@ const Editor = (function() {
             select.appendChild(option);
         });
 
-        // Set current theme from localStorage or themeConfig
         const currentTheme = getCurrentTheme();
         select.value = currentTheme;
 
-        // Handle theme change - only saves to localStorage for the game
         select.addEventListener('change', () => {
             setTheme(select.value);
         });
@@ -163,6 +166,9 @@ const Editor = (function() {
      * Get the current theme from localStorage or themeConfig
      */
     function getCurrentTheme() {
+        if (typeof ThemeUtils !== 'undefined') {
+            return ThemeUtils.getCurrentTheme();
+        }
         const savedTheme = localStorage.getItem('andi_vn_theme');
         if (savedTheme && typeof themeConfig !== 'undefined' &&
             themeConfig.available && themeConfig.available.includes(savedTheme)) {
@@ -175,15 +181,16 @@ const Editor = (function() {
      * Set the theme - updates editor via body class and saves to localStorage for the game
      */
     function setTheme(themeName) {
-        // Remove all existing theme classes from body
+        if (typeof ThemeUtils !== 'undefined') {
+            ThemeUtils.setTheme(themeName);
+            log.info('Theme changed to: ' + themeName);
+            return;
+        }
+        // Fallback
         const body = document.body;
         const themeClasses = Array.from(body.classList).filter(c => c.startsWith('theme-'));
         themeClasses.forEach(c => body.classList.remove(c));
-
-        // Add new theme class
         body.classList.add('theme-' + themeName);
-
-        // Save to localStorage so the game uses the same theme
         localStorage.setItem('andi_vn_theme', themeName);
         log.info('Theme changed to: ' + themeName);
     }
