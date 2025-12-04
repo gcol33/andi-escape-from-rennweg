@@ -1984,11 +1984,27 @@ var BattleEngine = (function() {
                     onTextComplete: function() {
                         // Apply damage when text finishes (before linger)
                         if (attackResult.hit) {
+                            // First show "Hit!" floating text
+                            if (attackResult.roll) {
+                                showDamageNumber('Hit! (' + attackResult.roll + ')', 'player', 'hit');
+                            }
+
+                            // Then apply damage and show damage number
                             BattleCore.damagePlayer(attackResult.damage, {
                                 source: 'summon',
                                 type: action.move.type || 'physical'
                             });
-                            showDamageNumber(attackResult.damage, 'player', 'damage');
+
+                            // Determine damage type for floating number styling
+                            var damageType = 'damage';
+                            if (attackResult.isCrit) {
+                                damageType = 'crit';
+                            } else if (attackResult.isMaxDamage) {
+                                damageType = 'maxdamage';
+                            } else if (attackResult.isMinDamage) {
+                                damageType = 'mindamage';
+                            }
+                            showDamageNumber(attackResult.damage, 'player', damageType);
                         } else {
                             // Show miss floating number
                             showDamageNumber(0, 'player', 'miss');
