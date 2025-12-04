@@ -1982,33 +1982,12 @@ var BattleEngine = (function() {
                     processNextAction();
                 }, {
                     onTextComplete: function() {
-                        // Apply damage when text finishes (before linger)
-                        if (attackResult.hit) {
-                            // First show "Hit!" floating text
-                            if (attackResult.roll) {
-                                showDamageNumber('Hit! (' + attackResult.roll + ')', 'player', 'hit');
-                            }
-
-                            // Then apply damage and show damage number
-                            BattleCore.damagePlayer(attackResult.damage, {
-                                source: 'summon',
-                                type: action.move.type || 'physical'
-                            });
-
-                            // Determine damage type for floating number styling
-                            var damageType = 'damage';
-                            if (attackResult.isCrit) {
-                                damageType = 'crit';
-                            } else if (attackResult.isMaxDamage) {
-                                damageType = 'maxdamage';
-                            } else if (attackResult.isMinDamage) {
-                                damageType = 'mindamage';
-                            }
-                            showDamageNumber(attackResult.damage, 'player', damageType);
-                        } else {
-                            // Show miss floating number
-                            showDamageNumber(0, 'player', 'miss');
-                        }
+                        // Apply damage and show floating numbers (unified)
+                        applyDamageWithFloatingNumber(attackResult, 'player', {
+                            source: 'summon',
+                            type: action.move.type || 'physical',
+                            showRoll: true
+                        });
                         updateDisplay();
                     }
                 });
@@ -3141,6 +3120,59 @@ var BattleEngine = (function() {
     function showDamageNumber(amount, target, type) {
         if (typeof BattleUI !== 'undefined') {
             BattleUI.showDamageNumber(amount, target, type);
+        }
+    }
+
+    /**
+     * Apply damage and show floating number in one unified action
+     * @param {Object} attackResult - Attack result with hit, damage, isCrit, etc.
+     * @param {string} target - 'player' or 'enemy'
+     * @param {Object} options - { source, type, showRoll }
+     */
+    function applyDamageWithFloatingNumber(attackResult, target, options) {
+        options = options || {};
+
+        if (!attackResult) return;
+
+        // Show hit/miss floating text with roll (optional)
+        if (options.showRoll && attackResult.roll) {
+            if (attackResult.hit) {
+                showDamageNumber('Hit! (' + attackResult.roll + ')', target, 'hit');
+            }
+        }
+
+        // Apply damage and show damage number
+        if (attackResult.hit) {
+            // Apply the damage
+            if (target === 'player') {
+                BattleCore.damagePlayer(attackResult.damage, {
+                    source: options.source || 'attack',
+                    type: options.type || 'physical',
+                    isCrit: attackResult.isCrit
+                });
+            } else {
+                BattleCore.damageEnemy(attackResult.damage, {
+                    source: options.source || 'attack',
+                    type: options.type || 'physical',
+                    isCrit: attackResult.isCrit
+                });
+            }
+
+            // Determine damage type for floating number styling
+            var damageType = 'damage';
+            if (attackResult.isCrit) {
+                damageType = 'crit';
+            } else if (attackResult.isMaxDamage) {
+                damageType = 'maxdamage';
+            } else if (attackResult.isMinDamage) {
+                damageType = 'mindamage';
+            }
+
+            // Show damage floating number
+            showDamageNumber(attackResult.damage, target, damageType);
+        } else {
+            // Show miss
+            showDamageNumber(0, target, 'miss');
         }
     }
 
