@@ -583,6 +583,15 @@ var BattleCore = (function() {
         return state.player.mana - oldMana;
     }
 
+    /**
+     * Add mana (alias for restoreMana, used for refunds)
+     * @param {number} amount - Mana to add
+     * @returns {number} Actual mana added
+     */
+    function addMana(amount) {
+        return restoreMana(amount);
+    }
+
     // =========================================================================
     // STATUS EFFECTS
     // =========================================================================
@@ -1616,6 +1625,7 @@ var BattleCore = (function() {
         healEnemy: healEnemy,
         useMana: useMana,
         restoreMana: restoreMana,
+        addMana: addMana,
 
         // Status effects
         applyStatus: applyStatus,

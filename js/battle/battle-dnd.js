@@ -177,6 +177,11 @@ var BattleStyleDnD = (function() {
         // Fumble (nat 1) absorbs bonuses but stays at 1
         var attackTotal = isFumble ? 1 : roll + attackBonus;
 
+        // Crit if natural 20 OR total >= 20 (bonuses can push into crit range)
+        if (!isCrit && !isFumble && attackTotal >= 20) {
+            isCrit = true;
+        }
+
         // Calculate defender AC
         var defenderAC = defender.ac || 10;
         defenderAC += BattleCore.getStatusACModifier(defender);
@@ -188,7 +193,7 @@ var BattleStyleDnD = (function() {
         if (qteResult.autoMiss) {
             hit = false;  // QTE failure forces miss
         } else if (isCrit) {
-            hit = true;   // Nat 20 always hits
+            hit = true;   // Crit always hits
         } else if (isFumble) {
             hit = false;  // Nat 1 always misses
         } else {
@@ -1302,6 +1307,12 @@ var BattleStyleDnD = (function() {
 
         // Fumble (nat 1) absorbs bonuses but stays at 1
         var attackTotal = isFumble ? 1 : roll + attackBonus;
+
+        // Crit if natural 20 OR total >= 20 (bonuses can push into crit range)
+        if (!isCrit && !isFumble && attackTotal >= 20) {
+            isCrit = true;
+        }
+
         var defenderAC = defender.ac || 10;  // Note: Defending no longer provides AC bonus
 
         var hit = isCrit ? true : (isFumble ? false : attackTotal >= defenderAC);

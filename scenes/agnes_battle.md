@@ -6,17 +6,6 @@ chars:
   - agnes_blocking.svg
 actions:
   - type: start_battle
-    player_max_hp: 25
-    player_max_mana: 10
-    player_ac: 11
-    player_attack_bonus: 3
-    player_damage: d6
-    player_skills:
-      - power_strike
-      - fireball
-      - heal
-      - fortify
-      - ice_shard
     terrain: none
     enemy_id: agnes_hr
     win_target: agnes_defeated

@@ -111,6 +111,45 @@
     --password-char-width-mobile: 60px;
     --password-char-height-mobile: 72px;
     --password-char-font-size-mobile: 2rem;
+
+    /* ==========================================================================
+       UI POSITIONING SYSTEM
+       Unified variables for all battle UI element placement.
+       Override these in orientation media queries for responsive layout.
+       ========================================================================== */
+
+    /* Edge margins */
+    --ui-edge-margin: 0.625rem;
+    --ui-edge-margin-small: 0.3125rem;
+
+    /* Stats panel dimensions */
+    --stats-panel-width: 17.5rem;
+    --stats-panel-width-mobile: 8.75rem;
+
+    /* Battle log height (used for bottom positioning) */
+    --battle-log-height: 13.4rem;
+
+    /* Player stats position */
+    --player-stats-left: var(--ui-edge-margin);
+    --player-stats-bottom: calc(var(--battle-log-height) + var(--ui-edge-margin));
+
+    /* Enemy stats position */
+    --enemy-stats-right: var(--ui-edge-margin);
+    --enemy-stats-top: var(--ui-edge-margin);
+
+    /* Player summon position (landscape default: centered above player stats) */
+    --player-summon-left: calc(var(--ui-edge-margin) + var(--stats-panel-width) / 2);
+    --player-summon-right: auto;
+    --player-summon-top: 30%;
+    --player-summon-bottom: auto;
+    --player-summon-transform: translateX(-50%);
+
+    /* Enemy summon position (landscape default: centered below enemy stats) */
+    --enemy-summon-left: auto;
+    --enemy-summon-right: calc(var(--ui-edge-margin) + var(--stats-panel-width) / 2);
+    --enemy-summon-top: 30%;
+    --enemy-summon-bottom: auto;
+    --enemy-summon-transform: translateX(50%);
 }
 
 /* Pixel font themes need smaller base sizes */
@@ -1154,6 +1193,42 @@
     --battle-text-dim: rgba(255, 255, 255, 0.7);
 }
 
+/* ==========================================================================
+   UI POSITIONING OVERRIDES - Must come AFTER all :root definitions
+   ========================================================================== */
+
+/* PORTRAIT MODE: Override UI positioning variables */
+@media (orientation: portrait) {
+    :root {
+        /* Use smaller margins in portrait */
+        --ui-edge-margin: var(--ui-edge-margin-small);
+
+        /* Player summon: RIGHT side, bottom-aligned with player stats */
+        --player-summon-left: auto;
+        --player-summon-right: var(--ui-edge-margin);
+        --player-summon-top: auto;
+        --player-summon-bottom: calc(var(--battle-log-height) + 0.9375rem);
+        --player-summon-transform: none;
+
+        /* Enemy summon: LEFT side, top area */
+        --enemy-summon-left: var(--ui-edge-margin);
+        --enemy-summon-right: auto;
+        --enemy-summon-top: 15%;
+        --enemy-summon-transform: none;
+    }
+}
+
+/* MOBILE LANDSCAPE: Adjust for smaller stats panels */
+@media (max-width: 37.5rem) and (orientation: landscape) {
+    :root {
+        /* Smaller stats panels = different centering */
+        --player-summon-left: calc(var(--ui-edge-margin-small) + var(--stats-panel-width-mobile) / 2);
+        --player-summon-top: 25%;
+        --enemy-summon-right: calc(var(--ui-edge-margin-small) + var(--stats-panel-width-mobile) / 2);
+        --enemy-summon-top: 25%;
+    }
+}
+
 .battle-stats-panel {
     position: absolute;
     z-index: var(--z-battle-ui);
@@ -1200,7 +1275,8 @@
     opacity: 0.7;
     display: inline-block;
     min-width: 5.5em;  /* Prevent box expansion when AC changes (e.g., "AC 11" → "AC 15+") */
-    text-align: left;
+    text-align: right;
+    margin-left: auto;  /* Push AC to the right side */
 }
 
 /* Status icon slot next to player name - fixed size reserved box */
@@ -4252,34 +4328,34 @@ div.battle-log-content span.defend-duration {
 
     /* === Battle UI Portrait Mode Centering Fixes === */
 
-    /* Center the battle log panel content */
+    /* Battle log panel - full width in portrait */
     .battle-log-panel {
-        left: 50% !important;
-        right: auto !important;
-        transform: translateX(-50%) !important;
-        width: 95% !important;
+        left: 0 !important;
+        right: 0 !important;
+        transform: none !important;
+        width: 100% !important;
         max-width: 100% !important;
     }
 
-    /* Center player stats panel above battle log */
+    /* Player stats panel - LEFT side in portrait */
     .battle-stats-panel.player-stats {
-        left: 50% !important;
+        left: 5px !important;
         right: auto !important;
-        transform: translateX(-50%) !important;
+        transform: none !important;
         min-width: auto !important;
         width: auto !important;
-        max-width: 90% !important;
+        max-width: 45% !important;
     }
 
-    /* Center enemy stats panel at top */
+    /* Enemy stats panel - RIGHT side at top in portrait */
     .battle-stats-panel.enemy-stats {
-        left: 50% !important;
-        right: auto !important;
-        transform: translateX(-50%) !important;
+        left: auto !important;
+        right: 5px !important;
+        transform: none !important;
         top: max(5px, env(safe-area-inset-top, 5px)) !important;
         min-width: auto !important;
         width: auto !important;
-        max-width: 90% !important;
+        max-width: 45% !important;
     }
 
     /* Center terrain indicator */
@@ -4287,10 +4363,59 @@ div.battle-log-content span.defend-duration {
         top: calc(max(5px, env(safe-area-inset-top, 5px)) + 55px) !important;
     }
 
-    /* Battle choices grid - ensure proper centering */
+    /* Battle choices grid - ensure proper centering and smaller size */
     .battle-choices {
         justify-content: center !important;
         align-content: center !important;
+        height: 5.5rem !important;  /* Smaller buttons in portrait */
+        gap: 0.5rem !important;
+        padding: 0.5rem !important;
+    }
+
+    .battle-choices .choice-button {
+        padding: 6px 10px !important;
+        font-size: 0.75rem !important;
+        min-height: 32px !important;
+    }
+
+    /* Smaller stats panels in portrait */
+    .battle-stats-panel {
+        padding: 0.4rem 0.5rem !important;
+        font-size: 0.7rem !important;
+    }
+
+    .battle-stats-panel .stats-header {
+        font-size: 0.6rem !important;
+        margin-bottom: 0.25rem !important;
+    }
+
+    .battle-stats-panel .stat-row {
+        margin-bottom: 0.15rem !important;
+    }
+
+    .battle-stats-panel .stat-label {
+        font-size: 0.5rem !important;
+    }
+
+    .battle-stats-panel .stat-bar-outer {
+        height: 0.5rem !important;
+    }
+
+    .battle-stats-panel .stat-value {
+        font-size: 0.45rem !important;
+    }
+
+    .summon-sprite-wrapper {
+        width: 4.5rem !important;  /* Larger sprite in portrait */
+    }
+
+    .summon-name {
+        font-size: 0.65rem !important;
+    }
+
+    .summon-duration-indicator {
+        font-size: 0.75rem !important;
+        padding: 0.15rem 0.4rem !important;
     }
 
     /* Skill/Item submenus - stretch to fill width */
@@ -4817,20 +4942,22 @@ div.battle-log-content span.defend-duration {
     pointer-events: auto;  /* Override sprite-layer's pointer-events: none */
 }
 
-/* Enemy summons - centered below enemy stats (top right) */
-/* Stats panel: right 0.625rem + half of 17.5rem width = 0.625rem + 8.75rem = 9.375rem */
+/* Enemy summons - uses CSS variables from UI positioning system */
 .summon-container.summon-enemy {
-    right: 9.375rem;
-    transform: translateX(50%);
-    top: 30%;
+    left: var(--enemy-summon-left);
+    right: var(--enemy-summon-right);
+    top: var(--enemy-summon-top);
+    bottom: var(--enemy-summon-bottom);
+    transform: var(--enemy-summon-transform);
 }
 
-/* Player summons - centered above player stats panel */
-/* Stats panel: left 0.625rem + half of 17.5rem width = 0.625rem + 8.75rem = 9.375rem */
+/* Player summons - uses CSS variables from UI positioning system */
 .summon-container.summon-player {
-    left: 9.375rem;
-    transform: translateX(-50%);
-    top: 30%;
+    left: var(--player-summon-left);
+    right: var(--player-summon-right);
+    top: var(--player-summon-top);
+    bottom: var(--player-summon-bottom);
+    transform: var(--player-summon-transform);
 }
 
 /* Summon sprite wrapper */
@@ -4975,59 +5102,71 @@ div.battle-log-content span.defend-duration {
     }
 }
 
-/* Summon animations - player side (translateX(-50%) for centering) */
-.summon-container.summon-player.summon-appear {
-    animation: summon-appear-player 0.5s ease-out forwards;
-}
+/* ==========================================================================
+   SUMMON ANIMATIONS
+   Uses orientation-specific keyframes to match positioning system
+   ========================================================================== */
 
-.summon-container.summon-player.summon-dismiss {
-    animation: summon-dismiss-player 0.5s ease-in forwards;
-}
-
-.summon-container.summon-player.summon-death {
-    animation: summon-death-player 0.6s ease-in forwards;
-}
-
-@keyframes summon-appear-player {
-    0% {
-        transform: translateX(-50%) scale(0) translateY(3.125rem);
-        opacity: 0;
+/* LANDSCAPE: Player summon animations (uses translateX(-50%) centering) */
+@media (orientation: landscape) {
+    .summon-container.summon-player.summon-appear {
+        animation: summon-appear-landscape 0.5s ease-out forwards;
     }
-    70% {
-        transform: translateX(-50%) scale(1.1) translateY(-0.625rem);
+    .summon-container.summon-player.summon-dismiss {
+        animation: summon-dismiss-landscape 0.5s ease-in forwards;
     }
-    100% {
-        transform: translateX(-50%) scale(1) translateY(0);
-        opacity: 1;
+    .summon-container.summon-player.summon-death {
+        animation: summon-death-landscape 0.6s ease-in forwards;
     }
 }
 
-@keyframes summon-dismiss-player {
-    0% {
-        transform: translateX(-50%) scale(1) translateY(0);
-        opacity: 1;
+/* PORTRAIT: Player summon animations (no centering transform) */
+@media (orientation: portrait) {
+    .summon-container.summon-player.summon-appear {
+        animation: summon-appear-portrait 0.5s ease-out forwards;
     }
-    100% {
-        transform: translateX(-50%) scale(0) translateY(1.875rem);
-        opacity: 0;
+    .summon-container.summon-player.summon-dismiss {
+        animation: summon-dismiss-portrait 0.5s ease-in forwards;
+    }
+    .summon-container.summon-player.summon-death {
+        animation: summon-death-portrait 0.6s ease-in forwards;
     }
 }
 
-@keyframes summon-death-player {
-    0% {
-        transform: translateX(-50%) scale(1);
-        opacity: 1;
-        filter: brightness(1);
-    }
-    30% {
-        transform: translateX(-50%) scale(1.1);
-        filter: brightness(2);
-    }
-    100% {
-        transform: translateX(-50%) scale(0) rotate(360deg);
-        opacity: 0;
-        filter: brightness(0);
-    }
+/* Landscape keyframes (translateX(-50%) for centering) */
+@keyframes summon-appear-landscape {
+    0% { transform: translateX(-50%) scale(0) translateY(3.125rem); opacity: 0; }
+    70% { transform: translateX(-50%) scale(1.1) translateY(-0.625rem); }
+    100% { transform: translateX(-50%) scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes summon-dismiss-landscape {
+    0% { transform: translateX(-50%) scale(1) translateY(0); opacity: 1; }
+    100% { transform: translateX(-50%) scale(0) translateY(1.875rem); opacity: 0; }
+}
+
+@keyframes summon-death-landscape {
+    0% { transform: translateX(-50%) scale(1); opacity: 1; filter: brightness(1); }
+    30% { transform: translateX(-50%) scale(1.1); filter: brightness(2); }
+    100% { transform: translateX(-50%) scale(0) rotate(360deg); opacity: 0; filter: brightness(0); }
+}
+
+/* Portrait keyframes (no centering transform) */
+@keyframes summon-appear-portrait {
+    0% { transform: scale(0) translateY(3.125rem); opacity: 0; }
+    70% { transform: scale(1.1) translateY(-0.625rem); }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes summon-dismiss-portrait {
+    0% { transform: scale(1) translateY(0); opacity: 1; }
+    100% { transform: scale(0) translateY(1.875rem); opacity: 0; }
+}
+
+@keyframes summon-death-portrait {
+    0% { transform: scale(1); opacity: 1; filter: brightness(1); }
+    30% { transform: scale(1.1); filter: brightness(2); }
+    100% { transform: scale(0) rotate(360deg); opacity: 0; filter: brightness(0); }
 }
 
 /* Summon animations - enemy side (translateX(50%) for centering) */
@@ -5137,20 +5276,8 @@ div.battle-log-content span.defend-duration {
     }
 }
 
-/* Mobile responsive summons */
+/* Mobile responsive summons - size adjustments */
 @media (max-width: 600px) {
-    /* Mobile stats panel: min-width 8.75rem, left: 0.3125rem */
-    /* Center = 0.3125rem + 4.375rem = 4.6875rem */
-    .summon-container.summon-enemy {
-        right: 4.6875rem;
-        top: 25%;
-    }
-
-    .summon-container.summon-player {
-        left: 4.6875rem;
-        top: 25%;
-    }
-
     .summon-sprite-wrapper {
         width: 3.5rem;
     }

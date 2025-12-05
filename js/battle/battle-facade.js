@@ -814,6 +814,19 @@ var BattleEngine = (function() {
     // =========================================================================
 
     /**
+     * Handle failed player action - show message and reset state
+     * @param {string} message - Error message to display
+     * @param {Function} callback - Optional callback to invoke after reset
+     */
+    function handleActionFailure(message, callback) {
+        updateBattleLog(message, null, function() {
+            _actionInProgress = false;
+            BattleCore.setPhase('player');
+            if (callback) callback();
+        }, { lingerDelay: 800 });  // Shorter delay for failure messages
+    }
+
+    /**
      * Execute a player action
      * @param {string} action - Action type ('attack', 'skill', 'defend', 'flee', 'item', 'limit')
      * @param {Object} params - Action parameters
@@ -913,9 +926,7 @@ var BattleEngine = (function() {
             style.playerSkillWithQTE(skillId, function(result) {
                 if (!result.success) {
                     messages.push(result.messages ? result.messages[0] : 'Skill failed!');
-                    updateBattleLog(messages.join('<br>'), null, function() {
-                        BattleCore.setPhase('player');
-                    });
+                    handleActionFailure(messages.join('<br>'), callback);
                     return;
                 }
                 // Update mana display immediately after skill is used (before dice animation)
@@ -927,9 +938,7 @@ var BattleEngine = (function() {
 
             if (!result.success) {
                 messages.push(result.messages ? result.messages[0] : 'Skill failed!');
-                updateBattleLog(messages.join('<br>'), null, function() {
-                    BattleCore.setPhase('player');
-                });
+                handleActionFailure(messages.join('<br>'), callback);
                 return;
             }
 
@@ -992,9 +1001,7 @@ var BattleEngine = (function() {
 
         if (!result.success) {
             messages.push(result.messages ? result.messages[0] : 'Item failed!');
-            updateBattleLog(messages.join('<br>'), null, function() {
-                BattleCore.setPhase('player');
-            });
+            handleActionFailure(messages.join('<br>'), callback);
             return;
         }
 
@@ -1012,9 +1019,7 @@ var BattleEngine = (function() {
 
         if (!result.success) {
             messages.push(result.messages ? result.messages[0] : 'Limit Break not ready!');
-            updateBattleLog(messages.join('<br>'), null, function() {
-                BattleCore.setPhase('player');
-            });
+            handleActionFailure(messages.join('<br>'), callback);
             return;
         }
 
@@ -1269,6 +1274,21 @@ var BattleEngine = (function() {
         // Process summon turn
         var summonResult = BattleCore.processSummonTurn();
         if (summonResult.acted) {
+            // Update player summon sprites after they act
+            if (_hasBattleSummon && _hasBattleUI && BattleUI.updateSummonSprite) {
+                var playerSummons = BattleSummon.getActiveBySide('player');
+                for (var s = 0; s < playerSummons.length; s++) {
+                    BattleUI.updateSummonSprite(BattleSummon.getDisplayData(playerSummons[s].uid));
+                }
+            }
+            // Hide expired summons
+            if (summonResult.expired) {
+                for (var e = 0; e < summonResult.expired.length; e++) {
+                    if (_hasBattleUI && BattleUI.hideSummonSprite) {
+                        BattleUI.hideSummonSprite(summonResult.expired[e].uid, 'dismiss');
+                    }
+                }
+            }
             // Wait for summon message before proceeding to enemy turn
             updateBattleLog(summonResult.messages.join('<br>'), null, function() {
                 updateDisplay();
@@ -1961,8 +1981,10 @@ var BattleEngine = (function() {
                     // Pass the move as third parameter for new enemy summon system
                     attackResult = style.resolveSummonAttack(action.summon, player, action.move);
                 } else {
-                    // Simple fallback
-                    var damage = BattleCore.rollDamage ? BattleCore.rollDamage(action.move.damage) : 3;
+                    // Simple fallback - use BattleDice if available
+                    var damage = (typeof BattleDice !== 'undefined' && BattleDice.rollDamage)
+                        ? BattleDice.rollDamage(action.move.damage)
+                        : 3;
                     attackResult = { hit: true, damage: damage };
                 }
 

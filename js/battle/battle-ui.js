@@ -653,7 +653,8 @@ var BattleUI = (function() {
         // Wrapper to add linger delay before callback
         var lingerCallback = function() {
             if (callback) {
-                var t = setTimeout(callback, config.timing.messageLingerDelay);
+                var delay = (options && options.lingerDelay !== undefined) ? options.lingerDelay : config.timing.messageLingerDelay;
+                var t = setTimeout(callback, delay);
                 animationState.timeouts.push(t);
             }
         };

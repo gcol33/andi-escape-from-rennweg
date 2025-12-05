@@ -9,7 +9,7 @@
 
 const playerConfig = {
   "name": "Andi",
-  "hp": 20,
+  "hp": 42,
   "mana": 10,
   "ac": 11,
   "attack_bonus": 2,

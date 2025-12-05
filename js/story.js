@@ -8,65 +8,50 @@
  */
 
 const story = {
-  "document_signed": {
-    "id": "document_signed",
-    "bg": "stairwell_landing.jpg",
-    "music": "legal_trap_stairwell.mp3",
+  "agnes_battle": {
+    "id": "agnes_battle",
+    "bg": "hallway_red_alert.jpg",
+    "music": "BOSS_TIME.mp3",
     "chars": [
-      "agnes_happy.svg"
+      "agnes_blocking.svg"
     ],
-    "textBlocks": [
-      "You sigh, scribble your signature on the last page of the dense legal document, and hand the pen back to Agnes.\n\n\"All done, Andy! Best of luck,\" she chirps.\n\nYou are now free to take the stairs down, feeling only slightly heavier."
-    ],
-    "choices": [
+    "actions": [
       {
-        "label": "Scramble down the main stairs to the entrance.",
-        "target": "exit_lobby",
-        "sfx": "footstep.ogg"
+        "type": "start_battle",
+        "terrain": "none",
+        "enemy_id": "agnes_hr",
+        "win_target": "agnes_defeated",
+        "lose_target": "lost_to_HR",
+        "flee_target": "attempt_pass"
       }
-    ]
-  },
-  "lost_to_HR": {
-    "id": "lost_to_HR",
-    "bg": "bedroom_morning.jpg",
-    "music": "game_over.mp3",
-    "textBlocks": [
-      "You wake up in your apartment, startled. The clock says 7:00 AM.\n\nYou feel an inexplicable dread about the long commute ahead of you.\n\nYou remember nothing about a \"new job\" or a \"last day.\" You are stuck in an endless loop of yesterday.\n\n**You lost the game.**"
-    ],
-    "choices": []
-  },
-  "fourth_floor_elevator": {
-    "id": "fourth_floor_elevator",
-    "bg": "meeting_room_whiteboard.jpg",
-    "music": "reading_papers.mp3",
-    "chars": [
-      "michi_whiteboard.svg",
-      "gilles_explaining.svg",
-      "ruling_pointing.svg"
     ],
     "textBlocks": [
-      "You agree and press the \"4\" button. The ride up is silent.\n\nWhen the doors open, Michi, Gilles, and Ruling are there, ready to ambush you with a whiteboard.\n\nYou spend the next two agonizing hours discussing the optimal parameters for a highly complex, niche model. Your resolve slowly erodes."
+      "Agnes lunges forward with surprising speed, her HR badge glinting under the red emergency lights.\n\n\"Let's see if your resignation letter is as strong as your resolve!\""
     ],
     "choices": [
       {
-        "label": "Finally manage to break free and get back on the elevator.",
-        "target": "exit_lobby",
-        "sfx": "elevator_ding.ogg"
-      }
-    ]
-  },
-  "corridor_safe": {
-    "id": "corridor_safe",
-    "bg": "back_stairwell_dim.jpg",
-    "music": "zen.mp3",
-    "textBlocks": [
-      "Ignoring their desperate pleas, you walk past your former colleagues.\n\nThe hallway feels heavy with their disappointment, but you continue toward the dimly lit back stairwell.\n\nIt smells faintly of dust and cleaning supplies. You enjoy the silence of your final moments in the building."
-    ],
-    "choices": [
+        "label": "Attack!",
+        "target": "agnes_battle",
+        "sfx": "thud.ogg",
+        "battle_action": "attack"
+      },
       {
-        "label": "Continue down to the main entrance.",
-        "target": "exit_lobby",
-        "sfx": "footstep.ogg"
+        "label": "Skills",
+        "target": "agnes_battle",
+        "sfx": "click.ogg",
+        "battle_action": "skill"
+      },
+      {
+        "label": "Defend",
+        "target": "agnes_battle",
+        "sfx": "click.ogg",
+        "battle_action": "defend"
+      },
+      {
+        "label": "Item",
+        "target": "agnes_battle",
+        "sfx": "click.ogg",
+        "battle_action": "item"
       }
     ]
   },
@@ -90,117 +75,97 @@ const story = {
       }
     ]
   },
-  "coffee_drunk": {
-    "id": "coffee_drunk",
-    "bg": "office_kitchen.jpg",
-    "music": "spooky.mp3",
-    "remove_items": [
-      "Coffee Mug"
-    ],
-    "textBlocks": [
-      "The coffee tastes strangely sweet. Too sweet. You lean against the counter, feeling satisfied...",
-      "...and suddenly, incredibly drowsy.\n\nThe room begins to spin. Your vision blurs. The last thing you see is the coffee machine's display blinking: **\"EMPLOYEE RETENTION BREW - ACTIVATED\"**"
-    ],
-    "choices": [
-      {
-        "label": "The room is spinning. You close your eyes.",
-        "target": "lost_to_coffee",
-        "sfx": "thud.ogg"
-      }
-    ]
-  },
-  "d20_failure": {
-    "id": "d20_failure",
-    "bg": "hallway_dim.jpg",
-    "music": "spooky.mp3",
+  "attempt_pass": {
+    "id": "attempt_pass",
+    "bg": "stairwell_landing.jpg",
+    "music": "dicey_decisions.mp3",
     "chars": [
-      "agnes_victorious.svg"
+      "agnes_blocking.svg"
     ],
     "textBlocks": [
-      "You moved very fast, but Agnes is faster. Her leg snaps out with precision, and you trip, falling face down onto the carpet.\n\nThe wind is knocked out of you. Agnes calmly stands over you, holding the manila folder.\n\nBefore you can protest, she presses a button on her watch. The hallway lights dim. You wake up chained to your old desk."
+      "You mutter a quick \"Gotta run!\" and try to dart past Agnes.\n\nYou are fast, but Agnes is known to have a hidden history as a competitive ballroom dancer.",
+      "**You must roll a d20 (13 or lower to succeed).**\n\nHow will you attempt to evade her?"
     ],
     "choices": [
       {
-        "label": "The long-term employment trap has sprung.",
-        "target": "lost_to_coffee",
-        "sfx": "chain.ogg"
+        "label": "Sprint past her! (Normal roll)",
+        "target": "attempt_pass_normal",
+        "sfx": "dice_roll.ogg"
+      },
+      {
+        "label": "Throw coffee in her face first!",
+        "target": "attempt_pass_advantage",
+        "uses": [
+          "Coffee Mug"
+        ],
+        "sfx": "gulp.ogg"
+      },
+      {
+        "label": "Just try to squeeze by carefully...",
+        "target": "attempt_pass_disadvantage",
+        "sfx": "footstep.ogg"
       }
     ]
   },
-  "start": {
-    "id": "start",
-    "bg": "hallway_fluorescent.jpg",
-    "music": "last_day.mp3",
-    "textBlocks": [
-      "The old wooden door closes with a dull thud behind you for the very last time. Your badge no longer works; your desk is empty.",
-      "You stand in the dim hallway of the 1st floor, where scuffed tile stretches ahead and the overhead fluorescents hum their familiar drone.\n\nYour new job starts Monday, and this chapter is finally closed. Now, you just need to get to the entrance and head out to freedom."
-    ],
-    "choices": [
-      {
-        "label": "Turn right and take the main stairs down to the entrance.",
-        "target": "main_stairs",
-        "sfx": "footstep.ogg"
-      },
-      {
-        "label": "Turn left and take the back stairs to the main entrance.",
-        "target": "back_stairs",
-        "sfx": "footstep.ogg"
-      },
-      {
-        "label": "Get one last, sentimental cup of coffee in the kitchen near your office.",
-        "target": "coffee_kitchen",
-        "sfx": "door_open.ogg"
-      }
-    ]
-  },
-  "lost_to_coffee": {
-    "id": "lost_to_coffee",
-    "bg": "dark_office_desk.jpg",
-    "music": "game_over.mp3",
-    "textBlocks": [
-      "You wake up with a throbbing headache. You are chained to your old desk chair.\n\nThe office is dark, except for the flickering screen of a monitor displaying a perpetual \"System Update\" message.\n\nYou realize you have been working here, unknowingly, for a very long time.\n\n**You lost the game.**"
-    ],
-    "choices": []
-  },
-  "d20_success": {
-    "id": "d20_success",
-    "bg": "stairwell_escape.jpg",
-    "music": "running_escape.mp3",
+  "attempt_pass_advantage": {
+    "id": "attempt_pass_advantage",
+    "bg": "stairwell_landing.jpg",
+    "music": "dicey_decisions.mp3",
     "chars": [
       "agnes_surprised.svg"
     ],
+    "actions": [
+      {
+        "type": "roll_dice",
+        "dice": "d20",
+        "threshold": 13,
+        "modifier": "advantage",
+        "skill": "Evasion (with Advantage!)",
+        "crit_text": "\"Hot coffee AND a perfect dodge!\"",
+        "fumble_text": "\"The coffee splashes... on YOU!\"",
+        "success_target": "d20_success",
+        "failure_target": "d20_failure"
+      }
+    ],
     "textBlocks": [
-      "You weren't fast enough to catch her completely off guard, but you saw the movement!\n\nAgnes stretches her leg in a lightning-fast trip move. In a moment of great sportiveness (you? REALLY?), you leap over her extended foot with a surprising burst of agility.\n\nYou get a clean run to the main stairs!"
+      "You hurl the hot coffee at Agnes! She recoils, temporarily blinded.\n\n**Rolling with ADVANTAGE!** (Roll twice, take the better result)"
     ],
     "choices": [
       {
-        "label": "Scramble down the main stairs to the entrance.",
-        "target": "exit_lobby",
-        "sfx": "footstep.ogg"
+        "label": "ROLL D20 WITH ADVANTAGE!",
+        "target": "_roll",
+        "sfx": "dice_roll.ogg"
       }
     ]
   },
-  "corridor_delayed": {
-    "id": "corridor_delayed",
-    "bg": "office_corridor.jpg",
-    "music": "i_can_do_it.mp3",
+  "attempt_pass_disadvantage": {
+    "id": "attempt_pass_disadvantage",
+    "bg": "stairwell_landing.jpg",
+    "music": "dicey_decisions.mp3",
     "chars": [
-      "fabio_friendly.svg",
-      "ali_friendly.svg"
+      "agnes_blocking.svg"
+    ],
+    "actions": [
+      {
+        "type": "roll_dice",
+        "dice": "d20",
+        "threshold": 13,
+        "modifier": "disadvantage",
+        "skill": "Evasion (with Disadvantage)",
+        "crit_text": "\"Against all odds, you slip through!\"",
+        "fumble_text": "\"She saw that coming a mile away...\"",
+        "success_target": "d20_success",
+        "failure_target": "d20_failure"
+      }
     ],
     "textBlocks": [
-      "You shake off Joni and step firmly into the corridor, only to be immediately intercepted by Fabio and Ali.\n\n\"Andy! Leaving already? Just wanted to say hello and wish you luck!\"\n\nAfter a few minutes of pleasantries, Ali adds, \"Oh, you didn't say bye to the fourth floor folks, did you? Michi, Gilles, and Ruling will never forgive you!\""
+      "You try to sidle past slowly... but this gives Agnes plenty of time to anticipate your moves.\n\n**Rolling with DISADVANTAGE!** (Roll twice, take the worse result)"
     ],
     "choices": [
       {
-        "label": "Agree to take the elevator up to the 4th floor.",
-        "target": "fourth_floor_elevator",
-        "sfx": "elevator_ding.ogg"
-      },
-      {
-        "label": "Say \"I don't have time!\" and run for the stairs.",
-        "target": "corridor_safe",
-        "sfx": "footstep.ogg"
+        "label": "ROLL D20 WITH DISADVANTAGE...",
+        "target": "_roll",
+        "sfx": "dice_roll.ogg"
       }
     ]
   },
@@ -263,143 +228,22 @@ const story = {
       }
     ]
   },
-  "colleague_plea": {
-    "id": "colleague_plea",
-    "bg": "office_corridor.jpg",
-    "music": "questioning.mp3",
-    "chars": [
-      "joni_desperate.svg",
-      "norbert_grabbing.svg"
+  "coffee_drunk": {
+    "id": "coffee_drunk",
+    "bg": "office_kitchen.jpg",
+    "music": "spooky.mp3",
+    "remove_items": [
+      "Coffee Mug"
     ],
     "textBlocks": [
-      "Norbert grabs your sleeve.\n\n\"Please, Andy! Five minutes! You were always the best! If Joni misses the deadline, he loses everything!\""
+      "The coffee tastes strangely sweet. Too sweet. You lean against the counter, feeling satisfied...",
+      "...and suddenly, incredibly drowsy.\n\nThe room begins to spin. Your vision blurs. The last thing you see is the coffee machine's display blinking: **\"EMPLOYEE RETENTION BREW - ACTIVATED\"**"
     ],
     "choices": [
       {
-        "label": "Agree: \"Fine, five minutes.\"",
-        "target": "lost_to_PhD",
-        "sfx": "click.ogg"
-      },
-      {
-        "label": "Refuse again: \"No, I really have to go.\"",
-        "target": "corridor_delayed",
-        "sfx": "negative.ogg"
-      }
-    ]
-  },
-  "main_stairs": {
-    "id": "main_stairs",
-    "bg": "stairwell_landing.jpg",
-    "music": "BOSS_TIME.mp3",
-    "chars": [
-      "agnes_neutral.svg"
-    ],
-    "textBlocks": [
-      "You turn right and walk toward the main stairwell. Just as you reach the landing, Agnes from HR steps out, blocking your path.\n\nShe holds a single, thick manila envelope and smiles a very thin smile.\n\n\"Andy. Perfect timing. Just a quick document I need you to sign before you are officially off the premises. Standard exit protocol.\""
-    ],
-    "choices": [
-      {
-        "label": "Sign the document without reading it.",
-        "target": "document_signed",
-        "sfx": "click.ogg"
-      },
-      {
-        "label": "Refuse to sign and ask what it is.",
-        "target": "document_refusal",
-        "sfx": "negative.ogg"
-      },
-      {
-        "label": "Try to walk around Agnes, pretending not to hear.",
-        "target": "attempt_pass",
-        "sfx": "footstep.ogg"
-      }
-    ]
-  },
-  "attempt_pass_disadvantage": {
-    "id": "attempt_pass_disadvantage",
-    "bg": "stairwell_landing.jpg",
-    "music": "dicey_decisions.mp3",
-    "chars": [
-      "agnes_blocking.svg"
-    ],
-    "actions": [
-      {
-        "type": "roll_dice",
-        "dice": "d20",
-        "threshold": 13,
-        "modifier": "disadvantage",
-        "skill": "Evasion (with Disadvantage)",
-        "crit_text": "\"Against all odds, you slip through!\"",
-        "fumble_text": "\"She saw that coming a mile away...\"",
-        "success_target": "d20_success",
-        "failure_target": "d20_failure"
-      }
-    ],
-    "textBlocks": [
-      "You try to sidle past slowly... but this gives Agnes plenty of time to anticipate your moves.\n\n**Rolling with DISADVANTAGE!** (Roll twice, take the worse result)"
-    ],
-    "choices": [
-      {
-        "label": "ROLL D20 WITH DISADVANTAGE...",
-        "target": "_roll",
-        "sfx": "dice_roll.ogg"
-      }
-    ]
-  },
-  "attempt_pass_advantage": {
-    "id": "attempt_pass_advantage",
-    "bg": "stairwell_landing.jpg",
-    "music": "dicey_decisions.mp3",
-    "chars": [
-      "agnes_surprised.svg"
-    ],
-    "actions": [
-      {
-        "type": "roll_dice",
-        "dice": "d20",
-        "threshold": 13,
-        "modifier": "advantage",
-        "skill": "Evasion (with Advantage!)",
-        "crit_text": "\"Hot coffee AND a perfect dodge!\"",
-        "fumble_text": "\"The coffee splashes... on YOU!\"",
-        "success_target": "d20_success",
-        "failure_target": "d20_failure"
-      }
-    ],
-    "textBlocks": [
-      "You hurl the hot coffee at Agnes! She recoils, temporarily blinded.\n\n**Rolling with ADVANTAGE!** (Roll twice, take the better result)"
-    ],
-    "choices": [
-      {
-        "label": "ROLL D20 WITH ADVANTAGE!",
-        "target": "_roll",
-        "sfx": "dice_roll.ogg"
-      }
-    ]
-  },
-  "hallway_return": {
-    "id": "hallway_return",
-    "bg": "hallway_fluorescent.jpg",
-    "music": "last_day.mp3",
-    "textBlocks": [
-      "You step back into the hallway, coffee in hand. The warmth is comforting.\n\nAs you turn the corner, you nearly walk straight into Agnes from HR. She's standing right there, blocking the corridor.",
-      "She holds a single, thick manila envelope and smiles a very thin smile.\n\n\"Andy. Perfect timing. Just a quick document I need you to sign before you are officially off the premises. Standard exit protocol.\""
-    ],
-    "choices": [
-      {
-        "label": "Sign the document without reading it.",
-        "target": "document_signed",
-        "sfx": "click.ogg"
-      },
-      {
-        "label": "Refuse to sign and ask what it is.",
-        "target": "document_refusal",
-        "sfx": "negative.ogg"
-      },
-      {
-        "label": "Try to walk around Agnes, pretending not to hear.",
-        "target": "attempt_pass",
-        "sfx": "footstep.ogg"
+        "label": "The room is spinning. You close your eyes.",
+        "target": "lost_to_coffee",
+        "sfx": "thud.ogg"
       }
     ]
   },
@@ -427,99 +271,102 @@ const story = {
       }
     ]
   },
-  "exit_lobby": {
-    "id": "exit_lobby",
-    "bg": "sunny_street_freedom.jpg",
-    "music": "victory.mp3",
+  "colleague_plea": {
+    "id": "colleague_plea",
+    "bg": "office_corridor.jpg",
+    "music": "questioning.mp3",
     "chars": [
-      "security_guard_waving.svg"
+      "joni_desperate.svg",
+      "norbert_grabbing.svg"
     ],
     "textBlocks": [
-      "You reach the main lobby. The security guard waves you goodbye.\n\nYou push open the heavy front doors and step out onto the street.\n\nThe sun is shining. The chapter is closed. **YOU WIN.**"
-    ],
-    "choices": []
-  },
-  "attempt_pass": {
-    "id": "attempt_pass",
-    "bg": "stairwell_landing.jpg",
-    "music": "dicey_decisions.mp3",
-    "chars": [
-      "agnes_blocking.svg"
-    ],
-    "textBlocks": [
-      "You mutter a quick \"Gotta run!\" and try to dart past Agnes.\n\nYou are fast, but Agnes is known to have a hidden history as a competitive ballroom dancer.",
-      "**You must roll a d20 (13 or lower to succeed).**\n\nHow will you attempt to evade her?"
+      "Norbert grabs your sleeve.\n\n\"Please, Andy! Five minutes! You were always the best! If Joni misses the deadline, he loses everything!\""
     ],
     "choices": [
       {
-        "label": "Sprint past her! (Normal roll)",
-        "target": "attempt_pass_normal",
-        "sfx": "dice_roll.ogg"
+        "label": "Agree: \"Fine, five minutes.\"",
+        "target": "lost_to_PhD",
+        "sfx": "click.ogg"
       },
       {
-        "label": "Throw coffee in her face first!",
-        "target": "attempt_pass_advantage",
-        "uses": [
-          "Coffee Mug"
-        ],
-        "sfx": "gulp.ogg"
+        "label": "Refuse again: \"No, I really have to go.\"",
+        "target": "corridor_delayed",
+        "sfx": "negative.ogg"
+      }
+    ]
+  },
+  "corridor_delayed": {
+    "id": "corridor_delayed",
+    "bg": "office_corridor.jpg",
+    "music": "i_can_do_it.mp3",
+    "chars": [
+      "fabio_friendly.svg",
+      "ali_friendly.svg"
+    ],
+    "textBlocks": [
+      "You shake off Joni and step firmly into the corridor, only to be immediately intercepted by Fabio and Ali.\n\n\"Andy! Leaving already? Just wanted to say hello and wish you luck!\"\n\nAfter a few minutes of pleasantries, Ali adds, \"Oh, you didn't say bye to the fourth floor folks, did you? Michi, Gilles, and Ruling will never forgive you!\""
+    ],
+    "choices": [
+      {
+        "label": "Agree to take the elevator up to the 4th floor.",
+        "target": "fourth_floor_elevator",
+        "sfx": "elevator_ding.ogg"
       },
       {
-        "label": "Just try to squeeze by carefully...",
-        "target": "attempt_pass_disadvantage",
+        "label": "Say \"I don't have time!\" and run for the stairs.",
+        "target": "corridor_safe",
         "sfx": "footstep.ogg"
       }
     ]
   },
-  "agnes_battle": {
-    "id": "agnes_battle",
-    "bg": "hallway_red_alert.jpg",
-    "music": "BOSS_TIME.mp3",
-    "chars": [
-      "agnes_blocking.svg"
-    ],
-    "actions": [
-      {
-        "type": "start_battle",
-        "player_max_hp": 25,
-        "player_max_mana": 10,
-        "player_ac": 11,
-        "player_attack_bonus": 3,
-        "player_damage": "d6",
-        "terrain": "none",
-        "enemy_id": "agnes_hr",
-        "win_target": "agnes_defeated",
-        "lose_target": "lost_to_HR",
-        "flee_target": "attempt_pass"
-      }
-    ],
+  "corridor_safe": {
+    "id": "corridor_safe",
+    "bg": "back_stairwell_dim.jpg",
+    "music": "zen.mp3",
     "textBlocks": [
-      "Agnes lunges forward with surprising speed, her HR badge glinting under the red emergency lights.\n\n\"Let's see if your resignation letter is as strong as your resolve!\""
+      "Ignoring their desperate pleas, you walk past your former colleagues.\n\nThe hallway feels heavy with their disappointment, but you continue toward the dimly lit back stairwell.\n\nIt smells faintly of dust and cleaning supplies. You enjoy the silence of your final moments in the building."
     ],
     "choices": [
       {
-        "label": "Attack!",
-        "target": "agnes_battle",
-        "sfx": "thud.ogg",
-        "battle_action": "attack"
-      },
+        "label": "Continue down to the main entrance.",
+        "target": "exit_lobby",
+        "sfx": "footstep.ogg"
+      }
+    ]
+  },
+  "d20_failure": {
+    "id": "d20_failure",
+    "bg": "hallway_dim.jpg",
+    "music": "spooky.mp3",
+    "chars": [
+      "agnes_victorious.svg"
+    ],
+    "textBlocks": [
+      "You moved very fast, but Agnes is faster. Her leg snaps out with precision, and you trip, falling face down onto the carpet.\n\nThe wind is knocked out of you. Agnes calmly stands over you, holding the manila folder.\n\nBefore you can protest, she presses a button on her watch. The hallway lights dim. You wake up chained to your old desk."
+    ],
+    "choices": [
       {
-        "label": "Skills",
-        "target": "agnes_battle",
-        "sfx": "click.ogg",
-        "battle_action": "skill"
-      },
+        "label": "The long-term employment trap has sprung.",
+        "target": "lost_to_coffee",
+        "sfx": "chain.ogg"
+      }
+    ]
+  },
+  "d20_success": {
+    "id": "d20_success",
+    "bg": "stairwell_escape.jpg",
+    "music": "running_escape.mp3",
+    "chars": [
+      "agnes_surprised.svg"
+    ],
+    "textBlocks": [
+      "You weren't fast enough to catch her completely off guard, but you saw the movement!\n\nAgnes stretches her leg in a lightning-fast trip move. In a moment of great sportiveness (you? REALLY?), you leap over her extended foot with a surprising burst of agility.\n\nYou get a clean run to the main stairs!"
+    ],
+    "choices": [
       {
-        "label": "Defend",
-        "target": "agnes_battle",
-        "sfx": "click.ogg",
-        "battle_action": "defend"
-      },
-      {
-        "label": "Item",
-        "target": "agnes_battle",
-        "sfx": "click.ogg",
-        "battle_action": "item"
+        "label": "Scramble down the main stairs to the entrance.",
+        "target": "exit_lobby",
+        "sfx": "footstep.ogg"
       }
     ]
   },
@@ -552,6 +399,100 @@ const story = {
       }
     ]
   },
+  "document_signed": {
+    "id": "document_signed",
+    "bg": "stairwell_landing.jpg",
+    "music": "legal_trap_stairwell.mp3",
+    "chars": [
+      "agnes_happy.svg"
+    ],
+    "textBlocks": [
+      "You sigh, scribble your signature on the last page of the dense legal document, and hand the pen back to Agnes.\n\n\"All done, Andy! Best of luck,\" she chirps.\n\nYou are now free to take the stairs down, feeling only slightly heavier."
+    ],
+    "choices": [
+      {
+        "label": "Scramble down the main stairs to the entrance.",
+        "target": "exit_lobby",
+        "sfx": "footstep.ogg"
+      }
+    ]
+  },
+  "exit_lobby": {
+    "id": "exit_lobby",
+    "bg": "sunny_street_freedom.jpg",
+    "music": "victory.mp3",
+    "chars": [
+      "security_guard_waving.svg"
+    ],
+    "textBlocks": [
+      "You reach the main lobby. The security guard waves you goodbye.\n\nYou push open the heavy front doors and step out onto the street.\n\nThe sun is shining. The chapter is closed. **YOU WIN.**"
+    ],
+    "choices": []
+  },
+  "fourth_floor_elevator": {
+    "id": "fourth_floor_elevator",
+    "bg": "meeting_room_whiteboard.jpg",
+    "music": "reading_papers.mp3",
+    "chars": [
+      "michi_whiteboard.svg",
+      "gilles_explaining.svg",
+      "ruling_pointing.svg"
+    ],
+    "textBlocks": [
+      "You agree and press the \"4\" button. The ride up is silent.\n\nWhen the doors open, Michi, Gilles, and Ruling are there, ready to ambush you with a whiteboard.\n\nYou spend the next two agonizing hours discussing the optimal parameters for a highly complex, niche model. Your resolve slowly erodes."
+    ],
+    "choices": [
+      {
+        "label": "Finally manage to break free and get back on the elevator.",
+        "target": "exit_lobby",
+        "sfx": "elevator_ding.ogg"
+      }
+    ]
+  },
+  "hallway_return": {
+    "id": "hallway_return",
+    "bg": "hallway_fluorescent.jpg",
+    "music": "last_day.mp3",
+    "textBlocks": [
+      "You step back into the hallway, coffee in hand. The warmth is comforting.\n\nAs you turn the corner, you nearly walk straight into Agnes from HR. She's standing right there, blocking the corridor.",
+      "She holds a single, thick manila envelope and smiles a very thin smile.\n\n\"Andy. Perfect timing. Just a quick document I need you to sign before you are officially off the premises. Standard exit protocol.\""
+    ],
+    "choices": [
+      {
+        "label": "Sign the document without reading it.",
+        "target": "document_signed",
+        "sfx": "click.ogg"
+      },
+      {
+        "label": "Refuse to sign and ask what it is.",
+        "target": "document_refusal",
+        "sfx": "negative.ogg"
+      },
+      {
+        "label": "Try to walk around Agnes, pretending not to hear.",
+        "target": "attempt_pass",
+        "sfx": "footstep.ogg"
+      }
+    ]
+  },
+  "lost_to_coffee": {
+    "id": "lost_to_coffee",
+    "bg": "dark_office_desk.jpg",
+    "music": "game_over.mp3",
+    "textBlocks": [
+      "You wake up with a throbbing headache. You are chained to your old desk chair.\n\nThe office is dark, except for the flickering screen of a monitor displaying a perpetual \"System Update\" message.\n\nYou realize you have been working here, unknowingly, for a very long time.\n\n**You lost the game.**"
+    ],
+    "choices": []
+  },
+  "lost_to_HR": {
+    "id": "lost_to_HR",
+    "bg": "bedroom_morning.jpg",
+    "music": "game_over.mp3",
+    "textBlocks": [
+      "You wake up in your apartment, startled. The clock says 7:00 AM.\n\nYou feel an inexplicable dread about the long commute ahead of you.\n\nYou remember nothing about a \"new job\" or a \"last day.\" You are stuck in an endless loop of yesterday.\n\n**You lost the game.**"
+    ],
+    "choices": []
+  },
   "lost_to_PhD": {
     "id": "lost_to_PhD",
     "bg": "desk_computer_code.jpg",
@@ -560,6 +501,60 @@ const story = {
       "You sit down and dive into the code. The problem is deep, fascinating, and consumes your entire focus.\n\nYou hear the door swing shut, but you don't look up. You solve the bug, then another, and another.\n\nNext time you check the time, the digital clock reads: **2035**.\n\nYou cannot remember the names of the people who asked you for help. You have merged with the job.\n\n**You lost the game.**"
     ],
     "choices": []
+  },
+  "main_stairs": {
+    "id": "main_stairs",
+    "bg": "stairwell_landing.jpg",
+    "music": "BOSS_TIME.mp3",
+    "chars": [
+      "agnes_neutral.svg"
+    ],
+    "textBlocks": [
+      "You turn right and walk toward the main stairwell. Just as you reach the landing, Agnes from HR steps out, blocking your path.\n\nShe holds a single, thick manila envelope and smiles a very thin smile.\n\n\"Andy. Perfect timing. Just a quick document I need you to sign before you are officially off the premises. Standard exit protocol.\""
+    ],
+    "choices": [
+      {
+        "label": "Sign the document without reading it.",
+        "target": "document_signed",
+        "sfx": "click.ogg"
+      },
+      {
+        "label": "Refuse to sign and ask what it is.",
+        "target": "document_refusal",
+        "sfx": "negative.ogg"
+      },
+      {
+        "label": "Try to walk around Agnes, pretending not to hear.",
+        "target": "attempt_pass",
+        "sfx": "footstep.ogg"
+      }
+    ]
+  },
+  "start": {
+    "id": "start",
+    "bg": "hallway_fluorescent.jpg",
+    "music": "last_day.mp3",
+    "textBlocks": [
+      "The old wooden door closes with a dull thud behind you for the very last time. Your badge no longer works; your desk is empty.",
+      "You stand in the dim hallway of the 1st floor, where scuffed tile stretches ahead and the overhead fluorescents hum their familiar drone.\n\nYour new job starts Monday, and this chapter is finally closed. Now, you just need to get to the entrance and head out to freedom."
+    ],
+    "choices": [
+      {
+        "label": "Turn right and take the main stairs down to the entrance.",
+        "target": "main_stairs",
+        "sfx": "footstep.ogg"
+      },
+      {
+        "label": "Turn left and take the back stairs to the main entrance.",
+        "target": "back_stairs",
+        "sfx": "footstep.ogg"
+      },
+      {
+        "label": "Get one last, sentimental cup of coffee in the kitchen near your office.",
+        "target": "coffee_kitchen",
+        "sfx": "door_open.ogg"
+      }
+    ]
   }
 };
 

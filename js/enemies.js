@@ -12,7 +12,7 @@ const enemies = {
     "id": "agnes_hr",
     "name": "Agnes (HR)",
     "sprite": "agnes_blocking.svg",
-    "hp": 22,
+    "hp": 99,
     "ac": 11,
     "attack_bonus": 3,
     "damage": "d6",
