@@ -669,7 +669,8 @@ var BattleDiceUI = (function() {
                 tagBuffer += char;
                 if (char === '>') {
                     isTag = false;
-                    element.innerHTML += tagBuffer;
+                    // Use insertAdjacentHTML to avoid re-parsing existing content
+                    element.insertAdjacentHTML('beforeend', tagBuffer);
                     tagBuffer = '';
                 }
                 index++;
@@ -677,7 +678,21 @@ var BattleDiceUI = (function() {
                 return;
             }
 
-            element.innerHTML += char;
+            // Handle surrogate pairs (emojis and other characters outside BMP)
+            // Check if current char is a high surrogate and next is a low surrogate
+            if (char.charCodeAt(0) >= 0xD800 && char.charCodeAt(0) <= 0xDBFF &&
+                index + 1 < text.length) {
+                var nextChar = text[index + 1];
+                if (nextChar.charCodeAt(0) >= 0xDC00 && nextChar.charCodeAt(0) <= 0xDFFF) {
+                    // This is a surrogate pair - combine them
+                    char = char + nextChar;
+                    index++; // Skip the low surrogate in next iteration
+                }
+            }
+
+            // Use createTextNode + appendChild instead of innerHTML +=
+            // This is more robust and doesn't re-parse existing content
+            element.appendChild(document.createTextNode(char));
             index++;
             // Don't scroll on every character - only at end or on newlines
             // This prevents the "line 1 jumps up when line 2 starts" bug

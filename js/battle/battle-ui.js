@@ -181,10 +181,10 @@ var BattleUI = (function() {
         battleUI.id = 'battle-ui';
         battleUI.className = 'battle-ui';
 
-        // Terrain indicator (top center)
+        // Terrain indicator (top center) - uses anchor system
         var terrainIndicator = document.createElement('div');
         terrainIndicator.id = 'terrain-indicator';
-        terrainIndicator.className = 'terrain-indicator';
+        terrainIndicator.className = 'terrain-indicator anchor anchor--top-center';
 
         // Player stats panel
         var playerStats = createPlayerStatsPanel(playerState);
@@ -192,10 +192,10 @@ var BattleUI = (function() {
         // Enemy stats panel
         var enemyStats = createEnemyStatsPanel(enemyState);
 
-        // Battle log panel
+        // Battle log panel - uses anchor--bottom-flush for full-width bottom positioning
         var battleLog = document.createElement('div');
         battleLog.id = 'battle-log-panel';
-        battleLog.className = 'battle-log-panel';
+        battleLog.className = 'battle-log-panel anchor anchor--bottom-flush';
 
         // Calculate log content height from max lines (including padding for box-sizing: border-box)
         var maxLines = config.ui.battleLogMaxLines || 2;
@@ -208,9 +208,31 @@ var BattleUI = (function() {
             '<div id="battle-log-content" class="battle-log-content"></div>' +
             '<div id="battle-choices" class="battle-choices"></div>';
 
+        // Create player row container (for portrait mode: stats + summon side by side)
+        var playerRow = document.createElement('div');
+        playerRow.id = 'player-row';
+        playerRow.className = 'player-row';
+        playerRow.appendChild(playerStats);
+        // Player summon slot - summons will be moved here in portrait mode
+        var playerSummonSlot = document.createElement('div');
+        playerSummonSlot.id = 'player-summon-slot';
+        playerSummonSlot.className = 'player-summon-slot';
+        playerRow.appendChild(playerSummonSlot);
+
+        // Create enemy row container (for portrait mode: summon + stats side by side)
+        var enemyRow = document.createElement('div');
+        enemyRow.id = 'enemy-row';
+        enemyRow.className = 'enemy-row';
+        // Enemy summon slot - summons will be moved here in portrait mode
+        var enemySummonSlot = document.createElement('div');
+        enemySummonSlot.id = 'enemy-summon-slot';
+        enemySummonSlot.className = 'enemy-summon-slot';
+        enemyRow.appendChild(enemySummonSlot);
+        enemyRow.appendChild(enemyStats);
+
         battleUI.appendChild(terrainIndicator);
-        battleUI.appendChild(playerStats);
-        battleUI.appendChild(enemyStats);
+        battleUI.appendChild(playerRow);
+        battleUI.appendChild(enemyRow);
         battleUI.appendChild(battleLog);
         elements.container.appendChild(battleUI);
 
@@ -223,7 +245,8 @@ var BattleUI = (function() {
     function createPlayerStatsPanel(playerState) {
         var panel = document.createElement('div');
         panel.id = 'player-stats-panel';
-        panel.className = 'battle-stats-panel player-stats';
+        // Use both legacy class for backwards compat AND new anchor classes
+        panel.className = 'battle-stats-panel player-stats anchor anchor--bottom-left';
         panel.innerHTML =
             '<div class="stats-header">' +
                 '<span class="player-name-text">' + (playerState.name || 'Player') + '</span>' +
@@ -257,7 +280,8 @@ var BattleUI = (function() {
     function createEnemyStatsPanel(enemyState) {
         var panel = document.createElement('div');
         panel.id = 'enemy-stats-panel';
-        panel.className = 'battle-stats-panel enemy-stats';
+        // Use both legacy class for backwards compat AND new anchor classes
+        panel.className = 'battle-stats-panel enemy-stats anchor anchor--top-right';
         panel.innerHTML =
             '<div class="stats-header">' +
                 '<span id="enemy-hp-label" class="enemy-name-text">' + (enemyState.name || 'Enemy') + '</span>' +
@@ -641,6 +665,12 @@ var BattleUI = (function() {
             return;
         }
 
+        // Debug: detect if we're interrupting an existing animation
+        if (animationState.active) {
+            console.warn('[BattleUI] updateBattleLog called while animation active! Current text:', elements.battleLog.textContent, '| New html:', html ? html.substring(0, 50) : html);
+            console.trace('[BattleUI] Interrupting call stack');
+        }
+
         // Clear previous animation state
         clearAnimationState();
 
@@ -892,7 +922,8 @@ var BattleUI = (function() {
                             var closeIndex = text.indexOf(closingTag, tagEnd);
                             if (closeIndex !== -1) {
                                 // Add the entire styled element at once (opening tag + content + closing tag)
-                                container.innerHTML += text.substring(index, closeIndex + closingTag.length);
+                                // Use insertAdjacentHTML to avoid re-parsing existing content
+                                container.insertAdjacentHTML('beforeend', text.substring(index, closeIndex + closingTag.length));
                                 index = closeIndex + closingTag.length;
                                 scrollToBottomIfNeeded(container);
                                 typeNext();
@@ -900,7 +931,8 @@ var BattleUI = (function() {
                             }
                         }
                         // Regular tag without class - just add the tag
-                        container.innerHTML += tagContent;
+                        // Use insertAdjacentHTML to avoid re-parsing existing content
+                        container.insertAdjacentHTML('beforeend', tagContent);
                         index = tagEnd + 1;
                         // Check for <br> tags that add new lines
                         if (tagContent.toLowerCase() === '<br>' || tagContent.toLowerCase() === '<br/>') {
@@ -911,7 +943,23 @@ var BattleUI = (function() {
                     }
                 }
 
-                container.innerHTML += text[index];
+                // For plain text characters, use createTextNode + appendChild
+                // This is more robust than innerHTML += which re-parses the entire content
+                var char = text[index];
+
+                // Handle surrogate pairs (emojis and other characters outside BMP)
+                // Check if current char is a high surrogate and next is a low surrogate
+                if (char.charCodeAt(0) >= 0xD800 && char.charCodeAt(0) <= 0xDBFF &&
+                    index + 1 < text.length) {
+                    var nextChar = text[index + 1];
+                    if (nextChar.charCodeAt(0) >= 0xDC00 && nextChar.charCodeAt(0) <= 0xDFFF) {
+                        // This is a surrogate pair - combine them
+                        char = char + nextChar;
+                        index++; // Skip the low surrogate in next iteration
+                    }
+                }
+
+                container.appendChild(document.createTextNode(char));
                 index++;
 
                 // Scroll on newlines
@@ -1725,30 +1773,48 @@ var BattleUI = (function() {
      * @param {Object} displayData - Display data from BattleSummon.getDisplayData()
      */
     function showSummonSprite(displayData) {
-        if (!displayData) return;
+        console.log('[SummonUI Debug] showSummonSprite called with:', displayData);
+        if (!displayData) {
+            console.log('[SummonUI Debug] No displayData, returning');
+            return;
+        }
 
         var spriteLayer = document.getElementById('sprite-layer');
-        if (!spriteLayer) return;
+        if (!spriteLayer) {
+            console.log('[SummonUI Debug] No sprite-layer element found, returning');
+            return;
+        }
+        console.log('[SummonUI Debug] Found sprite-layer, creating summon element');
 
         // Remove existing summon with same UID
         hideSummonSprite(displayData.uid);
 
-        // Create summon container
+        // Create summon container - uses CSS variables for positioning
         var container = document.createElement('div');
         container.id = 'summon-' + displayData.uid;
         container.className = 'summon-container summon-' + displayData.side + ' summon-appear';
         container.dataset.uid = displayData.uid;
         container.dataset.side = displayData.side;
 
+        // Combined name + duration badge (above sprite)
+        var infoBadge = document.createElement('div');
+        infoBadge.className = 'summon-info-badge';
+
+        var nameSpan = document.createElement('span');
+        nameSpan.className = 'summon-badge-name';
+        nameSpan.textContent = displayData.name;
+        infoBadge.appendChild(nameSpan);
+
+        var durationSpan = document.createElement('span');
+        durationSpan.className = 'summon-badge-duration';
+        durationSpan.textContent = '(' + displayData.turnsRemaining + ')';
+        infoBadge.appendChild(durationSpan);
+
+        container.appendChild(infoBadge);
+
         // Sprite wrapper
         var spriteWrapper = document.createElement('div');
         spriteWrapper.className = 'summon-sprite-wrapper';
-
-        // Duration indicator (always shown)
-        var durationIndicator = document.createElement('div');
-        durationIndicator.className = 'summon-duration-indicator';
-        durationIndicator.textContent = displayData.turnsRemaining;
-        spriteWrapper.appendChild(durationIndicator);
 
         // Sprite image
         if (displayData.sprite) {
@@ -1777,12 +1843,6 @@ var BattleUI = (function() {
 
         container.appendChild(spriteWrapper);
 
-        // Name label
-        var nameLabel = document.createElement('div');
-        nameLabel.className = 'summon-name';
-        nameLabel.textContent = displayData.name;
-        container.appendChild(nameLabel);
-
         // Add click handler for selection
         container.addEventListener('click', function() {
             if (container.classList.contains('summon-targetable')) {
@@ -1794,7 +1854,19 @@ var BattleUI = (function() {
             }
         });
 
-        spriteLayer.appendChild(container);
+        // Summons always go to their respective slots (aligned with stats panels)
+        // CSS handles orientation: vertical stack in landscape, horizontal in portrait
+        var playerSummonSlot = document.getElementById('player-summon-slot');
+        var enemySummonSlot = document.getElementById('enemy-summon-slot');
+
+        if (displayData.side === 'player' && playerSummonSlot) {
+            playerSummonSlot.appendChild(container);
+        } else if (displayData.side === 'enemy' && enemySummonSlot) {
+            enemySummonSlot.appendChild(container);
+        } else {
+            // Fallback to sprite-layer if slots don't exist
+            spriteLayer.appendChild(container);
+        }
 
         // Play spawn sound
         playSfx('summon_appear');
@@ -1815,10 +1887,10 @@ var BattleUI = (function() {
         var container = document.getElementById('summon-' + displayData.uid);
         if (!container) return;
 
-        // Update duration indicator
-        var durationIndicator = container.querySelector('.summon-duration-indicator');
-        if (durationIndicator) {
-            durationIndicator.textContent = displayData.turnsRemaining;
+        // Update duration in badge
+        var durationSpan = container.querySelector('.summon-badge-duration');
+        if (durationSpan) {
+            durationSpan.textContent = '(' + displayData.turnsRemaining + ')';
         }
 
         // Update expiring warning state (blink when 1 turn left)

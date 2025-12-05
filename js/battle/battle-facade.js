@@ -1571,6 +1571,23 @@ var BattleEngine = (function() {
             BattleUI.hideIntentIndicator('execute');
         }
 
+        // If skill is a summon, there's no attack - skip defend QTE entirely
+        // Player's turn is effectively "skipped" since there's nothing to defend against
+        if (skill.isSummon) {
+            console.log('[Intent Debug] Summon intent - no attack to defend against, skipping QTE');
+            // If player was defending, decrement defending since the turn still passes
+            if (player.defending && player.defending > 0) {
+                player.defending--;
+                if (player.defending <= 0) {
+                    messages.push('Defensive stance wore off!');
+                }
+            }
+            scheduleTimeout(function() {
+                executeIntentSkill(style, skill, intent, messages, callback);
+            }, config.timing.dialogueDuration);
+            return;
+        }
+
         // Check if player is defending - trigger defend QTE for intent attacks too
         if (player.defending && player.defending > 0 && isQTEEnabledForDefend()) {
             console.log('[Intent Debug] Player defending, triggering defend QTE for intent attack');
@@ -1713,11 +1730,19 @@ var BattleEngine = (function() {
         var player = state.player;
         var enemyName = enemy.name || 'Enemy';
 
+        console.log('[Intent Debug] executeIntentSkill called:', {
+            skill: skill,
+            isSummon: skill ? skill.isSummon : 'no skill',
+            summonId: skill ? skill.summonId : 'no skill',
+            intentType: intent ? intent.type : 'no intent'
+        });
+
         // Clear the intent (record cooldown)
         BattleIntent.clear(state.turn);
 
         // Handle summon type
         if (skill.isSummon) {
+            console.log('[Intent Debug] Skill is summon, calling executeEnemySummon');
             executeEnemySummon(skill, enemy, messages, callback);
             return;
         }
@@ -1872,6 +1897,14 @@ var BattleEngine = (function() {
         var enemyName = enemy.name || 'Enemy';
         var summonId = skill.summonId;
 
+        console.log('[Summon Debug] executeEnemySummon called:', {
+            skill: skill,
+            summonId: summonId,
+            enemyId: enemy.id,
+            hasBattleSummon: _hasBattleSummon,
+            hasBattleUI: _hasBattleUI
+        });
+
         if (!_hasBattleSummon) {
             console.warn('[BattleEngine] BattleSummon module not loaded - cannot summon');
             finishEnemyTurn([], callback);
@@ -1885,7 +1918,9 @@ var BattleEngine = (function() {
         }
 
         // Spawn the summon
+        console.log('[Summon Debug] Calling BattleSummon.spawn with:', summonId, enemy.id, 'enemy');
         var result = BattleSummon.spawn(summonId, enemy.id, 'enemy');
+        console.log('[Summon Debug] Spawn result:', result);
 
         if (!result.success) {
             // Failed to summon (e.g., max summons reached)
@@ -1902,8 +1937,10 @@ var BattleEngine = (function() {
         summonMsgs.push(result.message);
 
         // Show the summon sprite
+        console.log('[Summon Debug] Checking for BattleUI.showSummonSprite:', _hasBattleUI, BattleUI ? !!BattleUI.showSummonSprite : 'BattleUI undefined');
         if (_hasBattleUI && BattleUI.showSummonSprite) {
             var displayData = BattleSummon.getDisplayData(result.summon.uid);
+            console.log('[Summon Debug] Display data:', displayData);
             BattleUI.showSummonSprite(displayData);
         }
 
@@ -2584,26 +2621,33 @@ var BattleEngine = (function() {
 
     function finishEnemyTurn(messages, callback) {
         console.log('[Turn Debug] finishEnemyTurn called');
+
+        // Function to continue after messages are displayed
+        function continueAfterMessages() {
+            // === INTENT SYSTEM: Tick intent counter at end of enemy turn ===
+            if (_hasBattleIntent && BattleIntent.isTelegraphed()) {
+                BattleIntent.tick();
+                // Update the indicator to show remaining turns
+                if (_hasBattleUI && BattleUI.updateIntentIndicator) {
+                    BattleUI.updateIntentIndicator(BattleIntent.getDisplayData());
+                }
+            }
+
+            // === SUMMON SYSTEM: Process enemy summon turns ===
+            processEnemySummonTurns(function() {
+                continueFinishEnemyTurn(callback);
+            });
+        }
+
         // Display any messages (heal notifications, etc.) in the battle log
         // Don't add enemy name prefix - messages already include context
+        // IMPORTANT: Wait for typewriter to complete before continuing to avoid race condition
         if (messages && messages.length > 0) {
             var msgHtml = messages.join('<br>');
-            updateBattleLog(msgHtml);
+            updateBattleLog(msgHtml, null, continueAfterMessages);
+        } else {
+            continueAfterMessages();
         }
-
-        // === INTENT SYSTEM: Tick intent counter at end of enemy turn ===
-        if (_hasBattleIntent && BattleIntent.isTelegraphed()) {
-            BattleIntent.tick();
-            // Update the indicator to show remaining turns
-            if (_hasBattleUI && BattleUI.updateIntentIndicator) {
-                BattleUI.updateIntentIndicator(BattleIntent.getDisplayData());
-            }
-        }
-
-        // === SUMMON SYSTEM: Process enemy summon turns ===
-        processEnemySummonTurns(function() {
-            continueFinishEnemyTurn(callback);
-        });
     }
 
     /**
@@ -3149,19 +3193,15 @@ var BattleEngine = (function() {
      * Apply damage and show floating number in one unified action
      * @param {Object} attackResult - Attack result with hit, damage, isCrit, etc.
      * @param {string} target - 'player' or 'enemy'
-     * @param {Object} options - { source, type, showRoll }
+     * @param {Object} options - { source, type }
      */
     function applyDamageWithFloatingNumber(attackResult, target, options) {
         options = options || {};
 
         if (!attackResult) return;
 
-        // Show hit/miss floating text with roll (optional)
-        if (options.showRoll && attackResult.roll) {
-            if (attackResult.hit) {
-                showDamageNumber('Hit! (' + attackResult.roll + ')', target, 'hit');
-            }
-        }
+        // Note: showRoll option removed - was passing string to showDamageNumber which expects number
+        // The battle log already shows roll results with proper formatting
 
         // Apply damage and show damage number
         if (attackResult.hit) {
