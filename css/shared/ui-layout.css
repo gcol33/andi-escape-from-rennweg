@@ -6,11 +6,12 @@
 /* === Reset Button (Base Styles) ===
  * Positioned fixed in corner. Themes override colors.
  * Uses fixed px sizes to avoid scaling with base font.
+ * POSITIONING: Uses --space-md for consistent edge margin.
  */
 #reset-btn {
     position: fixed;
-    bottom: 10px;
-    right: 10px;
+    bottom: var(--space-md);
+    right: var(--space-md);
     width: 44px;
     height: 44px;
     background: rgba(100, 100, 100, 0.8);

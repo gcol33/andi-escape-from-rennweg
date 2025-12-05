@@ -1067,6 +1067,32 @@ const VNEngine = (function() {
         setupResetButton();
         setupTapToHide();
 
+        // Initialize dev panel module
+        if (typeof DevPanel !== 'undefined') {
+            DevPanel.init({
+                onUndo: undoScene,
+                getDevMode: function() { return state.devMode; },
+                setDevMode: function(val) { state.devMode = val; },
+                getKenBurns: function() { return state.kenBurns; },
+                setKenBurns: function(val) {
+                    state.kenBurns = val;
+                    applyKenBurns(val);
+                    try {
+                        localStorage.setItem(config.kenBurnsKey, val ? 'true' : 'false');
+                    } catch (e) {}
+                },
+                getGuaranteeStatus: function() { return state.devGuaranteeStatus; },
+                setGuaranteeStatus: function(val) { state.devGuaranteeStatus = val; },
+                getIntentsEnabled: function() { return state.devIntentsEnabled; },
+                setIntentsEnabled: function(val) { state.devIntentsEnabled = val; },
+                getForcedRoll: function() { return state.devForcedRoll; },
+                setForcedRoll: function(val) { state.devForcedRoll = val; },
+                getForcedDamage: function() { return state.devForcedDamage; },
+                setForcedDamage: function(val) { state.devForcedDamage = val; },
+                log: log
+            });
+        }
+
         // Show dev mode indicator if enabled by default
         if (state.devMode) {
             showDevModeIndicator(true);
@@ -1350,6 +1376,13 @@ const VNEngine = (function() {
     }
 
     function showDevModeIndicator(show) {
+        // Delegate to DevPanel module if available
+        if (typeof DevPanel !== 'undefined') {
+            DevPanel.show(show);
+            return;
+        }
+
+        // Fallback: legacy code (kept for backwards compatibility)
         var indicator = document.getElementById('dev-mode-indicator');
         var themeSelector = document.getElementById('theme-selector');
 
@@ -1358,37 +1391,31 @@ const VNEngine = (function() {
                 indicator = document.createElement('div');
                 indicator.id = 'dev-mode-indicator';
                 indicator.textContent = 'DEV MODE';
-                // Styles defined in shared.css #dev-mode-indicator
                 document.body.appendChild(indicator);
 
-                // Add click handler for portrait mode toggle
                 indicator.addEventListener('click', function() {
                     toggleDevPanelPortrait();
                 });
             }
             indicator.classList.add('visible');
 
-            // Show theme selector in dev mode (landscape only, portrait uses toggle)
             if (!themeSelector) {
                 createThemeSelector();
             } else {
                 themeSelector.classList.add('visible');
             }
 
-            // Add undo button to text controls
             addUndoButton();
         } else {
             if (indicator) {
                 indicator.classList.remove('visible');
                 indicator.classList.remove('expanded');
             }
-            // Hide theme selector
             if (themeSelector) {
                 themeSelector.classList.remove('visible');
                 themeSelector.classList.remove('portrait-expanded');
             }
 
-            // Remove undo button from text controls
             removeUndoButton();
         }
     }

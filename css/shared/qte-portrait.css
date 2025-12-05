@@ -15,30 +15,25 @@
         max-width: 100% !important;
     }
 
-    /* Player stats panel - LEFT side in portrait */
+    /* Player stats panel - positioned bottom-left via anchor system
+     * Only need to override sizing, position comes from .anchor--bottom-left */
     .battle-stats-panel.player-stats {
-        left: 5px !important;
-        right: auto !important;
-        transform: none !important;
         min-width: auto !important;
         width: auto !important;
         max-width: 45% !important;
     }
 
-    /* Enemy stats panel - RIGHT side at top in portrait */
+    /* Enemy stats panel - positioned top-right via anchor system
+     * Only need to override sizing, position comes from .anchor--top-right */
     .battle-stats-panel.enemy-stats {
-        left: auto !important;
-        right: 5px !important;
-        transform: none !important;
-        top: max(5px, env(safe-area-inset-top, 5px)) !important;
         min-width: auto !important;
         width: auto !important;
         max-width: 45% !important;
     }
 
-    /* Center terrain indicator */
+    /* Terrain indicator - offset below enemy stats panel in portrait */
     .terrain-indicator {
-        top: calc(max(5px, env(safe-area-inset-top, 5px)) + 55px) !important;
+        top: calc(max(var(--space-md), env(safe-area-inset-top, 5px)) + 3.5rem) !important;
     }
 
     /* Battle choices grid - ensure proper centering and smaller size */

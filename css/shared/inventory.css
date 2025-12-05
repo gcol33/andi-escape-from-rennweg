@@ -3,16 +3,17 @@
  */
 
 /* === Inventory Display === */
+/* POSITIONING: Uses --space-md for consistent edge margin */
 #inventory-display {
     position: absolute;
-    top: 10px;
-    left: 10px;
+    top: var(--space-md);
+    left: var(--space-md);
     background: rgba(0, 0, 0, 0.7);
-    padding: 8px 12px;
-    border-radius: 8px;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--space-sm);
     display: none;
     z-index: var(--z-battle-ui);
-    max-width: 200px;
+    max-width: 12.5rem;  /* 200px */
 }
 
 /* Hide inventory display during battle (including intro) - items accessible via ITEM button */

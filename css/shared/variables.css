@@ -113,13 +113,13 @@
 }
 
 /* === UI Positioning System ===
- * Unified variables for all battle UI element placement.
- * Override these in orientation media queries for responsive layout.
+ * Variables for battle UI element placement.
+ * Uses design tokens from layout-system.css where possible.
  */
 :root {
-    /* Edge margins */
-    --ui-edge-margin: 0.625rem;
-    --ui-edge-margin-small: 0.3125rem;
+    /* Edge margins - use design tokens */
+    --ui-edge-margin: var(--space-md, 0.75rem);
+    --ui-edge-margin-small: var(--space-xs, 0.25rem);
 
     /* Stats panel dimensions */
     --stats-panel-width: 17.5rem;
@@ -127,28 +127,6 @@
 
     /* Battle log height (used for bottom positioning) */
     --battle-log-height: 13.4rem;
-
-    /* Player stats position */
-    --player-stats-left: var(--ui-edge-margin);
-    --player-stats-bottom: calc(var(--battle-log-height) + var(--ui-edge-margin));
-
-    /* Enemy stats position */
-    --enemy-stats-right: var(--ui-edge-margin);
-    --enemy-stats-top: var(--ui-edge-margin);
-
-    /* Player summon position (landscape default: centered above player stats) */
-    --player-summon-left: calc(var(--ui-edge-margin) + var(--stats-panel-width) / 2);
-    --player-summon-right: auto;
-    --player-summon-top: 30%;
-    --player-summon-bottom: auto;
-    --player-summon-transform: translateX(-50%);
-
-    /* Enemy summon position (landscape default: centered below enemy stats) */
-    --enemy-summon-left: auto;
-    --enemy-summon-right: calc(var(--ui-edge-margin) + var(--stats-panel-width) / 2);
-    --enemy-summon-top: 30%;
-    --enemy-summon-bottom: auto;
-    --enemy-summon-transform: translateX(50%);
 }
 
 /* === Battle Panel Colors === */

@@ -1,0 +1,243 @@
+/* =============================================================================
+   CHARACTER PANEL COMPONENT - v0.6.0
+   =============================================================================
+   Reusable stat panel component for displaying HP, MP, Limit, AC, and status
+   effects. Used for both player and enemy stats panels.
+
+   This component is POSITION-AGNOSTIC. Use anchor classes to position:
+   - Player panel: .anchor.anchor--bottom-left
+   - Enemy panel: .anchor.anchor--top-right
+
+   Structure:
+   .character-panel
+     .character-panel__header
+       .character-panel__name
+       .character-panel__statuses
+       .character-panel__ac (optional)
+     .character-panel__stats
+       .stat-row.hp-row
+       .stat-row.mp-row (optional)
+       .stat-row.limit-row (optional)
+============================================================================= */
+
+/* === Panel Container === */
+.character-panel {
+    /* Appearance only - no positioning here */
+    z-index: var(--z-overlay);
+    padding: var(--panel-padding, 0.75rem);
+
+    /* Sizing */
+    width: 17.5rem;
+    max-width: 17.5rem;
+
+    /* Theme-overridable styling */
+    background: var(--battle-panel-bg, rgba(0, 0, 0, 0.85));
+    border: 2px solid var(--battle-panel-border, rgba(255, 255, 255, 0.2));
+    border-radius: var(--panel-radius, 0.375rem);
+
+    /* Prevent text selection during battle */
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* === Panel Header === */
+.character-panel__header {
+    display: flex;
+    align-items: center;
+    gap: 0.3em;
+    font-size: var(--text-sm, 0.85rem);
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.0625rem;
+    margin-bottom: var(--space-sm, 0.625rem);
+    color: var(--battle-text, #fff);
+    white-space: nowrap;
+    min-height: 1.5em;
+    line-height: 1;
+}
+
+.character-panel__name {
+    flex-shrink: 0;
+}
+
+.character-panel__statuses {
+    display: inline-flex;
+    align-items: center;
+    min-width: 4em;
+    height: 1.2em;
+}
+
+.character-panel__statuses .status-icon {
+    font-size: 0.85rem;
+    cursor: help;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    line-height: 1;
+}
+
+.character-panel__ac {
+    font-weight: normal;
+    font-size: var(--text-xs, 0.75rem);
+    opacity: 0.7;
+    display: inline-block;
+    min-width: 5.5em;
+    text-align: right;
+    margin-left: auto;
+}
+
+.character-panel__ac.boosted {
+    color: #4caf50;
+    opacity: 1;
+}
+
+.character-panel__ac.reduced {
+    color: #ff6b6b;
+    opacity: 1;
+}
+
+/* === Stats Container === */
+.character-panel__stats {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs, 0.375rem);
+}
+
+/* === Stat Row === */
+.character-panel .stat-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs, 0.375rem);
+}
+
+.character-panel .stat-label {
+    font-size: var(--text-xs, 0.7rem);
+    font-weight: bold;
+    text-transform: uppercase;
+    min-width: 1.375rem;
+    color: var(--battle-text-dim, rgba(255, 255, 255, 0.7));
+    flex-shrink: 0;
+}
+
+.character-panel .stat-bar-outer {
+    flex: 1;
+    height: var(--bar-height, 0.75rem);
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: var(--bar-radius, 0.25rem);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.character-panel .stat-bar {
+    height: 100%;
+    transition: width 0.3s ease-out;
+    border-radius: calc(var(--bar-radius, 0.25rem) - 1px);
+}
+
+.character-panel .stat-value {
+    font-size: 0.65rem;
+    min-width: 2.25rem;
+    text-align: right;
+    color: var(--battle-text, #fff);
+    flex-shrink: 0;
+}
+
+/* === HP Bar States === */
+.character-panel .hp-bar.hp-high {
+    background: var(--battle-hp-high, linear-gradient(to bottom, #4caf50, #388e3c));
+}
+
+.character-panel .hp-bar.hp-medium {
+    background: var(--battle-hp-medium, linear-gradient(to bottom, #ff9800, #f57c00));
+}
+
+.character-panel .hp-bar.hp-low {
+    background: var(--battle-hp-low, linear-gradient(to bottom, #f44336, #d32f2f));
+    animation: hp-pulse 0.5s ease-in-out infinite alternate;
+}
+
+/* === MP Bar === */
+.character-panel .mana-bar {
+    background: var(--battle-mana, linear-gradient(to bottom, #2196f3, #1976d2));
+}
+
+/* === Limit Break Bar === */
+.character-panel .limit-bar {
+    background: var(--battle-limit, linear-gradient(to bottom, #9c27b0, #7b1fa2));
+}
+
+.character-panel .limit-bar.limit-high {
+    background: var(--battle-limit-ready, linear-gradient(to bottom, #ffd700, #ffc107));
+    animation: limit-pulse 1s infinite;
+}
+
+.character-panel .limit-bar.limit-ready {
+    background: var(--battle-limit-ready, linear-gradient(to bottom, #ffd700, #ffc107));
+    animation: limit-ready-pulse 0.5s infinite;
+}
+
+.character-panel .limit-label {
+    color: #ffd700;
+}
+
+/* === Regen Effects === */
+.character-panel .hp-bar.hp-regen {
+    box-shadow: 0 0 8px #2ecc71, 0 0 12px #2ecc71;
+    animation: hp-regen-pulse 1.5s ease-in-out infinite;
+}
+
+.character-panel .mana-bar.mana-regen {
+    box-shadow: 0 0 8px #3498db, 0 0 12px #3498db;
+    animation: mana-regen-pulse 1.5s ease-in-out infinite;
+}
+
+.character-panel .stat-value.hp-regen,
+.character-panel .stat-label.hp-regen {
+    color: #2ecc71;
+    text-shadow: 0 0 6px rgba(46, 204, 113, 0.8);
+    animation: stat-text-hp-pulse 1.5s ease-in-out infinite;
+}
+
+.character-panel .stat-value.mana-regen,
+.character-panel .stat-label.mana-regen {
+    color: #3498db;
+    text-shadow: 0 0 6px rgba(52, 152, 219, 0.8);
+    animation: stat-text-mana-pulse 1.5s ease-in-out infinite;
+}
+
+/* === Portrait Mode Adjustments === */
+@media (orientation: portrait) {
+    .character-panel {
+        padding: 0.4rem 0.5rem;
+        width: auto;
+        min-width: auto;
+        max-width: 45%;
+    }
+
+    .character-panel__header {
+        font-size: 0.6rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .character-panel .stat-row {
+        margin-bottom: 0.15rem;
+    }
+
+    .character-panel .stat-label {
+        font-size: 0.5rem;
+    }
+
+    .character-panel .stat-bar-outer {
+        height: 0.5rem;
+    }
+
+    .character-panel .stat-value {
+        font-size: 0.45rem;
+    }
+}
+
+/* === Small Screen Adjustments === */
+@media (max-width: 600px) {
+    .character-panel {
+        width: auto;
+        max-width: 40%;
+    }
+}

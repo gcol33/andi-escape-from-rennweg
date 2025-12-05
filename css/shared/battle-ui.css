@@ -78,43 +78,8 @@
     text-shadow: 0 0 8px rgba(255, 215, 0, 0.6) !important;
 }
 
-/* === Battle Log === */
-.battle-log {
-    padding: 8px 12px;
-    margin-bottom: 0;
-    border-radius: 6px;
-    background: rgba(0, 0, 0, 0.3);
-    border-left: 3px solid #4caf50;
-}
-
-.battle-log.enemy-turn {
-    border-left-color: #f44336;
-    background: rgba(244, 67, 54, 0.1);
-}
-
-/* === Battle Result === */
-.battle-result {
-    text-align: center;
-    padding: 16px;
-    margin-bottom: 12px;
-    border-radius: 8px;
-    font-size: 1.4rem;
-    font-weight: bold;
-}
-
-.battle-result.victory {
-    background: linear-gradient(135deg, rgba(76, 175, 80, 0.3), rgba(139, 195, 74, 0.3));
-    border: 2px solid #4caf50;
-    color: #4caf50;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-.battle-result.defeat {
-    background: linear-gradient(135deg, rgba(244, 67, 54, 0.3), rgba(183, 28, 28, 0.3));
-    border: 2px solid #f44336;
-    color: #f44336;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-}
+/* Note: .battle-log base styles are now in components/battle-log.css */
+/* Note: .battle-result styles are now in components/battle-log.css */
 
 /* === Battle Action Buttons === */
 .choice-button.battle-action {
@@ -149,69 +114,8 @@
     display: block;
 }
 
-/* Battle log panel - replaces text box at bottom */
-.battle-log-panel {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    /* Fixed height to prevent layout shift - matches --battle-log-height variable */
-    /* Height = log content (4.4rem) + choices (7rem) + padding (1.5rem) = ~13rem */
-    /* Use fixed height (not min-height) so player stats panel positions correctly */
-    height: var(--battle-log-height, 13.4rem);
-    background: rgba(0, 0, 0, 0.85);
-    border-top: 0.1875rem solid rgba(255, 255, 255, 0.3);  /* 3px */
-    padding: var(--spacing-sm) var(--spacing-md);
-    box-sizing: border-box;
-    /* Enable flex layout for skill/item submenus to fill space */
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;  /* Prevent overflow, submenus scroll internally */
-}
-
-.battle-log-content {
-    /* Fixed height to prevent text shift when lines are added */
-    /* With font-size: 0.95rem and line-height: 1.8 multiplier = 1.71rem per line */
-    /* Height = 2 lines * 1.71rem = 3.42rem + padding (0.8rem + 0.5rem) = ~4.7rem */
-    height: var(--battle-log-content-height, 4.8rem);
-    box-sizing: border-box;  /* Include padding in height */
-    overflow-y: auto;  /* Allow scrolling - JS scrolls to bottom, CSS hides scrollbar */
-    overflow-x: hidden;
-    padding: 0.5rem 1rem;  /* Symmetric padding - content starts at top */
-    font-size: var(--battle-text-size);
-    line-height: 1.8;  /* More breathing room between lines */
-    color: var(--battle-text-color);
-    flex-shrink: 0;  /* Don't shrink when in flex container */
-    scrollbar-width: none;  /* Firefox - hide scrollbar */
-    -ms-overflow-style: none;  /* IE/Edge - hide scrollbar */
-    /* Ensure content starts at top, not centered */
-    display: block;
-    vertical-align: top;
-}
-
-.battle-log-content::-webkit-scrollbar {
-    display: none;  /* Chrome/Safari */
-}
-
-/* Messages wrapper - content starts at top, doesn't move when new lines added */
-.battle-log-messages {
-    display: block;
-    /* Remove margin from first roll-result so it starts at container top */
-}
-
-.battle-log-messages .roll-result:first-child {
-    margin-top: 0;
-}
-
-.battle-log-content .roll-result {
-    color: var(--battle-text-color);
-}
-
-/* Dice numbers: grey while spinning, inherit when final */
-.battle-log-content .dice-number,
-.roll-result .dice-number {
-    color: var(--battle-roll-color);
-}
+/* Note: .battle-log-panel, .battle-log-content, .battle-log-messages base styles
+   are now in components/battle-log.css */
 
 /* Highlight numbers/effects in battle messages (e.g., "+4 AC", "2 turns") */
 .battle-log-content strong:not(.dice-number),
@@ -444,16 +348,14 @@
 }
 
 /* === Terrain Indicator === */
+/* Uses anchor system from layout-system.css for positioning */
 .terrain-indicator {
-    position: absolute;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
+    /* Appearance only - positioning via .anchor.anchor--top-center class */
     background: rgba(0, 0, 0, 0.8);
-    padding: 6px 16px;
+    padding: var(--space-sm) var(--space-lg);
     border-radius: 20px;
     color: #fff;
-    font-size: 0.85rem;
+    font-size: var(--text-sm);
     font-weight: bold;
     z-index: var(--z-battle-ui);
     display: none;
@@ -463,9 +365,9 @@
 
 .terrain-icon {
     display: inline-block;
-    padding: 2px 6px;
+    padding: var(--space-xs) var(--space-sm);
     border-radius: 4px;
-    margin-right: 6px;
+    margin-right: var(--space-sm);
 }
 
 /* === DOT Damage Numbers === */

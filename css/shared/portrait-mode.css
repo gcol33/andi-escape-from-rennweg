@@ -90,43 +90,61 @@
 
     /* Reset button to top-left in portrait */
     #reset-btn {
-        top: 10px !important;
+        top: var(--space-md) !important;
         bottom: auto !important;
-        left: 10px !important;
+        left: var(--space-md) !important;
         right: auto !important;
         /* Safe area for iPhone notch */
-        top: max(10px, env(safe-area-inset-top, 10px)) !important;
-        left: max(10px, env(safe-area-inset-left, 10px)) !important;
+        top: max(var(--space-md), env(safe-area-inset-top, var(--space-md))) !important;
+        left: max(var(--space-md), env(safe-area-inset-left, var(--space-md))) !important;
     }
 
     /* Battle stats panels - smaller on portrait */
     .battle-stats-panel {
-        min-width: 8.75rem !important;
-        padding: 0.5rem 0.625rem !important;
-        font-size: 0.8rem !important;
+        min-width: 7rem !important;
+        max-width: 9rem !important;
+        width: auto !important;
+        padding: 0.4rem 0.5rem !important;
+        font-size: 0.7rem !important;
     }
 
+    /* Stack header vertically: name on top, AC below */
     .battle-stats-panel .stats-header {
-        font-size: 0.7rem !important;
-        margin-bottom: 0.375rem !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        font-size: 0.65rem !important;
+        margin-bottom: 0.3rem !important;
+        gap: 0.1rem !important;
+    }
+
+    /* AC display on its own line in portrait */
+    .battle-stats-panel .stats-header .ac-display {
+        margin-left: 0 !important;
+        text-align: left !important;
+        font-size: 0.55rem !important;
+    }
+
+    /* Hide status icon slot in portrait - too cramped */
+    .battle-stats-panel .status-icon-slot {
+        display: none !important;
     }
 
     .battle-stats-panel .stat-row {
-        margin-bottom: 0.25rem !important;
+        margin-bottom: 0.2rem !important;
     }
 
     .battle-stats-panel .stat-label {
-        font-size: 0.6rem !important;
-        min-width: 1.125rem !important;
+        font-size: 0.5rem !important;
+        min-width: 1rem !important;
     }
 
     .battle-stats-panel .stat-bar-outer {
-        height: 0.625rem !important;
+        height: 0.5rem !important;
     }
 
     .battle-stats-panel .stat-value {
-        font-size: 0.55rem !important;
-        min-width: 1.875rem !important;
+        font-size: 0.45rem !important;
+        min-width: 1.5rem !important;
     }
 
     /* Player stats - position higher to avoid text box overlap */
@@ -156,36 +174,119 @@
     }
 }
 
-/* === UI Positioning Overrides for Portrait ===
- * Must come AFTER all :root definitions
+/* === Player Row Container (Portrait Mode) ===
+ * In portrait, player stats and player summon sit side-by-side in a flex row
+ * above the battle log. This guarantees perfect alignment.
  */
+
+/* === Row Containers (Both Orientations) ===
+ * Player row: stats panel + summon slot (stacked vertically in landscape, horizontal in portrait)
+ * Enemy row: summon slot + stats panel (stacked vertically in landscape, horizontal in portrait)
+ */
+
+/* LANDSCAPE: Vertical flex columns anchored to corners */
+.player-row {
+    display: flex;
+    flex-direction: column-reverse; /* Summon above stats (bottom-anchored, so reverse) */
+    align-items: center; /* Center summon over stats panel */
+    position: absolute;
+    left: var(--ui-edge-margin);
+    bottom: calc(var(--battle-log-height) + 0.5rem);
+    z-index: var(--z-battle-ui);
+    gap: 0.5rem;
+}
+
+.enemy-row {
+    display: flex;
+    flex-direction: column-reverse; /* Stats on top, summon below (top-anchored, so reverse) */
+    align-items: center; /* Center summon under stats panel */
+    position: absolute;
+    right: var(--ui-edge-margin);
+    top: var(--ui-edge-margin);
+    z-index: var(--z-battle-ui);
+    gap: 0.5rem;
+}
+
+/* Stats panels flow in flex - no absolute positioning needed */
+.player-row .battle-stats-panel.player-stats,
+.enemy-row .battle-stats-panel.enemy-stats {
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+}
+
+/* Summon slots visible and flow in flex */
+.player-summon-slot,
+.enemy-summon-slot {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Player summon slot: align summons to left */
+.player-summon-slot {
+    align-items: flex-end;
+    flex-direction: row;
+}
+
+/* Enemy summon slot: align summons to right */
+.enemy-summon-slot {
+    align-items: flex-start;
+    flex-direction: row;
+}
+
+/* Summons inside slots don't need absolute positioning */
+.player-summon-slot .summon-container,
+.enemy-summon-slot .summon-container {
+    position: static !important;
+    transform: none !important;
+}
+
+/* PORTRAIT: Override to horizontal layout spanning full width */
 @media (orientation: portrait) {
     :root {
         /* Use smaller margins in portrait */
         --ui-edge-margin: var(--ui-edge-margin-small);
+    }
 
-        /* Player summon: RIGHT side, bottom-aligned with player stats */
-        --player-summon-left: auto;
-        --player-summon-right: var(--ui-edge-margin);
-        --player-summon-top: auto;
-        --player-summon-bottom: calc(var(--battle-log-height) + 0.9375rem);
-        --player-summon-transform: none;
+    /* Player row: horizontal, spans width, above battle log */
+    .player-row {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-end;
+        left: 0.3125rem;
+        right: 0.3125rem;
+        bottom: calc(var(--battle-log-height) + 0.5rem);
+        top: auto;
+    }
 
-        /* Enemy summon: LEFT side, top area */
-        --enemy-summon-left: var(--ui-edge-margin);
-        --enemy-summon-right: auto;
-        --enemy-summon-top: 15%;
-        --enemy-summon-transform: none;
+    /* Enemy row: horizontal, spans width, at top */
+    .enemy-row {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-start;
+        left: 0.3125rem;
+        right: 0.3125rem;
+        top: 0.3125rem;
+        bottom: auto;
+    }
+
+    /* Smaller summons in portrait mode to avoid overlap with stats panel */
+    .summon-sprite-wrapper {
+        width: 3rem !important;
+    }
+
+    .summon-info-badge {
+        font-size: 0.55rem !important;
+        padding: 0.15rem 0.35rem !important;
+    }
+
+    /* Ensure gap between stats and summon */
+    .player-row,
+    .enemy-row {
+        gap: 0.25rem;
     }
 }
 
-/* MOBILE LANDSCAPE: Adjust for smaller stats panels */
-@media (max-width: 37.5rem) and (orientation: landscape) {
-    :root {
-        /* Smaller stats panels = different centering */
-        --player-summon-left: calc(var(--ui-edge-margin-small) + var(--stats-panel-width-mobile) / 2);
-        --player-summon-top: 25%;
-        --enemy-summon-right: calc(var(--ui-edge-margin-small) + var(--stats-panel-width-mobile) / 2);
-        --enemy-summon-top: 25%;
-    }
-}
+/* MOBILE LANDSCAPE: No special adjustments needed - flex containers handle alignment */

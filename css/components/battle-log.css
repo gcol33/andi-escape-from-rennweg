@@ -1,0 +1,115 @@
+/* =============================================================================
+   BATTLE LOG COMPONENT - v0.6.0
+   =============================================================================
+   Log panel for displaying battle messages, rolls, and status updates.
+
+   POSITIONING: Uses anchor system from layout-system.css
+   - .anchor.anchor--bottom-flush for full-width bottom positioning
+
+   Structure:
+   .battle-log-panel.anchor.anchor--bottom-flush
+     .battle-log-content
+       .battle-log-messages
+         .roll-result / .battle-log (message entries)
+     .battle-choices (action buttons)
+============================================================================= */
+
+/* === Log Panel Container === */
+.battle-log-panel {
+    /* Positioning via .anchor.anchor--bottom-flush */
+    /* Height set via --battle-log-height CSS variable */
+    height: var(--battle-log-height, 13.4rem);
+    background: rgba(0, 0, 0, 0.85);
+    border-top: 0.1875rem solid rgba(255, 255, 255, 0.3);
+    padding: var(--spacing-sm, 0.5rem) var(--spacing-md, 0.75rem);
+    box-sizing: border-box;
+    /* Flex layout for content + choices */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* === Log Content Area === */
+.battle-log-content {
+    /* Height for ~2 lines of text */
+    height: var(--battle-log-content-height, 4.8rem);
+    box-sizing: border-box;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0.5rem 1rem;
+    font-size: var(--battle-text-size, 0.95rem);
+    line-height: 1.8;
+    color: var(--battle-text-color, #fff);
+    flex-shrink: 0;
+    /* Hide scrollbar */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    display: block;
+    vertical-align: top;
+}
+
+.battle-log-content::-webkit-scrollbar {
+    display: none;
+}
+
+/* === Messages Wrapper === */
+.battle-log-messages {
+    display: block;
+}
+
+.battle-log-messages .roll-result:first-child {
+    margin-top: 0;
+}
+
+/* === Individual Log Entry === */
+.battle-log {
+    padding: 8px 12px;
+    margin-bottom: 0;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.3);
+    border-left: 3px solid #4caf50;
+}
+
+.battle-log.enemy-turn {
+    border-left-color: #f44336;
+    background: rgba(244, 67, 54, 0.1);
+}
+
+/* === Roll Result Styling === */
+.battle-log-content .roll-result {
+    color: var(--battle-text-color, #fff);
+}
+
+.battle-log-content .dice-number,
+.roll-result .dice-number {
+    color: var(--battle-roll-color, #888);
+}
+
+/* Highlight numbers in messages */
+.battle-log-content strong:not(.dice-number) {
+    color: var(--battle-number-color, #ffd700);
+}
+
+/* === Battle Result Display === */
+.battle-result {
+    text-align: center;
+    padding: 16px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    font-size: 1.4rem;
+    font-weight: bold;
+}
+
+.battle-result.victory {
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.3), rgba(139, 195, 74, 0.3));
+    border: 2px solid #4caf50;
+    color: #4caf50;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.battle-result.defeat {
+    background: linear-gradient(135deg, rgba(244, 67, 54, 0.3), rgba(183, 28, 28, 0.3));
+    border: 2px solid #f44336;
+    color: #f44336;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}

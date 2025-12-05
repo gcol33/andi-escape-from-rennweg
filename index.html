@@ -12,6 +12,10 @@
     <title>Andy's Farewell</title>
     <!-- Web fonts for themed typography -->
     <link rel="stylesheet" href="css/fonts.css">
+    <!-- Layout system: design tokens + primitives (load first) -->
+    <link rel="stylesheet" href="css/layout-system.css">
+    <!-- Reusable component styles -->
+    <link rel="stylesheet" href="css/components/index.css">
     <!-- Shared theme settings (magic numbers) -->
     <link rel="stylesheet" href="css/shared/index.css">
     <!-- Theme CSS loaded dynamically based on theme.js config -->
@@ -155,6 +159,9 @@
     <!-- Overworld System -->
     <script src="js/overworld-ui.js"></script>
     <script src="js/overworld.js"></script>
+
+    <!-- Dev Panel (load before engine) -->
+    <script src="js/dev-panel.js"></script>
 
     <script src="js/engine.js"></script>
 </body>
