@@ -1,0 +1,86 @@
+/* === Inventory System ===
+ * Inventory display panel and item pickup notifications.
+ */
+
+/* === Inventory Display === */
+#inventory-display {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 8px 12px;
+    border-radius: 8px;
+    display: none;
+    z-index: var(--z-battle-ui);
+    max-width: 200px;
+}
+
+/* Hide inventory display during battle (including intro) - items accessible via ITEM button */
+#battle-ui ~ #inventory-display,
+#battle-intro-overlay ~ #inventory-display,
+#vn-container:has(#battle-ui) #inventory-display,
+#vn-container:has(#battle-intro-overlay) #inventory-display {
+    display: none !important;
+}
+
+.inventory-label {
+    color: #ffd700;
+    font-size: 0.75rem;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.inventory-item {
+    display: inline-block;
+    background: rgba(255, 215, 0, 0.2);
+    color: #fffbe9;
+    padding: 2px 8px;
+    margin: 2px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    border: 1px solid rgba(255, 215, 0, 0.4);
+}
+
+/* === Item Notifications === */
+.item-notification {
+    position: fixed;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    z-index: var(--z-modal);
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+}
+
+.item-notification.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.item-notification.fade-out {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+}
+
+.item-notification.item-added {
+    border: 2px solid #4caf50;
+}
+
+.item-notification.item-added .item-icon {
+    color: #4caf50;
+}
+
+.item-notification.item-used {
+    border: 2px solid #ff9800;
+}
+
+.item-notification.item-used .item-icon {
+    color: #ff9800;
+}

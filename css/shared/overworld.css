@@ -1,0 +1,111 @@
+/* ==========================================================================
+   OVERWORLD SYSTEM (Pokemon-style top-down movement)
+   ========================================================================== */
+
+.overworld-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: var(--z-sprites);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    background: #000;
+}
+
+.overworld-container.active {
+    display: flex;
+}
+
+.overworld-canvas {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    /* Scale to fit container while maintaining aspect ratio */
+    max-width: 100%;
+    max-height: 100%;
+}
+
+/* Hide VN elements when overworld is active */
+.overworld-active #background-layer,
+.overworld-active #sprite-layer,
+.overworld-active #text-box {
+    display: none;
+}
+
+/* Overworld interaction prompt */
+.overworld-prompt {
+    position: absolute;
+    bottom: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 1rem;
+    z-index: var(--z-text-box);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    animation: prompt-bounce 0.5s ease-out;
+}
+
+@keyframes prompt-bounce {
+    0% { transform: translateX(-50%) translateY(20px); opacity: 0; }
+    100% { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+
+/* Mobile touch controls */
+.overworld-touch-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: var(--z-overlay);
+    display: none;
+}
+
+/* Show on touch devices */
+@media (hover: none) and (pointer: coarse) {
+    .overworld-touch-controls {
+        display: block;
+    }
+}
+
+.touch-dpad {
+    display: grid;
+    grid-template-columns: 48px 48px 48px;
+    grid-template-rows: 48px 48px 48px;
+    gap: 4px;
+}
+
+.touch-btn {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+    font-size: 1.5rem;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+}
+
+.touch-btn:active {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.touch-btn-up { grid-column: 2; grid-row: 1; }
+.touch-btn-down { grid-column: 2; grid-row: 3; }
+.touch-btn-left { grid-column: 1; grid-row: 2; }
+.touch-btn-right { grid-column: 3; grid-row: 2; }
+.touch-btn-action {
+    grid-column: 2;
+    grid-row: 2;
+    font-size: 0.8rem;
+    font-weight: bold;
+}

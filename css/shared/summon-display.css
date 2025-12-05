@@ -1,0 +1,376 @@
+/* ==========================================================================
+   SUMMON DISPLAY SYSTEM
+
+   Summons appear beside the main enemy/player sprite with their own HP.
+   They can be:
+   - Hovered/clicked to reveal HP
+   - Pulsing red when low HP or expiring soon
+   - Targeted by player attacks
+   ========================================================================== */
+
+/* Summon container - positioned in the battlefield area */
+.summon-container {
+    position: absolute;  /* Relative to vn-container, same as stats panels */
+    z-index: calc(var(--z-battle-ui) + 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    pointer-events: auto;  /* Override sprite-layer's pointer-events: none */
+}
+
+/* Enemy summons - uses CSS variables from UI positioning system */
+.summon-container.summon-enemy {
+    left: var(--enemy-summon-left);
+    right: var(--enemy-summon-right);
+    top: var(--enemy-summon-top);
+    bottom: var(--enemy-summon-bottom);
+    transform: var(--enemy-summon-transform);
+}
+
+/* Player summons - uses CSS variables from UI positioning system */
+.summon-container.summon-player {
+    left: var(--player-summon-left);
+    right: var(--player-summon-right);
+    top: var(--player-summon-top);
+    bottom: var(--player-summon-bottom);
+    transform: var(--player-summon-transform);
+}
+
+/* Summon sprite wrapper */
+.summon-sprite-wrapper {
+    position: relative;
+    width: 5rem;
+    display: flex;
+    justify-content: center;
+}
+
+/* Summon sprite image */
+.summon-sprite {
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.5));
+    transition: filter 0.3s ease;
+}
+
+/* Summon name label - never truncate */
+.summon-name {
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    color: var(--text-main, #fff);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8), 0 0 4px rgba(0, 0, 0, 0.6);
+    text-align: center;
+    white-space: nowrap;
+    /* Add background for readability */
+    background: rgba(0, 0, 0, 0.5);
+    padding: 0.15rem 0.4rem;
+    border-radius: 0.2rem;
+}
+
+/* Summon HP bar container - hidden by default, shown on hover/click */
+.summon-hp-container {
+    position: absolute;
+    top: -0.6rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 3.75rem;
+    height: 0.4rem;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 0.2rem;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+
+/* Show HP on hover */
+.summon-container:hover .summon-hp-container,
+.summon-container.selected .summon-hp-container,
+.summon-container.summon-low-hp .summon-hp-container,
+.summon-container.summon-expiring .summon-hp-container {
+    opacity: 1;
+}
+
+/* HP bar fill */
+.summon-hp-bar {
+    height: 100%;
+    background: linear-gradient(to bottom, #4CAF50, #2E7D32);
+    transition: width 0.3s ease, background 0.3s ease;
+}
+
+/* Low HP state - red bar */
+.summon-container.summon-low-hp .summon-hp-bar {
+    background: linear-gradient(to bottom, #f44336, #c62828);
+}
+
+/* Duration indicator - shown as text like summon name */
+.summon-duration-indicator {
+    position: absolute;
+    top: -1.5rem;
+    right: -0.5rem;
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    color: var(--text-main, #fff);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8), 0 0 4px rgba(0, 0, 0, 0.6);
+    text-align: center;
+    white-space: nowrap;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 0.15rem 0.4rem;
+    border-radius: 0.2rem;
+    font-weight: bold;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* Expiring warning - blink animation when 1 turn left */
+.summon-container.summon-expiring {
+    animation: summon-warning-blink 0.8s ease-in-out infinite;
+}
+
+@keyframes summon-warning-blink {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.3;
+    }
+}
+
+/* Expiring - duration indicator turns orange */
+.summon-container.summon-expiring .summon-duration-indicator {
+    background: rgba(243, 156, 18, 0.9);
+}
+
+@keyframes expiring-bounce {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+}
+
+/* OLD - Expiring soon indicator (no longer used, replaced by duration indicator) */
+.summon-expiring-indicator {
+    position: absolute;
+    top: -25px;
+    right: -5px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(243, 156, 18, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: bold;
+    color: #000;
+    box-shadow: 0 0 10px rgba(243, 156, 18, 0.6);
+    animation: expiring-bounce 0.8s ease-in-out infinite;
+}
+
+/* ==========================================================================
+   SUMMON ANIMATIONS
+   Uses orientation-specific keyframes to match positioning system
+   ========================================================================== */
+
+/* LANDSCAPE: Player summon animations (uses translateX(-50%) centering) */
+@media (orientation: landscape) {
+    .summon-container.summon-player.summon-appear {
+        animation: summon-appear-landscape 0.5s ease-out forwards;
+    }
+    .summon-container.summon-player.summon-dismiss {
+        animation: summon-dismiss-landscape 0.5s ease-in forwards;
+    }
+    .summon-container.summon-player.summon-death {
+        animation: summon-death-landscape 0.6s ease-in forwards;
+    }
+}
+
+/* PORTRAIT: Player summon animations (no centering transform) */
+@media (orientation: portrait) {
+    .summon-container.summon-player.summon-appear {
+        animation: summon-appear-portrait 0.5s ease-out forwards;
+    }
+    .summon-container.summon-player.summon-dismiss {
+        animation: summon-dismiss-portrait 0.5s ease-in forwards;
+    }
+    .summon-container.summon-player.summon-death {
+        animation: summon-death-portrait 0.6s ease-in forwards;
+    }
+}
+
+/* Landscape keyframes (translateX(-50%) for centering) */
+@keyframes summon-appear-landscape {
+    0% { transform: translateX(-50%) scale(0) translateY(3.125rem); opacity: 0; }
+    70% { transform: translateX(-50%) scale(1.1) translateY(-0.625rem); }
+    100% { transform: translateX(-50%) scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes summon-dismiss-landscape {
+    0% { transform: translateX(-50%) scale(1) translateY(0); opacity: 1; }
+    100% { transform: translateX(-50%) scale(0) translateY(1.875rem); opacity: 0; }
+}
+
+@keyframes summon-death-landscape {
+    0% { transform: translateX(-50%) scale(1); opacity: 1; filter: brightness(1); }
+    30% { transform: translateX(-50%) scale(1.1); filter: brightness(2); }
+    100% { transform: translateX(-50%) scale(0) rotate(360deg); opacity: 0; filter: brightness(0); }
+}
+
+/* Portrait keyframes (no centering transform) */
+@keyframes summon-appear-portrait {
+    0% { transform: scale(0) translateY(3.125rem); opacity: 0; }
+    70% { transform: scale(1.1) translateY(-0.625rem); }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes summon-dismiss-portrait {
+    0% { transform: scale(1) translateY(0); opacity: 1; }
+    100% { transform: scale(0) translateY(1.875rem); opacity: 0; }
+}
+
+@keyframes summon-death-portrait {
+    0% { transform: scale(1); opacity: 1; filter: brightness(1); }
+    30% { transform: scale(1.1); filter: brightness(2); }
+    100% { transform: scale(0) rotate(360deg); opacity: 0; filter: brightness(0); }
+}
+
+/* Summon animations - enemy side (translateX(50%) for centering) */
+.summon-container.summon-enemy.summon-appear {
+    animation: summon-appear-enemy 0.5s ease-out forwards;
+}
+
+.summon-container.summon-enemy.summon-dismiss {
+    animation: summon-dismiss-enemy 0.5s ease-in forwards;
+}
+
+.summon-container.summon-enemy.summon-death {
+    animation: summon-death-enemy 0.6s ease-in forwards;
+}
+
+@keyframes summon-appear-enemy {
+    0% {
+        transform: translateX(50%) scale(0) translateY(3.125rem);
+        opacity: 0;
+    }
+    70% {
+        transform: translateX(50%) scale(1.1) translateY(-0.625rem);
+    }
+    100% {
+        transform: translateX(50%) scale(1) translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes summon-dismiss-enemy {
+    0% {
+        transform: translateX(50%) scale(1) translateY(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(50%) scale(0) translateY(1.875rem);
+        opacity: 0;
+    }
+}
+
+@keyframes summon-death-enemy {
+    0% {
+        transform: translateX(50%) scale(1);
+        opacity: 1;
+        filter: brightness(1);
+    }
+    30% {
+        transform: translateX(50%) scale(1.1);
+        filter: brightness(2);
+    }
+    100% {
+        transform: translateX(50%) scale(0) rotate(360deg);
+        opacity: 0;
+        filter: brightness(0);
+    }
+}
+
+/* Target selector highlight when player can choose target */
+.summon-container.summon-targetable {
+    cursor: crosshair;
+}
+
+.summon-container.summon-targetable:hover {
+    transform: scale(1.05);
+}
+
+.summon-container.summon-targetable:hover .summon-sprite {
+    filter: drop-shadow(0 0 10px rgba(255, 255, 0, 0.8));
+}
+
+/* Target selection indicator */
+.summon-target-indicator {
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.2rem;
+    animation: target-bounce 0.5s ease-in-out infinite;
+}
+
+@keyframes target-bounce {
+    0%, 100% {
+        transform: translateX(-50%) translateY(0);
+    }
+    50% {
+        transform: translateX(-50%) translateY(5px);
+    }
+}
+
+/* Summon intercept animation (when blocking an attack) */
+.summon-container.summon-intercept {
+    animation: summon-intercept 0.4s ease-out;
+}
+
+@keyframes summon-intercept {
+    0% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-20px);
+    }
+    50% {
+        transform: translateX(0) scale(1.2);
+    }
+    100% {
+        transform: translateX(0) scale(1);
+    }
+}
+
+/* Mobile responsive summons - size adjustments */
+@media (max-width: 600px) {
+    .summon-sprite-wrapper {
+        width: 3.5rem;
+    }
+
+    .summon-name {
+        font-size: 0.65rem;
+    }
+
+    .summon-hp-container {
+        width: 3rem;
+        height: 0.375rem;
+    }
+
+    .summon-duration-indicator {
+        font-size: 0.65rem;
+        top: -1.25rem;
+        right: -0.3rem;
+        padding: 0.1rem 0.3rem;
+    }
+
+    .summon-expiring-indicator {
+        width: 1rem;
+        height: 1rem;
+        font-size: 0.55rem;
+    }
+}

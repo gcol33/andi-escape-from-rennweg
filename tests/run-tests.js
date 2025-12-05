@@ -27,6 +27,12 @@ global.document = {
             },
             querySelectorAll: function() { return []; }
         };
+    },
+    addEventListener: function(event, handler) {
+        // Mock - do nothing in tests
+    },
+    removeEventListener: function(event, handler) {
+        // Mock - do nothing in tests
     }
 };
 
@@ -72,6 +78,7 @@ console.log('========================================\n');
 runTests();
 
 // Wait for async tests to complete then show report
+// Most tests are now synchronous, but battle intro callbacks still need time
 setTimeout(function() {
     console.log('\n========================================');
     if (TestRunner.failed === 0) {
@@ -81,4 +88,4 @@ setTimeout(function() {
         process.exit(1);
     }
     console.log('========================================\n');
-}, 4000);
+}, 5000);

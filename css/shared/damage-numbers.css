@@ -1,0 +1,423 @@
+/* === Damage Numbers (WoW-style) ===
+ * Floating combat numbers for damage, healing, crits, misses.
+ * Uses the unified roll display system for colors.
+ * Base color = roll type (damage=red, heal=green, hit=yellow, neutral=grey)
+ * Emphasis = result category (crit, max, min, fail, normal)
+ */
+
+.damage-number,
+.battle-damage-number {
+    position: absolute;
+    font-size: var(--battle-text-size);
+    font-weight: normal;
+    font-style: normal;
+    z-index: var(--z-battle-effects);
+    pointer-events: none;
+    animation: damage-float 1.5s ease-out forwards;
+    font-family: var(--damage-font);
+    transform: translateX(-50%);
+    text-align: center;
+    color: var(--roll-color-damage);  /* Default to red (damage) */
+    /* Prevent text overflow */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 90vw;
+    /* Override any glow from roll classes - floating numbers use simple black outline */
+    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000 !important;
+    background: none;
+    border: none;
+    box-shadow: none;
+}
+
+/* WoW-style damage numbers - larger for visibility */
+.damage-number.wow-style {
+    font-size: var(--battle-special-size);
+    font-weight: bold;
+    font-style: normal;
+    letter-spacing: 0;
+    animation: wow-damage-float 4s ease-out forwards;
+}
+
+/* Legacy .damage class - now maps to unified roll-damage-normal */
+.damage-number.damage,
+.battle-damage-number.damage {
+    color: var(--roll-color-damage);
+    text-shadow:
+        2px 2px 0 #000,
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000;
+}
+
+/* Critical damage - red base + crit emphasis (was gold, now red with orange glow) */
+.damage-number.crit {
+    font-size: var(--battle-special-size);
+    color: var(--roll-color-damage);
+    text-shadow:
+        0 0 8px var(--emphasis-crit-glow),
+        0 0 16px var(--emphasis-crit-glow),
+        0 0 24px rgba(255, 140, 0, 0.5);
+    animation: wow-crit-float 4s ease-out forwards;
+}
+
+/* WoW-style "CRIT!" label - damage color + crit emphasis */
+.damage-number.crit-label {
+    font-size: var(--battle-special-size);
+    color: var(--roll-color-damage);
+    text-shadow:
+        0 0 8px var(--emphasis-crit-glow),
+        0 0 16px var(--emphasis-crit-glow);
+    animation: wow-crit-label-float 4s ease-out forwards;
+}
+
+/* Max damage - red base + max emphasis (bright orange glow) */
+.damage-number.maxdamage {
+    font-size: var(--battle-special-size);
+    color: var(--roll-color-damage);
+    text-shadow:
+        0 0 6px var(--emphasis-max-glow),
+        0 0 12px rgba(255, 140, 0, 0.8),
+        0 0 18px rgba(255, 140, 0, 0.4);
+    animation: wow-crit-float 4s ease-out forwards;
+}
+
+/* WoW-style "MAX!" label - damage color + max emphasis */
+.damage-number.max-label {
+    font-size: var(--battle-special-size);
+    color: var(--roll-color-damage);
+    text-shadow:
+        0 0 6px var(--emphasis-max-glow),
+        0 0 12px rgba(255, 140, 0, 0.8);
+    animation: wow-crit-label-float 4s ease-out forwards;
+}
+
+/* Min damage - red base + min emphasis (dim glow) */
+.damage-number.mindamage {
+    font-size: var(--battle-special-size);
+    color: var(--roll-color-damage);
+    text-shadow:
+        0 0 4px var(--emphasis-min-glow),
+        0 0 8px rgba(100, 100, 100, 0.4);
+    animation: wow-damage-float 4s ease-out forwards;
+}
+
+/* WoW-style "MIN" label - damage color + min emphasis */
+.damage-number.min-label {
+    font-size: var(--battle-special-size);
+    color: var(--roll-color-damage);
+    text-shadow:
+        0 0 4px var(--emphasis-min-glow),
+        0 0 8px rgba(100, 100, 100, 0.4);
+    animation: wow-hit-label-float 4s ease-out forwards;
+}
+
+/* WoW-style "Hit" label for normal hits - uses yellow (hit roll type) */
+.damage-number.hit-label {
+    font-size: var(--battle-special-size);
+    color: var(--roll-color-hit);
+    text-shadow:
+        2px 2px 0 #000,
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000;
+    animation: wow-hit-label-float 4s ease-out forwards;
+}
+
+/* WoW-style "DAMAGE" label for DOT effects (bleed, poison, etc.) - uses red (damage type) */
+.damage-number.dot-label {
+    font-size: var(--battle-special-size);
+    color: var(--roll-color-damage);
+    text-shadow:
+        2px 2px 0 #000,
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000;
+    animation: wow-hit-label-float 4s ease-out forwards;
+}
+
+/* Heal - green base color (heal roll type) */
+.damage-number.heal,
+.battle-damage-number.heal {
+    color: var(--roll-color-heal);
+    text-shadow:
+        2px 2px 0 #000,
+        -1px -1px 0 #000;
+}
+
+/* Max heal - green + max emphasis */
+.damage-number.maxheal {
+    color: var(--roll-color-heal);
+    text-shadow:
+        0 0 6px var(--emphasis-max-glow),
+        0 0 12px rgba(255, 140, 0, 0.8);
+}
+
+/* Min heal - green + min emphasis */
+.damage-number.minheal {
+    color: var(--roll-color-heal);
+    text-shadow:
+        0 0 4px var(--emphasis-min-glow),
+        0 0 8px rgba(100, 100, 100, 0.4);
+}
+
+/* DOT damage - red base (damage type) */
+.damage-number.dot {
+    color: var(--roll-color-damage);
+    font-size: var(--battle-special-size);
+    text-shadow:
+        2px 2px 0 #000,
+        -1px -1px 0 #000;
+}
+
+/* Miss - grey/neutral base color */
+.damage-number.miss {
+    color: var(--roll-color-neutral);
+    font-size: var(--battle-special-size);
+    text-shadow:
+        2px 2px 0 #000,
+        -1px -1px 0 #000;
+}
+
+/* Stat change floating numbers */
+.damage-number.stat-change {
+    font-size: var(--battle-special-size);
+}
+
+/* Mana change - uses status color (blue) */
+.damage-number.mana-change {
+    color: var(--roll-color-status);
+    text-shadow:
+        2px 2px 0 #000,
+        -1px -1px 0 #000;
+}
+
+/* Limit break - purple (special resource, kept distinct) */
+.damage-number.limit-change {
+    color: #9b59b6;
+    text-shadow:
+        2px 2px 0 #000,
+        -1px -1px 0 #000;
+}
+
+/* AC changes - uses dark green (defensive stat) */
+.damage-number.ac-boost,
+.damage-number.ac-reduce {
+    color: #2e7d32;
+    text-shadow:
+        2px 2px 0 #000,
+        -1px -1px 0 #000;
+}
+
+/* === Float Animations === */
+
+/* Hit label floats up starting from above the damage number */
+@keyframes wow-hit-label-float {
+    0% {
+        opacity: 1;
+        transform: translateY(-2em) scale(1);
+    }
+    10% {
+        opacity: 1;
+        transform: translateY(-2.5em) scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: translateY(-4em) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-6em) scale(1);
+    }
+}
+
+/* Crit label floats up starting from above the damage number (relative offset via em units) */
+@keyframes wow-crit-label-float {
+    0% {
+        opacity: 1;
+        transform: translateY(-2em) scale(1);
+    }
+    10% {
+        opacity: 1;
+        transform: translateY(-2.5em) scale(1);
+    }
+    20% {
+        transform: translateY(-3em) scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: translateY(-5em) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-8em) scale(1);
+    }
+}
+
+/* WoW-style float animation - scrolls up and fades (4s duration) */
+@keyframes wow-damage-float {
+    0% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0) scale(1);
+    }
+    8% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(-5px) scale(1);
+    }
+    15% {
+        transform: translateX(-50%) translateY(-15px) scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(-40px) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-80px) scale(1);
+    }
+}
+
+/* Crit animation - bigger pop, longer hang time (3s total) */
+@keyframes wow-crit-float {
+    0% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0) scale(1);
+    }
+    10% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(-10px) scale(1);
+    }
+    20% {
+        transform: translateX(-50%) translateY(-20px) scale(1);
+    }
+    40% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(-40px) scale(1);
+    }
+    70% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(-60px) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-100px) scale(1);
+    }
+}
+
+/* Legacy animation for non-WoW style */
+@keyframes damage-float {
+    0% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0) scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(-30px) scale(1.2);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-60px) scale(0.8);
+    }
+}
+
+/* === Combat Announcements (mid-screen CRITICAL/FUMBLE) === */
+.combat-announcement {
+    position: absolute;
+    left: 50%;
+    top: 40%;
+    transform: translate(-50%, -50%);
+    font-size: 3.5rem;
+    font-weight: 900;
+    font-family: 'Arial Black', 'Impact', sans-serif;
+    letter-spacing: 4px;
+    z-index: var(--z-overlay);
+    pointer-events: none;
+    text-transform: uppercase;
+}
+
+.combat-announcement.critical {
+    color: #ffd700;
+    text-shadow:
+        4px 4px 0 #000,
+        -2px -2px 0 #000,
+        2px -2px 0 #000,
+        -2px 2px 0 #000,
+        0 0 30px rgba(255, 215, 0, 0.8),
+        0 0 60px rgba(255, 150, 0, 0.6);
+    animation: announcement-critical 1.5s ease-out forwards;
+}
+
+.combat-announcement.fumble {
+    color: #ff3333;
+    text-shadow:
+        4px 4px 0 #000,
+        -2px -2px 0 #000,
+        2px -2px 0 #000,
+        -2px 2px 0 #000,
+        0 0 20px rgba(255, 0, 0, 0.6);
+    animation: announcement-fumble 1.5s ease-out forwards;
+}
+
+@keyframes announcement-critical {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.3);
+    }
+    15% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.2);
+    }
+    30% {
+        transform: translate(-50%, -50%) scale(1);
+    }
+    70% {
+        opacity: 1;
+        transform: translate(-50%, -60%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -80%) scale(0.8);
+    }
+}
+
+@keyframes announcement-fumble {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.3) rotate(-5deg);
+    }
+    10% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.1) rotate(3deg);
+    }
+    20% {
+        transform: translate(-50%, -50%) scale(1) rotate(-2deg);
+    }
+    30% {
+        transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    }
+    70% {
+        opacity: 1;
+        transform: translate(-50%, -55%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -70%) scale(0.9);
+    }
+}
+
+/* === Damage Flash === */
+.damage-flash {
+    animation: sprite-damage-flash 0.3s ease-out;
+}
+
+@keyframes sprite-damage-flash {
+    0%, 100% {
+        filter: none;
+    }
+    25%, 75% {
+        filter: brightness(0.5) sepia(1) hue-rotate(-50deg) saturate(5);
+    }
+    50% {
+        filter: brightness(2) sepia(1) hue-rotate(-50deg) saturate(3);
+    }
+}

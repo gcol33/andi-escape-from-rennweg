@@ -1,0 +1,337 @@
+/* === BATTLE STATS PANELS ===
+ * HP, Mana, Limit bar panels for player and enemy.
+ * Clean, theme-aware stat panels for battle UI.
+ */
+
+/* Note: Battle color variables are defined in variables.css */
+
+.battle-stats-panel {
+    position: absolute;
+    z-index: var(--z-battle-ui);
+    padding: 0.75rem 0.875rem;
+    /* Fixed width for consistent summon positioning (280px) */
+    width: 17.5rem;
+    max-width: 17.5rem;
+    /* Base styling - themes SHOULD override these */
+    background: var(--battle-panel-bg);
+    border: 0.125rem solid var(--battle-panel-border);
+    border-radius: 0.375rem;
+}
+
+.battle-stats-panel.player-stats {
+    /* Position just above the battle log panel with a small gap */
+    bottom: calc(var(--battle-log-height) + 0.625rem);
+    left: 0.625rem;
+}
+
+.battle-stats-panel.enemy-stats {
+    top: 0.625rem;
+    right: 0.625rem;
+}
+
+/* Panel header (character name) */
+.stats-header {
+    display: flex;
+    align-items: center;
+    gap: 0.3em;
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.0625rem;
+    margin-bottom: 0.625rem;
+    color: var(--battle-text);
+    white-space: nowrap;
+    min-height: 1.5em;  /* Reserve vertical space for status icons to prevent layout shift */
+    line-height: 1;
+}
+
+.stats-header .ac-display {
+    font-weight: normal;
+    font-size: 0.75rem;
+    opacity: 0.7;
+    display: inline-block;
+    min-width: 5.5em;  /* Prevent box expansion when AC changes (e.g., "AC 11" → "AC 15+") */
+    text-align: right;
+    margin-left: auto;  /* Push AC to the right side */
+}
+
+/* Status icon slot next to player name - fixed size reserved box */
+.status-icon-slot {
+    display: inline-flex;
+    align-items: center;
+    min-width: 4em;  /* Reserve space for ~3-4 status icons to prevent layout shift */
+    height: 1.2em;  /* Fixed height to prevent HP bar shift */
+}
+
+.status-icon-slot .status-icon {
+    font-size: 0.85rem;
+    cursor: help;
+    text-shadow: 0.0625rem 0.0625rem 0.125rem rgba(0, 0, 0, 0.8);
+    line-height: 1;
+}
+
+/* Stat row layout: [Label] [Bar] [Value] */
+.stat-row {
+    display: block;
+    display: -webkit-flex;
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.375rem;
+}
+
+/* Fallback spacing for browsers without gap */
+.stat-row > * {
+    margin-right: 0.375rem;
+}
+.stat-row > *:last-child {
+    margin-right: 0;
+}
+
+@supports (gap: 0.375rem) {
+    .stat-row {
+        gap: 0.375rem;
+    }
+    .stat-row > * {
+        margin-right: 0;
+    }
+}
+
+.stat-label {
+    font-size: 0.7rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    min-width: 1.375rem;
+    color: var(--battle-text-dim);
+}
+
+.stat-bar-outer {
+    flex: 1;
+    height: 0.75rem;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 0.25rem;
+    overflow: hidden;
+    border: 0.0625rem solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-bar {
+    height: 100%;
+    transition: width 0.3s ease-out;
+    border-radius: 0.1875rem;
+}
+
+.stat-value {
+    font-size: 0.65rem;
+    min-width: 2.25rem;
+    text-align: right;
+    color: var(--battle-text);
+}
+
+/* HP bar colors - use CSS variables for theme override */
+.stat-bar.hp-bar.hp-high {
+    background: var(--battle-hp-high);
+}
+
+.stat-bar.hp-bar.hp-medium {
+    background: var(--battle-hp-medium);
+}
+
+.stat-bar.hp-bar.hp-low {
+    background: var(--battle-hp-low);
+    animation: hp-pulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes hp-pulse {
+    from { opacity: 1; }
+    to { opacity: 0.7; }
+}
+
+/* Mana bar color */
+.stat-bar.mana-bar {
+    background: var(--battle-mana);
+}
+
+/* HP Regen glow effect - green pulsing glow */
+.stat-bar.hp-bar.hp-regen {
+    box-shadow: 0 0 8px #2ecc71, 0 0 12px #2ecc71;
+    animation: hp-regen-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes hp-regen-pulse {
+    0%, 100% { box-shadow: 0 0 4px #2ecc71, 0 0 8px rgba(46, 204, 113, 0.5); }
+    50% { box-shadow: 0 0 10px #2ecc71, 0 0 16px rgba(46, 204, 113, 0.8); }
+}
+
+/* Mana Regen glow effect - blue pulsing glow */
+.stat-bar.mana-bar.mana-regen {
+    box-shadow: 0 0 8px #3498db, 0 0 12px #3498db;
+    animation: mana-regen-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes mana-regen-pulse {
+    0%, 100% { box-shadow: 0 0 4px #3498db, 0 0 8px rgba(52, 152, 219, 0.5); }
+    50% { box-shadow: 0 0 10px #3498db, 0 0 16px rgba(52, 152, 219, 0.8); }
+}
+
+/* Regen text colors in battle log - pulsing */
+.regen-hp {
+    color: #2ecc71;
+    font-size: var(--battle-text-size, 0.95rem);
+    font-weight: bold;
+    animation: regen-text-pulse 1s ease-in-out infinite;
+}
+
+.regen-mp {
+    color: #3498db;
+    font-size: var(--battle-text-size, 0.95rem);
+    font-weight: bold;
+    animation: regen-text-pulse 1s ease-in-out infinite;
+}
+
+@keyframes regen-text-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* Stat value and label text regen effects - color and pulse */
+.stat-value.hp-regen,
+.stat-label.hp-regen {
+    color: #2ecc71;
+    text-shadow: 0 0 6px rgba(46, 204, 113, 0.8);
+    animation: stat-text-hp-pulse 1.5s ease-in-out infinite;
+}
+
+.stat-value.mana-regen,
+.stat-label.mana-regen {
+    color: #3498db;
+    text-shadow: 0 0 6px rgba(52, 152, 219, 0.8);
+    animation: stat-text-mana-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes stat-text-hp-pulse {
+    0%, 100% {
+        color: #2ecc71;
+        text-shadow: 0 0 4px rgba(46, 204, 113, 0.6);
+    }
+    50% {
+        color: #58d68d;
+        text-shadow: 0 0 10px rgba(46, 204, 113, 1);
+    }
+}
+
+@keyframes stat-text-mana-pulse {
+    0%, 100% {
+        color: #3498db;
+        text-shadow: 0 0 4px rgba(52, 152, 219, 0.6);
+    }
+    50% {
+        color: #5dade2;
+        text-shadow: 0 0 10px rgba(52, 152, 219, 1);
+    }
+}
+
+/* Limit bar colors */
+.stat-bar.limit-bar {
+    background: var(--battle-limit);
+}
+
+.stat-bar.limit-bar.limit-high {
+    background: var(--battle-limit-ready);
+    animation: limit-pulse 1s infinite;
+}
+
+.stat-bar.limit-bar.limit-ready {
+    background: var(--battle-limit-ready);
+    animation: limit-ready-pulse 0.5s infinite;
+}
+
+@keyframes limit-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+@keyframes limit-ready-pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--battle-limit-ready); }
+    50% { opacity: 0.9; box-shadow: 0 0 10px var(--battle-limit-ready); }
+}
+
+/* Special styling for limit label */
+.stat-label.limit-label {
+    color: #ffd700;
+}
+
+/* AC display states */
+.ac-display.boosted {
+    color: #4caf50;
+}
+
+.ac-display.reduced {
+    color: #ff6b6b;
+}
+
+/* Stagger bar - HIDDEN (system disabled for simplicity) */
+.stagger-container {
+    display: none;
+}
+
+.stagger-bar {
+    width: 100%;
+    height: 3px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.stagger-fill {
+    height: 100%;
+    background: #ff9800;
+    transition: width 0.2s ease-out;
+    border-radius: 2px;
+}
+
+.stagger-fill.stagger-warning {
+    background: #ff5722;
+}
+
+.stagger-fill.stagger-danger {
+    background: #f44336;
+    animation: stagger-pulse 0.3s infinite;
+}
+
+@keyframes stagger-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* Status icons row */
+.status-icons {
+    display: block;
+    display: -webkit-flex;
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+
+.status-icons > * {
+    margin: 2px;
+}
+
+@supports (gap: 4px) {
+    .status-icons {
+        gap: 4px;
+    }
+    .status-icons > * {
+        margin: 0;
+    }
+}
+
+.status-icon {
+    font-size: 0.85rem;
+    cursor: help;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* === LEGACY COMPATIBILITY (for non-battle HP displays) === */
+.hp-container,
+.mana-container {
+    display: none;
+}

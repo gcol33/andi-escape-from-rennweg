@@ -1,0 +1,253 @@
+/* === UI Layout & Fixes ===
+ * Core layout rules for VN interface elements.
+ * Reset button, password screen, text box layout, responsive adjustments.
+ */
+
+/* === Reset Button (Base Styles) ===
+ * Positioned fixed in corner. Themes override colors.
+ * Uses fixed px sizes to avoid scaling with base font.
+ */
+#reset-btn {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    width: 44px;
+    height: 44px;
+    background: rgba(100, 100, 100, 0.8);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 20px;  /* Fixed size - don't scale with base font */
+    cursor: pointer;
+    z-index: var(--z-modal);
+    transition: background 0.2s, transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#reset-btn:hover {
+    background: rgba(120, 120, 120, 0.9);
+    transform: scale(1.05);
+}
+
+#reset-btn:active {
+    transform: scale(0.95);
+}
+
+/* === Password Lockout Message ===
+ * Displayed when user exceeds max failed password attempts.
+ * Positioned center of password container.
+ */
+#lockout-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--lockout-bg, rgba(75, 62, 42, 0.95));
+    color: var(--lockout-color, #fffbe9);
+    padding: var(--spacing-xl) 1.875rem;  /* 20px 30px */
+    border-radius: var(--spacing-sm);
+    font-size: 1.2rem;
+    text-align: center;
+    z-index: var(--z-modal);
+    animation: fadeIn 0.3s ease-out;
+    display: none;
+}
+
+#lockout-message.visible {
+    display: block;
+}
+
+#password-inputs.dimmed {
+    opacity: 0.3;
+}
+
+/* === Password Character Input Sizing ===
+ * Base sizing using CSS variables - themes override colors/borders only.
+ * Uses text-align for horizontal centering.
+ */
+.password-char {
+    width: var(--password-char-width);
+    height: var(--password-char-height);
+    font-size: var(--password-char-font-size);
+    line-height: var(--password-char-height);
+    text-align: center;
+    padding: 0;
+    /* Hide the text cursor - it interferes with centering single characters */
+    caret-color: transparent;
+}
+
+@media (max-width: 56.25em) {
+    .password-char {
+        width: var(--password-char-width-tablet);
+        height: var(--password-char-height-tablet);
+        font-size: var(--password-char-font-size-tablet);
+        line-height: var(--password-char-height-tablet);
+    }
+}
+
+@media (max-width: 37.5em) {
+    .password-char {
+        width: var(--password-char-width-mobile);
+        height: var(--password-char-height-mobile);
+        font-size: var(--password-char-font-size-mobile);
+        line-height: var(--password-char-height-mobile);
+    }
+}
+
+/* === Animated Background Video ===
+ * Video element for WebM/MP4 animated backgrounds.
+ * Hidden by default, shown when video background is active.
+ */
+#bg-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+    pointer-events: none;
+}
+
+/* === Ken Burns Effect (Apple-style subtle zoom) ===
+ * Slow, cinematic zoom effect on backgrounds.
+ * Toggled via dev mode checkbox, persists in localStorage.
+ */
+@keyframes ken-burns-zoom {
+    0% {
+        transform: scale(1);
+    }
+    100% {
+        transform: scale(1.04);
+    }
+}
+
+#background-layer.ken-burns {
+    animation: ken-burns-zoom 30s ease-out forwards;
+    /* Slightly larger to prevent edge visibility during zoom */
+    transform-origin: center center;
+}
+
+#bg-video.ken-burns {
+    animation: ken-burns-zoom 30s ease-out forwards;
+    transform-origin: center center;
+}
+
+/* === Text Box Header Band ===
+ * Header band contains the title and speed/volume controls.
+ * Themes style the appearance (colors, fonts, decorations).
+ */
+#text-box-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 4px 12px !important;
+    position: relative;
+}
+
+/* Spacer takes up left side to push controls right */
+#header-spacer {
+    flex: 1;
+}
+
+/* Title is absolutely centered, independent of controls width */
+#text-box-title {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-weight: bold;
+    text-align: center;
+    font-size: var(--label-font-size, 0.85rem);
+    /* Prevent title from overflowing into buttons */
+    max-width: 60%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+#text-controls {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    /* Override theme margins - controls are now inside header band */
+    margin: 0 !important;
+}
+
+/* Remove extra margin from volume control */
+#text-controls #volume-control {
+    margin-left: 0 !important;
+}
+
+/* === Control Button Height Consistency ===
+ * All header buttons (speed-btn and mute-btn) must have same height.
+ * Step 1: Normalize font-size to a common base (use small-font-size variable)
+ * Step 2: Apply consistent height in em units (relative to normalized font)
+ */
+#text-controls .speed-btn,
+#text-controls .mute-btn {
+    font-size: var(--small-font-size, 0.75rem) !important;
+    box-sizing: border-box !important;
+    height: 2em !important;
+    line-height: 1 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 0.6em !important;
+}
+
+/* === Choice Button Overflow Fix ===
+ * Prevent text from overflowing choice buttons.
+ * Buttons should grow as needed but text should wrap.
+ */
+.choice-button {
+    overflow: hidden;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+}
+
+/* === Text Box Layout Fix ===
+ * Priority: Choices must NEVER be cut off.
+ * Strategy:
+ *   1. Text box grows based on content (height: auto)
+ *   2. Text box stops growing at max-height
+ *   3. When max-height is reached, story-output becomes scrollable
+ *   4. Button area never shrinks or gets cut
+ */
+
+#text-box {
+    max-height: 75% !important;
+}
+
+#text-box.ending-scene {
+    max-height: 85% !important;
+}
+
+/* Story output: grows with content, scrolls only when text-box hits max-height */
+#story-output {
+    flex: 1 1 auto !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+/* Button area: never shrink, never cut */
+#button-area {
+    flex-shrink: 0 !important;
+}
+
+/* Responsive: ensure max-height is consistent */
+@media (max-width: 56.25em) {
+    #text-box {
+        max-height: 75% !important;
+    }
+}
+
+@media (max-width: 37.5em) {
+    #text-box {
+        max-height: 75% !important;
+    }
+}

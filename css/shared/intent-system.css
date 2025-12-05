@@ -1,0 +1,174 @@
+/* =============================================================================
+   ENEMY INTENT / TELEGRAPH SYSTEM
+   ============================================================================= */
+
+/* Intent indicator container - positioned above enemy sprite */
+.enemy-intent-indicator {
+    position: absolute;
+    top: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: var(--z-battle-ui);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    pointer-events: none;
+}
+
+/* Intent icon - circular badge with icon */
+.intent-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    background: rgba(0, 0, 0, 0.8);
+    border: 3px solid;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    animation: intent-pulse 1.5s ease-in-out infinite;
+}
+
+/* Intent type-specific styling */
+.intent-icon.intent-summon {
+    border-color: #9b59b6;
+    color: #9b59b6;
+    box-shadow: 0 0 20px rgba(155, 89, 182, 0.6);
+}
+
+.intent-icon.intent-big-attack {
+    border-color: #e74c3c;
+    color: #e74c3c;
+    box-shadow: 0 0 20px rgba(231, 76, 60, 0.6);
+}
+
+.intent-icon.intent-multi-hit {
+    border-color: #f39c12;
+    color: #f39c12;
+    box-shadow: 0 0 20px rgba(243, 156, 18, 0.6);
+}
+
+/* Intent label text below icon */
+.intent-label {
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #fff;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.8), 2px 2px 4px rgba(0, 0, 0, 0.9);
+    padding: 0.2rem 0.5rem;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 3px;
+}
+
+/* Pulse animation for intent icon */
+@keyframes intent-pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.9;
+    }
+}
+
+/* Intent appearing animation */
+.intent-icon.intent-appear {
+    animation: intent-appear 0.5s ease-out forwards, intent-pulse 1.5s ease-in-out infinite 0.5s;
+}
+
+@keyframes intent-appear {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    70% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Intent broken animation */
+.intent-icon.intent-broken {
+    animation: intent-broken 0.5s ease-out forwards;
+}
+
+@keyframes intent-broken {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.3) rotate(15deg);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(0) rotate(45deg);
+        opacity: 0;
+    }
+}
+
+/* Intent executing animation (when attack fires) */
+.intent-icon.intent-execute {
+    animation: intent-execute 0.3s ease-in forwards;
+}
+
+@keyframes intent-execute {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+/* Battle log styling for intent messages */
+.intent-message {
+    font-style: italic;
+    color: #f39c12;
+}
+
+.intent-message.intent-summon {
+    color: #9b59b6;
+}
+
+.intent-message.intent-big-attack {
+    color: #e74c3c;
+}
+
+.intent-message.intent-multi-hit {
+    color: #f39c12;
+}
+
+/* Concentration broken message */
+.intent-broken-message {
+    color: #2ecc71;
+    font-weight: bold;
+}
+
+/* Mobile responsive - smaller intent indicator */
+@media (max-width: 600px) {
+    .intent-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 1.2rem;
+        border-width: 2px;
+    }
+
+    .intent-label {
+        font-size: 0.6rem;
+    }
+
+    .enemy-intent-indicator {
+        top: 3%;
+    }
+}

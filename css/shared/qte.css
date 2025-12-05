@@ -1,0 +1,721 @@
+/* ============================================================================
+   QTE SYSTEM (Quick Time Events)
+   ============================================================================
+   Theme-aware QTE timing bar for battle combat.
+   All colors use CSS variables that themes can override.
+*/
+
+/* === QTE Theme Variables ===
+   Themes should override these to match their visual style
+
+   Color progression (dark to bright):
+   Bad = Black (worst)
+   Normal = Grey (miss)
+   Good = Slight red (decent)
+   Perfect = Pure red (best)
+*/
+:root {
+    /* Zone colors - Legacy (miss/partial/success/perfect) */
+    --qte-zone-miss: #1a1a1a;        /* Black - outer edges */
+    --qte-zone-partial: #4a4a4a;     /* Grey - glancing */
+    --qte-zone-success: #8b3030;     /* Slight red - solid hit */
+    --qte-zone-perfect: #ff0000;     /* Pure red - center sweet spot */
+
+    /* Zone colors - Finalized Battle System (bad/normal/good/perfect) */
+    --qte-zone-bad: #1a1a1a;         /* Black - outer edges, worst result */
+    --qte-zone-normal: #4a4a4a;      /* Grey - standard roll */
+    --qte-zone-good: #8b3030;        /* Slight red - advantage */
+    /* --qte-zone-perfect already defined above */
+
+    /* Marker colors */
+    --qte-marker-color: #fff;
+    --qte-marker-glow: rgba(255, 255, 255, 0.5);
+    --qte-marker-perfect: var(--qte-zone-perfect);
+    --qte-marker-success: var(--qte-zone-success);
+    --qte-marker-partial: var(--qte-zone-partial);
+    --qte-marker-miss: var(--qte-zone-miss);
+    /* Finalized marker colors */
+    --qte-marker-good: var(--qte-zone-good);
+    --qte-marker-normal: var(--qte-zone-normal);
+    --qte-marker-bad: var(--qte-zone-bad);
+
+    /* Container styling */
+    --qte-bg: rgba(0, 0, 0, 0.9);
+    --qte-border: rgba(255, 255, 255, 0.3);
+    --qte-text: #fff;
+    --qte-text-dim: rgba(255, 255, 255, 0.7);
+
+    /* Bar styling */
+    --qte-bar-bg: rgba(0, 0, 0, 0.5);
+    --qte-bar-border: rgba(255, 255, 255, 0.2);
+    --qte-bar-height: 40px;
+
+    /* Result text colors */
+    --qte-result-perfect: #ff0000;
+    --qte-result-success: #8b3030;
+    --qte-result-partial: #666666;
+    --qte-result-miss: #333333;
+    /* Finalized result colors */
+    --qte-result-good: #8b3030;
+    --qte-result-normal: #666666;
+    --qte-result-bad: #333333;
+}
+
+/* === QTE Container === */
+.qte-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: var(--z-overlay);
+    width: 80%;
+    max-width: 500px;
+    padding: 20px;
+    background: var(--qte-bg);
+    border: 2px solid var(--qte-border);
+    border-radius: 12px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+    pointer-events: auto;
+}
+
+.qte-container.qte-visible {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.qte-container.qte-hiding {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* === QTE Type Variations === */
+.qte-container.qte-accuracy {
+    border-color: var(--qte-zone-perfect);
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+}
+
+.qte-container.qte-dodge {
+    border-color: var(--qte-zone-good);
+    box-shadow: 0 0 20px rgba(139, 48, 48, 0.3);
+}
+
+/* Finalized Battle System - Skill QTE */
+.qte-container.qte-skill {
+    border-color: var(--qte-zone-perfect);
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
+}
+
+/* Finalized Battle System - Defend QTE */
+.qte-container.qte-defend {
+    border-color: var(--qte-zone-perfect);
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
+}
+
+/* === QTE Label === */
+.qte-label {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    margin-bottom: 16px;
+    color: var(--qte-text);
+    text-shadow: 0 0 10px currentColor;
+}
+
+.qte-accuracy .qte-label {
+    color: var(--qte-zone-perfect);
+}
+
+.qte-dodge .qte-label {
+    color: var(--qte-zone-good);
+}
+
+.qte-skill .qte-label {
+    color: var(--qte-zone-perfect);
+}
+
+.qte-defend .qte-label {
+    color: var(--qte-zone-perfect);
+}
+
+/* Sub-label for defend QTE (shows enemy attack name) */
+.qte-sublabel {
+    font-size: 0.9rem;
+    font-weight: normal;
+    letter-spacing: 2px;
+    margin-top: 4px;
+    color: var(--qte-text-dim);
+}
+
+/* === QTE Bar Wrapper === */
+.qte-bar-wrapper {
+    position: relative;
+    height: var(--qte-bar-height);
+    margin-bottom: 16px;
+}
+
+/* === QTE Zones Visualization === */
+.qte-zones {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+/* For finalized zones using absolute positioning */
+.qte-zones-finalized {
+    display: block;
+}
+
+.qte-zone {
+    height: 100%;
+    transition: filter 0.1s ease;
+}
+
+.qte-zone-miss {
+    background: var(--qte-zone-miss);
+}
+
+.qte-zone-partial {
+    background: var(--qte-zone-partial);
+}
+
+.qte-zone-success {
+    background: var(--qte-zone-success);
+}
+
+.qte-zone-perfect {
+    background: var(--qte-zone-perfect);
+    box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.3),
+                0 0 8px var(--qte-zone-perfect);
+}
+
+/* Finalized Battle System Zones */
+.qte-zone-bad {
+    background: var(--qte-zone-bad);
+}
+
+.qte-zone-normal {
+    background: var(--qte-zone-normal);
+}
+
+.qte-zone-good {
+    background: var(--qte-zone-good);
+}
+
+/* Zone flash effects on result */
+.qte-zones-flash-perfect .qte-zone-perfect {
+    animation: qte-zone-flash 0.5s ease-out;
+}
+
+.qte-zones-flash-success .qte-zone-success {
+    animation: qte-zone-flash 0.5s ease-out;
+}
+
+.qte-zones-flash-partial .qte-zone-partial {
+    animation: qte-zone-flash 0.5s ease-out;
+}
+
+.qte-zones-flash-miss .qte-zone-miss {
+    animation: qte-zone-flash 0.5s ease-out;
+}
+
+/* Finalized zone flash effects */
+.qte-zones-flash-good .qte-zone-good {
+    animation: qte-zone-flash 0.5s ease-out;
+}
+
+.qte-zones-flash-normal .qte-zone-normal {
+    animation: qte-zone-flash 0.5s ease-out;
+}
+
+.qte-zones-flash-bad .qte-zone-bad {
+    animation: qte-zone-flash 0.5s ease-out;
+}
+
+@keyframes qte-zone-flash {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.5); }
+}
+
+/* === QTE Timing Bar === */
+.qte-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 2px solid var(--qte-bar-border);
+    border-radius: 6px;
+    pointer-events: none;
+}
+
+/* === QTE Marker === */
+.qte-marker {
+    position: absolute;
+    top: -4px;
+    bottom: -4px;
+    width: 6px;
+    background: var(--qte-marker-color);
+    border-radius: 3px;
+    transform: translateX(-50%);
+    box-shadow:
+        0 0 10px var(--qte-marker-glow),
+        0 0 20px var(--qte-marker-glow);
+    transition: box-shadow 0.1s ease;
+    z-index: 10;
+}
+
+/* Marker color changes based on current zone */
+.qte-marker.qte-marker-perfect {
+    background: var(--qte-marker-perfect);
+    box-shadow:
+        0 0 15px var(--qte-marker-perfect),
+        0 0 30px var(--qte-marker-perfect);
+}
+
+.qte-marker.qte-marker-success {
+    background: var(--qte-marker-success);
+    box-shadow:
+        0 0 12px var(--qte-marker-success),
+        0 0 24px var(--qte-marker-success);
+}
+
+.qte-marker.qte-marker-partial {
+    background: var(--qte-marker-partial);
+    box-shadow:
+        0 0 10px var(--qte-marker-partial),
+        0 0 20px var(--qte-marker-partial);
+}
+
+.qte-marker.qte-marker-miss {
+    background: var(--qte-marker-miss);
+    box-shadow:
+        0 0 8px var(--qte-marker-miss),
+        0 0 16px var(--qte-marker-miss);
+}
+
+/* Finalized Battle System marker colors */
+.qte-marker.qte-marker-good {
+    background: var(--qte-marker-good);
+    box-shadow:
+        0 0 12px var(--qte-marker-good),
+        0 0 24px var(--qte-marker-good);
+}
+
+.qte-marker.qte-marker-normal {
+    background: var(--qte-marker-normal);
+    box-shadow:
+        0 0 10px var(--qte-marker-normal),
+        0 0 20px var(--qte-marker-normal);
+}
+
+.qte-marker.qte-marker-bad {
+    background: var(--qte-marker-bad);
+    box-shadow:
+        0 0 8px var(--qte-marker-bad),
+        0 0 16px var(--qte-marker-bad);
+}
+
+/* Marker stopped state */
+.qte-marker.qte-marker-stopped {
+    animation: qte-marker-pulse 0.3s ease-out;
+}
+
+@keyframes qte-marker-pulse {
+    0% { transform: translateX(-50%) scaleY(1); }
+    50% { transform: translateX(-50%) scaleY(1.3); }
+    100% { transform: translateX(-50%) scaleY(1); }
+}
+
+/* Result state markers */
+.qte-marker.qte-marker-result-perfect {
+    animation: qte-marker-perfect-result 0.5s ease-out forwards;
+}
+
+.qte-marker.qte-marker-result-success {
+    animation: qte-marker-success-result 0.3s ease-out forwards;
+}
+
+.qte-marker.qte-marker-result-partial {
+    animation: qte-marker-partial-result 0.3s ease-out forwards;
+}
+
+.qte-marker.qte-marker-result-miss {
+    animation: qte-marker-miss-result 0.3s ease-out forwards;
+}
+
+@keyframes qte-marker-perfect-result {
+    0% { transform: translateX(-50%) scale(1); }
+    50% { transform: translateX(-50%) scale(1.5); }
+    100% { transform: translateX(-50%) scale(1.2); }
+}
+
+@keyframes qte-marker-success-result {
+    0% { transform: translateX(-50%) scale(1); }
+    100% { transform: translateX(-50%) scale(1.1); }
+}
+
+@keyframes qte-marker-partial-result {
+    0% { transform: translateX(-50%) scale(1); }
+    50% { transform: translateX(-50%) scale(0.9); }
+    100% { transform: translateX(-50%) scale(1); }
+}
+
+@keyframes qte-marker-miss-result {
+    0% { transform: translateX(-50%) scale(1) rotate(0deg); }
+    25% { transform: translateX(-50%) scale(1) rotate(-10deg); }
+    75% { transform: translateX(-50%) scale(1) rotate(10deg); }
+    100% { transform: translateX(-50%) scale(1) rotate(0deg); }
+}
+
+/* === QTE Instructions === */
+.qte-instructions {
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--qte-text-dim);
+    margin-bottom: 8px;
+}
+
+.qte-key {
+    display: inline-block;
+    background: var(--qte-border);
+    color: var(--qte-text);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    margin: 0 4px;
+}
+
+.qte-hit-red {
+    color: var(--qte-zone-perfect);
+    font-weight: bold;
+    text-shadow: 0 0 8px var(--qte-zone-perfect);
+}
+
+/* === QTE Countdown Display === */
+.qte-countdown {
+    text-align: center;
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--qte-text);
+    margin: 8px 0;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.qte-countdown-pulse {
+    animation: qte-countdown-pulse 0.3s ease-out;
+}
+
+.qte-countdown-urgent {
+    color: #f39c12;
+    text-shadow: 0 0 15px #f39c12;
+}
+
+.qte-countdown-critical {
+    color: #e74c3c;
+    text-shadow: 0 0 20px #e74c3c;
+    animation: qte-countdown-pulse 0.3s ease-out, qte-countdown-shake 0.1s infinite;
+}
+
+@keyframes qte-countdown-pulse {
+    0% {
+        transform: scale(1.3);
+        opacity: 0.5;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes qte-countdown-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(2px); }
+}
+
+/* === QTE Result Display === */
+.qte-result {
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    animation: qte-result-appear 0.3s ease-out forwards;
+}
+
+.qte-result-perfect {
+    color: var(--qte-result-perfect);
+    text-shadow:
+        0 0 20px var(--qte-result-perfect),
+        0 0 40px var(--qte-result-perfect);
+}
+
+.qte-result-success {
+    color: var(--qte-result-success);
+    text-shadow: 0 0 15px var(--qte-result-success);
+}
+
+.qte-result-partial {
+    color: var(--qte-result-partial);
+    text-shadow: 0 0 10px var(--qte-result-partial);
+}
+
+.qte-result-miss {
+    color: var(--qte-result-miss);
+    text-shadow: 0 0 10px var(--qte-result-miss);
+}
+
+/* Finalized Battle System result text */
+.qte-result-good {
+    color: var(--qte-result-good);
+    text-shadow: 0 0 10px var(--qte-result-good);
+}
+
+.qte-result-normal {
+    color: var(--qte-result-normal);
+    text-shadow: 0 0 10px var(--qte-result-normal);
+}
+
+.qte-result-bad {
+    color: var(--qte-result-bad);
+    text-shadow: 0 0 10px var(--qte-result-bad);
+}
+
+@keyframes qte-result-appear {
+    0% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* === Container Result Effects === */
+.qte-container.qte-result-perfect {
+    border-color: var(--qte-result-perfect);
+    box-shadow: 0 0 30px var(--qte-result-perfect);
+}
+
+.qte-container.qte-result-success {
+    border-color: var(--qte-result-success);
+    box-shadow: 0 0 20px var(--qte-result-success);
+}
+
+.qte-container.qte-result-partial {
+    border-color: var(--qte-result-partial);
+    box-shadow: 0 0 15px var(--qte-result-partial);
+}
+
+.qte-container.qte-result-miss {
+    border-color: var(--qte-result-miss);
+    box-shadow: 0 0 15px var(--qte-result-miss);
+}
+
+/* Finalized Battle System container result states */
+.qte-container.qte-result-good {
+    border-color: var(--qte-result-good);
+    box-shadow: 0 0 15px var(--qte-result-good);
+}
+
+.qte-container.qte-result-normal {
+    border-color: var(--qte-result-normal);
+    box-shadow: 0 0 15px var(--qte-result-normal);
+}
+
+.qte-container.qte-result-bad {
+    border-color: var(--qte-result-bad);
+    box-shadow: 0 0 15px var(--qte-result-bad);
+}
+
+/* === QTE Chain Combo Display === */
+.qte-chain-progress {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.qte-chain-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--qte-bar-border);
+    border: 2px solid var(--qte-text-dim);
+    transition: all 0.2s ease;
+}
+
+.qte-chain-dot-complete {
+    background: var(--qte-zone-success);
+    border-color: var(--qte-zone-success);
+}
+
+.qte-chain-dot-current {
+    border-color: var(--qte-text);
+    animation: qte-chain-dot-pulse 0.5s ease-in-out infinite;
+}
+
+@keyframes qte-chain-dot-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+.qte-chain-flash {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2rem;
+    font-weight: bold;
+    pointer-events: none;
+    animation: qte-chain-flash-anim 0.3s ease-out forwards;
+}
+
+.qte-chain-flash-perfect {
+    color: var(--qte-result-perfect);
+}
+
+.qte-chain-flash-success,
+.qte-chain-flash-good {
+    color: var(--qte-result-success);
+}
+
+.qte-chain-flash-partial,
+.qte-chain-flash-normal {
+    color: var(--qte-result-partial);
+}
+
+.qte-chain-flash-miss,
+.qte-chain-flash-bad {
+    color: var(--qte-result-miss);
+}
+
+@keyframes qte-chain-flash-anim {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1.5);
+    }
+}
+
+.qte-chain-hit {
+    animation: qte-chain-hit-pulse 0.2s ease-out;
+}
+
+@keyframes qte-chain-hit-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* === QTE Combo Display (Future Enhancement) === */
+.qte-combo {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.qte-combo-input {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    font-size: 1.5rem;
+    background: var(--qte-bar-bg);
+    border: 2px solid var(--qte-border);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.qte-combo-pending {
+    opacity: 0.5;
+}
+
+.qte-combo-current {
+    opacity: 1;
+    border-color: var(--qte-zone-success);
+    animation: qte-combo-pulse 0.5s ease-in-out infinite;
+}
+
+.qte-combo-success {
+    opacity: 1;
+    background: var(--qte-zone-success);
+    border-color: var(--qte-zone-success);
+}
+
+.qte-combo-fail {
+    animation: qte-combo-shake 0.3s ease-out;
+}
+
+@keyframes qte-combo-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+@keyframes qte-combo-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* === QTE Responsive Adjustments === */
+@media (max-width: 37.5em) {
+    .qte-container {
+        width: 90%;
+        padding: 16px;
+    }
+
+    .qte-label {
+        font-size: 1.2rem;
+        letter-spacing: 2px;
+    }
+
+    :root {
+        --qte-bar-height: 32px;
+    }
+
+    .qte-result {
+        font-size: 1.4rem;
+    }
+
+    .qte-combo-input {
+        width: 32px;
+        height: 32px;
+        font-size: 1.2rem;
+    }
+}
+
+/* === Portrait Mode Adjustments === */
+@media (orientation: portrait) {
+    .qte-container {
+        width: 85%;
+        top: 40%;
+    }
+
+    .qte-label {
+        margin-bottom: 12px;
+    }
+
+    .qte-bar-wrapper {
+        margin-bottom: 12px;
+    }
+}

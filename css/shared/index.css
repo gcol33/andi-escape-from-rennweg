@@ -1,0 +1,58 @@
+/* =============================================================================
+   SHARED CSS INDEX
+   =============================================================================
+   This file imports all modular shared CSS components.
+
+   Import order matters:
+   1. Variables first (other files depend on CSS custom properties)
+   2. Base components (can be in any order)
+   3. Portrait/responsive last (overrides previous rules)
+
+   Extracted from the original 5,306 line shared.css for maintainability.
+============================================================================= */
+
+/* === Core Variables & Design Tokens === */
+@import url('variables.css');
+
+/* === Roll Display System (unified color + emphasis) === */
+@import url('roll-system.css');
+
+/* === Dev Mode Panel & Theme Selector === */
+@import url('dev-panel.css');
+
+/* === UI Layout & Fixes (text box, password, reset button) === */
+@import url('ui-layout.css');
+
+/* === Inventory System === */
+@import url('inventory.css');
+
+/* === Battle Stats Panels (HP/Mana/Limit bars) === */
+@import url('battle-panels.css');
+
+/* === Floating Damage Numbers === */
+@import url('damage-numbers.css');
+
+/* === Battle UI (log, choices, skills, intro/outro) === */
+@import url('battle-ui.css');
+
+/* === QTE System (timing bar, zones, markers) === */
+@import url('qte.css');
+
+/* === Enemy Intent/Telegraph System === */
+@import url('intent-system.css');
+
+/* === Summon Display System === */
+@import url('summon-display.css');
+
+/* === Battle Pause Overlay === */
+@import url('battle-pause.css');
+
+/* === Error Screen Overlay === */
+@import url('error-overlay.css');
+
+/* === Overworld System (Pokemon-style movement) === */
+@import url('overworld.css');
+
+/* === Portrait/Responsive Overrides (must be last) === */
+@import url('portrait-mode.css');
+@import url('qte-portrait.css');

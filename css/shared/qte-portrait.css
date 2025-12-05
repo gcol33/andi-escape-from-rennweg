@@ -1,0 +1,155 @@
+/* === Portrait Mode Adjustments for QTE and Battle UI ===
+ * These adjustments apply when device is in portrait orientation.
+ * Must be imported AFTER battle-ui.css and qte.css.
+ */
+
+@media (orientation: portrait) {
+    /* === Battle UI Portrait Mode Centering Fixes === */
+
+    /* Battle log panel - full width in portrait */
+    .battle-log-panel {
+        left: 0 !important;
+        right: 0 !important;
+        transform: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* Player stats panel - LEFT side in portrait */
+    .battle-stats-panel.player-stats {
+        left: 5px !important;
+        right: auto !important;
+        transform: none !important;
+        min-width: auto !important;
+        width: auto !important;
+        max-width: 45% !important;
+    }
+
+    /* Enemy stats panel - RIGHT side at top in portrait */
+    .battle-stats-panel.enemy-stats {
+        left: auto !important;
+        right: 5px !important;
+        transform: none !important;
+        top: max(5px, env(safe-area-inset-top, 5px)) !important;
+        min-width: auto !important;
+        width: auto !important;
+        max-width: 45% !important;
+    }
+
+    /* Center terrain indicator */
+    .terrain-indicator {
+        top: calc(max(5px, env(safe-area-inset-top, 5px)) + 55px) !important;
+    }
+
+    /* Battle choices grid - ensure proper centering and smaller size */
+    .battle-choices {
+        justify-content: center !important;
+        align-content: center !important;
+        height: 5.5rem !important;  /* Smaller buttons in portrait */
+        gap: 0.5rem !important;
+        padding: 0.5rem !important;
+    }
+
+    .battle-choices .choice-button {
+        padding: 6px 10px !important;
+        font-size: 0.75rem !important;
+        min-height: 32px !important;
+    }
+
+    /* Smaller stats panels in portrait */
+    .battle-stats-panel {
+        padding: 0.4rem 0.5rem !important;
+        font-size: 0.7rem !important;
+    }
+
+    .battle-stats-panel .stats-header {
+        font-size: 0.6rem !important;
+        margin-bottom: 0.25rem !important;
+    }
+
+    .battle-stats-panel .stat-row {
+        margin-bottom: 0.15rem !important;
+    }
+
+    .battle-stats-panel .stat-label {
+        font-size: 0.5rem !important;
+    }
+
+    .battle-stats-panel .stat-bar-outer {
+        height: 0.5rem !important;
+    }
+
+    .battle-stats-panel .stat-value {
+        font-size: 0.45rem !important;
+    }
+
+    .summon-sprite-wrapper {
+        width: 4.5rem !important;  /* Larger sprite in portrait */
+    }
+
+    .summon-name {
+        font-size: 0.65rem !important;
+    }
+
+    .summon-duration-indicator {
+        font-size: 0.75rem !important;
+        padding: 0.15rem 0.4rem !important;
+    }
+
+    /* Skill/Item submenus - stretch to fill width */
+    .skill-submenu,
+    .item-submenu {
+        align-items: stretch !important;
+    }
+
+    .skill-list {
+        width: 100% !important;
+    }
+
+    /* === Password Screen Portrait Fixes === */
+    /* Make password inputs wrap and fit in narrow portrait container */
+    #password-inputs {
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        max-width: 90% !important;
+        gap: 8px !important;
+    }
+
+    .password-char {
+        /* Smaller boxes for portrait - use relative sizing */
+        width: min(var(--password-char-width-mobile), 15vw) !important;
+        height: min(var(--password-char-height-mobile), 18vw) !important;
+        font-size: min(var(--password-char-font-size-mobile), 5vw) !important;
+        line-height: min(var(--password-char-height-mobile), 18vw) !important;
+    }
+
+    /* === Battle Intro Text Centering === */
+    .battle-intro-text {
+        text-align: center !important;
+        max-width: 85% !important;
+        /* Reduce letter spacing for narrow screens */
+        letter-spacing: 4px !important;
+        /* Smaller font for portrait */
+        font-size: calc(var(--base-font-size, 1.35rem) * 1.5) !important;
+    }
+
+    /* === iOS Safe Area - Bottom Padding === */
+    /* Ensure bottom UI elements don't overlap iPhone home indicator */
+    #vn-container {
+        padding-bottom: env(safe-area-inset-bottom, 0) !important;
+    }
+
+    .battle-log-panel {
+        /* Account for iOS safe area in height calculation */
+        padding-bottom: calc(var(--spacing-sm) + env(safe-area-inset-bottom, 0)) !important;
+    }
+
+    /* Choices container needs safe area padding too */
+    .battle-choices {
+        padding-bottom: env(safe-area-inset-bottom, 0) !important;
+    }
+
+    #text-box {
+        padding-bottom: calc(var(--spacing-sm) + env(safe-area-inset-bottom, 0)) !important;
+    }
+}

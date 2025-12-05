@@ -1,0 +1,228 @@
+/* ============================================================================
+ * UNIFIED ROLL DISPLAY SYSTEM
+ * ============================================================================
+ * This system provides consistent visual language for ALL roll displays:
+ * - Combat log dice numbers and result text
+ * - Floating damage numbers (WoW-style)
+ * - Status effect notifications
+ *
+ * RULE 1: Base color is ONLY determined by roll TYPE
+ *   - Hit/Attack rolls = Yellow
+ *   - Damage rolls = Red
+ *   - Healing rolls = Green
+ *   - Status rolls = Blue
+ *   - Neutral/Miss = Grey
+ *
+ * RULE 2: Emphasis is ONLY determined by result CATEGORY
+ *   - Crit = Strong orange glow outline
+ *   - Fail/Fumble = Red glow outline
+ *   - Max = Bright white/strong glow
+ *   - Min = Dim/weak glow
+ *   - Normal = No outline
+ *
+ * The color NEVER changes based on crit/fail/min/max. Only the outline does.
+ * ============================================================================ */
+
+/* === BASE ROLL TYPE COLORS ===
+ * Apply these to set the base color. Combine with emphasis classes for effect.
+ */
+.roll-type-hit {
+    color: var(--roll-color-hit) !important;
+}
+
+.roll-type-damage {
+    color: var(--roll-color-damage) !important;
+}
+
+.roll-type-heal {
+    color: var(--roll-color-heal) !important;
+}
+
+.roll-type-status {
+    color: var(--roll-color-status) !important;
+}
+
+.roll-type-neutral {
+    color: var(--roll-color-neutral) !important;
+}
+
+/* === EMPHASIS CLASSES ===
+ * Add outline/glow effects WITHOUT changing color.
+ * These work with any roll-type color.
+ */
+
+/* Crit emphasis - strong orange glow, scale-up animation */
+.emphasis-crit {
+    text-shadow:
+        0 0 8px var(--emphasis-crit-glow),
+        0 0 16px var(--emphasis-crit-glow),
+        0 0 24px rgba(255, 140, 0, 0.5) !important;
+    animation: emphasis-crit-pulse 0.5s ease-out forwards;
+}
+
+/* Fail/fumble emphasis - red glow, shake animation */
+.emphasis-fail {
+    text-shadow:
+        0 0 8px var(--emphasis-fail-glow),
+        0 0 16px rgba(255, 0, 0, 0.6) !important;
+    animation: emphasis-fail-shake 0.5s ease-out forwards;
+}
+
+/* Max roll emphasis - bright orange glow */
+.emphasis-max {
+    text-shadow:
+        0 0 6px var(--emphasis-max-glow),
+        0 0 12px rgba(255, 140, 0, 0.8),
+        0 0 18px rgba(255, 140, 0, 0.4) !important;
+    animation: emphasis-max-pulse 0.4s ease-out forwards;
+}
+
+/* Min roll emphasis - dim weak glow */
+.emphasis-min {
+    text-shadow:
+        0 0 4px var(--emphasis-min-glow),
+        0 0 8px rgba(100, 100, 100, 0.4) !important;
+    animation: emphasis-min-fade 0.4s ease-out forwards;
+}
+
+/* Normal - no special emphasis, just standard text shadow for readability */
+.emphasis-normal {
+    text-shadow:
+        2px 2px 0 #000,
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000;
+}
+
+/* === EMPHASIS ANIMATIONS === */
+
+@keyframes emphasis-crit-pulse {
+    0% { transform: scale(0.8); opacity: 0.5; }
+    40% { transform: scale(1.5); opacity: 1; }
+    70% { transform: scale(1.3); }
+    100% { transform: scale(1.2); opacity: 1; }
+}
+
+@keyframes emphasis-fail-shake {
+    0% { transform: scale(1.2) rotate(0deg); opacity: 0.5; }
+    20% { transform: scale(1.1) rotate(-5deg); opacity: 1; }
+    40% { transform: scale(1.05) rotate(5deg); }
+    60% { transform: scale(1.02) rotate(-3deg); }
+    80% { transform: scale(1.01) rotate(2deg); }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+@keyframes emphasis-max-pulse {
+    0% { transform: scale(0.9); opacity: 0.7; }
+    50% { transform: scale(1.3); opacity: 1; }
+    100% { transform: scale(1.1); opacity: 1; }
+}
+
+@keyframes emphasis-min-fade {
+    0% { transform: scale(1.1); opacity: 0.8; }
+    100% { transform: scale(0.95); opacity: 0.85; }
+}
+
+/* === COMBINED CONVENIENCE CLASSES ===
+ * Pre-combined classes for common scenarios.
+ * Format: roll-{type}-{emphasis}
+ */
+
+/* Hit rolls */
+.roll-hit-normal {
+    color: var(--roll-color-hit) !important;
+    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+}
+
+.roll-hit-crit {
+    color: var(--roll-color-hit) !important;
+    text-shadow: 0 0 8px var(--emphasis-crit-glow), 0 0 16px var(--emphasis-crit-glow), 0 0 24px rgba(255, 140, 0, 0.5);
+}
+
+.roll-hit-fail {
+    color: var(--roll-color-neutral) !important;  /* Miss uses grey */
+    text-shadow: 0 0 8px var(--emphasis-fail-glow), 0 0 16px rgba(255, 0, 0, 0.6);
+}
+
+/* Damage rolls */
+.roll-damage-normal {
+    color: var(--roll-color-damage) !important;
+    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+}
+
+.roll-damage-crit {
+    color: var(--roll-color-damage) !important;
+    text-shadow: 0 0 8px var(--emphasis-crit-glow), 0 0 16px var(--emphasis-crit-glow), 0 0 24px rgba(255, 140, 0, 0.5);
+}
+
+.roll-damage-max {
+    color: var(--roll-color-damage) !important;
+    text-shadow: 0 0 6px var(--emphasis-max-glow), 0 0 12px rgba(255, 140, 0, 0.8), 0 0 18px rgba(255, 140, 0, 0.4);
+}
+
+.roll-damage-min {
+    color: var(--roll-color-damage) !important;
+    text-shadow: 0 0 4px var(--emphasis-min-glow), 0 0 8px rgba(100, 100, 100, 0.4);
+}
+
+/* Healing rolls */
+.roll-heal-normal {
+    color: var(--roll-color-heal) !important;
+    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+}
+
+.roll-heal-max {
+    color: var(--roll-color-heal) !important;
+    text-shadow: 0 0 6px var(--emphasis-max-glow), 0 0 12px rgba(255, 140, 0, 0.8), 0 0 18px rgba(255, 140, 0, 0.4);
+}
+
+.roll-heal-min {
+    color: var(--roll-color-heal) !important;
+    text-shadow: 0 0 4px var(--emphasis-min-glow), 0 0 8px rgba(100, 100, 100, 0.4);
+}
+
+/* Status rolls */
+.roll-status-normal {
+    color: var(--roll-color-status) !important;
+    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+}
+
+.roll-status-max {
+    color: var(--roll-color-status) !important;
+    text-shadow: 0 0 6px var(--emphasis-max-glow), 0 0 12px rgba(255, 140, 0, 0.8), 0 0 18px rgba(255, 140, 0, 0.4);
+}
+
+.roll-status-min {
+    color: var(--roll-color-status) !important;
+    text-shadow: 0 0 4px var(--emphasis-min-glow), 0 0 8px rgba(100, 100, 100, 0.4);
+}
+
+/* Neutral (miss, etc) */
+.roll-neutral-normal {
+    color: var(--roll-color-neutral) !important;
+    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+}
+
+/* AC bonus display - dark green (defensive stat) */
+.ac-bonus-text {
+    color: #2e7d32 !important;
+    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+}
+
+/* Defend cooldown text - grey/muted */
+.defend-cooldown-text,
+.defend-cooldown-number {
+    color: #888 !important;
+    font-size: var(--battle-text-size);
+    text-shadow: 1px 1px 0 #000;
+}
+
+/* === Single Choice Button Fix ===
+ * When there's only one choice, don't stretch it across full width.
+ * Use :only-child selector to target single choice scenario.
+ */
+#choices-container .choice-button:only-child {
+    flex: 0 1 auto;
+    min-width: 11.25rem;  /* 180px */
+    max-width: 80%;
+}

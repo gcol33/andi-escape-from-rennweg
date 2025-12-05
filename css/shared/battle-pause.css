@@ -1,0 +1,58 @@
+/* === Battle Pause Overlay === */
+.battle-pause-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: var(--z-modal);
+    animation: pauseFadeIn 0.2s ease-out;
+}
+
+@keyframes pauseFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.battle-pause-overlay .pause-text {
+    font-family: var(--font-ui);
+    font-size: 3rem;
+    color: #fff;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+    letter-spacing: 0.3em;
+    margin-bottom: 1rem;
+}
+
+.battle-pause-overlay .pause-hint {
+    font-family: var(--font-ui);
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: 0.1em;
+}
+
+/* Freeze all animations when paused */
+.battle-paused,
+.battle-paused * {
+    animation-play-state: paused !important;
+    transition: none !important;
+}
+
+/* Freeze floating damage numbers */
+.battle-paused .damage-number {
+    animation-play-state: paused !important;
+}
+
+/* Freeze dice spinning */
+.battle-paused .dice-spinning {
+    animation-play-state: paused !important;
+}
+
+/* Freeze typewriter cursor */
+.battle-paused .roll-result {
+    animation-play-state: paused !important;
+}

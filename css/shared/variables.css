@@ -1,0 +1,182 @@
+/* Andi VN - CSS Variables
+ * Core design tokens and CSS custom properties.
+ * All themes inherit these values - themes override colors only.
+ */
+
+/* === Z-Index Scale ===
+ * All z-index values should use these variables for consistency.
+ * Layer order (bottom to top):
+ *   background → sprites → theme-deco → text-box → battle-ui → overlay → modal
+ */
+:root {
+    --z-background: 1;
+    --z-sprites: 2;
+    --z-theme-deco: 10;      /* Theme decorations (triangles, borders, etc.) */
+    --z-text-box: 20;        /* Main text box and controls */
+    --z-battle-ui: 30;       /* Battle stats panels, HP bars */
+    --z-battle-effects: 40;  /* Damage numbers, hit effects */
+    --z-overlay: 100;        /* Dice rolls, transitions */
+    --z-dev-tools: 500;      /* Dev mode indicator, theme selector */
+    --z-modal: 1000;         /* Password screen, popups */
+}
+
+/* === Typography === */
+:root {
+    /* Base font size - responsive with min/max bounds (+20%) */
+    --base-font-size-fallback: 1.35rem;  /* ~22px */
+    --base-font-size: clamp(1.2rem, 1.7vw, 1.8rem);  /* 19px-29px */
+
+    /* Story text sizing (+20%) */
+    --story-font-size: 1.3rem;
+    --story-line-height: 1.6;
+
+    /* UI element sizing */
+    --button-font-size: 0.9rem;
+    --small-font-size: 0.75rem;
+    --label-font-size: 0.85rem;
+
+    /* Spacing - using rem for scalability (1rem = 16px at default) */
+    --spacing-xs: 0.25rem;   /* 4px */
+    --spacing-sm: 0.5rem;    /* 8px */
+    --spacing-md: 0.75rem;   /* 12px */
+    --spacing-lg: 1rem;      /* 16px */
+    --spacing-xl: 1.25rem;   /* 20px */
+
+    /* Battle log line height for dynamic sizing */
+    --battle-log-line-height: 2.2rem;  /* ~35px per line */
+
+    /* Button styling - themes should override these */
+    --btn-bg: rgba(100, 100, 100, 0.7);
+    --btn-bg-hover: rgba(120, 120, 120, 0.8);
+    --btn-color: #fff;
+    --btn-border: 0.0625rem solid rgba(255, 255, 255, 0.3);  /* 1px */
+    --btn-border-radius: 0.25rem;  /* 4px */
+
+    /* Damage number font - themes should override this */
+    --damage-font: 'Arial Black', 'Helvetica Neue', sans-serif;
+
+    /* === Battle Text Tuning === */
+    /* Unified battle text size - same for numbers and labels */
+    --battle-text-size: 0.95rem;
+    --battle-text-color: #fff;
+
+    /* Special battle text - NOW UNIFIED with battle-text-size */
+    --battle-special-size: var(--battle-text-size);
+}
+
+/* === Roll Color System ===
+ * Base colors by roll TYPE (never change based on result):
+ * - Hit rolls = yellow
+ * - Damage rolls = red
+ * - Healing rolls = green
+ * - Status rolls = blue
+ * - Neutral/miss = grey
+ *
+ * Emphasis (crit/fail/min/max) is shown via OUTLINE only, never color change.
+ */
+:root {
+    /* Base colors by roll type */
+    --roll-color-hit: #ffd700;           /* Yellow - hit/attack rolls */
+    --roll-color-damage: #ff4444;        /* Red - damage rolls */
+    --roll-color-heal: #4caf50;          /* Green - healing rolls */
+    --roll-color-status: #64b5f6;        /* Blue - status rolls */
+    --roll-color-neutral: #888888;       /* Grey - miss, neutral */
+
+    /* Emphasis outline colors (applied via outline/glow, not color change) */
+    --emphasis-crit-glow: #ff8c00;       /* Orange glow for crits */
+    --emphasis-fail-glow: #ff0000;       /* Red glow for fumbles/fails */
+    --emphasis-max-glow: #ff8c00;        /* Orange glow for max (better visibility than white) */
+    --emphasis-min-glow: #666666;        /* Dim glow for min */
+
+    /* Legacy variables (kept for backward compatibility, mapped to new system) */
+    --battle-number-color: var(--roll-color-hit);
+    --battle-hit-dice-color: var(--roll-color-hit);
+    --battle-damage-dice-color: var(--roll-color-damage);
+    --battle-roll-color: var(--roll-color-neutral);
+    --battle-hit-color: var(--roll-color-hit);
+    --battle-damage-color: var(--roll-color-damage);
+    --battle-crit-color: var(--roll-color-hit);      /* Now same as hit - emphasis via outline */
+    --battle-fumble-color: var(--roll-color-neutral); /* Now grey - emphasis via outline */
+}
+
+/* === Password Input Sizing === */
+:root {
+    --password-char-width: 100px;
+    --password-char-height: 120px;
+    --password-char-font-size: 3rem;
+    --password-char-width-tablet: 80px;
+    --password-char-height-tablet: 96px;
+    --password-char-font-size-tablet: 2.5rem;
+    --password-char-width-mobile: 60px;
+    --password-char-height-mobile: 72px;
+    --password-char-font-size-mobile: 2rem;
+}
+
+/* === UI Positioning System ===
+ * Unified variables for all battle UI element placement.
+ * Override these in orientation media queries for responsive layout.
+ */
+:root {
+    /* Edge margins */
+    --ui-edge-margin: 0.625rem;
+    --ui-edge-margin-small: 0.3125rem;
+
+    /* Stats panel dimensions */
+    --stats-panel-width: 17.5rem;
+    --stats-panel-width-mobile: 8.75rem;
+
+    /* Battle log height (used for bottom positioning) */
+    --battle-log-height: 13.4rem;
+
+    /* Player stats position */
+    --player-stats-left: var(--ui-edge-margin);
+    --player-stats-bottom: calc(var(--battle-log-height) + var(--ui-edge-margin));
+
+    /* Enemy stats position */
+    --enemy-stats-right: var(--ui-edge-margin);
+    --enemy-stats-top: var(--ui-edge-margin);
+
+    /* Player summon position (landscape default: centered above player stats) */
+    --player-summon-left: calc(var(--ui-edge-margin) + var(--stats-panel-width) / 2);
+    --player-summon-right: auto;
+    --player-summon-top: 30%;
+    --player-summon-bottom: auto;
+    --player-summon-transform: translateX(-50%);
+
+    /* Enemy summon position (landscape default: centered below enemy stats) */
+    --enemy-summon-left: auto;
+    --enemy-summon-right: calc(var(--ui-edge-margin) + var(--stats-panel-width) / 2);
+    --enemy-summon-top: 30%;
+    --enemy-summon-bottom: auto;
+    --enemy-summon-transform: translateX(50%);
+}
+
+/* === Battle Panel Colors === */
+:root {
+    /* Battle log panel height - dynamically calculated in JS based on:
+       - battleLogMaxLines * battleLogLineHeight (log content)
+       - 7.5rem (battle choices - 2 rows of 3rem buttons + gap)
+       - 1.5rem (panel padding)
+       Default: 2 lines * 2.2rem = 4.4rem + 7.5rem + 1.5rem = 13.4rem */
+    --battle-log-height: 13.4rem;
+
+    --battle-hp-high: #4caf50;
+    --battle-hp-medium: #ff9800;
+    --battle-hp-low: #f44336;
+    --battle-mana: #2196f3;
+    --battle-limit: #9b59b6;           /* Purple for limit bar */
+    --battle-limit-ready: #a855f7;     /* Brighter purple when ready */
+    --battle-panel-bg: rgba(0, 0, 0, 0.85);
+    --battle-panel-border: rgba(255, 255, 255, 0.3);
+    --battle-text: #fff;
+    --battle-text-dim: rgba(255, 255, 255, 0.7);
+}
+
+/* === Theme-Specific Overrides === */
+
+/* Pixel font themes need smaller base sizes */
+.theme-nes,
+.theme-snes {
+    --base-font-size-fallback: 1rem;  /* 16px */
+    --base-font-size: clamp(0.875rem, 1.15vw, 1.125rem);  /* 14px-18px */
+}
