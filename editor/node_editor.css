@@ -1,4 +1,13 @@
-/* Node Editor - Standalone Styles */
+/* Node Editor - Styles that extend editor.css for the graph view */
+
+/* Prevent flash of unstyled content on reload (same as editor.css) */
+html {
+    visibility: hidden;
+}
+
+html.loaded {
+    visibility: visible;
+}
 
 * {
     margin: 0;
@@ -6,24 +15,10 @@
     box-sizing: border-box;
 }
 
-:root {
-    --bg-dark: #1a1a2e;
-    --bg-medium: #252540;
-    --bg-light: #2f2f4a;
-    --text: #e8e8e8;
-    --text-dim: #888;
-    --accent: #4a9eff;
-    --accent-dark: #3a7ecc;
-    --success: #4caf50;
-    --danger: #f44336;
-    --warning: #ff9800;
-    --border: #404060;
-}
-
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: var(--bg-dark);
-    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
     height: 100vh;
     overflow: hidden;
 }
@@ -34,13 +29,15 @@ body {
     height: 100vh;
 }
 
-/* Toolbar */
+/* ============================================ */
+/* Toolbar - Uses editor.css button styles     */
+/* ============================================ */
 #toolbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0.75rem 1rem;
-    background: var(--bg-medium);
+    background: var(--bg-secondary);
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
 }
@@ -48,6 +45,7 @@ body {
 #toolbar h1 {
     font-size: 1.1rem;
     font-weight: 600;
+    color: var(--text-primary);
 }
 
 .toolbar-section {
@@ -65,24 +63,26 @@ body {
 }
 
 #scene-count {
-    color: var(--text-dim);
+    color: var(--text-secondary);
     font-size: 0.85rem;
 }
 
-/* Buttons */
+/* ============================================ */
+/* Buttons - Extend editor.css styles          */
+/* ============================================ */
 .btn {
     padding: 0.5rem 1rem;
     border: 1px solid var(--border);
-    border-radius: 4px;
-    background: var(--bg-light);
-    color: var(--text);
+    border-radius: var(--btn-radius, 4px);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
     cursor: pointer;
     font-size: 0.875rem;
     transition: background 0.15s;
 }
 
 .btn:hover {
-    background: var(--bg-medium);
+    background: var(--border);
 }
 
 .btn-primary {
@@ -92,7 +92,7 @@ body {
 }
 
 .btn-primary:hover {
-    background: var(--accent-dark);
+    background: var(--accent-hover, var(--accent-dark));
 }
 
 .btn-icon {
@@ -100,13 +100,44 @@ body {
     min-width: 32px;
 }
 
-/* Canvas Container */
+/* Button Group */
+.btn-group {
+    display: flex;
+    gap: 0;
+}
+
+.btn-group .btn {
+    border-radius: 0;
+}
+
+.btn-group .btn:first-child {
+    border-radius: var(--btn-radius, 4px) 0 0 var(--btn-radius, 4px);
+}
+
+.btn-group .btn:last-child {
+    border-radius: 0 var(--btn-radius, 4px) var(--btn-radius, 4px) 0;
+    border-left: none;
+}
+
+/* Theme selector in toolbar */
+#theme-select {
+    width: auto;
+    min-width: 100px;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+/* ============================================ */
+/* Canvas Container - With dot grid pattern    */
+/* ============================================ */
 #canvas-container {
     flex: 1;
     position: relative;
     overflow: hidden;
-    background: var(--bg-dark);
-    background-image: radial-gradient(circle, var(--border) 1px, transparent 1px);
+    background: var(--bg-primary);
+    /* Dot grid pattern - the distinctive feature to keep */
+    background-image: radial-gradient(circle, var(--graph-grid, var(--border)) 1px, transparent 1px);
     background-size: 20px 20px;
 }
 
@@ -116,7 +147,9 @@ body {
     display: block;
 }
 
-/* Zoom Controls */
+/* ============================================ */
+/* Zoom Controls                               */
+/* ============================================ */
 #zoom-controls {
     position: absolute;
     bottom: 1rem;
@@ -125,26 +158,28 @@ body {
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem;
-    background: var(--bg-medium);
+    background: var(--bg-secondary);
     border: 1px solid var(--border);
-    border-radius: 4px;
+    border-radius: var(--btn-radius, 4px);
 }
 
 #zoom-level {
     min-width: 45px;
     text-align: center;
     font-size: 0.8rem;
-    color: var(--text-dim);
+    color: var(--text-secondary);
 }
 
-/* Properties Panel */
+/* ============================================ */
+/* Properties Panel                            */
+/* ============================================ */
 #properties-panel {
     position: absolute;
     top: 0;
     right: 0;
     width: 300px;
     height: 100%;
-    background: var(--bg-medium);
+    background: var(--bg-secondary);
     border-left: 1px solid var(--border);
     display: flex;
     flex-direction: column;
@@ -166,6 +201,7 @@ body {
 .panel-header h2 {
     font-size: 1rem;
     font-weight: 600;
+    color: var(--text-primary);
 }
 
 #properties-content {
@@ -174,13 +210,15 @@ body {
     padding: 1rem;
 }
 
-/* Context Menu */
+/* ============================================ */
+/* Context Menus                               */
+/* ============================================ */
 #context-menu,
 #canvas-context-menu {
     position: fixed;
-    background: var(--bg-medium);
+    background: var(--bg-secondary);
     border: 1px solid var(--border);
-    border-radius: 4px;
+    border-radius: var(--btn-radius, 4px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     z-index: 100;
     min-width: 160px;
@@ -200,19 +238,25 @@ body {
     text-align: left;
     background: none;
     border: none;
-    color: var(--text);
+    color: var(--text-primary);
     cursor: pointer;
     font-size: 0.875rem;
 }
 
 #context-menu button:hover,
 #canvas-context-menu button:hover {
-    background: var(--bg-light);
+    background: var(--bg-tertiary);
 }
 
 #context-menu button.danger,
 #canvas-context-menu button.danger {
     color: var(--danger);
+}
+
+#context-menu button.danger:hover,
+#canvas-context-menu button.danger:hover {
+    background: var(--danger);
+    color: #fff;
 }
 
 #context-menu hr,
@@ -222,10 +266,18 @@ body {
     margin: 0.25rem 0;
 }
 
-/* Dialogs */
+/* Hidden elements in context menu */
+#context-menu button.hidden,
+#context-menu hr.hidden {
+    display: none;
+}
+
+/* ============================================ */
+/* Dialogs                                     */
+/* ============================================ */
 dialog {
-    background: var(--bg-medium);
-    color: var(--text);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 1.5rem;
@@ -240,13 +292,14 @@ dialog::backdrop {
 dialog h3 {
     margin-bottom: 1.25rem;
     font-size: 1.1rem;
+    color: var(--text-primary);
 }
 
 dialog label {
     display: block;
     margin-bottom: 1rem;
     font-size: 0.875rem;
-    color: var(--text-dim);
+    color: var(--text-secondary);
 }
 
 dialog input,
@@ -255,10 +308,10 @@ dialog select {
     width: 100%;
     margin-top: 0.25rem;
     padding: 0.5rem;
-    background: var(--bg-dark);
+    background: var(--bg-tertiary);
     border: 1px solid var(--border);
-    border-radius: 4px;
-    color: var(--text);
+    border-radius: var(--input-radius, 4px);
+    color: var(--text-primary);
     font-size: 0.875rem;
 }
 
@@ -277,7 +330,9 @@ dialog select:focus {
     border-top: 1px solid var(--border);
 }
 
-/* Toast Notifications */
+/* ============================================ */
+/* Toast Notifications                         */
+/* ============================================ */
 #toast-container {
     position: fixed;
     bottom: 1.5rem;
@@ -291,11 +346,12 @@ dialog select:focus {
 
 .toast {
     padding: 0.75rem 1.5rem;
-    background: var(--bg-medium);
+    background: var(--bg-secondary);
     border: 1px solid var(--border);
-    border-radius: 4px;
+    border-radius: var(--btn-radius, 4px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     animation: toast-slide-in 0.3s ease;
+    color: var(--text-primary);
 }
 
 .toast.success {
@@ -317,13 +373,15 @@ dialog select:focus {
     }
 }
 
-/* Graph Nodes */
+/* ============================================ */
+/* Graph Nodes                                 */
+/* ============================================ */
 .node {
     cursor: pointer;
 }
 
 .node rect {
-    fill: var(--bg-light);
+    fill: var(--bg-tertiary);
     stroke: var(--border);
     stroke-width: 1.5;
     transition: stroke 0.15s, stroke-width 0.15s;
@@ -364,7 +422,7 @@ dialog select:focus {
 }
 
 .node text {
-    fill: var(--text);
+    fill: var(--text-primary);
     font-size: 11px;
     font-family: inherit;
     pointer-events: none;
@@ -374,7 +432,30 @@ dialog select:focus {
     fill: var(--warning);
 }
 
-/* Graph Edges */
+.node.start text {
+    fill: #ffffff;
+}
+
+/* Chain Nodes - Glow Effect */
+.node.chain rect {
+    fill: var(--bg-tertiary);
+    stroke: #9c27b0;
+    stroke-width: 2;
+    filter: drop-shadow(0 0 8px rgba(156, 39, 176, 0.6));
+}
+
+.node.chain:hover rect {
+    stroke: #ba68c8;
+    filter: drop-shadow(0 0 12px rgba(156, 39, 176, 0.8));
+}
+
+.node.chain text {
+    fill: #e1bee7;
+}
+
+/* ============================================ */
+/* Graph Edges                                 */
+/* ============================================ */
 .edge {
     fill: none;
     stroke-width: 2;
@@ -445,48 +526,6 @@ dialog select:focus {
     fill: var(--danger);
 }
 
-/* Chain Nodes - Glow Effect */
-.node.chain rect {
-    fill: var(--bg-light);
-    stroke: #9c27b0;
-    stroke-width: 2;
-    filter: drop-shadow(0 0 8px rgba(156, 39, 176, 0.6));
-}
-
-.node.chain:hover rect {
-    stroke: #ba68c8;
-    filter: drop-shadow(0 0 12px rgba(156, 39, 176, 0.8));
-}
-
-.node.chain text {
-    fill: #e1bee7;
-}
-
-/* Button Group */
-.btn-group {
-    display: flex;
-    gap: 0;
-}
-
-.btn-group .btn {
-    border-radius: 0;
-}
-
-.btn-group .btn:first-child {
-    border-radius: 4px 0 0 4px;
-}
-
-.btn-group .btn:last-child {
-    border-radius: 0 4px 4px 0;
-    border-left: none;
-}
-
-/* Hidden elements in context menu */
-#context-menu button.hidden,
-#context-menu hr.hidden {
-    display: none;
-}
-
 /* Drag preview line */
 .drag-line {
     stroke: var(--accent);
@@ -494,4 +533,356 @@ dialog select:focus {
     stroke-dasharray: 5 5;
     fill: none;
     pointer-events: none;
+}
+
+/* ============================================ */
+/* Theme-specific overrides                    */
+/* ============================================ */
+
+/* 90s Theme - Windows 3.1 aesthetic */
+body.theme-90s #toolbar {
+    background: #c0c0c0;
+    border-bottom: 2px solid;
+    border-color: #fff #808080 #808080 #fff;
+}
+
+body.theme-90s .panel-header {
+    background: linear-gradient(90deg, #000080, #008080);
+    color: #fff;
+}
+
+body.theme-90s .panel-header h2 {
+    color: #fff;
+}
+
+body.theme-90s #canvas-container {
+    background-color: #008080;
+    background-image: radial-gradient(circle, #ffffff 1px, transparent 1px);
+}
+
+body.theme-90s .btn {
+    border: 2px solid;
+    border-color: #fff #808080 #808080 #fff;
+    border-radius: 0;
+}
+
+body.theme-90s .btn:active:not(:disabled) {
+    border-color: #808080 #fff #fff #808080;
+}
+
+body.theme-90s .btn-primary {
+    background: #c0c0c0;
+    color: #000;
+}
+
+body.theme-90s dialog {
+    border-radius: 0;
+    border: 2px solid;
+    border-color: #fff #808080 #808080 #fff;
+}
+
+body.theme-90s dialog input,
+body.theme-90s dialog select {
+    border-radius: 0;
+    border: 2px solid;
+    border-color: #808080 #fff #fff #808080;
+    background: #fff;
+    color: #000;
+}
+
+body.theme-90s #context-menu,
+body.theme-90s #canvas-context-menu {
+    border-radius: 0;
+    border: 2px solid;
+    border-color: #fff #808080 #808080 #fff;
+    background: #c0c0c0;
+}
+
+body.theme-90s #context-menu button,
+body.theme-90s #canvas-context-menu button {
+    color: #000;
+}
+
+body.theme-90s #zoom-controls {
+    border-radius: 0;
+    border: 2px solid;
+    border-color: #fff #808080 #808080 #fff;
+    background: #c0c0c0;
+}
+
+body.theme-90s #zoom-level {
+    color: #000;
+}
+
+body.theme-90s .toast {
+    border-radius: 0;
+    border: 2px solid;
+    border-color: #fff #808080 #808080 #fff;
+    background: #c0c0c0;
+    color: #000;
+}
+
+/* Vaporwave Theme */
+body.theme-vaporwave #canvas-container {
+    background-color: #1a0a2e;
+    background-image: radial-gradient(circle, #b967ff 1px, transparent 1px);
+}
+
+body.theme-vaporwave .btn {
+    border: 2px solid var(--border);
+    box-shadow: 0 0 10px var(--border);
+}
+
+body.theme-vaporwave .btn:hover:not(:disabled) {
+    box-shadow: 0 0 20px var(--accent);
+}
+
+body.theme-vaporwave .panel-header {
+    background: linear-gradient(90deg, #b967ff, #ff71ce, #01cdfe);
+}
+
+/* 80s Theme - Synthwave */
+body.theme-80s #canvas-container {
+    background-color: #0d0221;
+    background-image: radial-gradient(circle, #00d4ff 1px, transparent 1px);
+}
+
+body.theme-80s .btn {
+    border: 3px solid var(--border);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    box-shadow: 0 0 15px var(--border);
+}
+
+body.theme-80s .btn:hover:not(:disabled) {
+    box-shadow: 0 0 25px var(--accent);
+}
+
+body.theme-80s .panel-header {
+    background: linear-gradient(90deg, #ff1493, #9d00ff, #00d4ff);
+}
+
+/* Scanlines effect for 80s */
+body.theme-80s::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, 0.1) 2px, rgba(0, 0, 0, 0.1) 4px);
+    pointer-events: none;
+    z-index: 9998;
+}
+
+/* 70s Theme - Retro Disco */
+body.theme-70s #canvas-container {
+    background-color: #2d1810;
+    background-image: radial-gradient(circle, #f7c548 1px, transparent 1px);
+}
+
+body.theme-70s .btn {
+    border: 3px solid var(--border);
+    box-shadow: 3px 3px 0 #1a0a05;
+    border-radius: 10px;
+}
+
+body.theme-70s .btn:hover:not(:disabled) {
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 #1a0a05;
+}
+
+body.theme-70s .panel-header {
+    background: linear-gradient(90deg, #ff6b35, #f7c548, #568203);
+    color: #2d1810;
+}
+
+body.theme-70s .panel-header h2 {
+    color: #2d1810;
+    text-shadow: 1px 1px 0 #faf0dc;
+}
+
+/* NES Theme - 8-bit Pixel */
+body.theme-nes #canvas-container {
+    background-color: #000000;
+    background-image: radial-gradient(circle, #fcfcfc 1px, transparent 1px);
+}
+
+body.theme-nes .btn {
+    border: 4px solid var(--border);
+    text-transform: uppercase;
+    border-radius: 0;
+}
+
+body.theme-nes .panel-header {
+    background: #0058f8;
+}
+
+body.theme-nes dialog label {
+    font-size: 0.65rem;
+}
+
+/* SNES Theme - 16-bit Enhanced */
+body.theme-snes #canvas-container {
+    background-color: #181848;
+    background-image: radial-gradient(circle, #58a8f8 1px, transparent 1px);
+}
+
+body.theme-snes .btn {
+    border: 4px solid;
+    border-color: #58a8f8 #2038c8 #2038c8 #58a8f8;
+    background: linear-gradient(180deg, #383888, #282858);
+    text-shadow: 1px 1px 0 #101030;
+}
+
+body.theme-snes .btn:hover:not(:disabled) {
+    background: linear-gradient(180deg, #484898, #383868);
+    box-shadow: 0 0 10px rgba(88, 168, 248, 0.5);
+}
+
+body.theme-snes .btn-primary {
+    background: linear-gradient(180deg, #e01820, #b01018);
+    border-color: #f82830 #a01010 #a01010 #f82830;
+}
+
+body.theme-snes .panel-header {
+    background: linear-gradient(90deg, #e01820, #f88018, #f8d838, #38b028, #2038c8, #8858a8);
+}
+
+body.theme-snes dialog label {
+    font-size: 0.6rem;
+}
+
+/* Manga Theme - Junji Ito Horror */
+body.theme-manga #canvas-container {
+    background-color: #0a0a0a;
+    background-image: radial-gradient(circle, #f0ebe0 1px, transparent 1px);
+}
+
+body.theme-manga .btn {
+    border: 2px solid #f0ebe0;
+    background: #1a1a1a;
+    color: #f0ebe0;
+    font-weight: bold;
+    border-radius: 0;
+}
+
+body.theme-manga .btn:hover:not(:disabled) {
+    background: #2a2a2a;
+    box-shadow: 3px 3px 0 #f0ebe0;
+    transform: translate(-1px, -1px);
+}
+
+body.theme-manga .btn-primary {
+    background: #f0ebe0;
+    color: #0a0a0a;
+    border: 2px solid #f0ebe0;
+}
+
+body.theme-manga .panel-header {
+    background: #1a1a1a;
+    border-bottom: 3px solid #f0ebe0;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+/* Dragon Ball Theme */
+body.theme-dragonball #canvas-container {
+    background-color: #0f0f1a;
+    background-image: radial-gradient(circle, #0066ff 1px, transparent 1px);
+}
+
+body.theme-dragonball .btn {
+    border: 2px solid #0066ff;
+    background: linear-gradient(180deg, #2a2a4e, #1a1a3e);
+    box-shadow: 0 0 10px rgba(0, 102, 255, 0.3);
+}
+
+body.theme-dragonball .btn:hover:not(:disabled) {
+    background: linear-gradient(180deg, #ff6600, #cc5500);
+    border-color: #ffcc00;
+    box-shadow: 0 0 15px rgba(255, 102, 0, 0.5);
+}
+
+body.theme-dragonball .btn-primary {
+    background: linear-gradient(180deg, #ff6600, #cc5500);
+    border-color: #ffcc00;
+}
+
+body.theme-dragonball .panel-header {
+    background: linear-gradient(90deg, #ff6600, #0066ff);
+}
+
+/* Star Wars Theme */
+body.theme-starwars #canvas-container {
+    background-color: #000000;
+    background-image: radial-gradient(circle, #ffe81f 1px, transparent 1px);
+}
+
+body.theme-starwars .btn {
+    border: 1px solid #ffe81f;
+    background: transparent;
+    color: #ffe81f;
+    border-radius: 0;
+}
+
+body.theme-starwars .btn:hover:not(:disabled) {
+    background: #ffe81f;
+    color: #000000;
+    box-shadow: 0 0 15px rgba(255, 232, 31, 0.4);
+}
+
+body.theme-starwars .btn-primary {
+    background: #ffe81f;
+    color: #000000;
+    border-color: #ffe81f;
+}
+
+body.theme-starwars .panel-header {
+    background: #000000;
+    border-bottom: 2px solid #ffe81f;
+}
+
+/* ============================================ */
+/* Scrollbars (inherit from theme)             */
+/* ============================================ */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+/* 90s scrollbars */
+body.theme-90s ::-webkit-scrollbar {
+    width: 16px;
+    height: 16px;
+}
+
+body.theme-90s ::-webkit-scrollbar-track {
+    background: #c0c0c0;
+}
+
+body.theme-90s ::-webkit-scrollbar-thumb {
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #fff #808080 #808080 #fff;
+}
+
+/* ============================================ */
+/* Utilities                                   */
+/* ============================================ */
+.hidden {
+    display: none !important;
 }

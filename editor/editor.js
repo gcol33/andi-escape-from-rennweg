@@ -115,9 +115,20 @@ const Editor = (function() {
     // === DOM References ===
     let elements = {};
 
+    // === Shared Component Instances ===
+    let choiceEditor = null;
+    let actionEditor = null;
+    let tagManagers = {
+        setFlags: null,
+        requireFlags: null,
+        addItems: null,
+        removeItems: null
+    };
+
     // === Initialization ===
     function init() {
         cacheElements();
+        initSharedComponents();
         setupEventListeners();
         populateAssetSelectors();
         populateSpriteGallery();
@@ -125,6 +136,49 @@ const Editor = (function() {
 
         // Auto-load scenes on startup
         autoLoadScenes();
+    }
+
+    /**
+     * Initialize shared UI components (ChoiceEditor, ActionEditor, TagManager)
+     */
+    function initSharedComponents() {
+        // Helper functions for shared components
+        const getSceneIds = () => Object.keys(state.scenes);
+        const getCurrentSceneId = () => state.currentSceneId;
+
+        // Initialize ChoiceEditor if available
+        if (window.ChoiceEditor) {
+            choiceEditor = new window.ChoiceEditor({
+                container: elements.choicesContainer,
+                onModified: onSceneModified,
+                getSceneIds: getSceneIds,
+                currentSceneId: getCurrentSceneId
+            });
+        }
+
+        // Initialize ActionEditor if available
+        if (window.ActionEditor) {
+            actionEditor = new window.ActionEditor({
+                container: elements.actionsContainer,
+                onModified: onSceneModified,
+                getSceneIds: getSceneIds,
+                currentSceneId: getCurrentSceneId
+            });
+        }
+
+        // Initialize TagManagers if available
+        if (window.TagManager) {
+            tagManagers.setFlags = new window.TagManager({ onModified: onSceneModified });
+            tagManagers.requireFlags = new window.TagManager({ onModified: onSceneModified });
+            tagManagers.addItems = new window.TagManager({ onModified: onSceneModified, tagClass: 'flag-tag item-tag' });
+            tagManagers.removeItems = new window.TagManager({ onModified: onSceneModified, tagClass: 'flag-tag item-tag' });
+
+            // Set up tag input handlers
+            tagManagers.setFlags.setupInput(elements.newSetFlag, elements.setFlagsContainer, elements.addSetFlagBtn);
+            tagManagers.requireFlags.setupInput(elements.newRequireFlag, elements.requireFlagsContainer, elements.addRequireFlagBtn);
+            tagManagers.addItems.setupInput(elements.newAddItem, elements.addItemsContainer, elements.addAddItemBtn);
+            tagManagers.removeItems.setupInput(elements.newRemoveItem, elements.removeItemsContainer, elements.addRemoveItemBtn);
+        }
     }
 
     /**
@@ -361,32 +415,53 @@ const Editor = (function() {
         elements.textDeleteBtn.addEventListener('click', deleteCurrentTextBlock);
         elements.previewTextarea.addEventListener('input', onTextBlockInput);
 
-        // Choices
-        elements.addChoiceBtn.addEventListener('click', addChoice);
-
-        // Flags
-        elements.addSetFlagBtn.addEventListener('click', () => addFlag('set'));
-        elements.addRequireFlagBtn.addEventListener('click', () => addFlag('require'));
-        elements.newSetFlag.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') addFlag('set');
-        });
-        elements.newRequireFlag.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') addFlag('require');
+        // Choices - use shared ChoiceEditor if available
+        elements.addChoiceBtn.addEventListener('click', () => {
+            if (choiceEditor) {
+                choiceEditor.addChoice();
+            } else {
+                addChoice();
+            }
         });
 
-        // Items
-        elements.addAddItemBtn.addEventListener('click', () => addItem('add'));
-        elements.addRemoveItemBtn.addEventListener('click', () => addItem('remove'));
-        elements.newAddItem.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') addItem('add');
-        });
-        elements.newRemoveItem.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') addItem('remove');
-        });
+        // Flags - only set up legacy handlers if TagManager not available
+        // (TagManager sets up its own handlers in initSharedComponents)
+        if (!window.TagManager) {
+            elements.addSetFlagBtn.addEventListener('click', () => addFlag('set'));
+            elements.addRequireFlagBtn.addEventListener('click', () => addFlag('require'));
+            elements.newSetFlag.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addFlag('set');
+            });
+            elements.newRequireFlag.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addFlag('require');
+            });
 
-        // Actions
-        elements.addActionBtn.addEventListener('click', addAction);
-        elements.addBattleBtn.addEventListener('click', addBattle);
+            // Items
+            elements.addAddItemBtn.addEventListener('click', () => addItem('add'));
+            elements.addRemoveItemBtn.addEventListener('click', () => addItem('remove'));
+            elements.newAddItem.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addItem('add');
+            });
+            elements.newRemoveItem.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addItem('remove');
+            });
+        }
+
+        // Actions - use shared ActionEditor if available
+        elements.addActionBtn.addEventListener('click', () => {
+            if (actionEditor) {
+                actionEditor.addDiceRoll();
+            } else {
+                addAction();
+            }
+        });
+        elements.addBattleBtn.addEventListener('click', () => {
+            if (actionEditor) {
+                actionEditor.addBattle();
+            } else {
+                addBattle();
+            }
+        });
 
         // Delete
         elements.deleteSceneBtn.addEventListener('click', showDeleteModal);
@@ -792,19 +867,37 @@ const Editor = (function() {
         state.currentTextBlockIndex = 0;
         updateTextBlockDisplay();
 
-        // Choices
-        renderChoices(scene.choices || []);
+        // Choices - use shared ChoiceEditor if available
+        if (choiceEditor) {
+            choiceEditor.loadChoices(scene.choices || []);
+        } else {
+            renderChoices(scene.choices || []);
+        }
 
-        // Flags
-        renderFlags('set', scene.set_flags || []);
-        renderFlags('require', scene.require_flags || []);
+        // Flags - use shared TagManager if available
+        if (tagManagers.setFlags) {
+            tagManagers.setFlags.renderTags(elements.setFlagsContainer, scene.set_flags || []);
+            tagManagers.requireFlags.renderTags(elements.requireFlagsContainer, scene.require_flags || []);
+        } else {
+            renderFlags('set', scene.set_flags || []);
+            renderFlags('require', scene.require_flags || []);
+        }
 
-        // Items
-        renderItems('add', scene.add_items || []);
-        renderItems('remove', scene.remove_items || []);
+        // Items - use shared TagManager if available
+        if (tagManagers.addItems) {
+            tagManagers.addItems.renderTags(elements.addItemsContainer, scene.add_items || []);
+            tagManagers.removeItems.renderTags(elements.removeItemsContainer, scene.remove_items || []);
+        } else {
+            renderItems('add', scene.add_items || []);
+            renderItems('remove', scene.remove_items || []);
+        }
 
-        // Actions
-        renderActions(scene.actions || []);
+        // Actions - use shared ActionEditor if available
+        if (actionEditor) {
+            actionEditor.loadActions(scene.actions || []);
+        } else {
+            renderActions(scene.actions || []);
+        }
 
         // Incoming references (sidebar)
         updateIncomingScenes(scene.id);
@@ -1044,6 +1137,12 @@ const Editor = (function() {
     }
 
     function getChoicesFromEditor() {
+        // Use shared ChoiceEditor if available
+        if (choiceEditor) {
+            return choiceEditor.getChoices();
+        }
+
+        // Legacy implementation
         const choices = [];
         elements.choicesContainer.querySelectorAll('.choice-item').forEach(item => {
             const label = item.querySelector('.choice-label').value.trim();
@@ -1158,6 +1257,15 @@ const Editor = (function() {
     }
 
     function getFlagsFromEditor(type) {
+        // Use shared TagManager if available
+        if (type === 'set' && tagManagers.setFlags) {
+            return tagManagers.setFlags.getValues(elements.setFlagsContainer);
+        }
+        if (type === 'require' && tagManagers.requireFlags) {
+            return tagManagers.requireFlags.getValues(elements.requireFlagsContainer);
+        }
+
+        // Legacy implementation
         const container = type === 'set' ? elements.setFlagsContainer : elements.requireFlagsContainer;
         const flags = [];
         container.querySelectorAll('.flag-tag').forEach(tag => {
@@ -1207,6 +1315,15 @@ const Editor = (function() {
     }
 
     function getItemsFromEditor(type) {
+        // Use shared TagManager if available
+        if (type === 'add' && tagManagers.addItems) {
+            return tagManagers.addItems.getValues(elements.addItemsContainer);
+        }
+        if (type === 'remove' && tagManagers.removeItems) {
+            return tagManagers.removeItems.getValues(elements.removeItemsContainer);
+        }
+
+        // Legacy implementation
         const container = type === 'add' ? elements.addItemsContainer : elements.removeItemsContainer;
         const items = [];
         container.querySelectorAll('.flag-tag').forEach(tag => {
@@ -1518,6 +1635,12 @@ const Editor = (function() {
     }
 
     function getActionsFromEditor() {
+        // Use shared ActionEditor if available
+        if (actionEditor) {
+            return actionEditor.getActions();
+        }
+
+        // Legacy implementation
         const actions = [];
 
         // Collect dice roll actions

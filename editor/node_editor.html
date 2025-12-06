@@ -4,8 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Andi VN - Story Graph Editor</title>
+    <link rel="stylesheet" href="../css/fonts.css">
+    <link rel="stylesheet" href="editor.css">
     <link rel="stylesheet" href="graph-colors.css">
     <link rel="stylesheet" href="node_editor.css">
+    <script src="../js/theme.js"></script>
+    <script src="../js/theme-utils.js"></script>
+    <script>
+        // Apply saved theme using ThemeUtils
+        if (typeof ThemeUtils !== 'undefined') {
+            ThemeUtils.initTheme();
+        }
+    </script>
 </head>
 <body>
     <div id="app">
@@ -25,6 +35,7 @@
                 </div>
             </div>
             <div class="toolbar-section toolbar-right">
+                <select id="theme-select" class="btn" title="Select theme"></select>
                 <button id="btn-back" class="btn btn-icon" title="Back to Scene Editor">⛋</button>
                 <button id="btn-save" class="btn btn-primary">Save</button>
             </div>
@@ -128,7 +139,13 @@
     <!-- Shared modules (must load before node_editor.js) -->
     <script src="editor-config.js"></script>
     <script src="editor-storage.js"></script>
+    <script src="editor-validation.js"></script>
+    <script src="editor-utils.js"></script>
     <script src="graph-logic.js"></script>
+    <script src="canvas-preview.js"></script>
+    <script src="choice-editor.js"></script>
+    <script src="action-editor.js"></script>
+    <script src="property-panel.js"></script>
 
     <!-- Fallback story data -->
     <script src="../js/story.js"></script>

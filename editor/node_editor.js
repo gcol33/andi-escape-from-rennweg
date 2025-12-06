@@ -1267,6 +1267,15 @@ class NodeEditorController {
 // Initialize on DOM ready
 // ============================================
 document.addEventListener('DOMContentLoaded', async () => {
+    // Prevent FOUC - mark as loaded
+    document.documentElement.classList.add('loaded');
+
+    // Initialize theme selector if ThemeUtils is available
+    const themeSelect = document.getElementById('theme-select');
+    if (typeof ThemeUtils !== 'undefined' && themeSelect) {
+        ThemeUtils.initThemeSelector(themeSelect);
+    }
+
     const controller = new NodeEditorController();
     await controller.init();
 
