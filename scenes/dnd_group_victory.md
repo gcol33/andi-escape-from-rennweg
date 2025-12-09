@@ -13,7 +13,7 @@ The D&D group falls back in defeat. "Impressive," Tobias admits, gathering his s
 
 ---
 
-Someone reaches into a cooler and pulls out a beer. "The golden liquid of friendship," they say solemnly. "Take it. You've earned it." You've acquired **Beer**! "May it fuel your future adventures. And may your dice always roll high."
+Someone reaches into a cooler and pulls out a beer. "The golden liquid of friendship," they say solemnly. "Take it. You've earned it. May your dice always roll high."
 
 ### Choices
 

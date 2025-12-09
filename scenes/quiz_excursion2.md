@@ -27,9 +27,9 @@ actions:
     lose_target: ending_quiz_fail_siegrun
 ---
 
-Siegrun pulls out her field notebook—the legendary one that has survived countless alpine expeditions, sudden rainstorms, and at least one encounter with an overly curious marmot. She flips to a page covered in her precise handwriting, annotations about transects and species counts filling every margin.
+Siegrun pulls out her field notebook—the legendary one that has survived alpine expeditions, sudden rainstorms, and at least one encounter with an overly curious marmot. Precise handwriting fills every margin.
 
 ---
 
-"Three questions," she says, her tone suggesting this is less a quiz and more a final exam for your botanical soul. "Answer correctly and I'll certify your floristic knowledge. Fail, and we'll pretend this conversation never happened. Your reputation—such as it is—hangs in the balance."
+"Three questions," she says. "Answer correctly and I'll certify your floristic knowledge. Fail, and we pretend this conversation never happened."
 

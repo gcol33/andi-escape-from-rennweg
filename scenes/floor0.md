@@ -3,7 +3,7 @@ id: floor0
 bg: hallway_fluorescent.jpg
 ---
 
-The elevator deposits you on the ground floor with a gentle shudder. The lobby stretches out before you, that liminal space between the world of academia and the streets of Vienna beyond. The linoleum gleams under institutional lighting, and you can see daylight filtering through both sets of glass doors. Two exits await, each leading to a different part of the surrounding neighborhood.
+The elevator deposits you on the ground floor with a gentle shudder. The lobby stretches out before you, that liminal space between the world of academia and the streets of Vienna beyond. The linoleum gleams under institutional lighting, and daylight filters through both sets of glass doors. Two exits await.
 
 ### Choices
 

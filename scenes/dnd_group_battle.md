@@ -9,7 +9,7 @@ actions:
     lose_target: dnd_group_defeat
 ---
 
-Lorem ipsum dolor sit amet. The D&D group challenges you!
+The D&D group rises from their chairs, dice rattling ominously in their hands. Character sheets flutter to the ground like fallen soldiers.
 
 ---
 

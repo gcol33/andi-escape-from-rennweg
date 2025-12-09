@@ -3,15 +3,15 @@ id: bbq2
 bg: rooftop.jpg
 ---
 
-You pull out the Flora Book (Franz's own tome that you earned through hard-won botanical trials) and the Magnifying Glass that Michi entrusted to you. Crouching down by the terracotta pot, you examine the rosette-shaped succulent with the careful attention of someone who has learned, painfully, that "hübsch" is not a valid botanical term.
+You pull out the Flora Book and the Magnifying Glass. Crouching by the terracotta pot, you examine the rosette-shaped succulent with the careful attention of someone who has learned, painfully, that "hübsch" is not a valid botanical term.
 
 ---
 
-"Ah yes, this is clearly..." you squint through the glass, matching the fleshy leaves and purple-tipped edges to the illustration in the book, "...Sempervivum tectorum. The common houseleek. Also known as 'Hen and Chicks' in English, or Dach-Hauswurz in German." You wisely avoid mentioning that it's very pretty. Everyone looks impressed. Especially Franz, who nods approvingly from across the terrace with something approaching respect in his eyes.
+"Ah yes, this is clearly..." you squint through the glass, matching the fleshy leaves and purple-tipped edges to the illustration, "...Sempervivum tectorum. The common houseleek." You wisely avoid mentioning that it's very pretty. Franz nods approvingly from across the terrace.
 
 ---
 
-"Now then," someone says, breaking the moment, "who's handling the grill?" The ancient charcoal grill stands waiting, cold and empty. All eyes turn to you again. Of course they do. This calls for more than botanical knowledge. This calls for proper supplies.
+"Now then," someone says, "who's handling the grill?" The ancient charcoal grill stands waiting, cold and empty. All eyes turn to you again. Of course they do.
 
 ### Choices
 

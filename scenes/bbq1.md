@@ -3,11 +3,11 @@ id: bbq1
 bg: rooftop.jpg
 ---
 
-You smile. Genuinely smile. Feel the expression spread across your face without forcing it. After everything today, after all the goodbyes and the unexpected challenges, you're actually happy to be here. The warmth of your expression must show, because everyone responds in kind. Adrian gives you a thumbs up from across the terrace, grinning that infinite loop grin of his.
+You smile. Genuinely. After everything today—the goodbyes, the unexpected challenges—you're actually happy to be here. Adrian gives you a thumbs up from across the terrace, grinning that infinite loop grin of his.
 
 ---
 
-Then someone points at the rooftop garden, where a cluster of succulents sits in terracotta pots near the edge. "Andi! We're having a debate. What plant is that?" All eyes turn to you with an expectant amusement that suggests this is some kind of test. A botanical test, of all things. For a computer scientist. You feel the weight of Franz's gaze from somewhere behind you, and suddenly this feels like the final exam you never signed up for.
+Then someone points at the rooftop garden, where a cluster of succulents sits in terracotta pots near the edge. "Andi! We're having a debate. What plant is that?" All eyes turn to you. A botanical test, of all things. For a computer scientist. You feel Franz's gaze from somewhere behind you. This feels like the final exam you never signed up for.
 
 ### Choices
 

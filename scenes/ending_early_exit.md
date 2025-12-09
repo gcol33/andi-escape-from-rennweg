@@ -5,8 +5,10 @@ music: game_over.mp3
 ending_title: "NEUTRAL ENDING: The Early Exit"
 ---
 
-You step away from the building, the afternoon sun warm on your face. It's done—or at least, this chapter is. The Division of Conservation Biology will continue without you, the code will keep running (or breaking, more likely), and the coffee machine will keep producing its questionably-caffeinated output for whoever comes next.
+You step away from the building. Afternoon sun warm on your face. The Division of Conservation Biology will continue without you. The code will keep running. Or breaking. The coffee machine will keep producing its questionable output for whoever comes next.
 
 ---
 
-But you're not quite ready for the perfect farewell. Not yet. There's still more to do, more people to see, more preparations to make before you can truly say goodbye to this place that has been home for so many years.
+But you're not quite ready for the perfect farewell. There's still more to do. More people to see.
+
+**NEUTRAL ENDING: The Early Exit**

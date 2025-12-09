@@ -5,11 +5,11 @@ set_flags:
   - met_franz
 ---
 
-You encounter Franz once again, this time in the corridor. He looks up from what appears to be a hand-written document, pages covered in his meticulous handwriting, not a laptop or tablet in sight. Some things never change. The fluorescent lights catch the silver in his hair as he regards you with that knowing expression.
+You encounter Franz in the corridor. He looks up from a hand-written document—pages covered in meticulous handwriting, not a laptop or tablet in sight. Some things never change.
 
 ---
 
-"Ah, the digital wanderer returns," he says with a slight smile that suggests he's been expecting you. "Tell me, have you gathered what you need? A proper farewell requires more than just attendance. It requires preparation, understanding, the right tools for the occasion."
+"Ah, the digital wanderer returns," he says with a slight smile. "Tell me, have you gathered what you need? A proper farewell requires more than just attendance. It requires preparation."
 
 ### Choices
 

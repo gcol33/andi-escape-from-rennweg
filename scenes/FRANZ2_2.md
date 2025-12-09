@@ -5,11 +5,11 @@ set_flags:
   - met_franz
 ---
 
-Franz emerges from around a corner, almost as if he was waiting for you. Or perhaps he simply has an uncanny ability to appear at moments of significance. He's examining a pressed flower specimen held delicately between aged fingers, no doubt something with a Latin name three syllables longer than necessary.
+Franz emerges from around a corner, almost as if he was waiting for you. He's examining a pressed flower specimen held between aged fingers—no doubt something with a Latin name three syllables longer than necessary.
 
 ---
 
-"Your path continues," he observes, not looking up from the dried petals. "But are you prepared for what awaits? The greatest differences between us may seem vast. The digital and the botanical, the artificial and the organic. Yet we both understand the importance of proper preparation. One does not simply attend a farewell. One must earn it."
+"Your path continues," he observes, not looking up from the dried petals. "But are you prepared for what awaits? One does not simply attend a farewell. One must earn it."
 
 ### Choices
 

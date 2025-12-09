@@ -5,7 +5,7 @@ set_flags:
   - can_smile
 ---
 
-You turn the corner and run straight into Adrian. As always, he's smiling. Radiantly. Permanently. "Andi! Great to see you!" You've always found it puzzling. How is he ALWAYS smiling?
+You turn the corner and run straight into Adrian. As always, he's smiling. Radiantly. Permanently. "Andi! Great to see you!" How is he always smiling?
 
 ---
 
@@ -13,7 +13,7 @@ You turn the corner and run straight into Adrian. As always, he's smiling. Radia
 
 ---
 
-You find yourself smiling. It's infectious. "Aaahhh, here you go again with your smile," you mutter. But you have to admit, you actually like it. Even if it means smiling back. "There!" Adrian beams. "See? Now you can do it too!" You've learned the **Art of Smiling**!
+You find yourself smiling. It's infectious. "Aaahhh, here you go again with your smile," you mutter. But you have to admit, you actually like it. "There!" Adrian beams. "See? Now you can do it too!"
 
 ### Choices
 

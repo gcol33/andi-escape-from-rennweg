@@ -3,7 +3,7 @@ id: elevator1
 bg: hallway_fluorescent.jpg
 ---
 
-The elevator arrives with a familiar ding, its doors sliding apart to reveal the scuffed interior you've ridden countless times. You step inside, the fluorescent light flickering briefly overhead as you do. The button panel glows softly, each floor number worn smooth from years of use. Where to?
+The elevator arrives with a familiar ding. You step inside—scuffed interior, flickering fluorescent light, button panel worn smooth from years of use. Where to?
 
 ### Choices
 

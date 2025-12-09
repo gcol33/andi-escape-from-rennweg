@@ -27,9 +27,9 @@ actions:
     lose_target: ending_quiz_fail_moritz
 ---
 
-Moritz pulls out a well-worn flora identification book, its pages dog-eared and stained with years of field use. The cover shows a faded illustration of Stipa pennata, that distinctive feather grass you've seen a hundred times but could never quite remember the name of. His eyes gleam with the particular enthusiasm of someone about to test your knowledge of things you definitely should have paid more attention to.
+Moritz pulls out a well-worn flora identification book, pages dog-eared and stained from years of field use. The cover shows a faded illustration of Stipa pennata—that distinctive feather grass you've seen a hundred times but could never quite remember the name of.
 
 ---
 
-"Let's see how much you remember from the excursion!" he says, flipping to a random page with practiced ease. "Three questions. Get them all right and maybe—just maybe—you're not entirely hopeless at botany."
+"Let's see how much you remember!" he says, flipping to a random page. "Three questions. Get them all right and maybe you're not entirely hopeless at botany."
 

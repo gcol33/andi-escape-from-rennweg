@@ -9,9 +9,9 @@ actions:
     lose_target: STEFAN_defeat
 ---
 
-Lorem ipsum dolor sit amet. Stefan blocks your path!
+Stefan blocks the stairwell, arms crossed. The ghost of Hercules looms between you—thousands of euros of unassembled hardware gathering dust in some storage closet.
 
 ---
 
-"You shall not pass!"
+"For Hercules!"
 

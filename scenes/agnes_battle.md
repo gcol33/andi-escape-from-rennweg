@@ -11,7 +11,7 @@ actions:
     lose_target: AGNES_defeat
 ---
 
-Lorem ipsum dolor sit amet. Agnes blocks your path!
+Agnes assumes a fighting stance. Her HR badge glints under the fluorescent lights like a warning.
 
 ---
 

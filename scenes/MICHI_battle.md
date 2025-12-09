@@ -9,7 +9,7 @@ actions:
     lose_target: MICHI_defeat
 ---
 
-Lorem ipsum dolor sit amet. Michi challenges you!
+Michi twirls the marker between his fingers like a switchblade. The fluorescent lights flicker ominously. Or maybe that's just your imagination.
 
 ---
 

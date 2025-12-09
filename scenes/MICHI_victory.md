@@ -9,11 +9,11 @@ set_flags:
   - has_magnifying_glass
 ---
 
-Michi steps back, impressed. "Not bad, computer guy. Not bad at all." He reaches behind the whiteboard and produces his prized magnifying glass. "Here. Take this. 'The glass that magnifies,' as Franz would say. Use it well. For seeing the small things that others miss."
+Michi steps back, impressed. "Not bad, computer guy. Not bad at all." He reaches behind the whiteboard and produces his prized magnifying glass. "Here. Take this. For seeing the small things that others miss."
 
 ---
 
-You've acquired a **Magnifying Glass**! Essential for any serious botanical identification.
+You pocket the magnifying glass. Essential for any serious botanical identification.
 
 ### Choices
 

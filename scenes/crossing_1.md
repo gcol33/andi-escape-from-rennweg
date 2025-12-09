@@ -3,7 +3,7 @@ id: crossing_1
 bg: office_corridor.jpg
 ---
 
-You reach the main crossing of the building, where all paths seem to intersect. The smell of coffee drifts from somewhere nearby. Voices echo from multiple directions, and you can hear footsteps both above and below you on the stairs.
+You reach the main crossing of the building, where all paths seem to intersect. The smell of coffee drifts from somewhere nearby. Voices echo from multiple directions.
 
 ---
 
