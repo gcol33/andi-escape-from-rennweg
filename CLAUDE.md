@@ -1014,35 +1014,57 @@ body {
 
 ## 18. Inventory System
 
-The VN supports a simple item-based inventory system for key items and consumables.
+The VN supports a two-category inventory system with an expandable UI panel.
+
+### Item Types
+
+1. **Key Items** - Unique story items (no count, can't stack)
+2. **Consumables** - Stackable items with quantity
 
 ### Adding Items to Inventory
 
-Use `add_items` in scene frontmatter:
-
+**Key Items (default for legacy format):**
 ```yaml
 ---
 id: find_key
 add_items:
   - Master Key
-  - Coffee Mug
+  - Security Badge
 ---
+```
 
-You found a Master Key and a Coffee Mug!
+**Consumables with count:**
+```yaml
+---
+id: find_supplies
+add_items:
+  - name: Coffee
+    type: consumable
+    count: 3
+  - name: Snack Bar
+    type: consumable
+---
+```
+
+**Mixed items:**
+```yaml
+add_items:
+  - Master Key                    # Key item (string = key item)
+  - name: Office Key
+    type: key                     # Explicit key item
+  - name: Coffee
+    type: consumable
+    count: 2
 ```
 
 ### Removing Items from Inventory
 
-Use `remove_items` in scene frontmatter:
-
 ```yaml
----
-id: lose_key
 remove_items:
-  - Master Key
----
-
-The key breaks in the lock!
+  - Master Key                    # Removes key item
+  - name: Coffee
+    type: consumable
+    count: 1                      # Removes 1 coffee
 ```
 
 ### Using Items in Choices
@@ -1059,24 +1081,36 @@ The key breaks in the lock!
 
 ### Inventory Display
 
-- Items appear in a floating panel in the top-left corner
-- Panel only shows when player has at least one item
-- Adding/removing items shows a floating notification
+- **Collapsed**: Shows item count badge, click to expand
+- **Expanded**: Shows two sections:
+  - 🔑 Key Items (gold border)
+  - 📦 Consumables (green border, with count)
+- Panel auto-hides when empty
+- Hidden during battles (items accessible via ITEM button)
 
 ### Engine API
 
 ```javascript
-// Add an item
-VNEngine.addItem('Master Key');
+// Key Items
+VNEngine.addKeyItem('Master Key');
+VNEngine.removeKeyItem('Master Key');
+VNEngine.hasKeyItem('Master Key');  // returns true/false
 
-// Remove an item
-VNEngine.removeItem('Master Key');
+// Consumables
+VNEngine.addConsumable('Coffee', 3);      // Add 3 coffees
+VNEngine.removeConsumable('Coffee', 1);   // Remove 1 coffee
+VNEngine.hasConsumable('Coffee');         // returns true if count > 0
+VNEngine.hasConsumable('Coffee', 2);      // returns true if count >= 2
+VNEngine.getConsumableCount('Coffee');    // returns count (0 if none)
 
-// Check if player has an item
-VNEngine.hasItem('Master Key');  // returns true/false
+// Legacy (checks both key items and consumables)
+VNEngine.addItem('Item');         // Adds as key item
+VNEngine.removeItem('Item');      // Removes from either category
+VNEngine.hasItem('Item');         // Checks both categories
 
-// Get all items
-VNEngine.getInventory();  // returns ['Master Key', ...]
+// UI
+VNEngine.toggleInventory();       // Expand/collapse panel
+VNEngine.getInventory();          // Returns { keyItems: [...], consumables: {...} }
 ```
 
 ---
@@ -1720,7 +1754,131 @@ When enabled, after the timing bar QTE, players input a sequence like `↑ → �
 
 ---
 
-## 21. Game State Persistence
+## 21. Quiz System (Timed Multiple Choice)
+
+The VN includes a quiz system for timed multiple-choice questions with immediate lose conditions.
+
+### Features Overview
+
+- **Timed questions**: Countdown timer per question
+- **Immediate feedback**: Wrong answer = instant lose
+- **Timer timeout**: Running out of time = instant lose
+- **All correct = win**: Navigate to win_target scene
+- **Visual countdown**: Same style as QTE (5,4,3,2,1)
+- **Victory/Defeat screens**: Reuses battle outro visuals
+
+### Starting a Quiz
+
+Use the `start_quiz` action in scene frontmatter:
+
+```yaml
+---
+id: office_quiz
+bg: meeting_room_whiteboard.jpg
+actions:
+  - type: start_quiz
+    time_per_question: 10
+    questions:
+      - question: "What is Andi's favorite coffee?"
+        answers:
+          - text: "Espresso"
+            correct: true
+          - text: "Latte"
+          - text: "Decaf"
+      - question: "Which floor is HR on?"
+        answers:
+          - text: "3rd"
+          - text: "5th"
+            correct: true
+          - text: "Basement"
+      - question: "What is the office Wi-Fi password?"
+        answers:
+          - text: "password123"
+          - text: "PhDLife2024"
+            correct: true
+          - text: "admin"
+    win_target: quiz_passed
+    lose_target: quiz_failed
+---
+
+Time for the farewell quiz!
+```
+
+### Quiz Configuration Fields
+
+| Field | Required | Default | Description |
+|-------|----------|---------|-------------|
+| `time_per_question` | No | 10 | Seconds allowed per question |
+| `questions` | Yes | - | Array of question objects |
+| `win_target` | Yes | - | Scene ID on all correct |
+| `lose_target` | Yes | - | Scene ID on wrong/timeout |
+
+### Question Object
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `question` | Yes | The question text to display |
+| `answers` | Yes | Array of answer objects (2-4 recommended) |
+
+### Answer Object
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `text` | Yes | The answer text to display |
+| `correct` | No | Set to `true` for the correct answer |
+
+**Note:** Exactly one answer per question should have `correct: true`.
+
+### Visual Style
+
+- **Countdown**: Large numeric display (4rem), pulses on each tick
+- **Urgent (≤3s)**: Orange text with glow
+- **Critical (≤2s)**: Red text with shake animation
+- **Question text**: Centered, white text on dark overlay
+- **Answer buttons**: Vertical stack, highlight on hover
+
+### QuizEngine API
+
+```javascript
+// Start a quiz
+QuizEngine.start({
+    questions: [...],
+    timePerQuestion: 10,
+    winTarget: 'scene_win',
+    loseTarget: 'scene_lose'
+}, function(result) {
+    // result = { won, target, reason, questionsAnswered, totalQuestions }
+});
+
+// Check if quiz active
+QuizEngine.isActive();
+
+// Get current state
+QuizEngine.getCurrentIndex();  // 0-based question index
+QuizEngine.getTimeRemaining(); // seconds left
+
+// Cancel quiz (dev mode)
+QuizEngine.cancel();
+```
+
+### Tuning Parameters
+
+All quiz values are in `TUNING.quiz`:
+
+```javascript
+quiz: {
+    defaultTimePerQuestion: 10, // Seconds per question
+    tickInterval: 1000,         // Timer update interval (ms)
+    urgentThreshold: 3,         // Countdown turns orange
+    criticalThreshold: 2,       // Countdown turns red
+    feedbackDelay: 500,         // Correct answer flash duration
+    outroDelay: 2000            // Victory/defeat screen duration
+}
+```
+
+---
+
+## 22. Game State Persistence
 
 The engine automatically saves game state to localStorage:
 
@@ -1741,7 +1899,7 @@ Default: `andi_vn_save`
 
 ---
 
-## 21. Testing & Quality Assurance
+## 23. Testing & Quality Assurance
 
 ### Automated Tests
 
@@ -1867,7 +2025,7 @@ Test the Agnes (HR) battle specifically:
 
 ---
 
-## 22. Changelog
+## 24. Changelog
 
 ### 2025-12-03
 - **Balance Change**: Removed AC bonus from defensive stance

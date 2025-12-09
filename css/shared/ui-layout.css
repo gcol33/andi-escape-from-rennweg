@@ -235,9 +235,35 @@
     overflow-x: hidden !important;
 }
 
-/* Button area: never shrink, never cut */
+/* Button area: never shrink, never cut, always centered */
 #button-area {
-    flex-shrink: 0 !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 0.625em;
+    gap: 8px;
+}
+
+/* Choices container: horizontal row, centered */
+#choices-container {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    gap: 8px;
+}
+
+/* Choice buttons: centered text, consistent sizing */
+#choices-container .choice-button {
+    text-align: center;
+}
+
+/* Single choice button: 90% width, centered */
+#choices-container .choice-button:only-child {
+    flex: 0 1 auto;
+    width: 90%;
 }
 
 /* Responsive: ensure max-height is consistent */

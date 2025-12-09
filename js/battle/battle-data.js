@@ -141,6 +141,23 @@ var BattleData = (function() {
             selfDamageChance: 0.4,
             selfDamagePercent: 0.05,
             description: '40% chance to hurt yourself for 5% max HP'
+        },
+        coaled: {
+            name: 'Coaled',
+            icon: '[C]',
+            color: '#2c3e50',
+            duration: 3,
+            description: 'Covered in charcoal dust. If burned, takes DOUBLE burn damage!',
+            burnMultiplier: 2
+        },
+        charmed: {
+            name: 'Charmed',
+            icon: '💕',
+            color: '#e91e63',
+            duration: 2,
+            skipsTurn: true,
+            acBonus: -3,
+            description: 'Charmed by a smile. Cannot act, easier to hit.'
         }
     };
 
@@ -384,6 +401,74 @@ var BattleData = (function() {
             type: 'dark',
             lifesteal: 0.5,  // Heal for 50% of damage dealt
             description: 'Dark magic. Heals for half damage dealt.'
+        },
+
+        // =====================================================================
+        // KEY ITEM SKILLS (require specific inventory items)
+        // =====================================================================
+
+        // Lighter - Fire damage skill
+        lighter_ignite: {
+            name: 'Lighter Flick',
+            manaCost: 2,
+            damage: '1d6',
+            type: 'fire',
+            statusEffect: { type: 'burn', chance: 0.6 },
+            requiresItem: 'Lighter',
+            description: 'Flick your lighter at the enemy. High burn chance!'
+        },
+
+        // Smile - Charm/enchant skill (from Adrian)
+        charming_smile: {
+            name: 'Charming Smile',
+            manaCost: 3,
+            type: 'psychic',
+            statusEffect: { type: 'charmed', chance: 0.5 },
+            requiresFlag: 'can_smile',
+            description: 'Flash your best smile. May charm the enemy!'
+        },
+
+        // Magnifying Glass - Crit boost skill (from Michi)
+        focused_strike: {
+            name: 'Focused Strike',
+            manaCost: 4,
+            damage: '2d6',
+            type: 'physical',
+            critBonus: 5,  // +5 to crit range (crits on 15+)
+            requiresItem: 'Magnifying Glass',
+            description: 'Focus sunlight for a precise strike. Much higher crit chance!'
+        },
+
+        // Flora Book - Confusion skill (from Moritz)
+        botanical_lecture: {
+            name: 'Botanical Lecture',
+            manaCost: 3,
+            type: 'psychic',
+            statusEffect: { type: 'confusion', chance: 0.7 },
+            requiresItem: 'Flora Book',
+            description: 'Bore them with plant taxonomy. High confusion chance!'
+        },
+
+        // Charcoal - Coal setup for double burn
+        coal_dust: {
+            name: 'Coal Dust',
+            manaCost: 2,
+            type: 'physical',
+            damage: '1d4',
+            statusEffect: { type: 'coaled', chance: 0.9 },
+            requiresItem: 'Charcoal',
+            description: 'Throw charcoal dust. If they burn, they take DOUBLE burn damage!'
+        },
+
+        // Beer - Full HP recovery (BBQ item)
+        beer_chug: {
+            name: 'Liquid Courage',
+            manaCost: 0,
+            isHeal: true,
+            healsToFull: true,
+            requiresItem: 'Beer',
+            consumesItem: true,  // One-time use per battle
+            description: 'Chug a beer. Restores ALL HP! (One use per battle)'
         }
     };
 

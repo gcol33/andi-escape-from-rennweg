@@ -193,8 +193,12 @@ var FloatingNumber = (function() {
      * @param {string} type - 'damage', 'heal', 'dot', 'crit', 'maxdamage', 'mindamage', 'miss', 'ac-boost'
      */
     function show(amount, target, type) {
+        console.log('[FloatingNumber.show] amount:', amount, 'target:', target, 'type:', type);
         var container = getContainer();
-        if (!container) return;
+        if (!container) {
+            console.log('[FloatingNumber.show] No container found!');
+            return;
+        }
 
         var isCrit = type === 'crit';
         var isMaxDamage = type === 'maxdamage';

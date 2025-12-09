@@ -501,60 +501,6 @@ h1 {
     }
 }
 
-/* === Button Area (contains continue + choices) === */
-#button-area {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 12px;
-    /* Reserve space for buttons to prevent layout shift */
-    min-height: 50px;
-    flex-shrink: 0;
-}
-
-/* Fallback spacing for browsers without gap support */
-#button-area > * {
-    margin-bottom: 10px;
-}
-
-#button-area > *:last-child {
-    margin-bottom: 0;
-}
-
-/* Modern browsers: use gap and remove margin fallback */
-@supports (gap: 10px) {
-    #button-area {
-        gap: 10px;
-    }
-    #button-area > * {
-        margin-bottom: 0;
-    }
-}
-
-/* === Choices Container === */
-#choices-container {
-    display: block; /* Fallback for very old browsers */
-    display: flex;
-    flex-wrap: nowrap;
-    justify-content: center;
-    width: 100%;
-}
-
-/* Fallback spacing for browsers without gap support */
-#choices-container > * {
-    margin: 5px;
-}
-
-/* Modern browsers: use gap and remove margin fallback */
-@supports (gap: 10px) {
-    #choices-container {
-        gap: 10px;
-    }
-    #choices-container > * {
-        margin: 0;
-    }
-}
-
 /* === Choice Buttons === */
 .choice-button {
     display: inline-block; /* Fallback for older browsers */

@@ -471,55 +471,6 @@ h1 {
     }
 }
 
-/* === Button Area === */
-#button-area {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 8px;
-    min-height: 40px;
-    flex-shrink: 0;
-}
-
-#button-area > * {
-    margin-bottom: 6px;
-}
-
-#button-area > *:last-child {
-    margin-bottom: 0;
-}
-
-@supports (gap: 6px) {
-    #button-area {
-        gap: 6px;
-    }
-    #button-area > * {
-        margin-bottom: 0;
-    }
-}
-
-/* === Choices Container === */
-#choices-container {
-    display: block;
-    display: flex;
-    flex-wrap: nowrap;
-    justify-content: center;
-    width: 100%;
-}
-
-#choices-container > * {
-    margin: 3px;
-}
-
-@supports (gap: 6px) {
-    #choices-container {
-        gap: 6px;
-    }
-    #choices-container > * {
-        margin: 0;
-    }
-}
-
 /* === Choice Buttons === */
 .choice-button {
     display: inline-block;

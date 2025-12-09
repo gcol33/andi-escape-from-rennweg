@@ -64,6 +64,12 @@ def parse_frontmatter(content):
     actions_list = []
     chars_list = []
 
+    # Quiz-specific parsing state
+    current_questions = None  # List of question objects
+    current_question = None   # Current question being parsed
+    current_answers = None    # List of answer objects for current question
+    current_answer = None     # Current answer being parsed
+
     def get_indent(line):
         """Get number of leading spaces."""
         return len(line) - len(line.lstrip())
@@ -108,17 +114,91 @@ def parse_frontmatter(content):
             current_nested[key] = value
             continue
 
+        # Check for quiz answer properties (12 spaces = answer property like correct: true)
+        if current_answer is not None and indent >= 12 and ':' in stripped:
+            key, _, value = stripped.partition(':')
+            key = key.strip()
+            value = value.strip()
+            # Parse boolean
+            if value.lower() == 'true':
+                value = True
+            elif value.lower() == 'false':
+                value = False
+            current_answer[key] = value
+            continue
+
+        # Check for quiz answer list item (10 spaces = - text: "answer")
+        if current_answers is not None and indent >= 10 and stripped.startswith('- text:'):
+            # Save previous answer
+            if current_answer:
+                current_answers.append(current_answer)
+            value = stripped[7:].strip().strip('"\'')
+            current_answer = {'text': value}
+            continue
+
+        # Check for quiz question properties (8 spaces = question property)
+        if current_question is not None and indent >= 8 and ':' in stripped:
+            key, _, value = stripped.partition(':')
+            key = key.strip()
+            value = value.strip().strip('"\'')
+
+            # Check if this starts the answers list
+            if key == 'answers' and value == '':
+                current_answers = []
+                continue
+
+            current_question[key] = value
+            continue
+
+        # Check for quiz question list item (6 spaces = - question: "text")
+        if current_questions is not None and indent >= 6 and stripped.startswith('- question:'):
+            # Save previous question with its answers
+            if current_question:
+                if current_answer:
+                    current_answers.append(current_answer)
+                    current_answer = None
+                if current_answers:
+                    current_question['answers'] = current_answers
+                    current_answers = None
+                current_questions.append(current_question)
+            value = stripped[11:].strip().strip('"\'')
+            current_question = {'question': value}
+            continue
+
         # Check for action properties or nested object start (4 spaces = action property)
         if current_action is not None and indent >= 4 and ':' in stripped:
             key, _, value = stripped.partition(':')
             key = key.strip()
             value = value.strip()
 
+            # Check if this starts the questions list (for quiz)
+            if key == 'questions' and value == '':
+                # Finalize any previous nested/questions
+                if current_nested and current_nested_key:
+                    current_action[current_nested_key] = current_nested
+                    current_nested = None
+                    current_nested_key = None
+                current_questions = []
+                continue
+
             # Check if this starts a nested object (value is empty)
             if value == '':
                 # Save current nested if any
                 if current_nested and current_nested_key:
                     current_action[current_nested_key] = current_nested
+                # Finalize questions if switching to another nested object
+                if current_questions is not None:
+                    if current_question:
+                        if current_answer:
+                            current_answers.append(current_answer)
+                            current_answer = None
+                        if current_answers:
+                            current_question['answers'] = current_answers
+                            current_answers = None
+                        current_questions.append(current_question)
+                        current_question = None
+                    current_action['questions'] = current_questions
+                    current_questions = None
                 current_nested = {}
                 current_nested_key = key
                 continue
@@ -189,13 +269,26 @@ def parse_frontmatter(content):
             else:
                 current_list = None
                 current_key = key
+                # Handle empty array syntax: key: []
+                if value == '[]':
+                    frontmatter[key] = []
                 # Try to parse as number
-                if value.isdigit():
-                    value = int(value)
-                frontmatter[key] = value
+                elif value.isdigit():
+                    frontmatter[key] = int(value)
+                else:
+                    frontmatter[key] = value
 
     # Finish any remaining action or char
     if current_action:
+        # Finalize any pending questions/answers
+        if current_questions is not None:
+            if current_question:
+                if current_answer:
+                    current_answers.append(current_answer)
+                if current_answers:
+                    current_question['answers'] = current_answers
+                current_questions.append(current_question)
+            current_action['questions'] = current_questions
         if current_nested and current_nested_key:
             current_action[current_nested_key] = current_nested
         actions_list.append(current_action)
@@ -376,6 +469,7 @@ def parse_scene_file(filepath):
         'add_items': frontmatter.get('add_items', []),
         'remove_items': frontmatter.get('remove_items', []),
         'actions': frontmatter.get('actions', []),
+        'ending_title': frontmatter.get('ending_title', None),
         'textBlocks': text_blocks,
         'choices': choices
     }
@@ -397,6 +491,8 @@ def parse_scene_file(filepath):
         del scene['bg']
     if scene['music'] is None:
         del scene['music']
+    if scene['ending_title'] is None:
+        del scene['ending_title']
 
     return scene
 
@@ -515,7 +611,14 @@ def validate_scenes(scenes):
                         if target not in scene_ids:
                             errors.append(f"Scene '{scene['id']}': action {key} '{target}' does not exist")
             elif action.get('type') == 'start_battle':
-                for key in ['victory_target', 'defeat_target', 'flee_target']:
+                for key in ['win_target', 'lose_target', 'flee_target']:
+                    target = action.get(key)
+                    if target:
+                        referenced_ids.add(target)
+                        if target not in scene_ids:
+                            errors.append(f"Scene '{scene['id']}': action {key} '{target}' does not exist")
+            elif action.get('type') == 'start_quiz':
+                for key in ['win_target', 'lose_target']:
                     target = action.get(key)
                     if target:
                         referenced_ids.add(target)

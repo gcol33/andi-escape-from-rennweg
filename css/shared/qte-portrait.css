@@ -15,21 +15,11 @@
         max-width: 100% !important;
     }
 
-    /* Player stats panel - positioned bottom-left via anchor system
-     * Only need to override sizing, position comes from .anchor--bottom-left */
-    .battle-stats-panel.player-stats {
-        min-width: auto !important;
-        width: auto !important;
-        max-width: 45% !important;
-    }
+    /* Player stats panel - sizing now handled by portrait-mode.css */
+    /* .battle-stats-panel.player-stats - removed, use portrait-mode.css */
 
-    /* Enemy stats panel - positioned top-right via anchor system
-     * Only need to override sizing, position comes from .anchor--top-right */
-    .battle-stats-panel.enemy-stats {
-        min-width: auto !important;
-        width: auto !important;
-        max-width: 45% !important;
-    }
+    /* Enemy stats panel - sizing now handled by portrait-mode.css */
+    /* .battle-stats-panel.enemy-stats - removed, use portrait-mode.css */
 
     /* Terrain indicator - offset below enemy stats panel in portrait */
     .terrain-indicator {
@@ -51,36 +41,11 @@
         min-height: 32px !important;
     }
 
-    /* Smaller stats panels in portrait */
-    .battle-stats-panel {
-        padding: 0.4rem 0.5rem !important;
-        font-size: 0.7rem !important;
-    }
+    /* Stats panel sizing now handled by portrait-mode.css */
+    /* Removed duplicate .battle-stats-panel rules - see portrait-mode.css */
 
-    .battle-stats-panel .stats-header {
-        font-size: 0.6rem !important;
-        margin-bottom: 0.25rem !important;
-    }
-
-    .battle-stats-panel .stat-row {
-        margin-bottom: 0.15rem !important;
-    }
-
-    .battle-stats-panel .stat-label {
-        font-size: 0.5rem !important;
-    }
-
-    .battle-stats-panel .stat-bar-outer {
-        height: 0.5rem !important;
-    }
-
-    .battle-stats-panel .stat-value {
-        font-size: 0.45rem !important;
-    }
-
-    .summon-sprite-wrapper {
-        width: 4.5rem !important;  /* Larger sprite in portrait */
-    }
+    /* Summon sizing now handled by portrait-mode.css */
+    /* Removed .summon-sprite-wrapper - see portrait-mode.css */
 
     .summon-name {
         font-size: 0.65rem !important;
@@ -101,22 +66,7 @@
         width: 100% !important;
     }
 
-    /* === Password Screen Portrait Fixes === */
-    /* Make password inputs wrap and fit in narrow portrait container */
-    #password-inputs {
-        flex-wrap: wrap !important;
-        justify-content: center !important;
-        max-width: 90% !important;
-        gap: 8px !important;
-    }
-
-    .password-char {
-        /* Smaller boxes for portrait - use relative sizing */
-        width: min(var(--password-char-width-mobile), 15vw) !important;
-        height: min(var(--password-char-height-mobile), 18vw) !important;
-        font-size: min(var(--password-char-font-size-mobile), 5vw) !important;
-        line-height: min(var(--password-char-height-mobile), 18vw) !important;
-    }
+    /* Password screen sizing moved to portrait-mode.css */
 
     /* === Battle Intro Text Centering === */
     .battle-intro-text {

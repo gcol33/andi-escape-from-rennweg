@@ -1,0 +1,306 @@
+/**
+ * Andi VN - Quiz CSS
+ *
+ * Styling for the quiz system. Theme-aware via CSS variables.
+ * Reuses battle-outro classes for victory/defeat screens.
+ */
+
+/* === Quiz Overlay === */
+
+.quiz-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+    padding: 2rem;
+    box-sizing: border-box;
+}
+
+.quiz-overlay.quiz-visible {
+    opacity: 1;
+}
+
+/* === Progress Text === */
+
+.quiz-progress {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+/* === Countdown Display === */
+
+.quiz-countdown {
+    font-size: 4rem;
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 1.5rem;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+    min-width: 2ch;
+    text-align: center;
+}
+
+.quiz-countdown-pulse {
+    animation: quiz-countdown-pulse 0.3s ease-out;
+}
+
+.quiz-countdown-urgent {
+    color: #f39c12;
+    text-shadow: 0 0 25px #f39c12;
+}
+
+.quiz-countdown-critical {
+    color: #e74c3c;
+    text-shadow: 0 0 30px #e74c3c;
+    animation: quiz-countdown-pulse 0.3s ease-out, quiz-countdown-shake 0.1s infinite;
+}
+
+@keyframes quiz-countdown-pulse {
+    0% {
+        transform: scale(1.3);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes quiz-countdown-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    75% { transform: translateX(3px); }
+}
+
+/* === Question Text === */
+
+.quiz-question {
+    font-size: 1.5rem;
+    color: #fff;
+    text-align: center;
+    margin-bottom: 2rem;
+    max-width: 80%;
+    line-height: 1.4;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* === Answer Buttons === */
+
+.quiz-answers {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+    max-width: 500px;
+}
+
+.quiz-answer-btn {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 1.1rem;
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.quiz-answer-btn:hover:not(:disabled) {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+}
+
+.quiz-answer-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.quiz-answer-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.quiz-answer-btn.quiz-answer-selected {
+    background: linear-gradient(180deg, rgba(100, 150, 255, 0.4) 0%, rgba(100, 150, 255, 0.2) 100%);
+    border-color: #6496ff;
+    box-shadow: 0 0 20px rgba(100, 150, 255, 0.4);
+}
+
+/* === Correct Answer Flash === */
+
+.quiz-overlay.quiz-correct-flash {
+    animation: quiz-correct-flash 0.4s ease-out;
+}
+
+@keyframes quiz-correct-flash {
+    0% { background: rgba(0, 0, 0, 0.85); }
+    30% { background: rgba(39, 174, 96, 0.6); }
+    100% { background: rgba(0, 0, 0, 0.85); }
+}
+
+/* === Quiz Outro Overlay === */
+
+.quiz-outro-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 150;
+    animation: quiz-outro-fade-in 0.5s ease-out forwards;
+}
+
+.quiz-outro-overlay.victory {
+    background: linear-gradient(
+        135deg,
+        rgba(39, 174, 96, 0.85) 0%,
+        rgba(46, 204, 113, 0.7) 50%,
+        rgba(39, 174, 96, 0.85) 100%
+    );
+}
+
+.quiz-outro-overlay.defeat {
+    background: linear-gradient(
+        135deg,
+        rgba(192, 57, 43, 0.85) 0%,
+        rgba(231, 76, 60, 0.7) 50%,
+        rgba(192, 57, 43, 0.85) 100%
+    );
+}
+
+@keyframes quiz-outro-fade-in {
+    0% {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* === Quiz Outro Text === */
+
+.quiz-outro-text {
+    font-size: calc(var(--base-font-size, 1.35rem) * 2.3);
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+    animation: quiz-outro-text-pop 0.6s ease-out forwards;
+}
+
+.quiz-outro-text.victory {
+    color: #ffd700;
+    text-shadow:
+        0 0 20px rgba(255, 215, 0, 0.8),
+        0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.quiz-outro-text.defeat {
+    color: #ff4444;
+    text-shadow:
+        0 0 20px rgba(255, 68, 68, 0.8),
+        0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes quiz-outro-text-pop {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    60% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* === Quiz Outro Subtext === */
+
+.quiz-outro-subtext {
+    font-size: 1.2rem;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    animation: quiz-outro-subtext-fade 0.8s ease-out forwards;
+    opacity: 0;
+}
+
+@keyframes quiz-outro-subtext-fade {
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* === Portrait Mode Adjustments === */
+
+@media (max-aspect-ratio: 4/3) {
+    .quiz-countdown {
+        font-size: 3rem;
+    }
+
+    .quiz-question {
+        font-size: 1.25rem;
+        max-width: 90%;
+    }
+
+    .quiz-answer-btn {
+        font-size: 1rem;
+        padding: 0.75rem 1rem;
+    }
+
+    .quiz-outro-text {
+        font-size: calc(var(--base-font-size, 1.35rem) * 1.8);
+    }
+}
+
+/* === Small Screen Adjustments === */
+
+@media (max-width: 37.5em) {
+    .quiz-overlay {
+        padding: 1rem;
+    }
+
+    .quiz-countdown {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .quiz-question {
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .quiz-answer-btn {
+        font-size: 0.95rem;
+        padding: 0.6rem 0.8rem;
+    }
+
+    .quiz-answers {
+        gap: 0.5rem;
+    }
+}

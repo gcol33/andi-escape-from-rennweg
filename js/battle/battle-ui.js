@@ -999,9 +999,12 @@ var BattleUI = (function() {
      * @param {string} type - 'damage', 'heal', 'dot', 'crit', 'maxdamage', 'mindamage', 'miss'
      */
     function showDamageNumber(amount, target, type) {
+        console.log('[BattleUI.showDamageNumber] amount:', amount, 'target:', target, 'type:', type, 'animationState.active:', animationState.active);
         if (animationState.active) {
+            console.log('[BattleUI.showDamageNumber] Queuing damage number (animation active)');
             queueDamageNumber(amount, target, type);
         } else {
+            console.log('[BattleUI.showDamageNumber] Showing immediately (animation not active)');
             showDamageNumberImmediate(amount, target, type);
         }
     }

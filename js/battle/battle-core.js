@@ -800,8 +800,15 @@ var BattleCore = (function() {
             // Damage over time (skip first tick for newly applied statuses)
             if (def.damagePerTurn && !skipDOT) {
                 var dotDamage = def.damagePerTurn * (status.stacks || 1);
+
+                // Check if target is coaled and this is burn damage - DOUBLE the damage!
+                if (status.type === 'burn' && hasStatus(target, 'coaled')) {
+                    dotDamage *= 2;
+                    result.messages.push('[C] Charcoal ignites! ' + def.icon + ' ' + def.name + ' <span class="roll-damage-crit">' + dotDamage + ' DOUBLE DAMAGE</span>');
+                } else {
+                    result.messages.push(def.icon + ' ' + def.name + ' <span class="roll-damage-normal">' + dotDamage + ' DAMAGE</span>');
+                }
                 result.damage += dotDamage;
-                result.messages.push(def.icon + ' ' + def.name + ' <span class="roll-damage-normal">' + dotDamage + ' DAMAGE</span>');
             }
 
             // Healing over time (skip first tick for newly applied statuses)

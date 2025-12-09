@@ -2143,10 +2143,12 @@ var BattleEngine = (function() {
 
                     // Apply attack damage if any
                     if (result.attackResult && result.attackResult.hit) {
+                        console.log('[Summon Debug] Applying summon attack damage:', result.attackResult.damage);
                         BattleCore.damageEnemy(result.attackResult.damage, {
                             source: 'summon',
                             type: result.attackResult.type || 'physical'
                         });
+                        console.log('[Summon Debug] Calling showDamageNumber for enemy, damage:', result.attackResult.damage);
                         showDamageNumber(result.attackResult.damage, 'enemy', 'damage');
                     }
 
@@ -3309,6 +3311,16 @@ var BattleEngine = (function() {
             BattleCore.applyStatus(statusTarget, result.pendingStatus.type, result.pendingStatus.stacks || 1);
         }
 
+        // Apply pending self status (e.g., Beer causes confusion to self)
+        if (result.pendingSelfStatus) {
+            var selfTarget = result.pendingSelfStatus.target === 'player' ? state.player : state.enemy;
+            if (result.pendingSelfStatus.duration && BattleCore.applyStatusWithDuration) {
+                BattleCore.applyStatusWithDuration(selfTarget, result.pendingSelfStatus.type, result.pendingSelfStatus.stacks || 1, result.pendingSelfStatus.duration);
+            } else {
+                BattleCore.applyStatus(selfTarget, result.pendingSelfStatus.type, result.pendingSelfStatus.stacks || 1);
+            }
+        }
+
         // Handle counter damage (player counters enemy)
         if (result.pendingCounter) {
             BattleCore.damageEnemy(result.pendingCounter.amount, {
@@ -3622,6 +3634,24 @@ var BattleEngine = (function() {
             }
 
             if (skillDef) {
+                // Check if skill requires an item the player doesn't have
+                if (skillDef.requiresItem) {
+                    if (typeof VNEngine !== 'undefined' && VNEngine.hasItem) {
+                        if (!VNEngine.hasItem(skillDef.requiresItem)) {
+                            continue; // Skip this skill - player doesn't have required item
+                        }
+                    }
+                }
+
+                // Check if skill requires a flag the player doesn't have
+                if (skillDef.requiresFlag) {
+                    if (typeof VNEngine !== 'undefined' && VNEngine.hasFlag) {
+                        if (!VNEngine.hasFlag(skillDef.requiresFlag)) {
+                            continue; // Skip this skill - player doesn't have required flag
+                        }
+                    }
+                }
+
                 // Determine if it's a heal skill
                 var isHeal = skillDef.isHeal || !!skillDef.healAmount;
 
@@ -3631,11 +3661,15 @@ var BattleEngine = (function() {
                     manaCost: skillDef.manaCost || 0,
                     damage: skillDef.damage,
                     healAmount: skillDef.healAmount,
+                    healsToFull: skillDef.healsToFull || false,
                     type: skillDef.type,
                     description: skillDef.description || '',
                     isHeal: isHeal,
                     isBuff: skillDef.isBuff || false,
                     statusEffect: skillDef.statusEffect,
+                    critBonus: skillDef.critBonus || 0,
+                    consumesItem: skillDef.consumesItem || false,
+                    requiresItem: skillDef.requiresItem,
                     canUse: currentMana >= (skillDef.manaCost || 0)
                 });
             }

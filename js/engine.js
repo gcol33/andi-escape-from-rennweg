@@ -100,7 +100,11 @@ const VNEngine = (function() {
         currentSceneId: null,
         currentBlockIndex: 0,
         flags: {},
-        inventory: [], // item names the player has collected
+        inventory: {
+            keyItems: [],      // unique key items (no count)
+            consumables: {}    // consumable items with counts { "Coffee": 2, "Snack": 1 }
+        },
+        inventoryExpanded: false, // UI state for expandable panel
         playerHP: null, // player HP (null until first battle)
         playerMaxHP: typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxHP : 20,
         battle: null, // active battle state
@@ -277,7 +281,7 @@ const VNEngine = (function() {
                 BattleEngine.init({
                     loadScene: loadScene,
                     playSfx: playSfx,
-                    getInventory: function() { return state.inventory.slice(); },
+                    getInventory: function() { return state.inventory; },
                     hasItem: hasItem,
                     removeItem: function(item) { removeItems([item]); }
                 });
@@ -318,6 +322,37 @@ const VNEngine = (function() {
             } else {
                 log.error('BattleEngine module not loaded');
             }
+        },
+
+        /**
+         * Start a quiz
+         * Delegates to QuizEngine module
+         */
+        start_quiz: function(action) {
+            if (typeof QuizEngine === 'undefined') {
+                log.error('QuizEngine module not loaded');
+                return;
+            }
+
+            // Initialize QuizUI if available
+            if (typeof QuizUI !== 'undefined') {
+                QuizUI.init(document.getElementById('vn-container'));
+            }
+
+            // Start quiz
+            QuizEngine.start({
+                questions: action.questions || [],
+                timePerQuestion: action.time_per_question || 10,
+                winTarget: action.win_target,
+                loseTarget: action.lose_target
+            }, function(result) {
+                // Quiz completed - navigate to appropriate scene
+                if (result.target) {
+                    loadScene(result.target);
+                } else {
+                    log.error('Quiz ended without target scene');
+                }
+            });
         }
     };
 
@@ -2285,6 +2320,9 @@ const VNEngine = (function() {
         // Check if this is an ending (no choices)
         var isEnding = !scene.choices || scene.choices.length === 0;
 
+        // Store ending title from scene frontmatter
+        state.endingTitle = scene.ending_title || null;
+
         // Preprocess text blocks - split long ones unless it's an ending
         state.processedTextBlocks = preprocessTextBlocks(scene.textBlocks || [], isEnding);
         state.isEndingScene = isEnding;
@@ -2711,7 +2749,8 @@ const VNEngine = (function() {
             // Game over state - add completion message and restart button
             var completionMsg = document.createElement('p');
             completionMsg.className = 'game-over';
-            completionMsg.textContent = 'The adventure is complete!';
+            // Use ending title from frontmatter if available, otherwise default
+            completionMsg.textContent = state.endingTitle || 'The adventure is complete!';
             elements.choicesContainer.appendChild(completionMsg);
             // Fallback for browsers without :has() support
             elements.choicesContainer.classList.add('has-game-over');
@@ -3220,61 +3259,177 @@ const VNEngine = (function() {
 
     // === Inventory Management ===
     /**
-     * Add items to player inventory
-     * @param {string[]} items - Array of item names to add
+     * Add key item to player inventory (unique, no count)
+     * @param {string} item - Key item name
+     */
+    function addKeyItem(item) {
+        if (state.inventory.keyItems.indexOf(item) === -1) {
+            state.inventory.keyItems.push(item);
+            log.info('Added key item: ' + item);
+            showItemNotification(item, 'added', 'key');
+        }
+        updateInventoryDisplay();
+    }
+
+    /**
+     * Add consumable item to player inventory (with count)
+     * @param {string} item - Consumable item name
+     * @param {number} count - Number to add (default 1)
+     */
+    function addConsumable(item, count) {
+        count = count || 1;
+        if (state.inventory.consumables[item]) {
+            state.inventory.consumables[item] += count;
+        } else {
+            state.inventory.consumables[item] = count;
+        }
+        log.info('Added consumable: ' + item + ' x' + count);
+        showItemNotification(item + ' x' + count, 'added', 'consumable');
+        updateInventoryDisplay();
+    }
+
+    /**
+     * Add items to player inventory (legacy support + new format)
+     * @param {string[]|object[]} items - Array of item names or item objects
+     * Item object format: { name: "Item", type: "key"|"consumable", count: 1 }
      */
     function addItems(items) {
         items.forEach(function(item) {
-            if (state.inventory.indexOf(item) === -1) {
-                state.inventory.push(item);
-                log.info('Added item: ' + item);
-                showItemNotification(item, 'added');
+            if (typeof item === 'string') {
+                // Legacy format: assume key item
+                addKeyItem(item);
+            } else if (typeof item === 'object') {
+                // New format with type
+                if (item.type === 'consumable') {
+                    addConsumable(item.name, item.count || 1);
+                } else {
+                    addKeyItem(item.name);
+                }
             }
         });
+    }
+
+    /**
+     * Remove key item from player inventory
+     * @param {string} item - Key item name
+     */
+    function removeKeyItem(item) {
+        var index = state.inventory.keyItems.indexOf(item);
+        if (index !== -1) {
+            state.inventory.keyItems.splice(index, 1);
+            log.info('Removed key item: ' + item);
+            showItemNotification(item, 'used', 'key');
+        }
         updateInventoryDisplay();
     }
 
     /**
-     * Remove items from player inventory
-     * @param {string[]} items - Array of item names to remove
+     * Remove consumable item from player inventory
+     * @param {string} item - Consumable item name
+     * @param {number} count - Number to remove (default 1)
+     * @returns {boolean} - True if item was removed
+     */
+    function removeConsumable(item, count) {
+        count = count || 1;
+        if (state.inventory.consumables[item] && state.inventory.consumables[item] >= count) {
+            state.inventory.consumables[item] -= count;
+            if (state.inventory.consumables[item] <= 0) {
+                delete state.inventory.consumables[item];
+            }
+            log.info('Removed consumable: ' + item + ' x' + count);
+            showItemNotification(item, 'used', 'consumable');
+            updateInventoryDisplay();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Remove items from player inventory (legacy support + new format)
+     * @param {string[]|object[]} items - Array of item names or item objects
      */
     function removeItems(items) {
         items.forEach(function(item) {
-            var index = state.inventory.indexOf(item);
-            if (index !== -1) {
-                state.inventory.splice(index, 1);
-                log.info('Removed item: ' + item);
-                showItemNotification(item, 'used');
+            if (typeof item === 'string') {
+                // Legacy format: try key item first, then consumable
+                if (hasKeyItem(item)) {
+                    removeKeyItem(item);
+                } else if (hasConsumable(item)) {
+                    removeConsumable(item, 1);
+                }
+            } else if (typeof item === 'object') {
+                if (item.type === 'consumable') {
+                    removeConsumable(item.name, item.count || 1);
+                } else {
+                    removeKeyItem(item.name);
+                }
             }
         });
-        updateInventoryDisplay();
     }
 
     /**
-     * Check if player has specific items
+     * Check if player has a key item
+     * @param {string} item - Key item name
+     * @returns {boolean}
+     */
+    function hasKeyItem(item) {
+        return state.inventory.keyItems.indexOf(item) !== -1;
+    }
+
+    /**
+     * Check if player has a consumable (with optional count check)
+     * @param {string} item - Consumable name
+     * @param {number} count - Minimum count required (default 1)
+     * @returns {boolean}
+     */
+    function hasConsumable(item, count) {
+        count = count || 1;
+        return state.inventory.consumables[item] && state.inventory.consumables[item] >= count;
+    }
+
+    /**
+     * Check if player has specific items (legacy support)
      * @param {string[]} items - Array of item names to check
      * @returns {boolean} - True if player has all items
      */
     function hasItems(items) {
         return items.every(function(item) {
-            return state.inventory.indexOf(item) !== -1;
+            return hasKeyItem(item) || hasConsumable(item);
         });
     }
 
     /**
-     * Get a specific item from inventory (for display purposes)
+     * Check if player has a specific item (legacy support)
      * @param {string} item - Item name
      * @returns {boolean} - True if player has the item
      */
     function hasItem(item) {
-        return state.inventory.indexOf(item) !== -1;
+        return hasKeyItem(item) || hasConsumable(item);
+    }
+
+    /**
+     * Get consumable count
+     * @param {string} item - Consumable name
+     * @returns {number} - Count (0 if not owned)
+     */
+    function getConsumableCount(item) {
+        return state.inventory.consumables[item] || 0;
+    }
+
+    /**
+     * Check if inventory has any items
+     * @returns {boolean}
+     */
+    function hasAnyItems() {
+        return state.inventory.keyItems.length > 0 || Object.keys(state.inventory.consumables).length > 0;
     }
 
     /**
      * Clear all inventory items
      */
     function clearInventory() {
-        state.inventory = [];
+        state.inventory.keyItems = [];
+        state.inventory.consumables = {};
         updateInventoryDisplay();
     }
 
@@ -3282,13 +3437,18 @@ const VNEngine = (function() {
      * Show a floating notification when items are added/used
      * @param {string} item - Item name
      * @param {string} action - 'added' or 'used'
+     * @param {string} itemType - 'key' or 'consumable'
      */
-    function showItemNotification(item, action) {
+    function showItemNotification(item, action, itemType) {
         var notification = document.createElement('div');
         notification.className = 'item-notification item-' + action;
-        notification.innerHTML = action === 'added'
-            ? '<span class="item-icon">+</span> ' + item
-            : '<span class="item-icon">−</span> ' + item;
+        if (itemType) {
+            notification.classList.add('item-type-' + itemType);
+        }
+
+        var icon = action === 'added' ? '+' : '−';
+        var typeIcon = itemType === 'key' ? '🔑 ' : '';
+        notification.innerHTML = '<span class="item-icon">' + icon + '</span> ' + typeIcon + item;
 
         document.body.appendChild(notification);
 
@@ -3309,26 +3469,74 @@ const VNEngine = (function() {
     }
 
     /**
+     * Toggle inventory panel expanded/collapsed state
+     */
+    function toggleInventory() {
+        state.inventoryExpanded = !state.inventoryExpanded;
+        updateInventoryDisplay();
+    }
+
+    /**
      * Update the inventory display in the UI
      */
     function updateInventoryDisplay() {
         var inventoryContainer = document.getElementById('inventory-display');
         if (!inventoryContainer) return;
 
-        if (state.inventory.length === 0) {
+        var hasKeyItems = state.inventory.keyItems.length > 0;
+        var hasConsumables = Object.keys(state.inventory.consumables).length > 0;
+
+        if (!hasKeyItems && !hasConsumables) {
             inventoryContainer.style.display = 'none';
             return;
         }
 
         inventoryContainer.style.display = 'block';
-        inventoryContainer.innerHTML = '<div class="inventory-label">Items:</div>';
 
-        state.inventory.forEach(function(item) {
-            var itemEl = document.createElement('span');
-            itemEl.className = 'inventory-item';
-            itemEl.textContent = item;
-            inventoryContainer.appendChild(itemEl);
-        });
+        // Build the inventory HTML
+        var html = '';
+
+        // Header with toggle button
+        html += '<div class="inventory-header" onclick="VNEngine.toggleInventory()">';
+        html += '<span class="inventory-toggle">' + (state.inventoryExpanded ? '▼' : '▶') + '</span>';
+        html += '<span class="inventory-label">Items</span>';
+
+        // Item count badge
+        var totalItems = state.inventory.keyItems.length + Object.keys(state.inventory.consumables).length;
+        html += '<span class="inventory-count">' + totalItems + '</span>';
+        html += '</div>';
+
+        // Expanded content
+        if (state.inventoryExpanded) {
+            html += '<div class="inventory-content">';
+
+            // Key Items section
+            if (hasKeyItems) {
+                html += '<div class="inventory-section">';
+                html += '<div class="inventory-section-label">🔑 Key Items</div>';
+                state.inventory.keyItems.forEach(function(item) {
+                    html += '<div class="inventory-item inventory-item-key">' + item + '</div>';
+                });
+                html += '</div>';
+            }
+
+            // Consumables section
+            if (hasConsumables) {
+                html += '<div class="inventory-section">';
+                html += '<div class="inventory-section-label">📦 Consumables</div>';
+                Object.keys(state.inventory.consumables).forEach(function(item) {
+                    var count = state.inventory.consumables[item];
+                    html += '<div class="inventory-item inventory-item-consumable">';
+                    html += item + ' <span class="item-count">x' + count + '</span>';
+                    html += '</div>';
+                });
+                html += '</div>';
+            }
+
+            html += '</div>';
+        }
+
+        inventoryContainer.innerHTML = html;
     }
 
     // === HP Management ===
@@ -3518,7 +3726,21 @@ const VNEngine = (function() {
 
             // Restore state
             state.flags = saveData.flags || {};
-            state.inventory = saveData.inventory || [];
+            // Handle both old (array) and new (object) inventory formats
+            if (Array.isArray(saveData.inventory)) {
+                // Legacy format: convert array to new format (treat as key items)
+                state.inventory = {
+                    keyItems: saveData.inventory,
+                    consumables: {}
+                };
+            } else if (saveData.inventory && typeof saveData.inventory === 'object') {
+                state.inventory = {
+                    keyItems: saveData.inventory.keyItems || [],
+                    consumables: saveData.inventory.consumables || {}
+                };
+            } else {
+                state.inventory = { keyItems: [], consumables: {} };
+            }
             state.playerHP = saveData.playerHP !== undefined ? saveData.playerHP : null;
             var defaultMaxHP = typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxHP : 20;
             state.playerMaxHP = saveData.playerMaxHP || defaultMaxHP;
@@ -3544,6 +3766,7 @@ const VNEngine = (function() {
 
             // Load the saved scene
             if (saveData.currentSceneId && story[saveData.currentSceneId]) {
+                log.info('Resuming from saved scene: ' + saveData.currentSceneId);
                 state.currentSceneId = saveData.currentSceneId;
                 state.currentBlockIndex = saveData.currentBlockIndex || 0;
 
@@ -3575,6 +3798,11 @@ const VNEngine = (function() {
 
                 renderCurrentBlock();
                 return true;
+            } else if (saveData.currentSceneId) {
+                // Saved scene no longer exists - clear corrupted save
+                log.warn('Saved scene "' + saveData.currentSceneId + '" no longer exists, clearing save');
+                clearSavedState();
+                return false;
             }
         } catch (e) {
             log.warn('Could not load saved state: ' + e.message);
@@ -3627,14 +3855,39 @@ const VNEngine = (function() {
     // === Game Reset ===
     /**
      * Reset game state and restart from beginning
-     * @param {boolean} clearReadHistory - If true, also clears read blocks and saved state
+     * @param {boolean} fullReset - If true, clears EVERYTHING including key items and saved state
+     *                              If false (Play Again), keeps key items (New Game+ style)
      */
-    function resetGame(clearReadHistory) {
+    // Flags that persist across "Play Again" (New Game+ style)
+    var PERSISTENT_FLAGS = ['saw_rooftop', 'can_smile'];
+
+    function resetGame(fullReset) {
         // Reset core state
         state.currentSceneId = null;
         state.currentBlockIndex = 0;
-        state.flags = {};
-        state.inventory = [];
+
+        // Persistent flags survive "Play Again" but not full reset
+        if (fullReset) {
+            state.flags = {};
+        } else {
+            // Keep only persistent flags
+            var preservedFlags = {};
+            PERSISTENT_FLAGS.forEach(function(flag) {
+                if (state.flags[flag]) {
+                    preservedFlags[flag] = true;
+                }
+            });
+            state.flags = preservedFlags;
+        }
+
+        // Key items persist across "Play Again" (New Game+ style)
+        // Full reset (↺ button) clears everything
+        if (fullReset) {
+            state.inventory = { keyItems: [], consumables: {} };
+        } else {
+            // Keep key items, clear consumables only
+            state.inventory.consumables = {};
+        }
         state.playerHP = null;
         state.playerMaxHP = typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxHP : 20;
         state.battle = null;
@@ -3661,8 +3914,8 @@ const VNEngine = (function() {
             textBox.classList.remove('battle-mode');
         }
 
-        // Optionally clear read history (for full reset)
-        if (clearReadHistory) {
+        // Full reset also clears read history and saved state
+        if (fullReset) {
             state.readBlocks = {};
             clearSavedState();
             updateSkipButtonVisibility();
@@ -3705,13 +3958,22 @@ const VNEngine = (function() {
         getState: function() { return state; },
         // Flag management
         getFlag: getFlag,
+        hasFlag: function(flag) { return state.flags[flag] === true; },
         setFlag: function(flag) { state.flags[flag] = true; },
         clearFlag: function(flag) { delete state.flags[flag]; },
         // Inventory management
         addItem: function(item) { addItems([item]); },
+        addKeyItem: addKeyItem,
+        addConsumable: addConsumable,
         removeItem: function(item) { removeItems([item]); },
+        removeKeyItem: removeKeyItem,
+        removeConsumable: removeConsumable,
         hasItem: hasItem,
-        getInventory: function() { return state.inventory.slice(); },
+        hasKeyItem: hasKeyItem,
+        hasConsumable: hasConsumable,
+        getConsumableCount: getConsumableCount,
+        getInventory: function() { return state.inventory; },
+        toggleInventory: toggleInventory,
         // HP management
         getHP: function() { return state.playerHP; },
         getMaxHP: function() { return state.playerMaxHP; },

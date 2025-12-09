@@ -38,6 +38,9 @@
 /* === QTE System (timing bar, zones, markers) === */
 @import url('qte.css');
 
+/* === Quiz System (timed multiple choice) === */
+@import url('quiz.css');
+
 /* === Enemy Intent/Telegraph System === */
 @import url('intent-system.css');
 

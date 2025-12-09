@@ -1,19 +1,19 @@
 ---
 id: start
-bg: hallway_fluorescent.jpg
-music: last_day.mp3
+bg: dark_office_desk.jpg
+chars: []
 ---
 
-The old wooden door closes with a dull thud behind you for the very last time. Your badge no longer works; your desk is empty.
+Your office. The familiar hum of multiple monitors fills the air, punctuated by the gentle whir of cooling fans cycling through their eternal duty. You're sitting in your chair, wearing a short-sleeved shirt despite it being your last day. Why? Because your office is always at the perfect temperature. That is to say: refrigerator temperature. Your colleagues learned long ago not to visit without a jacket.
 
 ---
 
-You stand in the dim hallway of the 1st floor, where scuffed tile stretches ahead and the overhead fluorescents hum their familiar drone.
+The screens glow with lines of code. CATS, your life's work for the past years. Today is the day. Your last day at the Division of Conservation Biology. A new position awaits at the physics institute. New challenges. New colleagues. But first, you need to say goodbye to everyone.
 
-Your new job starts Monday, and this chapter is finally closed. Now, you just need to get to the entrance and head out to freedom.
+---
+
+Time to venture out into the warm corridors beyond. The door to your arctic sanctuary awaits.
 
 ### Choices
 
-- Turn right and take the main stairs down to the entrance. [sfx: footstep.ogg] → main_stairs
-- Turn left and take the back stairs to the main entrance. [sfx: footstep.ogg] → back_stairs
-- Get one last, sentimental cup of coffee in the kitchen near your office. [sfx: door_open.ogg] → coffee_kitchen
+- Leave the office → charlie

@@ -562,6 +562,31 @@ var TUNING = (function() {
             // === Input ===
             inputRepeatDelay: 150,      // ms before key repeat starts
             inputRepeatRate: 50         // ms between repeated inputs
+        },
+
+        // =====================================================================
+        // QUIZ SYSTEM (Timed multiple choice questions)
+        // =====================================================================
+
+        quiz: {
+            // === Timer ===
+            defaultTimePerQuestion: 10, // Seconds per question (default)
+            tickInterval: 1000,         // Timer update interval (ms)
+            urgentThreshold: 3,         // Countdown turns orange at this value
+            criticalThreshold: 2,       // Countdown turns red at this value
+
+            // === Feedback ===
+            feedbackDelay: 500,         // ms to show correct answer flash
+            outroDelay: 2000,           // ms to show victory/defeat screen
+
+            // === Sound Effects ===
+            sfx: {
+                correct: 'success.ogg',
+                wrong: 'failure.ogg',
+                timeout: 'failure.ogg',
+                victory: 'victory.ogg',
+                defeat: 'failure.ogg'
+            }
         }
     };
 })();

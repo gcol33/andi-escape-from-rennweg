@@ -217,12 +217,4 @@
     text-shadow: 1px 1px 0 #000;
 }
 
-/* === Single Choice Button Fix ===
- * When there's only one choice, don't stretch it across full width.
- * Use :only-child selector to target single choice scenario.
- */
-#choices-container .choice-button:only-child {
-    flex: 0 1 auto;
-    min-width: 11.25rem;  /* 180px */
-    max-width: 80%;
-}
+/* Single choice button fix moved to ui-layout.css */

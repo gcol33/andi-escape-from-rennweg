@@ -1,25 +1,18 @@
 ---
-id: agnes_battle
-bg: hallway_red_alert.jpg
-music: BOSS_TIME.mp3
+id: AGNES_battle
+bg: office_corridor.jpg
 chars:
-  - agnes_blocking.svg
+  - agnes_angry.svg
+music: BOSS_TIME.mp3
 actions:
   - type: start_battle
-    terrain: none
     enemy_id: agnes_hr
-    win_target: agnes_defeated
-    lose_target: lost_to_HR
-    flee_target: attempt_pass
+    win_target: AGNES_victory
+    lose_target: AGNES_defeat
 ---
 
-Agnes lunges forward with surprising speed, her HR badge glinting under the red emergency lights.
+Lorem ipsum dolor sit amet. Agnes blocks your path!
 
-"Let's see if your resignation letter is as strong as your resolve!"
+---
 
-### Choices
-
-- Attack! (battle: attack) [sfx: thud.ogg] → agnes_battle
-- Skills (battle: skill) [sfx: click.ogg] → agnes_battle
-- Defend (battle: defend) [sfx: click.ogg] → agnes_battle
-- Item (battle: item) [sfx: click.ogg] → agnes_battle
+"You're not leaving without a fight!"

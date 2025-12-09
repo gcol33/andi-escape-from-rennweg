@@ -178,7 +178,9 @@ var BattleStyleDnD = (function() {
         var attackTotal = isFumble ? 1 : roll + attackBonus;
 
         // Crit if natural 20 OR total >= 20 (bonuses can push into crit range)
-        if (!isCrit && !isFumble && attackTotal >= 20) {
+        // Also check skill critBonus (e.g., Magnifying Glass lowers crit threshold)
+        var critThreshold = 20 - (skill.critBonus || 0);
+        if (!isCrit && !isFumble && (attackTotal >= 20 || roll >= critThreshold)) {
             isCrit = true;
         }
 
@@ -512,6 +514,48 @@ var BattleStyleDnD = (function() {
         // Healing skill (check both isHeal flag and healAmount property)
         var isHealSkill = skill.isHeal || (skill.healAmount && !skill.damage);
         if (isHealSkill) {
+            // Check for healsToFull (e.g., Beer skill)
+            if (skill.healsToFull) {
+                var healToFull = player.maxHP - player.hp;
+                if (healToFull > 0) {
+                    messages.push('Restored to FULL HP! <span class="battle-number">+' + healToFull + ' HP</span>!');
+                    result.healed = healToFull;
+                    result.healRolled = healToFull;
+                    result.isMaxHeal = true;
+                    result.pendingHeal = {
+                        amount: healToFull,
+                        source: 'skill'
+                    };
+                } else {
+                    messages.push('Already at full HP!');
+                }
+
+                // Handle appliesSelfStatus (e.g., Beer causes confusion)
+                if (skill.appliesSelfStatus) {
+                    var selfStatusDef = typeof BattleData !== 'undefined' ? BattleData.getStatusEffect(skill.appliesSelfStatus.type) : null;
+                    if (selfStatusDef) {
+                        messages.push(selfStatusDef.icon + ' But you\'re now ' + selfStatusDef.name + '!');
+                        result.pendingSelfStatus = {
+                            target: 'player',
+                            type: skill.appliesSelfStatus.type,
+                            duration: skill.appliesSelfStatus.duration || selfStatusDef.duration,
+                            stacks: 1
+                        };
+                    }
+                }
+
+                // Handle consumesItem - remove item from inventory after use
+                if (skill.consumesItem && skill.requiresItem) {
+                    if (typeof VNEngine !== 'undefined' && VNEngine.removeItem) {
+                        VNEngine.removeItem(skill.requiresItem);
+                        messages.push('(Used up ' + skill.requiresItem + ')');
+                    }
+                }
+
+                BattleCore.playSfx('heal');
+                return result;
+            }
+
             if (skill.healAmount) {
                 // Check for advantage/disadvantage from QTE result
                 qteResult = qteResult || {};
