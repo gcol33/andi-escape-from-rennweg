@@ -17,5 +17,3 @@ Hours pass. Then days. Charlie's codebase grows more complex, spawning new requi
 
 You look up from the screen. A week has passed. Your new job at the physics institute started without you. They've already hired someone else. But Charlie's GIS code still needs you. There's always one more bug to fix, one more feature to add, one more dataset to integrate. The previous coder tried to escape once. They found his skeleton in the server room.
 
-**BAD ENDING: Trapped in the GIS Matrix**
-

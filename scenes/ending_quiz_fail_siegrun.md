@@ -10,5 +10,3 @@ Siegrun closes her field notebook with the finality of a verdict. "I cannot cert
 ---
 
 She turns away, already moving on to more pressing botanical matters. Without her certification, you'll never truly belong among the botanists.
-
-**BAD ENDING: Failed the Field Test**

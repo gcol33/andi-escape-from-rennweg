@@ -15,5 +15,3 @@ You flip through the Flora Book frantically. The pages blur together—Latin nam
 
 The botanists lose interest. The party continues, but you've been exposed—someone with the tools but not the knowledge.
 
-**BAD ENDING: Book Smart, Field Dumb**
-

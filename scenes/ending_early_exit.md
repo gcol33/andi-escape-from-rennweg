@@ -10,5 +10,3 @@ You step away from the building. Afternoon sun warm on your face. The Division o
 ---
 
 But you're not quite ready for the perfect farewell. There's still more to do. More people to see.
-
-**NEUTRAL ENDING: The Early Exit**

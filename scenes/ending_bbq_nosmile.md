@@ -15,5 +15,3 @@ Your colleagues exchange uncomfortable glances. "Maybe... Andi needs some more t
 
 You stand on the edge of the terrace, watching the sunset alone. This was supposed to be your farewell. Instead, it's just awkward.
 
-**BAD ENDING: The Awkward Farewell**
-

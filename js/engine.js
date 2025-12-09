@@ -353,6 +353,123 @@ const VNEngine = (function() {
                     log.error('Quiz ended without target scene');
                 }
             });
+        },
+
+        /**
+         * Reset game state action handler
+         * Resets flags, inventory, HP etc.
+         * Used for "wake up" scenes after bad endings
+         *
+         * Supports:
+         * - full: true for full reset, false (default) for soft reset
+         * - target: scene to navigate to after reset (with delay for click/input)
+         * - delay: ms to wait before navigating (default 1500, or 0 for immediate)
+         */
+        reset: function(action) {
+            var fullReset = action.full || false;
+            var target = action.target || null;
+            var delay = action.delay !== undefined ? action.delay : 1500;
+
+            // Reset core state (but don't change scene yet)
+            state.currentBlockIndex = 0;
+
+            // Persistent flags survive soft reset
+            if (fullReset) {
+                state.flags = {};
+            } else {
+                var preservedFlags = {};
+                PERSISTENT_FLAGS.forEach(function(flag) {
+                    if (state.flags[flag]) {
+                        preservedFlags[flag] = true;
+                    }
+                });
+                state.flags = preservedFlags;
+            }
+
+            // Key items persist across soft reset
+            if (fullReset) {
+                state.inventory = { keyItems: [], consumables: {} };
+            } else {
+                state.inventory.consumables = {};
+            }
+
+            // Reset HP and battle state
+            state.playerHP = null;
+            state.playerMaxHP = typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxHP : 20;
+            state.battle = null;
+            state.history = [];
+
+            // Update displays
+            updateInventoryDisplay();
+            hideBattleUI();
+            destroyBattleUI();
+
+            // Reset BattleEngine if available
+            if (typeof BattleEngine !== 'undefined') {
+                BattleEngine.reset();
+                BattleEngine.destroyUI();
+            }
+
+            // Ensure text box is visible
+            var textBox = document.getElementById('text-box');
+            if (textBox) {
+                textBox.style.display = '';
+                textBox.classList.remove('hidden-textbox');
+                textBox.classList.remove('battle-mode');
+            }
+
+            log.info('Game state reset' + (fullReset ? ' (full)' : ' (soft)'));
+        },
+
+        /**
+         * Fade to scene action handler
+         * Fades background to target scene's background, then auto-continues
+         *
+         * Supports:
+         * - target: scene to navigate to after fade
+         * - duration: fade duration in ms (default 1000)
+         */
+        fade_to_scene: function(action) {
+            var target = action.target;
+            var duration = action.duration || 1000;
+
+            if (!target) {
+                log.error('fade_to_scene: no target specified');
+                return;
+            }
+
+            var targetScene = story[target];
+            if (!targetScene) {
+                log.error('fade_to_scene: target scene not found: ' + target);
+                return;
+            }
+
+            var bgLayer = elements.backgroundLayer;
+            if (!bgLayer) {
+                // No background layer, just navigate
+                loadScene(target);
+                return;
+            }
+
+            // Fade out current background
+            bgLayer.classList.add('fading');
+
+            // After fade out, change background and fade in
+            setTimeout(function() {
+                // Set the new background
+                if (targetScene.bg) {
+                    var path = config.assetPaths.bg + targetScene.bg;
+                    bgLayer.style.backgroundImage = 'url("' + path + '")';
+                }
+
+                // Fade in
+                bgLayer.classList.remove('fading');
+
+                // After fade in complete, navigate to target
+                setTimeout(function() {
+                    loadScene(target);
+                }, duration);
+            }, duration);
         }
     };
 
@@ -2327,6 +2444,13 @@ const VNEngine = (function() {
         state.processedTextBlocks = preprocessTextBlocks(scene.textBlocks || [], isEnding);
         state.isEndingScene = isEnding;
 
+        // Add random flavor text if scene has random_flavor array
+        if (scene.random_flavor && scene.random_flavor.length > 0) {
+            var randomIndex = Math.floor(Math.random() * scene.random_flavor.length);
+            var flavorText = scene.random_flavor[randomIndex];
+            state.processedTextBlocks.push(flavorText);
+        }
+
         // Update text box class for ending scenes
         var textBox = document.getElementById('text-box');
         if (textBox) {
@@ -2759,7 +2883,8 @@ const VNEngine = (function() {
             restartButton.className = 'restart-button';
             restartButton.textContent = 'Play Again';
             restartButton.onclick = function() {
-                reset();
+                // Go to wake_up scene - reset happens there via action
+                loadScene('wake_up');
             };
             elements.choicesContainer.appendChild(restartButton);
         }

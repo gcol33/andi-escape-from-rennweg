@@ -21,7 +21,5 @@ As the fairy lights flicker on, you look around. These people made your time her
 
 ---
 
-**GOOD ENDING: The Perfect Farewell**
-
 Thank you for playing! And thank you, Andi, for everything.
 

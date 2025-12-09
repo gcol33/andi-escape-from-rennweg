@@ -15,5 +15,3 @@ You squint. Lean closer. Cup your hands around your eyes like binoculars. Nothin
 
 Franz taps his foot. "I'm... pretty sure it's Sempervivum tectorum?" "Pretty sure" doesn't cut it in academic circles. So close, yet missing one crucial tool.
 
-**BAD ENDING: Can't See the Forest for the Trees**
-

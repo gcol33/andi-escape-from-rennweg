@@ -15,5 +15,3 @@ You arrange the charcoal perfectly, building a pyramid that would make a scout l
 
 The charcoal sits there, cold and useless. All the fuel in the world means nothing without a spark.
 
-**BAD ENDING: No Spark**
-

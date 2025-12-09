@@ -228,6 +228,9 @@ def parse_frontmatter(content):
         # Check for simple list item (old format chars or other lists)
         if stripped.startswith('- '):
             item = stripped[2:].strip()
+            # Strip surrounding quotes if present
+            if (item.startswith('"') and item.endswith('"')) or (item.startswith("'") and item.endswith("'")):
+                item = item[1:-1]
             if current_key == 'chars' and current_char is None:
                 # Old format: simple filename
                 chars_list.append(item)
@@ -470,6 +473,7 @@ def parse_scene_file(filepath):
         'remove_items': frontmatter.get('remove_items', []),
         'actions': frontmatter.get('actions', []),
         'ending_title': frontmatter.get('ending_title', None),
+        'random_flavor': frontmatter.get('random_flavor', []),
         'textBlocks': text_blocks,
         'choices': choices
     }
@@ -493,6 +497,8 @@ def parse_scene_file(filepath):
         del scene['music']
     if scene['ending_title'] is None:
         del scene['ending_title']
+    if not scene['random_flavor']:
+        del scene['random_flavor']
 
     return scene
 

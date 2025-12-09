@@ -15,5 +15,3 @@ Someone pulls out their phone and starts googling pizza delivery. Others follow 
 
 A farewell party with delivered pizza is not a farewell party. It's just pizza on a roof.
 
-**BAD ENDING: Cold Grill**
-

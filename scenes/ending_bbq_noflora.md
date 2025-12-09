@@ -15,5 +15,3 @@ Franz sighs heavily. "That's not even close to an identification." The other bot
 
 Your credibility crumbles. The party mood fades. People drift away, suddenly remembering other conversations with people who can tell a Sempervivum from a Sedum.
 
-**BAD ENDING: Botanical Failure**
-

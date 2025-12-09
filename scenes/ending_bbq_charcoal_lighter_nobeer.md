@@ -15,5 +15,3 @@ The grill is roaring, charcoal glowing orange. Sausages sizzle. Everything is pe
 
 A BBQ without refreshments is like a symphony without music. People start drifting away. The mood deflates. So close to perfection, undone by a single oversight.
 
-**BAD ENDING: Dry Party**
-

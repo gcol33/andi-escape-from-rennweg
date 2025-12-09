@@ -809,6 +809,15 @@
     transform-origin: center center;
 }
 
+/* Background fade transition for wake-up/dream sequences */
+#background-layer {
+    transition: opacity 1s ease-in-out;
+}
+
+#background-layer.fading {
+    opacity: 0;
+}
+
 #bg-video.ken-burns {
     animation: ken-burns-zoom 30s ease-out forwards;
     transform-origin: center center;
