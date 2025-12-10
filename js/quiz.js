@@ -23,8 +23,55 @@ var QuizEngine = (function() {
         winTarget: null,
         loseTarget: null,
         timerInterval: null,
-        onComplete: null
+        onComplete: null,
+        quizId: null  // Unique ID for this quiz (for tracking seen answers)
     };
+
+    // === Seen Answers Storage ===
+    var STORAGE_KEY = 'andi_vn_quiz_seen';
+
+    /**
+     * Get the seen answers from localStorage
+     * Returns object like { "quiz_excursion:0": 0, "quiz_excursion:1": 1 }
+     * where key is "quizId:questionIndex" and value is the correct answer index
+     */
+    function getSeenAnswers() {
+        try {
+            var data = localStorage.getItem(STORAGE_KEY);
+            return data ? JSON.parse(data) : {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    /**
+     * Mark a correct answer as seen (called when player fails after seeing the correct one)
+     * @param {string} quizId - Quiz identifier
+     * @param {number} questionIndex - Question index
+     * @param {number} correctIndex - Index of the correct answer
+     */
+    function markAnswerSeen(quizId, questionIndex, correctIndex) {
+        try {
+            var seen = getSeenAnswers();
+            var key = quizId + ':' + questionIndex;
+            seen[key] = correctIndex;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(seen));
+        } catch (e) {
+            console.warn('[Quiz] Could not save seen answer:', e);
+        }
+    }
+
+    /**
+     * Get the correct answer index if player has seen it before
+     * @param {string} quizId - Quiz identifier
+     * @param {number} questionIndex - Question index
+     * @returns {number|null} - Index of correct answer, or null if not seen
+     */
+    function getSeenCorrectIndex(quizId, questionIndex) {
+        var seen = getSeenAnswers();
+        var key = quizId + ':' + questionIndex;
+        return seen.hasOwnProperty(key) ? seen[key] : null;
+    }
 
     // === Configuration (pulled from TUNING) ===
     function getConfig() {
@@ -46,6 +93,7 @@ var QuizEngine = (function() {
      * @param {number} config.timePerQuestion - Seconds per question
      * @param {string} config.winTarget - Scene ID on success
      * @param {string} config.loseTarget - Scene ID on failure
+     * @param {string} config.quizId - Unique ID for tracking seen answers
      * @param {function} onComplete - Callback when quiz ends: function({ won, target })
      */
     function start(config, onComplete) {
@@ -63,9 +111,10 @@ var QuizEngine = (function() {
         state.timeRemaining = state.timePerQuestion;
         state.winTarget = config.winTarget;
         state.loseTarget = config.loseTarget;
+        state.quizId = config.quizId || 'default';
         state.onComplete = onComplete;
 
-        console.log('[Quiz] Starting with', state.questions.length, 'questions');
+        console.log('[Quiz] Starting with', state.questions.length, 'questions, id:', state.quizId);
 
         // Show first question
         showCurrentQuestion();
@@ -84,6 +133,9 @@ var QuizEngine = (function() {
         var question = state.questions[state.currentIndex];
         state.timeRemaining = state.timePerQuestion;
 
+        // Check if player has seen the correct answer before
+        var seenCorrectIndex = getSeenCorrectIndex(state.quizId, state.currentIndex);
+
         // Notify UI to display question
         if (typeof QuizUI !== 'undefined') {
             QuizUI.showQuestion({
@@ -91,7 +143,8 @@ var QuizEngine = (function() {
                 totalQuestions: state.questions.length,
                 questionText: question.question,
                 answers: question.answers,
-                timeRemaining: state.timeRemaining
+                timeRemaining: state.timeRemaining,
+                seenCorrectIndex: seenCorrectIndex  // Pass hint if player saw it before
             });
         }
 
@@ -151,6 +204,20 @@ var QuizEngine = (function() {
         var isCorrect = selectedAnswer && selectedAnswer.correct === true;
 
         console.log('[Quiz] Answer submitted:', answerIndex, 'correct:', isCorrect);
+
+        // Find the correct answer index for this question
+        var correctIndex = -1;
+        for (var i = 0; i < question.answers.length; i++) {
+            if (question.answers[i].correct === true) {
+                correctIndex = i;
+                break;
+            }
+        }
+
+        // Mark the correct answer as seen (so player knows it next time)
+        if (correctIndex >= 0) {
+            markAnswerSeen(state.quizId, state.currentIndex, correctIndex);
+        }
 
         if (isCorrect) {
             // Move to next question

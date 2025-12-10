@@ -51,6 +51,7 @@ var QuizUI = (function() {
      * @param {string} data.questionText - The question text
      * @param {Array} data.answers - Array of answer objects with 'text' property
      * @param {number} data.timeRemaining - Initial time in seconds
+     * @param {number|null} data.seenCorrectIndex - Index of correct answer if seen before
      */
     function showQuestion(data) {
         // Remove existing overlay if present
@@ -94,6 +95,11 @@ var QuizUI = (function() {
             btn.className = 'quiz-answer-btn';
             btn.textContent = answer.text;
             btn.setAttribute('data-index', index);
+
+            // Highlight the correct answer if player has seen it before
+            if (data.seenCorrectIndex !== null && data.seenCorrectIndex === index) {
+                btn.classList.add('quiz-answer-hint');
+            }
 
             btn.addEventListener('click', function() {
                 handleAnswerClick(index);

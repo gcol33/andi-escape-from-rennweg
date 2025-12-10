@@ -339,12 +339,13 @@ const VNEngine = (function() {
                 QuizUI.init(document.getElementById('vn-container'));
             }
 
-            // Start quiz
+            // Start quiz - use current scene ID as quiz ID for tracking seen answers
             QuizEngine.start({
                 questions: action.questions || [],
                 timePerQuestion: action.time_per_question || 10,
                 winTarget: action.win_target,
-                loseTarget: action.lose_target
+                loseTarget: action.lose_target,
+                quizId: state.currentSceneId
             }, function(result) {
                 // Quiz completed - navigate to appropriate scene
                 if (result.target) {
@@ -483,7 +484,7 @@ const VNEngine = (function() {
          */
         wake_sequence: function(action) {
             var target = action.target || 'start';
-            var fadeDuration = action.fade_duration || 1000;
+            var totalFadeDuration = action.fade_duration || 4000;  // Total fade across whole sequence
             var waitDuration = action.wait_duration || 1500;
 
             var targetScene = story[target];
@@ -505,9 +506,30 @@ const VNEngine = (function() {
                 elements.choicesContainer.innerHTML = '';
             }
 
+            var bgLayer = elements.backgroundLayer;
+
             // Step 1: Show "..." with typewriter effect
             renderText('...', '', function() {
-                // Step 2: Wait, then erase and show wake text with typewriter
+                // Step 2: Start slow fade to target background
+                if (bgLayer && targetScene.bg) {
+                    // Set a longer transition for the slow fade
+                    bgLayer.style.transition = 'opacity ' + (totalFadeDuration / 1000) + 's ease-in-out';
+                    bgLayer.classList.add('fading');
+
+                    // Preload target background then start the fade-in
+                    var targetPath = config.assetPaths.bg + targetScene.bg;
+                    var preloadImg = new Image();
+                    preloadImg.onload = function() {
+                        // Swap background while faded out (after brief delay)
+                        setTimeout(function() {
+                            bgLayer.style.backgroundImage = 'url("' + targetPath + '")';
+                            bgLayer.classList.remove('fading');  // Start fade in
+                        }, 500);  // Short delay for initial fade out
+                    };
+                    preloadImg.src = targetPath;
+                }
+
+                // Step 3: After wait, show wake text (while bg is fading)
                 setTimeout(function() {
                     var wakeText = 'Your eyes open.';
                     if (flavorText) {
@@ -515,7 +537,7 @@ const VNEngine = (function() {
                     }
 
                     renderText(wakeText, '', function() {
-                        // Step 3: Show "Wake up" button after text completes
+                        // Step 4: Show "Wake up" button after text completes
                         if (elements.choicesContainer) {
                             var wakeButton = document.createElement('button');
                             wakeButton.className = 'choice-button';
@@ -525,25 +547,13 @@ const VNEngine = (function() {
                                 wakeButton.disabled = true;
                                 wakeButton.style.opacity = '0.5';
 
-                                // Step 4: Fade background to target scene's background
-                                var bgLayer = elements.backgroundLayer;
-                                if (bgLayer && targetScene.bg) {
-                                    bgLayer.classList.add('fading');
-
-                                    setTimeout(function() {
-                                        var path = config.assetPaths.bg + targetScene.bg;
-                                        bgLayer.style.backgroundImage = 'url("' + path + '")';
-                                        bgLayer.classList.remove('fading');
-
-                                        // Step 5: Navigate to target after fade in
-                                        setTimeout(function() {
-                                            loadScene(target);
-                                        }, fadeDuration);
-                                    }, fadeDuration);
-                                } else {
-                                    // No background layer or no target bg, just navigate
-                                    loadScene(target);
+                                // Reset transition to default
+                                if (bgLayer) {
+                                    bgLayer.style.transition = '';
                                 }
+
+                                // Navigate to target immediately
+                                loadScene(target);
                             };
                             elements.choicesContainer.appendChild(wakeButton);
                         }
