@@ -505,54 +505,51 @@ const VNEngine = (function() {
                 elements.choicesContainer.innerHTML = '';
             }
 
-            // Step 1: Show "..."
-            if (elements.storyOutput) {
-                elements.storyOutput.innerHTML = '<p>...</p>';
-            }
-
-            // Step 2: Wait, then erase and show wake text
-            setTimeout(function() {
-                if (elements.storyOutput) {
+            // Step 1: Show "..." with typewriter effect
+            renderText('...', '', function() {
+                // Step 2: Wait, then erase and show wake text with typewriter
+                setTimeout(function() {
                     var wakeText = 'Your eyes open.';
                     if (flavorText) {
                         wakeText += ' ' + flavorText;
                     }
-                    elements.storyOutput.innerHTML = '<p>' + wakeText + '</p>';
-                }
 
-                // Step 3: Show "Wake up" button
-                if (elements.choicesContainer) {
-                    var wakeButton = document.createElement('button');
-                    wakeButton.className = 'choice-button';
-                    wakeButton.textContent = 'Wake up';
-                    wakeButton.onclick = function() {
-                        // Disable button
-                        wakeButton.disabled = true;
-                        wakeButton.style.opacity = '0.5';
+                    renderText(wakeText, '', function() {
+                        // Step 3: Show "Wake up" button after text completes
+                        if (elements.choicesContainer) {
+                            var wakeButton = document.createElement('button');
+                            wakeButton.className = 'choice-button';
+                            wakeButton.textContent = 'Wake up';
+                            wakeButton.onclick = function() {
+                                // Disable button
+                                wakeButton.disabled = true;
+                                wakeButton.style.opacity = '0.5';
 
-                        // Step 4: Fade background to target scene's background
-                        var bgLayer = elements.backgroundLayer;
-                        if (bgLayer && targetScene.bg) {
-                            bgLayer.classList.add('fading');
+                                // Step 4: Fade background to target scene's background
+                                var bgLayer = elements.backgroundLayer;
+                                if (bgLayer && targetScene.bg) {
+                                    bgLayer.classList.add('fading');
 
-                            setTimeout(function() {
-                                var path = config.assetPaths.bg + targetScene.bg;
-                                bgLayer.style.backgroundImage = 'url("' + path + '")';
-                                bgLayer.classList.remove('fading');
+                                    setTimeout(function() {
+                                        var path = config.assetPaths.bg + targetScene.bg;
+                                        bgLayer.style.backgroundImage = 'url("' + path + '")';
+                                        bgLayer.classList.remove('fading');
 
-                                // Step 5: Navigate to target after fade in
-                                setTimeout(function() {
+                                        // Step 5: Navigate to target after fade in
+                                        setTimeout(function() {
+                                            loadScene(target);
+                                        }, fadeDuration);
+                                    }, fadeDuration);
+                                } else {
+                                    // No background layer or no target bg, just navigate
                                     loadScene(target);
-                                }, fadeDuration);
-                            }, fadeDuration);
-                        } else {
-                            // No background layer or no target bg, just navigate
-                            loadScene(target);
+                                }
+                            };
+                            elements.choicesContainer.appendChild(wakeButton);
                         }
-                    };
-                    elements.choicesContainer.appendChild(wakeButton);
-                }
-            }, waitDuration);
+                    });
+                }, waitDuration);
+            });
         }
     };
 
