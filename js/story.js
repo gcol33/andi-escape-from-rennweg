@@ -8,54 +8,298 @@
  */
 
 const story = {
-  "ending_early_exit": {
-    "id": "ending_early_exit",
-    "bg": "sunny_street_freedom.jpg",
-    "music": "game_over.mp3",
-    "ending_title": "\"NEUTRAL ENDING: The Early Exit\"",
-    "textBlocks": [
-      "You step away from the building. Afternoon sun warm on your face. The Division of Conservation Biology will continue without you. The code will keep running. Or breaking. The coffee machine will keep producing its questionable output for whoever comes next.",
-      "But you're not quite ready for the perfect farewell. There's still more to do. More people to see."
+  "ADRIAN": {
+    "id": "ADRIAN",
+    "bg": "office_corridor.jpg",
+    "set_skills": [
+      "Smile"
     ],
-    "choices": []
-  },
-  "ending_bbq_noflora": {
-    "id": "ending_bbq_noflora",
-    "bg": "rooftop.jpg",
-    "music": "game_over.mp3",
-    "ending_title": "\"BAD ENDING: Botanical Failure\"",
     "textBlocks": [
-      "Without the Flora Book, you have no reference\u2014just years of looking at data ABOUT plants without ever learning to identify the actual living things. You approach the succulent. \"That's obviously a... um... green plant. With leaves. Fleshy ones. Very... photosynthetic-looking.\"",
-      "Franz sighs heavily. \"That's not even close to an identification.\" The other botanists exchange disappointed looks.",
-      "Your credibility crumbles. The party mood fades. People drift away, suddenly remembering other conversations with people who can tell a Sempervivum from a Sedum."
-    ],
-    "choices": []
-  },
-  "FRANZ_hint_knowledge": {
-    "id": "FRANZ_hint_knowledge",
-    "bg": "stairwell_landing.jpg",
-    "textBlocks": [
-      "Franz strokes his chin thoughtfully, the gesture of a man who has spent decades pondering the mysteries of chlorophyll and photosynthesis. \"Knowledge of flora comes in many forms. A book from one who tests you on journeys through the city... and wisdom from another who leads excursions into the wild. Both are needed to navigate the botanical challenges that await.\"",
-      "\"But knowledge alone is not enough. To truly see, to identify that which grows in small places, you need the glass that magnifies. The whiteboard keeper guards it. Prove your worth, and it shall be yours.\""
+      "You turn the corner and run straight into Adrian. As always, he's smiling. Radiantly. Permanently. \"Andi! Great to see you!\" How is he always smiling?",
+      "\"You know,\" you say, \"you seem to be permanently happy and relaxed.\" Adrian laughs. \"So I've been told! But here's the secret: when you smile, people smile back. Then you feel like smiling more. It's an infinite loop. A positive feedback mechanism.\"",
+      "You find yourself smiling. It's infectious. \"Aaahhh, here you go again with your smile,\" you mutter. But you have to admit, you actually like it. \"There!\" Adrian beams. \"See? Now you can do it too!\""
     ],
     "choices": [
       {
-        "label": "\"What about the party?\"",
-        "target": "FRANZ_hint_rooftop"
+        "label": "Say goodbye",
+        "target": "DIDI"
+      }
+    ]
+  },
+  "AGNES": {
+    "id": "AGNES",
+    "bg": "office_corridor.jpg",
+    "textBlocks": [
+      "As you round the corner, a familiar figure blocks your path. Agnes. From HR. \"Andi! I've been looking for you.\" A chill runs down your spine. Those words never mean anything good. \"About those MICROCLIM timesheets...\"",
+      "You groan internally. The timesheets. You'd been putting them off for weeks. You were always precise when you finally filled them out\u2014but actually sitting down to do it... \"Es hat mir immer total gegraust,\" you mutter. Agnes's expression hardens. \"Your resignation has been... REJECTED!\"",
+      "\"You're not leaving until we sort this out. One way or another.\" She cracks her knuckles. This is it. The final boss of every office worker's nightmare."
+    ],
+    "choices": [
+      {
+        "label": "Face Agnes",
+        "target": "AGNES_battle"
+      }
+    ]
+  },
+  "AGNES_battle": {
+    "id": "AGNES_battle",
+    "bg": "office_corridor.jpg",
+    "music": "BOSS_TIME.mp3",
+    "chars": [
+      "agnes_angry.svg"
+    ],
+    "actions": [
+      {
+        "type": "start_battle",
+        "enemy_id": "agnes_hr",
+        "win_target": "AGNES_victory",
+        "lose_target": "AGNES_defeat"
+      }
+    ],
+    "textBlocks": [
+      "Agnes assumes a fighting stance. Her HR badge glints under the fluorescent lights like a warning.",
+      "\"You're not leaving without a fight!\""
+    ],
+    "choices": [
+      {
+        "label": "Attack!",
+        "target": "AGNES_battle",
+        "battle_action": "attack"
       },
       {
-        "label": "\"What about knowledge?\"",
-        "target": "FRANZ_hint_knowledge"
+        "label": "Skills",
+        "target": "AGNES_battle",
+        "battle_action": "skill"
       },
       {
-        "label": "\"What about supplies?\"",
-        "target": "FRANZ_hint_supplies"
+        "label": "Defend",
+        "target": "AGNES_battle",
+        "battle_action": "defend"
       },
       {
-        "label": "Leave",
+        "label": "Item",
+        "target": "AGNES_battle",
+        "battle_action": "item"
+      }
+    ]
+  },
+  "AGNES_defeat": {
+    "id": "AGNES_defeat",
+    "bg": "office_corridor.jpg",
+    "music": "game_over.mp3",
+    "chars": [
+      "agnes_victorious.svg"
+    ],
+    "ending_title": "\"BAD ENDING: Death by Bureaucracy\"",
+    "textBlocks": [
+      "Agnes stands triumphant over your crumpled form. \"Did you really think you could leave without proper documentation?\" She produces an endless stack of forms from seemingly nowhere. \"Now then. Let's start with the MICROCLIM timesheets. From 2019. Then the travel expense reports. Then the equipment inventory forms...\"",
+      "You realize with horror that you'll never escape."
+    ],
+    "choices": []
+  },
+  "AGNES_victory": {
+    "id": "AGNES_victory",
+    "bg": "office_corridor.jpg",
+    "music": "victory.mp3",
+    "chars": [
+      "agnes_surprised.svg"
+    ],
+    "textBlocks": [
+      "Agnes staggers back, clutching her stack of forms. \"This... isn't... protocol...\" The forms scatter across the floor like bureaucratic confetti. She looks at you with new respect. \"Fine. Your timesheets are... acceptable.\"",
+      "\"But this isn't over. HR never forgets.\" She steps aside, allowing you to pass. Freedom, for now."
+    ],
+    "choices": [
+      {
+        "label": "Take the stairs",
+        "target": "stairs_1"
+      }
+    ]
+  },
+  "ANNA": {
+    "id": "ANNA",
+    "bg": "office_corridor.jpg",
+    "textBlocks": [
+      "You drop by Anna's office to say goodbye. She's sitting at her desk with a steaming cup of something that smells... unusual. \"Andi! Perfect timing. Want a farewell tea?\" You eye the cup suspiciously. The liquid has an odd greenish tint."
+    ],
+    "choices": [
+      {
+        "label": "\"Sure, why not?\"",
+        "target": "ANNA_battle"
+      },
+      {
+        "label": "Politely refuse",
         "target": "stairs_0"
       }
     ]
+  },
+  "ANNA_battle": {
+    "id": "ANNA_battle",
+    "bg": "office_corridor.jpg",
+    "music": "BOSS_TIME.mp3",
+    "chars": [
+      "anna_neutral.svg"
+    ],
+    "actions": [
+      {
+        "type": "start_battle",
+        "enemy_id": "anna",
+        "win_target": "ANNA_victory",
+        "lose_target": "ANNA_defeat"
+      }
+    ],
+    "textBlocks": [
+      "You take a sip of the tea. It tastes... interesting. After a few minutes, you start feeling lightheaded. Suddenly, Anna's monitor begins growing hair. Wait, is Anna also... growing whiskers? She looks suspiciously like a Coipu now.",
+      "\"Oh,\" Anna says, her voice echoing strangely. \"Did I mention I've been experimenting with mushroom teas?\" She tilts her furry head. \"Is it working?\" The world begins to spin. You must fight off the hallucinations!"
+    ],
+    "choices": [
+      {
+        "label": "Attack!",
+        "target": "ANNA_battle",
+        "battle_action": "attack"
+      },
+      {
+        "label": "Skills",
+        "target": "ANNA_battle",
+        "battle_action": "skill"
+      },
+      {
+        "label": "Defend",
+        "target": "ANNA_battle",
+        "battle_action": "defend"
+      },
+      {
+        "label": "Item",
+        "target": "ANNA_battle",
+        "battle_action": "item"
+      }
+    ]
+  },
+  "ANNA_defeat": {
+    "id": "ANNA_defeat",
+    "bg": "office_corridor.jpg",
+    "music": "game_over.mp3",
+    "ending_title": "\"BAD ENDING: Mushroom Tea Incident\"",
+    "textBlocks": [
+      "The hallucinations overwhelm you. Everything goes dark. You wake up a week later in hospital. Apparently, you'd been found unconscious on Anna's office floor, mumbling something about Coipus.",
+      "The doctors say you'll make a full recovery, but you missed your first week at Boltzmanngasse. The physics institute is not impressed by your excuse."
+    ],
+    "choices": []
+  },
+  "ANNA_victory": {
+    "id": "ANNA_victory",
+    "bg": "office_corridor.jpg",
+    "music": "victory.mp3",
+    "textBlocks": [
+      "The world slowly stops spinning. Anna's whiskers fade away. The monitor is just a monitor again. \"Wow,\" Anna says, back to her normal human form. \"That wore off fast. I think the dosage might need adjusting...\"",
+      "You make a mental note to never accept tea from Anna again. Your head is still throbbing, but you're okay."
+    ],
+    "choices": [
+      {
+        "label": "Take the stairs",
+        "target": "stairs_0"
+      }
+    ]
+  },
+  "bbq1": {
+    "id": "bbq1",
+    "bg": "rooftop.jpg",
+    "textBlocks": [
+      "You smile. Genuinely. After everything today\u2014the goodbyes, the unexpected challenges\u2014you're actually happy to be here. Adrian gives you a thumbs up from across the terrace, grinning that infinite loop grin of his.",
+      "Then someone points at the rooftop garden, where a cluster of succulents sits in terracotta pots near the edge. \"Andi! We're having a debate. What plant is that?\" All eyes turn to you. A botanical test, of all things. For a computer scientist. You feel Franz's gaze from somewhere behind you. This feels like the final exam you never signed up for."
+    ],
+    "choices": [
+      {
+        "label": "Wing it without the Flora Book",
+        "target": "ending_bbq_noflora",
+        "require_flags": [
+          "!has_flora_book"
+        ]
+      },
+      {
+        "label": "Check the Flora Book but guess",
+        "target": "ending_bbq_flora_noknowledge",
+        "require_items": [
+          "Flora Book",
+          "requires: !floristic_knowledge"
+        ]
+      },
+      {
+        "label": "Use knowledge but can't see clearly",
+        "target": "ending_bbq_flora_knowledge_nomagglass",
+        "require_items": [
+          "Flora Book",
+          "requires: floristic_knowledge",
+          "requires: !has_magnifying_glass"
+        ]
+      },
+      {
+        "label": "Identify with confidence",
+        "target": "bbq2",
+        "require_items": [
+          "Flora Book",
+          "require_items: Magnifying Glass",
+          "requires: floristic_knowledge"
+        ]
+      }
+    ]
+  },
+  "bbq2": {
+    "id": "bbq2",
+    "bg": "rooftop.jpg",
+    "textBlocks": [
+      "You pull out the Flora Book and the Magnifying Glass. Crouching by the terracotta pot, you examine the rosette-shaped succulent with the careful attention of someone who has learned, painfully, that \"h\u00fcbsch\" is not a valid botanical term.",
+      "\"Ah yes, this is clearly...\" you squint through the glass, matching the fleshy leaves and purple-tipped edges to the illustration, \"...Sempervivum tectorum. The common houseleek.\" You wisely avoid mentioning that it's very pretty. Franz nods approvingly from across the terrace.",
+      "\"Now then,\" someone says, \"who's handling the grill?\" The ancient charcoal grill stands waiting, cold and empty. All eyes turn to you again. Of course they do."
+    ],
+    "choices": [
+      {
+        "label": "Look at the empty grill",
+        "target": "ending_bbq_nocharcoal",
+        "require_flags": [
+          "!has_charcoal"
+        ]
+      },
+      {
+        "label": "Realize you forgot a lighter",
+        "target": "ending_bbq_charcoal_nolighter",
+        "require_items": [
+          "Charcoal",
+          "requires: !has_lighter"
+        ]
+      },
+      {
+        "label": "Set up without refreshments",
+        "target": "ending_bbq_charcoal_lighter_nobeer",
+        "require_items": [
+          "Charcoal",
+          "require_items: Lighter",
+          "requires: !has_beer"
+        ]
+      },
+      {
+        "label": "Fire up the grill properly",
+        "target": "bbq3",
+        "require_items": [
+          "Charcoal",
+          "require_items: Lighter",
+          "require_items: Beer"
+        ]
+      }
+    ]
+  },
+  "bbq3": {
+    "id": "bbq3",
+    "bg": "rooftop.jpg",
+    "music": "victory.mp3",
+    "ending_title": "\"GOOD ENDING: The Perfect Farewell\"",
+    "textBlocks": [
+      "You step up to the grill. Charcoal from Billa? Check. Lighter from the smokers' corner? Check. Beer from the D&D group? Check. You arrange the charcoal with the precision of a coder arranging data structures.",
+      "The lighter sparks. The flames catch, licking at the briquettes until they glow orange. Someone presses a spatula into your hands. The sun begins its descent toward the Vienna Woods, painting the sky gold and rose.",
+      "The evening unfolds. Jen regales the group with elaborate squirrel theories. Lisa brings up \"the mouse incident\" and everyone groans. Wolfgang corners anyone who'll listen with plans for FloraWiki 3.0. Adrian's smile never wavers. Agnes is actually laughing at something Michi said. Even Franz approaches, nodding at your grillwork. \"Not bad for a computer person.\"",
+      "As the fairy lights flicker on, you look around. These people made your time here special. Taught you things no university course ever could. This isn't goodbye. It's \"see you around.\" Vienna is a small city, academia an even smaller world. And somewhere in a basement far below, the ghost of Hercules finally rests in peace.",
+      "Thank you for playing! And thank you, Andi, for everything."
+    ],
+    "choices": []
   },
   "billa": {
     "id": "billa",
@@ -80,70 +324,22 @@ const story = {
       }
     ]
   },
-  "bbq3": {
-    "id": "bbq3",
-    "bg": "rooftop.jpg",
-    "music": "victory.mp3",
-    "ending_title": "\"GOOD ENDING: The Perfect Farewell\"",
+  "cellar": {
+    "id": "cellar",
+    "bg": "back_stairwell_dim.jpg",
     "textBlocks": [
-      "You step up to the grill. Charcoal from Billa? Check. Lighter from the smokers' corner? Check. Beer from the D&D group? Check. You arrange the charcoal with the precision of a coder arranging data structures.",
-      "The lighter sparks. The flames catch, licking at the briquettes until they glow orange. Someone presses a spatula into your hands. The sun begins its descent toward the Vienna Woods, painting the sky gold and rose.",
-      "The evening unfolds. Jen regales the group with elaborate squirrel theories. Lisa brings up \"the mouse incident\" and everyone groans. Wolfgang corners anyone who'll listen with plans for FloraWiki 3.0. Adrian's smile never wavers. Agnes is actually laughing at something Michi said. Even Franz approaches, nodding at your grillwork. \"Not bad for a computer person.\"",
-      "As the fairy lights flicker on, you look around. These people made your time here special. Taught you things no university course ever could. This isn't goodbye. It's \"see you around.\" Vienna is a small city, academia an even smaller world. And somewhere in a basement far below, the ghost of Hercules finally rests in peace.",
-      "Thank you for playing! And thank you, Andi, for everything."
-    ],
-    "choices": []
-  },
-  "LISA_scene": {
-    "id": "LISA_scene",
-    "bg": "office_kitchen.jpg",
-    "textBlocks": [
-      "You run into Lisa near the kitchen. She's making coffee. \"Oh, Andi! Did you hear? Someone said they found a mouse in here.\" You glance around nervously. \"A mouse?\" \"Yeah, but they couldn't find it anymore. Maybe it's hiding somewhere.\"",
-      "Lisa reaches for the kitchen cabinet\u2014the infamous party cabinet\u2014and opens it. A MOUSE RUNS OUT! It darts past you both and into the small hallway in front of your office. You and Lisa quickly close the doors, trapping yourselves and the mouse in the two-square-meter space.",
-      "Five solid minutes of chaos. Diving behind boxes. Scrambling over chairs. Finally, you manage to capture the tiny creature. Together, you release it into the garden. Lisa catches her breath. \"Well. That happened.\""
+      "You descend into the building's basement, following Wolfgang's vague directions. The dim corridor stretches ahead, filled with forgotten equipment and ancient filing cabinets. A cold draft blows through the darkness. Something feels off. Suddenly, a ghostly blue glow emanates from an old server rack in the corner.",
+      "A spectral voice echoes: \"Who dares disturb my eternal slumber?\" You realize with horror: it's the ghost of Hercules, the legendary server that was never completed! \"YOU! You and Stefan... you bought me in pieces! Promised me I would run high-performance calculations! But I was NEVER assembled! Never turned on! I died before I ever lived!\"",
+      "The ghost of Hercules seems very angry. But wait, you hear voices from deeper in the basement..."
     ],
     "choices": [
       {
-        "label": "Go to hallway",
-        "target": "hallway"
+        "label": "Investigate the voices",
+        "target": "dnd_group"
       },
       {
-        "label": "Join a field excursion",
-        "target": "MORITZ_excursion"
-      }
-    ]
-  },
-  "elevator0": {
-    "id": "elevator0",
-    "bg": "hallway_fluorescent.jpg",
-    "textBlocks": [
-      "The elevator doors slide open with their familiar mechanical wheeze. You step inside the tiny metal box that has carried you between floors countless times over the years. The buttons glow softly in the dim light. Where to?"
-    ],
-    "choices": [
-      {
-        "label": "Go to rooftop",
-        "target": "rooftop",
-        "require_skills": [
-          "Rooftop Discovery"
-        ]
-      },
-      {
-        "label": "Go to 1st floor",
-        "target": "floor1"
-      },
-      {
-        "label": "Go to 4th floor",
-        "target": "floor4",
-        "require_flags": [
-          "!visited_4th_floor"
-        ]
-      },
-      {
-        "label": "Visit the stairwell",
-        "target": "FRANZ2_1",
-        "require_flags": [
-          "!met_franz"
-        ]
+        "label": "\"Sorry Hercules, got to go!\"",
+        "target": "stairs_0"
       }
     ]
   },
@@ -168,230 +364,15 @@ const story = {
       }
     ]
   },
-  "kitchen": {
-    "id": "kitchen",
+  "coffee_end": {
+    "id": "coffee_end",
     "bg": "office_kitchen.jpg",
-    "set_flags": [
-      "visited_kitchen"
-    ],
-    "add_items": [
-      {
-        "name": "Coffee Mug",
-        "type": "consumable"
-      }
-    ],
+    "ending_title": "\"BAD ENDING: Death by Decaf (It Wasn't Decaf)\"",
     "textBlocks": [
-      "You enter the kitchen for one last cup of coffee. On the counter, the monstera plant sits in an overflowing saucer. Someone watered it a little too enthusiastically. As you watch, water spills onto the counter and then the floor.",
-      "You grab paper towels. The kitchen is flooding! A medium-sized disaster. You empty the saucer and mop up the spreading puddle before it reaches the electrical outlets. Crisis averted. You grab a coffee mug as reward."
-    ],
-    "choices": [
-      {
-        "label": "Leave with the coffee",
-        "target": "hallway"
-      },
-      {
-        "label": "Drink the coffee",
-        "target": "coffee_end",
-        "uses": [
-          "Coffee Mug"
-        ]
-      }
-    ]
-  },
-  "MORITZ_excursion": {
-    "id": "MORITZ_excursion",
-    "bg": "sunny_street_freedom.jpg",
-    "textBlocks": [
-      "You remember a while back\u2014one of Wolfgang's field excursions that you'd somehow agreed to join. Moritz was there, explaining how the data you work with is actually collected. The destination: the dry meadows of Leithagebirge near Lake Neusiedl. You'd arrived with equipment sufficient for a Himalaya expedition. Everyone stared at your massive backpack as you stepped off the bus.",
-      "The course took place in the Wachau and Burgenland\u2014not exactly extreme terrain. But the real challenge wasn't the hiking. It was the plants. Latin names. So many Latin names. And the two things that stuck with you most: the proper equipment needed for fieldwork... and the fact that \"h\u00fcbsch\" is NOT a valid differential characteristic for plant identification. (Because all plants are \"h\u00fcbsch,\" apparently.)",
-      "Moritz approaches you now. \"Remember that excursion? I've got a quiz for you.\""
-    ],
-    "choices": [
-      {
-        "label": "\"Bring it on!\"",
-        "target": "quiz_excursion"
-      }
-    ]
-  },
-  "smoking": {
-    "id": "smoking",
-    "bg": "sunny_street_freedom.jpg",
-    "set_flags": [
-      "has_lighter"
-    ],
-    "add_items": [
-      {
-        "name": "Lighter",
-        "type": "key"
-      }
-    ],
-    "textBlocks": [
-      "You head to the smokers' corner outside. A few colleagues are gathered there, enjoying the fresh air (and nicotine). \"Andi! You don't even smoke, what are you doing here?\" \"Just... saying goodbye to everyone.\"",
-      "\"Well, we got you a going-away present!\" Someone hands you a lighter. It's engraved with \"CATS Forever.\" \"You never know when you'll need fire.\" You pocket it, oddly touched."
-    ],
-    "choices": [
-      {
-        "label": "Head inside",
-        "target": "JEN"
-      }
-    ]
-  },
-  "quiz_excursion2": {
-    "id": "quiz_excursion2",
-    "bg": "sunny_street_freedom.jpg",
-    "actions": [
-      {
-        "type": "start_quiz",
-        "time_per_question": 12,
-        "win_target": "quiz_excursion2_win",
-        "lose_target": "ending_quiz_fail_siegrun",
-        "questions": [
-          {
-            "question": "What type of vegetation did you survey at Haindlkarh\u00fctte?",
-            "answers": [
-              {
-                "text": "Alpine meadows and scree vegetation",
-                "correct": true
-              },
-              {
-                "text": "Tropical rainforest"
-              },
-              {
-                "text": "Desert scrubland"
-              }
-            ]
-          },
-          {
-            "question": "What special food sustained you during the climb?",
-            "answers": [
-              {
-                "text": "A Leberk\u00e4ssemmel"
-              },
-              {
-                "text": "Astronaut food tube pasta",
-                "correct": true
-              },
-              {
-                "text": "Energy bars"
-              }
-            ]
-          },
-          {
-            "question": "How did the cows behave during your surveys?",
-            "answers": [
-              {
-                "text": "Aggressively"
-              },
-              {
-                "text": "They ran away"
-              },
-              {
-                "text": "Peacefully",
-                "correct": true
-              }
-            ]
-          }
-        ]
-      }
-    ],
-    "textBlocks": [
-      "Siegrun pulls out her field notebook\u2014the legendary one that has survived alpine expeditions, sudden rainstorms, and at least one encounter with an overly curious marmot. Precise handwriting fills every margin.",
-      "\"Three questions,\" she says. \"Answer correctly and I'll certify your floristic knowledge. Fail, and we pretend this conversation never happened.\""
+      "You drink the suspicious coffee. It tastes like someone dissolved a battery in lukewarm water and added despair. For a moment, nothing happens. Then everything happens.",
+      "The caffeine hits like a freight train made of anxiety. Your heart rate triples. Your hands shake. You can see in four dimensions. Is that a new color? The world vibrates at a frequency only you can perceive. You try to speak but only manage a high-pitched whine that sends Norbert running. Hours later, you're found in a supply closet, having reorganized it alphabetically, by color, AND by atomic weight."
     ],
     "choices": []
-  },
-  "dnd_group": {
-    "id": "dnd_group",
-    "bg": "back_stairwell_dim.jpg",
-    "textBlocks": [
-      "Deep in the basement, you find them: the legendary D&D group. A circle of folding chairs around a makeshift table. Character sheets everywhere. Tobias looks up from behind his DM screen. \"Andi! You've found the dice rollers' lair.\" You remember his character, the taxi driver mage. A bit of a \"gmiatlicher Versager\" type, but secretly competent.",
-      "\"Before you leave, you must face one final challenge.\" He holds up a rulebook. \"Summarize the rules of Shadowrun on one A4 page. If you succeed, you'll win a lifetime supply of Cola Zero.\" You stare at the massive rulebook. This quest is clearly impossible. But maybe you can fight your way out instead?"
-    ],
-    "choices": [
-      {
-        "label": "Fight the D&D group",
-        "target": "dnd_group_battle"
-      }
-    ]
-  },
-  "dnd_group_defeat": {
-    "id": "dnd_group_defeat",
-    "bg": "back_stairwell_dim.jpg",
-    "music": "game_over.mp3",
-    "ending_title": "\"BAD ENDING: Trapped in the Campaign\"",
-    "textBlocks": [
-      "The D&D group overpowers you with their combined nerdery. A force that cannot be resisted by mere mortals. They've been honing these skills for years, debating rules minutiae in this very basement while the world above went about its business unaware of the arcane knowledge being accumulated below.",
-      "\"You have failed the challenge,\" Tobias announces with the gravity of a high priest declaring judgment. \"As punishment, you must stay and listen to a full explanation of Shadowrun's matrix rules.\" Your blood runs cold. Hours pass. You lose track of time. The rules never end. There's always another exception, another subsystem, another edition that handled things differently and might be worth comparing.",
-      "By the time you escape, your new job at the physics institute has started without you. They've already hired your replacement. You spend the rest of your days as the group's permanent NPC, showing up every session to deliver exposition and provide comic relief. It's not a bad life, but you can't help wondering what might have been."
-    ],
-    "choices": []
-  },
-  "AGNES": {
-    "id": "AGNES",
-    "bg": "office_corridor.jpg",
-    "textBlocks": [
-      "As you round the corner, a familiar figure blocks your path. Agnes. From HR. \"Andi! I've been looking for you.\" A chill runs down your spine. Those words never mean anything good. \"About those MICROCLIM timesheets...\"",
-      "You groan internally. The timesheets. You'd been putting them off for weeks. You were always precise when you finally filled them out\u2014but actually sitting down to do it... \"Es hat mir immer total gegraust,\" you mutter. Agnes's expression hardens. \"Your resignation has been... REJECTED!\"",
-      "\"You're not leaving until we sort this out. One way or another.\" She cracks her knuckles. This is it. The final boss of every office worker's nightmare."
-    ],
-    "choices": [
-      {
-        "label": "Face Agnes",
-        "target": "AGNES_battle"
-      }
-    ]
-  },
-  "squirrel_police_ending": {
-    "id": "squirrel_police_ending",
-    "bg": "dark_office_desk.jpg",
-    "music": "game_over.mp3",
-    "ending_title": "\"BAD ENDING: Squirrel Sting Operation\"",
-    "textBlocks": [
-      "Jen pulls out actual handcuffs\u2014real, professional-grade handcuffs that definitely don't belong to anyone who just studies nature. The squirrels scatter like furry smoke, vanishing back into the trees with the discipline of trained operatives. \"You have the right to remain silent. Anything you say can and will be used against you in the Court of Nature.\"",
-      "\"But... but you're the one who invited me to feed them!\" you sputter, still trying to process this betrayal. \"That was the sting operation, genius. I've been building this case for months.\" Her voice is cold, professional. \"All those times I brought nuts... all those cute squirrel photos for Instagram...\" \"Evidence. Every single one. We have timestamps, location data, even the nutritional content of those pizza crusts.\"",
-      "As you're led away through the Botanical Garden, a squirrel perches on a branch above and salutes you with a tiny paw. Was it in on this? Was the whole squirrel population an elaborate counterintelligence network? The betrayal hurts more than the handcuffs. Your new job at the physics institute will have to wait. First: 500 hours of community service picking up acorns."
-    ],
-    "choices": []
-  },
-  "ending_bbq_flora_knowledge_nomagglass": {
-    "id": "ending_bbq_flora_knowledge_nomagglass",
-    "bg": "rooftop.jpg",
-    "music": "game_over.mp3",
-    "ending_title": "\"BAD ENDING: Can't See the Forest for the Trees\"",
-    "textBlocks": [
-      "You know exactly what to look for\u2014leaf margins, flower structure, the characteristics that distinguish one Sempervivum from another. But you can't quite see the details. The diagnostic features are too small for the naked eye.",
-      "You squint. Lean closer. Cup your hands around your eyes like binoculars. Nothing helps. \"If only I had a magnifying glass!\"",
-      "Franz taps his foot. \"I'm... pretty sure it's Sempervivum tectorum?\" \"Pretty sure\" doesn't cut it in academic circles. So close, yet missing one crucial tool."
-    ],
-    "choices": []
-  },
-  "squirrel_bad": {
-    "id": "squirrel_bad",
-    "bg": "office_corridor.jpg",
-    "textBlocks": [
-      "You pull out your own snacks from your bag\u2014chips, chocolate, leftover pizza from some forgotten lunch meeting. \"Oh, you brought your own food to feed them? That's so sweet!\" Jen says, her eyes sparkling with what you assume is enthusiasm. You start tossing pizza crusts to the squirrels. They love it. A little TOO much.",
-      "Within minutes, word has spread through the squirrel underground. Dozens appear from nowhere\u2014from trees, from bushes, from what you could swear was thin air. \"This is... getting out of hand,\" Jen says, backing away slowly as one particularly bold squirrel starts wearing your pizza box like a crown. Another has fashioned a cape from a napkin. They're organizing. This can't be good.",
-      "Suddenly, Jen pulls out a badge. Not a university ID\u2014an actual law enforcement badge. \"Wildlife Protection Unit. You're under arrest for feeding non-approved foods to protected urban fauna.\" Your jaw drops. \"Wait... WHAT?!\" \"I've been undercover here for months, waiting for someone to slip up. The squirrels were bait. And you took it.\" The pizza-box king salutes her. The betrayal is total."
-    ],
-    "choices": [
-      {
-        "label": "Accept your fate",
-        "target": "squirrel_police_ending"
-      }
-    ]
-  },
-  "out1": {
-    "id": "out1",
-    "bg": "sunny_street_freedom.jpg",
-    "textBlocks": [
-      "You push through the glass doors and step out into the Vienna afternoon. The air hits you like a welcome change\u2014warm, carrying the scent of summer and city life and something blooming nearby. After the climate-controlled corridors of the institute, it feels almost tropical. You take a deep breath, looking up at the sky above Rennweg, watching a tram rattle past on its endless circuit through the city."
-    ],
-    "choices": [
-      {
-        "label": "Continue",
-        "target": "ending_early_exit"
-      }
-    ]
   },
   "DIDI": {
     "id": "DIDI",
@@ -408,89 +389,17 @@ const story = {
       }
     ]
   },
-  "floor4": {
-    "id": "floor4",
-    "bg": "hallway_fluorescent.jpg",
+  "dnd_group": {
+    "id": "dnd_group",
+    "bg": "back_stairwell_dim.jpg",
     "textBlocks": [
-      "The fourth floor. Botany territory. The air itself seems different up here, carrying hints of soil and chlorophyll from the countless plant specimens being studied behind these doors. Botanical prints line the walls, faded illustrations of species you probably couldn't name if your life depended on it. A world away from your computational comfort zone."
+      "Deep in the basement, you find them: the legendary D&D group. A circle of folding chairs around a makeshift table. Character sheets everywhere. Tobias looks up from behind his DM screen. \"Andi! You've found the dice rollers' lair.\" You remember his character, the taxi driver mage. A bit of a \"gmiatlicher Versager\" type, but secretly competent.",
+      "\"Before you leave, you must face one final challenge.\" He holds up a rulebook. \"Summarize the rules of Shadowrun on one A4 page. If you succeed, you'll win a lifetime supply of Cola Zero.\" You stare at the massive rulebook. This quest is clearly impossible. But maybe you can fight your way out instead?"
     ],
     "choices": [
       {
-        "label": "Explore",
-        "target": "MICHI"
-      }
-    ]
-  },
-  "SIEGRUN_excursion": {
-    "id": "SIEGRUN_excursion",
-    "bg": "sunny_street_freedom.jpg",
-    "textBlocks": [
-      "The memories come flooding back. The Gasthof \u00d6dsteinblick in Johnsbach. The program: vegetation surveys, plant identification, steep terrain. Quite demanding when you're used to a flat computer-screen environment. The climb to the Haindlkarh\u00fctte was the real challenge\u2014past rock walls, through forests, across scree slopes with massive boulders. In the midday heat. On steep, narrow paths.",
-      "You'd made it\u2014barely\u2014thanks to the magical NASA pilot food tube you'd brought from Houston. Pasta asciutta in astronaut form. Squeezed directly into your mouth on the mountain hut terrace. The students had stared. Then more surveys. More climbs. Rain. Cows. (The cows were friendly, at least.) And the one lesson that stuck: \"h\u00fcbsch\" is not a differential characteristic.",
-      "Siegrun smiles. \"You survived! Let's see if you remember what you learned.\""
-    ],
-    "choices": [
-      {
-        "label": "Take the quiz",
-        "target": "quiz_excursion2"
-      }
-    ]
-  },
-  "SIEGRUN": {
-    "id": "SIEGRUN",
-    "bg": "office_corridor.jpg",
-    "textBlocks": [
-      "You encounter Siegrun in the corridor. She looks at you with a mix of fondness and mischief. \"Andi! Remember that Ges\u00e4use field course you joined to save it from cancellation?\" How could you forget? The course was about to be canceled due to low enrollment. You had signed up, knowing mostly what you were getting into."
-    ],
-    "choices": [
-      {
-        "label": "Reminisce about the Ges\u00e4use",
-        "target": "SIEGRUN_excursion"
-      },
-      {
-        "label": "Visit the stairwell",
-        "target": "FRANZ2_1",
-        "require_flags": [
-          "!met_franz"
-        ]
-      },
-      {
-        "label": "Take the elevator",
-        "target": "elevator1"
-      }
-    ]
-  },
-  "elevator1": {
-    "id": "elevator1",
-    "bg": "hallway_fluorescent.jpg",
-    "textBlocks": [
-      "The elevator arrives with a familiar ding. You step inside\u2014scuffed interior, flickering fluorescent light, button panel worn smooth from years of use. Where to?"
-    ],
-    "choices": [
-      {
-        "label": "Go to rooftop",
-        "target": "rooftop",
-        "require_skills": [
-          "Rooftop Discovery"
-        ]
-      },
-      {
-        "label": "Go to ground floor",
-        "target": "floor0"
-      },
-      {
-        "label": "Go to 4th floor",
-        "target": "floor4",
-        "require_flags": [
-          "!visited_4th_floor"
-        ]
-      },
-      {
-        "label": "Visit the stairwell",
-        "target": "FRANZ2_1",
-        "require_flags": [
-          "!met_franz"
-        ]
+        "label": "Fight the D&D group",
+        "target": "dnd_group_battle"
       }
     ]
   },
@@ -533,6 +442,297 @@ const story = {
         "label": "Item",
         "target": "dnd_group_battle",
         "battle_action": "item"
+      }
+    ]
+  },
+  "dnd_group_defeat": {
+    "id": "dnd_group_defeat",
+    "bg": "back_stairwell_dim.jpg",
+    "music": "game_over.mp3",
+    "ending_title": "\"BAD ENDING: Trapped in the Campaign\"",
+    "textBlocks": [
+      "The D&D group overpowers you with their combined nerdery. A force that cannot be resisted by mere mortals. They've been honing these skills for years, debating rules minutiae in this very basement while the world above went about its business unaware of the arcane knowledge being accumulated below.",
+      "\"You have failed the challenge,\" Tobias announces with the gravity of a high priest declaring judgment. \"As punishment, you must stay and listen to a full explanation of Shadowrun's matrix rules.\" Your blood runs cold. Hours pass. You lose track of time. The rules never end. There's always another exception, another subsystem, another edition that handled things differently and might be worth comparing.",
+      "By the time you escape, your new job at the physics institute has started without you. They've already hired your replacement. You spend the rest of your days as the group's permanent NPC, showing up every session to deliver exposition and provide comic relief. It's not a bad life, but you can't help wondering what might have been."
+    ],
+    "choices": []
+  },
+  "dnd_group_victory": {
+    "id": "dnd_group_victory",
+    "bg": "back_stairwell_dim.jpg",
+    "music": "victory.mp3",
+    "set_flags": [
+      "has_beer"
+    ],
+    "add_items": [
+      {
+        "name": "Beer",
+        "type": "key"
+      }
+    ],
+    "textBlocks": [
+      "The D&D group falls back in defeat. \"Impressive,\" Tobias admits, gathering his scattered dice. \"You fight like a level 20 character. The Shadowrun challenge shall wait for another day.\"",
+      "Someone reaches into a cooler and pulls out a beer. \"The golden liquid of friendship,\" they say solemnly. \"Take it. You've earned it. May your dice always roll high.\""
+    ],
+    "choices": [
+      {
+        "label": "Return upstairs",
+        "target": "stairs_0"
+      }
+    ]
+  },
+  "elevator0": {
+    "id": "elevator0",
+    "bg": "hallway_fluorescent.jpg",
+    "textBlocks": [
+      "The elevator doors slide open with their familiar mechanical wheeze. You step inside the tiny metal box that has carried you between floors countless times over the years. The buttons glow softly in the dim light. Where to?"
+    ],
+    "choices": [
+      {
+        "label": "Go to rooftop",
+        "target": "rooftop",
+        "require_skills": [
+          "Rooftop Discovery"
+        ]
+      },
+      {
+        "label": "Go to 1st floor",
+        "target": "floor1"
+      },
+      {
+        "label": "Go to 4th floor",
+        "target": "floor4",
+        "require_flags": [
+          "!visited_4th_floor"
+        ]
+      },
+      {
+        "label": "Visit the stairwell",
+        "target": "FRANZ2_1",
+        "require_flags": [
+          "!met_franz"
+        ]
+      }
+    ]
+  },
+  "elevator1": {
+    "id": "elevator1",
+    "bg": "hallway_fluorescent.jpg",
+    "textBlocks": [
+      "The elevator arrives with a familiar ding. You step inside\u2014scuffed interior, flickering fluorescent light, button panel worn smooth from years of use. Where to?"
+    ],
+    "choices": [
+      {
+        "label": "Go to rooftop",
+        "target": "rooftop",
+        "require_skills": [
+          "Rooftop Discovery"
+        ]
+      },
+      {
+        "label": "Go to ground floor",
+        "target": "floor0"
+      },
+      {
+        "label": "Go to 4th floor",
+        "target": "floor4",
+        "require_flags": [
+          "!visited_4th_floor"
+        ]
+      },
+      {
+        "label": "Visit the stairwell",
+        "target": "FRANZ2_1",
+        "require_flags": [
+          "!met_franz"
+        ]
+      }
+    ]
+  },
+  "EMMA": {
+    "id": "EMMA",
+    "bg": "hallway_fluorescent.jpg",
+    "set_flags": [
+      "visited_4th_floor"
+    ],
+    "textBlocks": [
+      "You find Emma on the 4th floor, near the window where she likes to work. Something about natural light being essential for productivity. She waves you over with a warm smile. \"Andi! Heard you're leaving. Exciting times! The physics institute, right? How are you getting to the new job? Did you drive here today?\"",
+      "You shift uncomfortably. The topic of driving always makes you a bit nervous. You know how to drive. In theory. You've even done it, on occasion, without incident. But there's a certain \"creative tension\" between you and vehicles. The kind of tension that has resulted in a few memorable near-misses and one unfortunate incident with a parking garage that everyone has agreed never to speak of again.",
+      "\"I'm... taking the U-Bahn,\" you say with perhaps excessive emphasis. Emma nods sympathetically. \"Smart choice. Vienna's public transport is excellent.\" \"Also safer for everyone involved,\" you mutter under your breath. \"What was that?\" \"Nothing! Just excited about the new commute. Very excited. About trains.\""
+    ],
+    "choices": [
+      {
+        "label": "Take the elevator",
+        "target": "elevator1"
+      }
+    ]
+  },
+  "ending_bbq_charcoal_lighter_nobeer": {
+    "id": "ending_bbq_charcoal_lighter_nobeer",
+    "bg": "rooftop.jpg",
+    "music": "game_over.mp3",
+    "ending_title": "\"BAD ENDING: Dry Party\"",
+    "textBlocks": [
+      "The grill is roaring, charcoal glowing orange. Sausages sizzle. Everything is perfect. Almost.",
+      "\"This calls for a toast!\" someone declares, raising an invisible glass. Everyone turns to you. You reach for... nothing. You didn't bring any drinks. \"Surely Andi brought drinks for his own farewell party?\"",
+      "A BBQ without refreshments is like a symphony without music. People start drifting away. The mood deflates. So close to perfection, undone by a single oversight."
+    ],
+    "choices": []
+  },
+  "ending_bbq_charcoal_nolighter": {
+    "id": "ending_bbq_charcoal_nolighter",
+    "bg": "rooftop.jpg",
+    "music": "game_over.mp3",
+    "ending_title": "\"BAD ENDING: No Spark\"",
+    "textBlocks": [
+      "You arrange the charcoal perfectly, building a pyramid that would make a scout leader proud. \"Now I just need to...\" You pat your pockets. Nothing. No lighter. No matches.",
+      "\"Does anyone have a lighter?\" Everyone searches. But this is a health-conscious academic department. No one smokes here except... the people at the smokers' corner. Down in the courtyard. Where you didn't go.",
+      "The charcoal sits there, cold and useless. All the fuel in the world means nothing without a spark."
+    ],
+    "choices": []
+  },
+  "ending_bbq_flora_knowledge_nomagglass": {
+    "id": "ending_bbq_flora_knowledge_nomagglass",
+    "bg": "rooftop.jpg",
+    "music": "game_over.mp3",
+    "ending_title": "\"BAD ENDING: Can't See the Forest for the Trees\"",
+    "textBlocks": [
+      "You know exactly what to look for\u2014leaf margins, flower structure, the characteristics that distinguish one Sempervivum from another. But you can't quite see the details. The diagnostic features are too small for the naked eye.",
+      "You squint. Lean closer. Cup your hands around your eyes like binoculars. Nothing helps. \"If only I had a magnifying glass!\"",
+      "Franz taps his foot. \"I'm... pretty sure it's Sempervivum tectorum?\" \"Pretty sure\" doesn't cut it in academic circles. So close, yet missing one crucial tool."
+    ],
+    "choices": []
+  },
+  "ending_bbq_flora_noknowledge": {
+    "id": "ending_bbq_flora_noknowledge",
+    "bg": "rooftop.jpg",
+    "music": "game_over.mp3",
+    "ending_title": "\"BAD ENDING: Book Smart, Field Dumb\"",
+    "textBlocks": [
+      "You flip through the Flora Book frantically. The pages blur together\u2014Latin names, dichotomous keys, illustrations that all look the same. Crassulaceae? Aizoaceae? Something with an 'S'? None of it makes sense without field experience.",
+      "\"It's... definitely in the Asteraceae family? Or maybe Brassicaceae?\" Franz shakes his head. \"The book is useless without understanding. Like having a dictionary but not knowing grammar.\"",
+      "The botanists lose interest. The party continues, but you've been exposed\u2014someone with the tools but not the knowledge."
+    ],
+    "choices": []
+  },
+  "ending_bbq_nocharcoal": {
+    "id": "ending_bbq_nocharcoal",
+    "bg": "rooftop.jpg",
+    "music": "game_over.mp3",
+    "ending_title": "\"BAD ENDING: Cold Grill\"",
+    "textBlocks": [
+      "You approach the grill with confidence. Then you look down at the empty metal basin. No charcoal. The grill sits there, cold and accusatory. \"Did anyone bring the charcoal?\" All eyes turn to you.",
+      "Someone pulls out their phone and starts googling pizza delivery. Others follow suit. \"I'll have the Margherita,\" \"Make mine a Quattro Formaggi,\" \"Does anyone have the code for the building door?\"",
+      "A farewell party with delivered pizza is not a farewell party. It's just pizza on a roof."
+    ],
+    "choices": []
+  },
+  "ending_bbq_noflora": {
+    "id": "ending_bbq_noflora",
+    "bg": "rooftop.jpg",
+    "music": "game_over.mp3",
+    "ending_title": "\"BAD ENDING: Botanical Failure\"",
+    "textBlocks": [
+      "Without the Flora Book, you have no reference\u2014just years of looking at data ABOUT plants without ever learning to identify the actual living things. You approach the succulent. \"That's obviously a... um... green plant. With leaves. Fleshy ones. Very... photosynthetic-looking.\"",
+      "Franz sighs heavily. \"That's not even close to an identification.\" The other botanists exchange disappointed looks.",
+      "Your credibility crumbles. The party mood fades. People drift away, suddenly remembering other conversations with people who can tell a Sempervivum from a Sedum."
+    ],
+    "choices": []
+  },
+  "ending_bbq_nosmile": {
+    "id": "ending_bbq_nosmile",
+    "bg": "rooftop.jpg",
+    "music": "game_over.mp3",
+    "ending_title": "\"BAD ENDING: The Awkward Farewell\"",
+    "textBlocks": [
+      "You try to smile, but your face won't cooperate. The muscles pull in the wrong directions, and what emerges is something between a grimace and a threat display.",
+      "Your colleagues exchange uncomfortable glances. \"Maybe... Andi needs some more time alone?\" Slowly, the group disperses, gravitating toward the grill and drinks. The party continues without you\u2014laughter drifting on the evening air.",
+      "You stand on the edge of the terrace, watching the sunset alone. This was supposed to be your farewell. Instead, it's just awkward."
+    ],
+    "choices": []
+  },
+  "ending_early_exit": {
+    "id": "ending_early_exit",
+    "bg": "sunny_street_freedom.jpg",
+    "music": "last_day.mp3",
+    "textBlocks": [
+      "You step through the front doors. The afternoon sun hits your face. Freedom! You could just walk away right now. Start fresh. Leave the Division of Conservation Biology behind forever.",
+      "You take three steps toward the tram stop when a stray cat crosses your path.",
+      "Cat.",
+      "CATS.",
+      "The servers. The code. You never said goodbye to CATS. The backup scripts that only you understand. The mysterious cronjob that runs at 3:47 AM and nobody knows why but everything breaks if you disable it.",
+      "You can't just LEAVE. Not like this. Not without saying goodbye to the blinking lights in the server room. Not without one last commit message.",
+      "You turn around and walk back inside. \"Forgot something,\" you mutter. Back to the grind. For now."
+    ],
+    "choices": [
+      {
+        "label": "Back to the elevator",
+        "target": "elevator0"
+      }
+    ]
+  },
+  "ending_quiz_fail_moritz": {
+    "id": "ending_quiz_fail_moritz",
+    "bg": "meeting_room_whiteboard.jpg",
+    "music": "game_over.mp3",
+    "ending_title": "\"BAD ENDING: Failed the Floristic Test\"",
+    "textBlocks": [
+      "Moritz closes the Flora Book with a disappointed shake of his head. \"I had hoped for better. All those excursions, all those hours in the field...\"",
+      "He tucks the book back into his bag\u2014the book that could have been yours. \"Perhaps the physics institute is the right place for you after all. They don't care about Stipa pennata there.\""
+    ],
+    "choices": []
+  },
+  "ending_quiz_fail_siegrun": {
+    "id": "ending_quiz_fail_siegrun",
+    "bg": "sunny_street_freedom.jpg",
+    "music": "game_over.mp3",
+    "ending_title": "\"BAD ENDING: Failed the Field Test\"",
+    "textBlocks": [
+      "Siegrun closes her field notebook with the finality of a verdict. \"I cannot certify your floristic knowledge. You clearly weren't paying attention during the excursion.\"",
+      "She turns away, already moving on to more pressing botanical matters. Without her certification, you'll never truly belong among the botanists."
+    ],
+    "choices": []
+  },
+  "floor0": {
+    "id": "floor0",
+    "bg": "hallway_fluorescent.jpg",
+    "textBlocks": [
+      "The elevator deposits you on the ground floor with a gentle shudder. The lobby stretches out before you, that liminal space between the world of academia and the streets of Vienna beyond. The linoleum gleams under institutional lighting, and daylight filters through both sets of glass doors. Two exits await."
+    ],
+    "choices": [
+      {
+        "label": "Take exit 1",
+        "target": "out1"
+      },
+      {
+        "label": "Take exit 2",
+        "target": "out2"
+      }
+    ]
+  },
+  "floor1": {
+    "id": "floor1",
+    "bg": "hallway_fluorescent.jpg",
+    "textBlocks": [
+      "The first floor. This corridor always feels quieter than the others, with that particular hush that settles over administrative spaces. The carpet absorbs your footsteps as you pass office doors with their brass nameplates and frosted glass panels. Through one window, you catch a glimpse of the courtyard below, bathed in afternoon light."
+    ],
+    "choices": [
+      {
+        "label": "Continue",
+        "target": "office"
+      }
+    ]
+  },
+  "floor4": {
+    "id": "floor4",
+    "bg": "hallway_fluorescent.jpg",
+    "textBlocks": [
+      "The fourth floor. Botany territory. The air itself seems different up here, carrying hints of soil and chlorophyll from the countless plant specimens being studied behind these doors. Botanical prints line the walls, faded illustrations of species you probably couldn't name if your life depended on it. A world away from your computational comfort zone."
+    ],
+    "choices": [
+      {
+        "label": "Explore",
+        "target": "MICHI"
       }
     ]
   },
@@ -581,21 +781,513 @@ const story = {
       }
     ]
   },
-  "EMMA": {
-    "id": "EMMA",
-    "bg": "hallway_fluorescent.jpg",
+  "FRANZ2_2": {
+    "id": "FRANZ2_2",
+    "bg": "office_corridor.jpg",
     "set_flags": [
-      "visited_4th_floor"
+      "met_franz"
     ],
     "textBlocks": [
-      "You find Emma on the 4th floor, near the window where she likes to work. Something about natural light being essential for productivity. She waves you over with a warm smile. \"Andi! Heard you're leaving. Exciting times! The physics institute, right? How are you getting to the new job? Did you drive here today?\"",
-      "You shift uncomfortably. The topic of driving always makes you a bit nervous. You know how to drive. In theory. You've even done it, on occasion, without incident. But there's a certain \"creative tension\" between you and vehicles. The kind of tension that has resulted in a few memorable near-misses and one unfortunate incident with a parking garage that everyone has agreed never to speak of again.",
-      "\"I'm... taking the U-Bahn,\" you say with perhaps excessive emphasis. Emma nods sympathetically. \"Smart choice. Vienna's public transport is excellent.\" \"Also safer for everyone involved,\" you mutter under your breath. \"What was that?\" \"Nothing! Just excited about the new commute. Very excited. About trains.\""
+      "Franz emerges from around a corner, almost as if he was waiting for you. He's examining a pressed flower specimen held between aged fingers\u2014no doubt something with a Latin name three syllables longer than necessary.",
+      "\"Your path continues,\" he observes, not looking up from the dried petals. \"But are you prepared for what awaits? One does not simply attend a farewell. One must earn it.\""
     ],
     "choices": [
       {
+        "label": "\"What about the party?\"",
+        "target": "FRANZ_hint_rooftop"
+      },
+      {
+        "label": "\"What about knowledge?\"",
+        "target": "FRANZ_hint_knowledge"
+      },
+      {
+        "label": "\"What about supplies?\"",
+        "target": "FRANZ_hint_supplies"
+      },
+      {
+        "label": "\"I'm ready\"",
+        "target": "FRANZ_impressed",
+        "require_flags": [
+          "has_flora_book",
+          "has_magnifying_glass",
+          "has_charcoal",
+          "has_lighter",
+          "has_beer"
+        ],
+        "require_skills": [
+          "Rooftop Discovery",
+          "Floristic Knowledge",
+          "Smile"
+        ]
+      },
+      {
+        "label": "Leave",
+        "target": "elevator0"
+      }
+    ]
+  },
+  "FRANZ_1": {
+    "id": "FRANZ_1",
+    "bg": "stairwell_landing.jpg",
+    "set_flags": [
+      "met_franz"
+    ],
+    "textBlocks": [
+      "In the stairwell, half-illuminated by afternoon light filtering through a dusty window, you encounter Franz. Where you speak in code and algorithms, he speaks in Latin plant names. Where you live in digital realms, he is the quintessential \"digital non-native\"\u2014a man who prefers handwritten notes and regards computers with deep suspicion.",
+      "Yet there's a knowing look in his eyes. As if he sees something you don't. \"Ah, young traveler,\" he says with that mysterious air you've never been able to tell is genuine wisdom or theatrical affectation. \"Your journey is not yet complete. The path to a proper farewell requires... preparation. Ask, and I shall guide you.\""
+    ],
+    "choices": [
+      {
+        "label": "\"What about the party?\"",
+        "target": "FRANZ_hint_rooftop"
+      },
+      {
+        "label": "\"What about knowledge?\"",
+        "target": "FRANZ_hint_knowledge"
+      },
+      {
+        "label": "\"What about supplies?\"",
+        "target": "FRANZ_hint_supplies"
+      },
+      {
+        "label": "\"I'm ready\"",
+        "target": "FRANZ_impressed",
+        "require_flags": [
+          "has_flora_book",
+          "has_magnifying_glass",
+          "has_charcoal",
+          "has_lighter",
+          "has_beer"
+        ],
+        "require_skills": [
+          "Rooftop Discovery",
+          "Floristic Knowledge",
+          "Smile"
+        ]
+      },
+      {
+        "label": "Leave",
+        "target": "stairs_0"
+      }
+    ]
+  },
+  "FRANZ_hint_knowledge": {
+    "id": "FRANZ_hint_knowledge",
+    "bg": "stairwell_landing.jpg",
+    "textBlocks": [
+      "Franz strokes his chin thoughtfully, the gesture of a man who has spent decades pondering the mysteries of chlorophyll and photosynthesis. \"Knowledge of flora comes in many forms. A book from one who tests you on journeys through the city... and wisdom from another who leads excursions into the wild. Both are needed to navigate the botanical challenges that await.\"",
+      "\"But knowledge alone is not enough. To truly see, to identify that which grows in small places, you need the glass that magnifies. The whiteboard keeper guards it. Prove your worth, and it shall be yours.\""
+    ],
+    "choices": [
+      {
+        "label": "\"What about the party?\"",
+        "target": "FRANZ_hint_rooftop"
+      },
+      {
+        "label": "\"What about knowledge?\"",
+        "target": "FRANZ_hint_knowledge"
+      },
+      {
+        "label": "\"What about supplies?\"",
+        "target": "FRANZ_hint_supplies"
+      },
+      {
+        "label": "Leave",
+        "target": "stairs_0"
+      }
+    ]
+  },
+  "FRANZ_hint_rooftop": {
+    "id": "FRANZ_hint_rooftop",
+    "bg": "stairwell_landing.jpg",
+    "textBlocks": [
+      "Franz gazes into the distance, as if seeing through the concrete walls to something beyond. \"The gathering above... you cannot simply walk in uninvited. You must first witness it from the high place with a furry friend. The viewing spot where nature meets architecture.\" He pauses, stroking his chin. \"And to truly join such a celebration... one must know how to smile. Not the forced grimace of social obligation, but genuine warmth. Seek the one who teaches joy.\""
+    ],
+    "choices": [
+      {
+        "label": "\"What about the party?\"",
+        "target": "FRANZ_hint_rooftop"
+      },
+      {
+        "label": "\"What about knowledge?\"",
+        "target": "FRANZ_hint_knowledge"
+      },
+      {
+        "label": "\"What about supplies?\"",
+        "target": "FRANZ_hint_supplies"
+      },
+      {
+        "label": "Leave",
+        "target": "stairs_0"
+      }
+    ]
+  },
+  "FRANZ_hint_supplies": {
+    "id": "FRANZ_hint_supplies",
+    "bg": "stairwell_landing.jpg",
+    "textBlocks": [
+      "Franz chuckles mysteriously, the sound echoing in the stairwell like something from an old folktale. \"For the sacred fire, you need the black rocks from the market of Billa. That great temple of commerce down the street. And the spark of flame from the smokers' corner, where those who practice the ancient art of tobacco communion gather.\"",
+      "\"Finally, no celebration is complete without the golden liquid of friendship from the dice rollers below. Seek them in their underground domain, where strange geometries determine fate. Bring offerings, and they shall share their bounty.\""
+    ],
+    "choices": [
+      {
+        "label": "\"What about the party?\"",
+        "target": "FRANZ_hint_rooftop"
+      },
+      {
+        "label": "\"What about knowledge?\"",
+        "target": "FRANZ_hint_knowledge"
+      },
+      {
+        "label": "\"What about supplies?\"",
+        "target": "FRANZ_hint_supplies"
+      },
+      {
+        "label": "Leave",
+        "target": "stairs_0"
+      }
+    ]
+  },
+  "FRANZ_impressed": {
+    "id": "FRANZ_impressed",
+    "bg": "stairwell_landing.jpg",
+    "textBlocks": [
+      "Franz's eyes widen with genuine respect. A rare expression from the analog sage. \"You... you have gathered everything,\" he says. \"The smile of friendship. The wisdom of flora. The supplies for the sacred fire.\"",
+      "He places a hand on your shoulder\u2014perhaps the first physical gesture he's made toward you in all your years working here. \"I, who know nothing of your digital realm... am truly impressed by your journey through mine.\"",
+      "\"Go forth to the rooftop, young traveler. Everything awaits. Perhaps the gap between our worlds is not so vast after all.\""
+    ],
+    "choices": [
+      {
+        "label": "Leave",
+        "target": "stairs_0"
+      }
+    ]
+  },
+  "GIS_ending": {
+    "id": "GIS_ending",
+    "bg": "meeting_room_whiteboard.jpg",
+    "music": "game_over.mp3",
+    "chars": [
+      "charlie_neutral.svg"
+    ],
+    "ending_title": "\"BAD ENDING: Trapped in the GIS Matrix\"",
+    "textBlocks": [
+      "You fix the coordinate swap. Charlie runs the transformation again. The points land exactly where they should\u2014somewhere in the Wienerwald, not the Atlantic. \"That's amazing!\" Charlie beams. But then his expression shifts. \"Actually, while you're here... there's this other script that's been giving me trouble...\"",
+      "Hours pass. Then days. Charlie's codebase grows more complex, spawning new requirements like a hydra. \"While you're at it, can you also fix the data pipeline? And the visualization module? There's this weird bug that only happens on Tuesdays when the moon is waxing...\" Each fix reveals three more problems. Each solution creates new dependencies.",
+      "You look up from the screen. A week has passed. Your new job at the physics institute started without you. They've already hired someone else. But Charlie's GIS code still needs you. There's always one more bug to fix, one more feature to add, one more dataset to integrate. The previous coder tried to escape once. They found his skeleton in the server room."
+    ],
+    "choices": []
+  },
+  "GIS_scene": {
+    "id": "GIS_scene",
+    "bg": "meeting_room_whiteboard.jpg",
+    "chars": [
+      "charlie_neutral.svg"
+    ],
+    "textBlocks": [
+      "You follow Charlie to his workstation. Maps cover every surface. Topographical nightmares, satellite imagery, layers upon layers of geographic data. Charlie pulls up his code. \"See? I'm trying to transform these coordinates from WGS84 to MGI, but the output keeps landing somewhere in the Atlantic Ocean.\"",
+      "You lean in, scanning the code. Something's off. Line 47\u2014he's swapped the order of the coordinate axes. \"There. You've got latitude and longitude reversed.\" Charlie's face cycles through confusion, realization, and embarrassment."
+    ],
+    "choices": [
+      {
+        "label": "Help fix the code",
+        "target": "GIS_ending"
+      }
+    ]
+  },
+  "hallway": {
+    "id": "hallway",
+    "bg": "office_corridor.jpg",
+    "textBlocks": [
+      "You reach the main crossing of the building, where all paths seem to intersect. The smell of coffee drifts from somewhere nearby. Voices echo from multiple directions.",
+      "Three corridors branch off from here. The kitchen is just around the corner. Down one hallway, you can hear someone talking. Another corridor leads toward the common areas."
+    ],
+    "choices": [
+      {
+        "label": "Go to the kitchen",
+        "target": "kitchen"
+      },
+      {
+        "label": "Check who's talking",
+        "target": "JONI"
+      },
+      {
+        "label": "Head toward the common area",
+        "target": "ADRIAN"
+      }
+    ]
+  },
+  "JACQUELINE": {
+    "id": "JACQUELINE",
+    "bg": "office_corridor.jpg",
+    "textBlocks": [
+      "You spot Jacqueline struggling with a large stack of boxes. She's visibly pregnant, and the boxes look heavy. \"Let me help you with those.\"",
+      "\"Oh, thank goodness! I need to move these from the fifth floor to the first floor... then from Karl Reiter's office to Franz's office... and then back to the fifth floor.\" You spend the next hour becoming intimately familiar with the building's stairwell.",
+      "\"That was so kind of you, Andi. Want to grab lunch? I'm starving!\" You agree, though you've already finished your lunch in 30 seconds as usual. But good manners dictate waiting for your meal partner. And since she's eating for two, this takes a while. There are gherkins involved. Multiple courses. An hour later, you're finally free."
+    ],
+    "choices": [
+      {
+        "label": "Leave the building",
+        "target": "ending_early_exit"
+      },
+      {
+        "label": "Visit the stairwell",
+        "target": "FRANZ2_2",
+        "require_flags": [
+          "!met_franz"
+        ]
+      },
+      {
         "label": "Take the elevator",
-        "target": "elevator1"
+        "target": "elevator0"
+      }
+    ]
+  },
+  "JEN": {
+    "id": "JEN",
+    "bg": "office_corridor.jpg",
+    "textBlocks": [
+      "You make your way down the stairs, ready to leave Rennweg for good. Suddenly, Jen catches up to you. \"Hey Andi! Before you go... want to feed the squirrels with me one last time?\" She holds up a small bag of nuts, eyes sparkling with enthusiasm."
+    ],
+    "choices": [
+      {
+        "label": "\"Sure, why not?\"",
+        "target": "squirrel_good"
+      },
+      {
+        "label": "\"Actually, I've got my own snacks...\"",
+        "target": "squirrel_bad"
+      },
+      {
+        "label": "\"Sorry, I really should get going...\"",
+        "target": "JEN_no"
+      }
+    ]
+  },
+  "JEN_no": {
+    "id": "JEN_no",
+    "bg": "office_corridor.jpg",
+    "textBlocks": [
+      "Jen looks a bit disappointed but nods understandingly. She's used to people declining her squirrel-watching invitations. \"No worries! I'm sure the squirrels will miss you though. There's one that I swear recognizes you. Always does that little tail flick whenever you walk by the window.\"",
+      "She gives you a warm smile, the kind that makes you feel like you're part of something, even when you're leaving. \"Take care, Andi. It won't be the same without you here. The IT department will fall apart within a week, mark my words.\" You wave goodbye and continue on your way, slightly relieved to have avoided whatever adventures the squirrels had in store."
+    ],
+    "choices": [
+      {
+        "label": "Head down the corridor",
+        "target": "AGNES"
+      }
+    ]
+  },
+  "JONI": {
+    "id": "JONI",
+    "bg": "office_corridor.jpg",
+    "textBlocks": [
+      "You hear someone \"granteln\" around the corner. That distinctive Viennese grumbling, complaining in that derogatory, ranting way. You immediately recognize who it is. You round the corner to find Joni, freshly returned from somewhere, talking to a colleague.",
+      "He spots you and his face lights up. Well, as much as a Viennese face lights up. \"Andi! Du bist ja da!\" He comes over with a knowing smile. \"I'm so glad you're still here. You know, while I was gone, I was SO annoyed by the toxic positivity around this place.\"",
+      "You nod sympathetically. Sometimes you need someone who properly \"grantelt\" to balance out all that cheerfulness."
+    ],
+    "choices": [
+      {
+        "label": "Visit another colleague",
+        "target": "ANNA"
+      },
+      {
+        "label": "Go to the smokers' corner",
+        "target": "smoking"
+      }
+    ]
+  },
+  "kitchen": {
+    "id": "kitchen",
+    "bg": "office_kitchen.jpg",
+    "set_flags": [
+      "visited_kitchen"
+    ],
+    "add_items": [
+      {
+        "name": "Coffee Mug",
+        "type": "consumable"
+      }
+    ],
+    "textBlocks": [
+      "You enter the kitchen for one last cup of coffee. On the counter, the monstera plant sits in an overflowing saucer. Someone watered it a little too enthusiastically. As you watch, water spills onto the counter and then the floor.",
+      "You grab paper towels. The kitchen is flooding! A medium-sized disaster. You empty the saucer and mop up the spreading puddle before it reaches the electrical outlets. Crisis averted. You grab a coffee mug as reward."
+    ],
+    "choices": [
+      {
+        "label": "Leave with the coffee",
+        "target": "hallway"
+      },
+      {
+        "label": "Drink the coffee",
+        "target": "coffee_end",
+        "uses": [
+          "Coffee Mug"
+        ]
+      }
+    ]
+  },
+  "LISA_scene": {
+    "id": "LISA_scene",
+    "bg": "office_kitchen.jpg",
+    "textBlocks": [
+      "You run into Lisa near the kitchen. She's making coffee. \"Oh, Andi! Did you hear? Someone said they found a mouse in here.\" You glance around nervously. \"A mouse?\" \"Yeah, but they couldn't find it anymore. Maybe it's hiding somewhere.\"",
+      "Lisa reaches for the kitchen cabinet\u2014the infamous party cabinet\u2014and opens it. A MOUSE RUNS OUT! It darts past you both and into the small hallway in front of your office. You and Lisa quickly close the doors, trapping yourselves and the mouse in the two-square-meter space.",
+      "Five solid minutes of chaos. Diving behind boxes. Scrambling over chairs. Finally, you manage to capture the tiny creature. Together, you release it into the garden. Lisa catches her breath. \"Well. That happened.\""
+    ],
+    "choices": [
+      {
+        "label": "Go to hallway",
+        "target": "hallway"
+      },
+      {
+        "label": "Join a field excursion",
+        "target": "MORITZ_excursion"
+      }
+    ]
+  },
+  "MICHI": {
+    "id": "MICHI",
+    "bg": "hallway_fluorescent.jpg",
+    "textBlocks": [
+      "On the 4th floor, you find Michi standing guard by the whiteboard. The legendary whiteboard. Where all important announcements are posted. And where Michi keeps his prized possession: a professional-grade magnifying glass.",
+      "\"Andi! Leaving so soon?\" He blocks your path. \"You know, I've always wondered... can a computer guy handle himself in a real confrontation?\" He pulls out a marker like it's a weapon. \"Let's find out.\""
+    ],
+    "choices": [
+      {
+        "label": "Face Michi",
+        "target": "MICHI_battle"
+      }
+    ]
+  },
+  "MICHI_battle": {
+    "id": "MICHI_battle",
+    "bg": "hallway_fluorescent.jpg",
+    "music": "BOSS_TIME.mp3",
+    "chars": [
+      "michi_whiteboard.svg"
+    ],
+    "actions": [
+      {
+        "type": "start_battle",
+        "enemy_id": "michi",
+        "win_target": "MICHI_victory",
+        "lose_target": "MICHI_defeat"
+      }
+    ],
+    "textBlocks": [
+      "Michi twirls the marker between his fingers like a switchblade. The fluorescent lights flicker ominously. Or maybe that's just your imagination.",
+      "\"Let's see what you've learned!\""
+    ],
+    "choices": [
+      {
+        "label": "Attack!",
+        "target": "MICHI_battle",
+        "battle_action": "attack"
+      },
+      {
+        "label": "Skills",
+        "target": "MICHI_battle",
+        "battle_action": "skill"
+      },
+      {
+        "label": "Defend",
+        "target": "MICHI_battle",
+        "battle_action": "defend"
+      },
+      {
+        "label": "Item",
+        "target": "MICHI_battle",
+        "battle_action": "item"
+      }
+    ]
+  },
+  "MICHI_defeat": {
+    "id": "MICHI_defeat",
+    "bg": "hallway_fluorescent.jpg",
+    "music": "game_over.mp3",
+    "ending_title": "\"BAD ENDING: Whiteboard Warrior's Triumph\"",
+    "textBlocks": [
+      "Michi stands over you, marker in hand, shaking his head slowly. \"Computer guys... always thinking you can debug your way out of everything.\" He turns back to his whiteboard, leaving you crumpled on the floor.",
+      "You'll never get that magnifying glass now."
+    ],
+    "choices": []
+  },
+  "MICHI_victory": {
+    "id": "MICHI_victory",
+    "bg": "hallway_fluorescent.jpg",
+    "music": "victory.mp3",
+    "set_flags": [
+      "has_magnifying_glass"
+    ],
+    "add_items": [
+      {
+        "name": "Magnifying Glass",
+        "type": "key"
+      }
+    ],
+    "textBlocks": [
+      "Michi steps back, impressed. \"Not bad, computer guy. Not bad at all.\" He reaches behind the whiteboard and produces his prized magnifying glass. \"Here. Take this. For seeing the small things that others miss.\"",
+      "You pocket the magnifying glass. Essential for any serious botanical identification."
+    ],
+    "choices": [
+      {
+        "label": "Move on",
+        "target": "EMMA"
+      }
+    ]
+  },
+  "MORITZ_excursion": {
+    "id": "MORITZ_excursion",
+    "bg": "sunny_street_freedom.jpg",
+    "textBlocks": [
+      "You remember a while back\u2014one of Wolfgang's field excursions that you'd somehow agreed to join. Moritz was there, explaining how the data you work with is actually collected. The destination: the dry meadows of Leithagebirge near Lake Neusiedl. You'd arrived with equipment sufficient for a Himalaya expedition. Everyone stared at your massive backpack as you stepped off the bus.",
+      "The course took place in the Wachau and Burgenland\u2014not exactly extreme terrain. But the real challenge wasn't the hiking. It was the plants. Latin names. So many Latin names. And the two things that stuck with you most: the proper equipment needed for fieldwork... and the fact that \"h\u00fcbsch\" is NOT a valid differential characteristic for plant identification. (Because all plants are \"h\u00fcbsch,\" apparently.)",
+      "Moritz approaches you now. \"Remember that excursion? I've got a quiz for you.\""
+    ],
+    "choices": [
+      {
+        "label": "\"Bring it on!\"",
+        "target": "quiz_excursion"
+      }
+    ]
+  },
+  "office": {
+    "id": "office",
+    "bg": "dark_office_desk.jpg",
+    "textBlocks": [
+      "You step into one of the first-floor offices. The door swings shut with a soft click. Quiet, except for the gentle hum of equipment. Desks covered in papers, reference books stacked precariously, monitors casting blue light across the walls. It could be any office in any research institute\u2014yet somehow, it's distinctly this place."
+    ],
+    "choices": [
+      {
+        "label": "Continue",
+        "target": "ending_early_exit"
+      }
+    ]
+  },
+  "out1": {
+    "id": "out1",
+    "bg": "sunny_street_freedom.jpg",
+    "textBlocks": [
+      "You push through the glass doors and step out into the Vienna afternoon. The air hits you like a welcome change\u2014warm, carrying the scent of summer and city life and something blooming nearby. After the climate-controlled corridors of the institute, it feels almost tropical. You take a deep breath, looking up at the sky above Rennweg, watching a tram rattle past on its endless circuit through the city."
+    ],
+    "choices": [
+      {
+        "label": "Continue",
+        "target": "ending_early_exit"
+      }
+    ]
+  },
+  "out2": {
+    "id": "out2",
+    "bg": "sunny_street_freedom.jpg",
+    "textBlocks": [
+      "The side exit deposits you into the quieter courtyard, away from the bustle of Rennweg. Here, the building's shadow provides some relief from the afternoon sun, and you can hear birdsong from the trees that line the neighboring Botanical Garden. A familiar path stretches before you\u2014how many times have you walked this way to grab lunch, or to clear your head during a particularly frustrating debugging session?"
+    ],
+    "choices": [
+      {
+        "label": "Continue",
+        "target": "ending_early_exit"
       }
     ]
   },
@@ -663,28 +1355,84 @@ const story = {
     ],
     "choices": []
   },
-  "STEFAN_defeat": {
-    "id": "STEFAN_defeat",
-    "bg": "stairwell_landing.jpg",
-    "music": "game_over.mp3",
-    "ending_title": "\"BAD ENDING: Haunted by Hardware\"",
+  "quiz_excursion2": {
+    "id": "quiz_excursion2",
+    "bg": "sunny_street_freedom.jpg",
+    "actions": [
+      {
+        "type": "start_quiz",
+        "time_per_question": 12,
+        "win_target": "quiz_excursion2_win",
+        "lose_target": "ending_quiz_fail_siegrun",
+        "questions": [
+          {
+            "question": "What type of vegetation did you survey at Haindlkarh\u00fctte?",
+            "answers": [
+              {
+                "text": "Alpine meadows and scree vegetation",
+                "correct": true
+              },
+              {
+                "text": "Tropical rainforest"
+              },
+              {
+                "text": "Desert scrubland"
+              }
+            ]
+          },
+          {
+            "question": "What special food sustained you during the climb?",
+            "answers": [
+              {
+                "text": "A Leberk\u00e4ssemmel"
+              },
+              {
+                "text": "Astronaut food tube pasta",
+                "correct": true
+              },
+              {
+                "text": "Energy bars"
+              }
+            ]
+          },
+          {
+            "question": "How did the cows behave during your surveys?",
+            "answers": [
+              {
+                "text": "Aggressively"
+              },
+              {
+                "text": "They ran away"
+              },
+              {
+                "text": "Peacefully",
+                "correct": true
+              }
+            ]
+          }
+        ]
+      }
+    ],
     "textBlocks": [
-      "Stefan stands victorious in the stairwell, barely winded. \"You know what this means, right? You're staying to help me finally build Hercules. We're going to assemble every single component. By hand. Tonight.\"",
-      "You realize with dawning horror that you'll never leave this building. The ghost of Hercules demands its due."
+      "Siegrun pulls out her field notebook\u2014the legendary one that has survived alpine expeditions, sudden rainstorms, and at least one encounter with an overly curious marmot. Precise handwriting fills every margin.",
+      "\"Three questions,\" she says. \"Answer correctly and I'll certify your floristic knowledge. Fail, and we pretend this conversation never happened.\""
     ],
     "choices": []
   },
-  "stairs_0": {
-    "id": "stairs_0",
-    "bg": "stairwell_landing.jpg",
+  "quiz_excursion2_win": {
+    "id": "quiz_excursion2_win",
+    "bg": "sunny_street_freedom.jpg",
+    "set_skills": [
+      "Floristic Knowledge"
+    ],
     "textBlocks": [
-      "You reach the ground floor, your footsteps echoing in the concrete stairwell. Almost at the exit now. The building feels different when you know you're leaving it for the last time\u2014every scratch on the handrail, every crack in the plaster suddenly seems worth noticing.",
-      "Still people to see. Goodbyes to say."
+      "Siegrun closes her notebook with satisfaction. \"Not bad. You actually paid attention during those vegetation surveys. I was half convinced you were just there for the astronaut food.\"",
+      "\"I hereby certify that you possess genuine **Floristic Knowledge**,\" she declares. \"The plants would be proud. Well, the ones that survived your fieldwork. That Sempervivum you stepped on might hold a grudge.\""
     ],
     "choices": [
       {
-        "label": "Look around",
-        "target": "JACQUELINE"
+        "label": "Take the elevator",
+        "target": "elevator1"
       }
     ]
   },
@@ -712,27 +1460,146 @@ const story = {
       }
     ]
   },
-  "MICHI_victory": {
-    "id": "MICHI_victory",
-    "bg": "hallway_fluorescent.jpg",
-    "music": "victory.mp3",
+  "rooftop": {
+    "id": "rooftop",
+    "bg": "rooftop.jpg",
+    "music": "rooftop.mp3",
+    "textBlocks": [
+      "You push open the rooftop door and step out into the late afternoon sun. The terrace stretches before you, bathed in golden light. Potted plants, mismatched furniture, a panoramic view of Vienna spreading out to the distant hills. A warm breeze carries the scent of summer and something else... is that a grill warming up?",
+      "Your colleagues are gathered in clusters, setting up tables and arranging chairs. Someone has strung fairy lights between the posts, though they won't be visible until dusk. As you step forward, faces turn your way. \"Andi! You made it!\" someone calls out, and suddenly everyone is waving, smiling, beckoning you over.",
+      "The smiles are genuine, welcoming. Everyone seems to be waiting for something. Expecting something. You realize with a start that they're waiting for you to smile back, to show that you're genuinely happy to be here."
+    ],
+    "choices": [
+      {
+        "label": "Smile back",
+        "target": "bbq1",
+        "require_skills": [
+          "Smile"
+        ]
+      },
+      {
+        "label": "Stand awkwardly",
+        "target": "ending_bbq_nosmile"
+      }
+    ]
+  },
+  "SIEGRUN": {
+    "id": "SIEGRUN",
+    "bg": "office_corridor.jpg",
+    "textBlocks": [
+      "You encounter Siegrun in the corridor. She looks at you with a mix of fondness and mischief. \"Andi! Remember that Ges\u00e4use field course you joined to save it from cancellation?\" How could you forget? The course was about to be canceled due to low enrollment. You had signed up, knowing mostly what you were getting into."
+    ],
+    "choices": [
+      {
+        "label": "Reminisce about the Ges\u00e4use",
+        "target": "SIEGRUN_excursion"
+      },
+      {
+        "label": "Visit the stairwell",
+        "target": "FRANZ2_1",
+        "require_flags": [
+          "!met_franz"
+        ]
+      },
+      {
+        "label": "Take the elevator",
+        "target": "elevator1"
+      }
+    ]
+  },
+  "SIEGRUN_excursion": {
+    "id": "SIEGRUN_excursion",
+    "bg": "sunny_street_freedom.jpg",
+    "textBlocks": [
+      "The memories come flooding back. The Gasthof \u00d6dsteinblick in Johnsbach. The program: vegetation surveys, plant identification, steep terrain. Quite demanding when you're used to a flat computer-screen environment. The climb to the Haindlkarh\u00fctte was the real challenge\u2014past rock walls, through forests, across scree slopes with massive boulders. In the midday heat. On steep, narrow paths.",
+      "You'd made it\u2014barely\u2014thanks to the magical NASA pilot food tube you'd brought from Houston. Pasta asciutta in astronaut form. Squeezed directly into your mouth on the mountain hut terrace. The students had stared. Then more surveys. More climbs. Rain. Cows. (The cows were friendly, at least.) And the one lesson that stuck: \"h\u00fcbsch\" is not a differential characteristic.",
+      "Siegrun smiles. \"You survived! Let's see if you remember what you learned.\""
+    ],
+    "choices": [
+      {
+        "label": "Take the quiz",
+        "target": "quiz_excursion2"
+      }
+    ]
+  },
+  "smoking": {
+    "id": "smoking",
+    "bg": "sunny_street_freedom.jpg",
     "set_flags": [
-      "has_magnifying_glass"
+      "has_lighter"
     ],
     "add_items": [
       {
-        "name": "Magnifying Glass",
+        "name": "Lighter",
         "type": "key"
       }
     ],
     "textBlocks": [
-      "Michi steps back, impressed. \"Not bad, computer guy. Not bad at all.\" He reaches behind the whiteboard and produces his prized magnifying glass. \"Here. Take this. For seeing the small things that others miss.\"",
-      "You pocket the magnifying glass. Essential for any serious botanical identification."
+      "You head to the smokers' corner outside. A few colleagues are gathered there, enjoying the fresh air (and nicotine). \"Andi! You don't even smoke, what are you doing here?\" \"Just... saying goodbye to everyone.\"",
+      "\"Well, we got you a going-away present!\" Someone hands you a lighter. It's engraved with \"CATS Forever.\" \"You never know when you'll need fire.\" You pocket it, oddly touched."
     ],
     "choices": [
       {
-        "label": "Move on",
-        "target": "EMMA"
+        "label": "Head inside",
+        "target": "JEN"
+      }
+    ]
+  },
+  "squirrel_bad": {
+    "id": "squirrel_bad",
+    "bg": "office_corridor.jpg",
+    "textBlocks": [
+      "You pull out your own snacks from your bag\u2014chips, chocolate, leftover pizza from some forgotten lunch meeting. \"Oh, you brought your own food to feed them? That's so sweet!\" Jen says, her eyes sparkling with what you assume is enthusiasm. You start tossing pizza crusts to the squirrels. They love it. A little TOO much.",
+      "Within minutes, word has spread through the squirrel underground. Dozens appear from nowhere\u2014from trees, from bushes, from what you could swear was thin air. \"This is... getting out of hand,\" Jen says, backing away slowly as one particularly bold squirrel starts wearing your pizza box like a crown. Another has fashioned a cape from a napkin. They're organizing. This can't be good.",
+      "Suddenly, Jen pulls out a badge. Not a university ID\u2014an actual law enforcement badge. \"Wildlife Protection Unit. You're under arrest for feeding non-approved foods to protected urban fauna.\" Your jaw drops. \"Wait... WHAT?!\" \"I've been undercover here for months, waiting for someone to slip up. The squirrels were bait. And you took it.\" The pizza-box king salutes her. The betrayal is total."
+    ],
+    "choices": [
+      {
+        "label": "Accept your fate",
+        "target": "squirrel_police_ending"
+      }
+    ]
+  },
+  "squirrel_good": {
+    "id": "squirrel_good",
+    "bg": "sunny_street_freedom.jpg",
+    "set_skills": [
+      "Rooftop Discovery"
+    ],
+    "textBlocks": [
+      "Together, you stroll through the park behind the building. The autumn sun filters through the trees as you walk along the familiar path. Soon, you spot a fluffy squirrel sitting on a branch, watching you curiously. Jen offers you some nuts. \"Here, try feeding it directly!\"",
+      "You hold out your hand with a nut. The squirrel hesitates... then jumps onto your hand! Its tiny paws grip your fingers as it munches away. You feel the happiest you've felt in a long time. From where you stand, you notice something through the trees\u2014people on the rooftop terrace, setting up what looks like some kind of gathering. \"Oh, something's happening up there!\" Jen says. \"You should definitely check that out later.\""
+    ],
+    "choices": [
+      {
+        "label": "Head back inside",
+        "target": "AGNES"
+      }
+    ]
+  },
+  "squirrel_police_ending": {
+    "id": "squirrel_police_ending",
+    "bg": "dark_office_desk.jpg",
+    "music": "game_over.mp3",
+    "ending_title": "\"BAD ENDING: Squirrel Sting Operation\"",
+    "textBlocks": [
+      "Jen pulls out actual handcuffs\u2014real, professional-grade handcuffs that definitely don't belong to anyone who just studies nature. The squirrels scatter like furry smoke, vanishing back into the trees with the discipline of trained operatives. \"You have the right to remain silent. Anything you say can and will be used against you in the Court of Nature.\"",
+      "\"But... but you're the one who invited me to feed them!\" you sputter, still trying to process this betrayal. \"That was the sting operation, genius. I've been building this case for months.\" Her voice is cold, professional. \"All those times I brought nuts... all those cute squirrel photos for Instagram...\" \"Evidence. Every single one. We have timestamps, location data, even the nutritional content of those pizza crusts.\"",
+      "As you're led away through the Botanical Garden, a squirrel perches on a branch above and salutes you with a tiny paw. Was it in on this? Was the whole squirrel population an elaborate counterintelligence network? The betrayal hurts more than the handcuffs. Your new job at the physics institute will have to wait. First: 500 hours of community service picking up acorns."
+    ],
+    "choices": []
+  },
+  "stairs_0": {
+    "id": "stairs_0",
+    "bg": "stairwell_landing.jpg",
+    "textBlocks": [
+      "You reach the ground floor, your footsteps echoing in the concrete stairwell. Almost at the exit now. The building feels different when you know you're leaving it for the last time\u2014every scratch on the handrail, every crack in the plaster suddenly seems worth noticing.",
+      "Still people to see. Goodbyes to say."
+    ],
+    "choices": [
+      {
+        "label": "Look around",
+        "target": "JACQUELINE"
       }
     ]
   },
@@ -758,204 +1625,6 @@ const story = {
       }
     ]
   },
-  "ending_bbq_flora_noknowledge": {
-    "id": "ending_bbq_flora_noknowledge",
-    "bg": "rooftop.jpg",
-    "music": "game_over.mp3",
-    "ending_title": "\"BAD ENDING: Book Smart, Field Dumb\"",
-    "textBlocks": [
-      "You flip through the Flora Book frantically. The pages blur together\u2014Latin names, dichotomous keys, illustrations that all look the same. Crassulaceae? Aizoaceae? Something with an 'S'? None of it makes sense without field experience.",
-      "\"It's... definitely in the Asteraceae family? Or maybe Brassicaceae?\" Franz shakes his head. \"The book is useless without understanding. Like having a dictionary but not knowing grammar.\"",
-      "The botanists lose interest. The party continues, but you've been exposed\u2014someone with the tools but not the knowledge."
-    ],
-    "choices": []
-  },
-  "ending_quiz_fail_moritz": {
-    "id": "ending_quiz_fail_moritz",
-    "bg": "meeting_room_whiteboard.jpg",
-    "music": "game_over.mp3",
-    "ending_title": "\"BAD ENDING: Failed the Floristic Test\"",
-    "textBlocks": [
-      "Moritz closes the Flora Book with a disappointed shake of his head. \"I had hoped for better. All those excursions, all those hours in the field...\"",
-      "He tucks the book back into his bag\u2014the book that could have been yours. \"Perhaps the physics institute is the right place for you after all. They don't care about Stipa pennata there.\""
-    ],
-    "choices": []
-  },
-  "JEN": {
-    "id": "JEN",
-    "bg": "office_corridor.jpg",
-    "textBlocks": [
-      "You make your way down the stairs, ready to leave Rennweg for good. Suddenly, Jen catches up to you. \"Hey Andi! Before you go... want to feed the squirrels with me one last time?\" She holds up a small bag of nuts, eyes sparkling with enthusiasm."
-    ],
-    "choices": [
-      {
-        "label": "\"Sure, why not?\"",
-        "target": "squirrel_good"
-      },
-      {
-        "label": "\"Actually, I've got my own snacks...\"",
-        "target": "squirrel_bad"
-      },
-      {
-        "label": "\"Sorry, I really should get going...\"",
-        "target": "JEN_no"
-      }
-    ]
-  },
-  "FRANZ_1": {
-    "id": "FRANZ_1",
-    "bg": "stairwell_landing.jpg",
-    "set_flags": [
-      "met_franz"
-    ],
-    "textBlocks": [
-      "In the stairwell, half-illuminated by afternoon light filtering through a dusty window, you encounter Franz. Where you speak in code and algorithms, he speaks in Latin plant names. Where you live in digital realms, he is the quintessential \"digital non-native\"\u2014a man who prefers handwritten notes and regards computers with deep suspicion.",
-      "Yet there's a knowing look in his eyes. As if he sees something you don't. \"Ah, young traveler,\" he says with that mysterious air you've never been able to tell is genuine wisdom or theatrical affectation. \"Your journey is not yet complete. The path to a proper farewell requires... preparation. Ask, and I shall guide you.\""
-    ],
-    "choices": [
-      {
-        "label": "\"What about the party?\"",
-        "target": "FRANZ_hint_rooftop"
-      },
-      {
-        "label": "\"What about knowledge?\"",
-        "target": "FRANZ_hint_knowledge"
-      },
-      {
-        "label": "\"What about supplies?\"",
-        "target": "FRANZ_hint_supplies"
-      },
-      {
-        "label": "\"I'm ready\"",
-        "target": "FRANZ_impressed",
-        "require_flags": [
-          "has_flora_book",
-          "has_magnifying_glass",
-          "has_charcoal",
-          "has_lighter",
-          "has_beer"
-        ],
-        "require_skills": [
-          "Rooftop Discovery",
-          "Floristic Knowledge",
-          "Smile"
-        ]
-      },
-      {
-        "label": "Leave",
-        "target": "stairs_0"
-      }
-    ]
-  },
-  "ANNA_victory": {
-    "id": "ANNA_victory",
-    "bg": "office_corridor.jpg",
-    "music": "victory.mp3",
-    "textBlocks": [
-      "The world slowly stops spinning. Anna's whiskers fade away. The monitor is just a monitor again. \"Wow,\" Anna says, back to her normal human form. \"That wore off fast. I think the dosage might need adjusting...\"",
-      "You make a mental note to never accept tea from Anna again. Your head is still throbbing, but you're okay."
-    ],
-    "choices": [
-      {
-        "label": "Take the stairs",
-        "target": "stairs_0"
-      }
-    ]
-  },
-  "FRANZ_hint_rooftop": {
-    "id": "FRANZ_hint_rooftop",
-    "bg": "stairwell_landing.jpg",
-    "textBlocks": [
-      "Franz gazes into the distance, as if seeing through the concrete walls to something beyond. \"The gathering above... you cannot simply walk in uninvited. You must first witness it from the high place with a furry friend. The viewing spot where nature meets architecture.\" He pauses, stroking his chin. \"And to truly join such a celebration... one must know how to smile. Not the forced grimace of social obligation, but genuine warmth. Seek the one who teaches joy.\""
-    ],
-    "choices": [
-      {
-        "label": "\"What about the party?\"",
-        "target": "FRANZ_hint_rooftop"
-      },
-      {
-        "label": "\"What about knowledge?\"",
-        "target": "FRANZ_hint_knowledge"
-      },
-      {
-        "label": "\"What about supplies?\"",
-        "target": "FRANZ_hint_supplies"
-      },
-      {
-        "label": "Leave",
-        "target": "stairs_0"
-      }
-    ]
-  },
-  "ending_quiz_fail_siegrun": {
-    "id": "ending_quiz_fail_siegrun",
-    "bg": "sunny_street_freedom.jpg",
-    "music": "game_over.mp3",
-    "ending_title": "\"BAD ENDING: Failed the Field Test\"",
-    "textBlocks": [
-      "Siegrun closes her field notebook with the finality of a verdict. \"I cannot certify your floristic knowledge. You clearly weren't paying attention during the excursion.\"",
-      "She turns away, already moving on to more pressing botanical matters. Without her certification, you'll never truly belong among the botanists."
-    ],
-    "choices": []
-  },
-  "STEFAN": {
-    "id": "STEFAN",
-    "bg": "stairwell_landing.jpg",
-    "textBlocks": [
-      "Stefan looks up from his phone and grins. \"Andi! Leaving already? Without a proper send-off?\" He cracks his knuckles dramatically. \"Remember Hercules? The server we were supposed to build together?\" You wince. The legendary server. Bought in pieces. Never assembled.",
-      "\"I've been waiting years to settle this score. The server's ghost haunts me every night. And it's YOUR fault!\" Stefan assumes a fighting stance. This is getting out of hand."
-    ],
-    "choices": [
-      {
-        "label": "Face Stefan",
-        "target": "STEFAN_battle"
-      }
-    ]
-  },
-  "WOLFGANG": {
-    "id": "WOLFGANG",
-    "bg": "stairwell_landing.jpg",
-    "textBlocks": [
-      "As you pass near Wolfgang's office, you hear his voice call out. \"Andi! May I have a word with you?\" You poke your head in. Wolfgang looks unusually excited. \"Believe it or not, Elon Musk contacted me this morning!\" You raise an eyebrow skeptically.",
-      "\"He wants to buy the FloraWiki for two million Euros! Unfortunately... I can't find it anymore on the server. In fact, I can't even find the server! Please help me!\""
-    ],
-    "choices": [
-      {
-        "label": "\"Where was it last?\"",
-        "target": "cellar"
-      },
-      {
-        "label": "\"I really can't right now...\"",
-        "target": "stairs_0"
-      }
-    ]
-  },
-  "FRANZ_hint_supplies": {
-    "id": "FRANZ_hint_supplies",
-    "bg": "stairwell_landing.jpg",
-    "textBlocks": [
-      "Franz chuckles mysteriously, the sound echoing in the stairwell like something from an old folktale. \"For the sacred fire, you need the black rocks from the market of Billa. That great temple of commerce down the street. And the spark of flame from the smokers' corner, where those who practice the ancient art of tobacco communion gather.\"",
-      "\"Finally, no celebration is complete without the golden liquid of friendship from the dice rollers below. Seek them in their underground domain, where strange geometries determine fate. Bring offerings, and they shall share their bounty.\""
-    ],
-    "choices": [
-      {
-        "label": "\"What about the party?\"",
-        "target": "FRANZ_hint_rooftop"
-      },
-      {
-        "label": "\"What about knowledge?\"",
-        "target": "FRANZ_hint_knowledge"
-      },
-      {
-        "label": "\"What about supplies?\"",
-        "target": "FRANZ_hint_supplies"
-      },
-      {
-        "label": "Leave",
-        "target": "stairs_0"
-      }
-    ]
-  },
   "start": {
     "id": "start",
     "bg": "dark_office_desk.jpg",
@@ -970,46 +1639,17 @@ const story = {
       }
     ]
   },
-  "bbq1": {
-    "id": "bbq1",
-    "bg": "rooftop.jpg",
+  "STEFAN": {
+    "id": "STEFAN",
+    "bg": "stairwell_landing.jpg",
     "textBlocks": [
-      "You smile. Genuinely. After everything today\u2014the goodbyes, the unexpected challenges\u2014you're actually happy to be here. Adrian gives you a thumbs up from across the terrace, grinning that infinite loop grin of his.",
-      "Then someone points at the rooftop garden, where a cluster of succulents sits in terracotta pots near the edge. \"Andi! We're having a debate. What plant is that?\" All eyes turn to you. A botanical test, of all things. For a computer scientist. You feel Franz's gaze from somewhere behind you. This feels like the final exam you never signed up for."
+      "Stefan looks up from his phone and grins. \"Andi! Leaving already? Without a proper send-off?\" He cracks his knuckles dramatically. \"Remember Hercules? The server we were supposed to build together?\" You wince. The legendary server. Bought in pieces. Never assembled.",
+      "\"I've been waiting years to settle this score. The server's ghost haunts me every night. And it's YOUR fault!\" Stefan assumes a fighting stance. This is getting out of hand."
     ],
     "choices": [
       {
-        "label": "Wing it without the Flora Book",
-        "target": "ending_bbq_noflora",
-        "require_flags": [
-          "!has_flora_book"
-        ]
-      },
-      {
-        "label": "Check the Flora Book but guess",
-        "target": "ending_bbq_flora_noknowledge",
-        "require_items": [
-          "Flora Book",
-          "requires: !floristic_knowledge"
-        ]
-      },
-      {
-        "label": "Use knowledge but can't see clearly",
-        "target": "ending_bbq_flora_knowledge_nomagglass",
-        "require_items": [
-          "Flora Book",
-          "requires: floristic_knowledge",
-          "requires: !has_magnifying_glass"
-        ]
-      },
-      {
-        "label": "Identify with confidence",
-        "target": "bbq2",
-        "require_items": [
-          "Flora Book",
-          "require_items: Magnifying Glass",
-          "requires: floristic_knowledge"
-        ]
+        "label": "Face Stefan",
+        "target": "STEFAN_battle"
       }
     ]
   },
@@ -1055,116 +1695,29 @@ const story = {
       }
     ]
   },
-  "GIS_ending": {
-    "id": "GIS_ending",
-    "bg": "meeting_room_whiteboard.jpg",
+  "STEFAN_defeat": {
+    "id": "STEFAN_defeat",
+    "bg": "stairwell_landing.jpg",
     "music": "game_over.mp3",
-    "chars": [
-      "charlie_neutral.svg"
-    ],
-    "ending_title": "\"BAD ENDING: Trapped in the GIS Matrix\"",
+    "ending_title": "\"BAD ENDING: Haunted by Hardware\"",
     "textBlocks": [
-      "You fix the coordinate swap. Charlie runs the transformation again. The points land exactly where they should\u2014somewhere in the Wienerwald, not the Atlantic. \"That's amazing!\" Charlie beams. But then his expression shifts. \"Actually, while you're here... there's this other script that's been giving me trouble...\"",
-      "Hours pass. Then days. Charlie's codebase grows more complex, spawning new requirements like a hydra. \"While you're at it, can you also fix the data pipeline? And the visualization module? There's this weird bug that only happens on Tuesdays when the moon is waxing...\" Each fix reveals three more problems. Each solution creates new dependencies.",
-      "You look up from the screen. A week has passed. Your new job at the physics institute started without you. They've already hired someone else. But Charlie's GIS code still needs you. There's always one more bug to fix, one more feature to add, one more dataset to integrate. The previous coder tried to escape once. They found his skeleton in the server room."
+      "Stefan stands victorious in the stairwell, barely winded. \"You know what this means, right? You're staying to help me finally build Hercules. We're going to assemble every single component. By hand. Tonight.\"",
+      "You realize with dawning horror that you'll never leave this building. The ghost of Hercules demands its due."
     ],
     "choices": []
   },
-  "bbq2": {
-    "id": "bbq2",
-    "bg": "rooftop.jpg",
+  "STEFAN_victory": {
+    "id": "STEFAN_victory",
+    "bg": "stairwell_landing.jpg",
+    "music": "victory.mp3",
     "textBlocks": [
-      "You pull out the Flora Book and the Magnifying Glass. Crouching by the terracotta pot, you examine the rosette-shaped succulent with the careful attention of someone who has learned, painfully, that \"h\u00fcbsch\" is not a valid botanical term.",
-      "\"Ah yes, this is clearly...\" you squint through the glass, matching the fleshy leaves and purple-tipped edges to the illustration, \"...Sempervivum tectorum. The common houseleek.\" You wisely avoid mentioning that it's very pretty. Franz nods approvingly from across the terrace.",
-      "\"Now then,\" someone says, \"who's handling the grill?\" The ancient charcoal grill stands waiting, cold and empty. All eyes turn to you again. Of course they do."
+      "Stefan catches his breath, leaning against the stairwell railing. \"Okay, okay... I yield! Maybe Hercules was as much my fault as yours. We both let that project die.\" He extends a hand. \"No hard feelings?\"",
+      "You shake on it. The ghost of Hercules may never truly rest, but at least the living can move on. Stefan steps aside, and you continue your journey through the building."
     ],
     "choices": [
       {
-        "label": "Look at the empty grill",
-        "target": "ending_bbq_nocharcoal",
-        "require_flags": [
-          "!has_charcoal"
-        ]
-      },
-      {
-        "label": "Realize you forgot a lighter",
-        "target": "ending_bbq_charcoal_nolighter",
-        "require_items": [
-          "Charcoal",
-          "requires: !has_lighter"
-        ]
-      },
-      {
-        "label": "Set up without refreshments",
-        "target": "ending_bbq_charcoal_lighter_nobeer",
-        "require_items": [
-          "Charcoal",
-          "require_items: Lighter",
-          "requires: !has_beer"
-        ]
-      },
-      {
-        "label": "Fire up the grill properly",
-        "target": "bbq3",
-        "require_items": [
-          "Charcoal",
-          "require_items: Lighter",
-          "require_items: Beer"
-        ]
-      }
-    ]
-  },
-  "ending_bbq_charcoal_lighter_nobeer": {
-    "id": "ending_bbq_charcoal_lighter_nobeer",
-    "bg": "rooftop.jpg",
-    "music": "game_over.mp3",
-    "ending_title": "\"BAD ENDING: Dry Party\"",
-    "textBlocks": [
-      "The grill is roaring, charcoal glowing orange. Sausages sizzle. Everything is perfect. Almost.",
-      "\"This calls for a toast!\" someone declares, raising an invisible glass. Everyone turns to you. You reach for... nothing. You didn't bring any drinks. \"Surely Andi brought drinks for his own farewell party?\"",
-      "A BBQ without refreshments is like a symphony without music. People start drifting away. The mood deflates. So close to perfection, undone by a single oversight."
-    ],
-    "choices": []
-  },
-  "ANNA_battle": {
-    "id": "ANNA_battle",
-    "bg": "office_corridor.jpg",
-    "music": "BOSS_TIME.mp3",
-    "chars": [
-      "anna_neutral.svg"
-    ],
-    "actions": [
-      {
-        "type": "start_battle",
-        "enemy_id": "anna",
-        "win_target": "ANNA_victory",
-        "lose_target": "ANNA_defeat"
-      }
-    ],
-    "textBlocks": [
-      "You take a sip of the tea. It tastes... interesting. After a few minutes, you start feeling lightheaded. Suddenly, Anna's monitor begins growing hair. Wait, is Anna also... growing whiskers? She looks suspiciously like a Coipu now.",
-      "\"Oh,\" Anna says, her voice echoing strangely. \"Did I mention I've been experimenting with mushroom teas?\" She tilts her furry head. \"Is it working?\" The world begins to spin. You must fight off the hallucinations!"
-    ],
-    "choices": [
-      {
-        "label": "Attack!",
-        "target": "ANNA_battle",
-        "battle_action": "attack"
-      },
-      {
-        "label": "Skills",
-        "target": "ANNA_battle",
-        "battle_action": "skill"
-      },
-      {
-        "label": "Defend",
-        "target": "ANNA_battle",
-        "battle_action": "defend"
-      },
-      {
-        "label": "Item",
-        "target": "ANNA_battle",
-        "battle_action": "item"
+        "label": "Head outside",
+        "target": "billa"
       }
     ]
   },
@@ -1193,567 +1746,23 @@ const story = {
     "textBlocks": [],
     "choices": []
   },
-  "ADRIAN": {
-    "id": "ADRIAN",
-    "bg": "office_corridor.jpg",
-    "set_skills": [
-      "Smile"
-    ],
-    "textBlocks": [
-      "You turn the corner and run straight into Adrian. As always, he's smiling. Radiantly. Permanently. \"Andi! Great to see you!\" How is he always smiling?",
-      "\"You know,\" you say, \"you seem to be permanently happy and relaxed.\" Adrian laughs. \"So I've been told! But here's the secret: when you smile, people smile back. Then you feel like smiling more. It's an infinite loop. A positive feedback mechanism.\"",
-      "You find yourself smiling. It's infectious. \"Aaahhh, here you go again with your smile,\" you mutter. But you have to admit, you actually like it. \"There!\" Adrian beams. \"See? Now you can do it too!\""
-    ],
-    "choices": [
-      {
-        "label": "Say goodbye",
-        "target": "DIDI"
-      }
-    ]
-  },
-  "cellar": {
-    "id": "cellar",
-    "bg": "back_stairwell_dim.jpg",
-    "textBlocks": [
-      "You descend into the building's basement, following Wolfgang's vague directions. The dim corridor stretches ahead, filled with forgotten equipment and ancient filing cabinets. A cold draft blows through the darkness. Something feels off. Suddenly, a ghostly blue glow emanates from an old server rack in the corner.",
-      "A spectral voice echoes: \"Who dares disturb my eternal slumber?\" You realize with horror: it's the ghost of Hercules, the legendary server that was never completed! \"YOU! You and Stefan... you bought me in pieces! Promised me I would run high-performance calculations! But I was NEVER assembled! Never turned on! I died before I ever lived!\"",
-      "The ghost of Hercules seems very angry. But wait, you hear voices from deeper in the basement..."
-    ],
-    "choices": [
-      {
-        "label": "Investigate the voices",
-        "target": "dnd_group"
-      },
-      {
-        "label": "\"Sorry Hercules, got to go!\"",
-        "target": "stairs_0"
-      }
-    ]
-  },
-  "floor0": {
-    "id": "floor0",
-    "bg": "hallway_fluorescent.jpg",
-    "textBlocks": [
-      "The elevator deposits you on the ground floor with a gentle shudder. The lobby stretches out before you, that liminal space between the world of academia and the streets of Vienna beyond. The linoleum gleams under institutional lighting, and daylight filters through both sets of glass doors. Two exits await."
-    ],
-    "choices": [
-      {
-        "label": "Take exit 1",
-        "target": "out1"
-      },
-      {
-        "label": "Take exit 2",
-        "target": "out2"
-      }
-    ]
-  },
-  "ending_bbq_nosmile": {
-    "id": "ending_bbq_nosmile",
-    "bg": "rooftop.jpg",
-    "music": "game_over.mp3",
-    "ending_title": "\"BAD ENDING: The Awkward Farewell\"",
-    "textBlocks": [
-      "You try to smile, but your face won't cooperate. The muscles pull in the wrong directions, and what emerges is something between a grimace and a threat display.",
-      "Your colleagues exchange uncomfortable glances. \"Maybe... Andi needs some more time alone?\" Slowly, the group disperses, gravitating toward the grill and drinks. The party continues without you\u2014laughter drifting on the evening air.",
-      "You stand on the edge of the terrace, watching the sunset alone. This was supposed to be your farewell. Instead, it's just awkward."
-    ],
-    "choices": []
-  },
-  "dnd_group_victory": {
-    "id": "dnd_group_victory",
-    "bg": "back_stairwell_dim.jpg",
-    "music": "victory.mp3",
-    "set_flags": [
-      "has_beer"
-    ],
-    "add_items": [
-      {
-        "name": "Beer",
-        "type": "key"
-      }
-    ],
-    "textBlocks": [
-      "The D&D group falls back in defeat. \"Impressive,\" Tobias admits, gathering his scattered dice. \"You fight like a level 20 character. The Shadowrun challenge shall wait for another day.\"",
-      "Someone reaches into a cooler and pulls out a beer. \"The golden liquid of friendship,\" they say solemnly. \"Take it. You've earned it. May your dice always roll high.\""
-    ],
-    "choices": [
-      {
-        "label": "Return upstairs",
-        "target": "stairs_0"
-      }
-    ]
-  },
-  "AGNES_victory": {
-    "id": "AGNES_victory",
-    "bg": "office_corridor.jpg",
-    "music": "victory.mp3",
-    "chars": [
-      "agnes_surprised.svg"
-    ],
-    "textBlocks": [
-      "Agnes staggers back, clutching her stack of forms. \"This... isn't... protocol...\" The forms scatter across the floor like bureaucratic confetti. She looks at you with new respect. \"Fine. Your timesheets are... acceptable.\"",
-      "\"But this isn't over. HR never forgets.\" She steps aside, allowing you to pass. Freedom, for now."
-    ],
-    "choices": [
-      {
-        "label": "Take the stairs",
-        "target": "stairs_1"
-      }
-    ]
-  },
-  "ANNA": {
-    "id": "ANNA",
-    "bg": "office_corridor.jpg",
-    "textBlocks": [
-      "You drop by Anna's office to say goodbye. She's sitting at her desk with a steaming cup of something that smells... unusual. \"Andi! Perfect timing. Want a farewell tea?\" You eye the cup suspiciously. The liquid has an odd greenish tint."
-    ],
-    "choices": [
-      {
-        "label": "\"Sure, why not?\"",
-        "target": "ANNA_battle"
-      },
-      {
-        "label": "Politely refuse",
-        "target": "stairs_0"
-      }
-    ]
-  },
-  "ANNA_defeat": {
-    "id": "ANNA_defeat",
-    "bg": "office_corridor.jpg",
-    "music": "game_over.mp3",
-    "ending_title": "\"BAD ENDING: Mushroom Tea Incident\"",
-    "textBlocks": [
-      "The hallucinations overwhelm you. Everything goes dark. You wake up a week later in hospital. Apparently, you'd been found unconscious on Anna's office floor, mumbling something about Coipus.",
-      "The doctors say you'll make a full recovery, but you missed your first week at Boltzmanngasse. The physics institute is not impressed by your excuse."
-    ],
-    "choices": []
-  },
-  "JEN_no": {
-    "id": "JEN_no",
-    "bg": "office_corridor.jpg",
-    "textBlocks": [
-      "Jen looks a bit disappointed but nods understandingly. She's used to people declining her squirrel-watching invitations. \"No worries! I'm sure the squirrels will miss you though. There's one that I swear recognizes you. Always does that little tail flick whenever you walk by the window.\"",
-      "She gives you a warm smile, the kind that makes you feel like you're part of something, even when you're leaving. \"Take care, Andi. It won't be the same without you here. The IT department will fall apart within a week, mark my words.\" You wave goodbye and continue on your way, slightly relieved to have avoided whatever adventures the squirrels had in store."
-    ],
-    "choices": [
-      {
-        "label": "Head down the corridor",
-        "target": "AGNES"
-      }
-    ]
-  },
-  "FRANZ2_2": {
-    "id": "FRANZ2_2",
-    "bg": "office_corridor.jpg",
-    "set_flags": [
-      "met_franz"
-    ],
-    "textBlocks": [
-      "Franz emerges from around a corner, almost as if he was waiting for you. He's examining a pressed flower specimen held between aged fingers\u2014no doubt something with a Latin name three syllables longer than necessary.",
-      "\"Your path continues,\" he observes, not looking up from the dried petals. \"But are you prepared for what awaits? One does not simply attend a farewell. One must earn it.\""
-    ],
-    "choices": [
-      {
-        "label": "\"What about the party?\"",
-        "target": "FRANZ_hint_rooftop"
-      },
-      {
-        "label": "\"What about knowledge?\"",
-        "target": "FRANZ_hint_knowledge"
-      },
-      {
-        "label": "\"What about supplies?\"",
-        "target": "FRANZ_hint_supplies"
-      },
-      {
-        "label": "\"I'm ready\"",
-        "target": "FRANZ_impressed",
-        "require_flags": [
-          "has_flora_book",
-          "has_magnifying_glass",
-          "has_charcoal",
-          "has_lighter",
-          "has_beer"
-        ],
-        "require_skills": [
-          "Rooftop Discovery",
-          "Floristic Knowledge",
-          "Smile"
-        ]
-      },
-      {
-        "label": "Leave",
-        "target": "elevator0"
-      }
-    ]
-  },
-  "squirrel_good": {
-    "id": "squirrel_good",
-    "bg": "sunny_street_freedom.jpg",
-    "set_skills": [
-      "Rooftop Discovery"
-    ],
-    "textBlocks": [
-      "Together, you stroll through the park behind the building. The autumn sun filters through the trees as you walk along the familiar path. Soon, you spot a fluffy squirrel sitting on a branch, watching you curiously. Jen offers you some nuts. \"Here, try feeding it directly!\"",
-      "You hold out your hand with a nut. The squirrel hesitates... then jumps onto your hand! Its tiny paws grip your fingers as it munches away. You feel the happiest you've felt in a long time. From where you stand, you notice something through the trees\u2014people on the rooftop terrace, setting up what looks like some kind of gathering. \"Oh, something's happening up there!\" Jen says. \"You should definitely check that out later.\""
-    ],
-    "choices": [
-      {
-        "label": "Head back inside",
-        "target": "AGNES"
-      }
-    ]
-  },
-  "AGNES_defeat": {
-    "id": "AGNES_defeat",
-    "bg": "office_corridor.jpg",
-    "music": "game_over.mp3",
-    "chars": [
-      "agnes_victorious.svg"
-    ],
-    "ending_title": "\"BAD ENDING: Death by Bureaucracy\"",
-    "textBlocks": [
-      "Agnes stands triumphant over your crumpled form. \"Did you really think you could leave without proper documentation?\" She produces an endless stack of forms from seemingly nowhere. \"Now then. Let's start with the MICROCLIM timesheets. From 2019. Then the travel expense reports. Then the equipment inventory forms...\"",
-      "You realize with horror that you'll never escape."
-    ],
-    "choices": []
-  },
-  "MICHI_battle": {
-    "id": "MICHI_battle",
-    "bg": "hallway_fluorescent.jpg",
-    "music": "BOSS_TIME.mp3",
-    "chars": [
-      "michi_whiteboard.svg"
-    ],
-    "actions": [
-      {
-        "type": "start_battle",
-        "enemy_id": "michi",
-        "win_target": "MICHI_victory",
-        "lose_target": "MICHI_defeat"
-      }
-    ],
-    "textBlocks": [
-      "Michi twirls the marker between his fingers like a switchblade. The fluorescent lights flicker ominously. Or maybe that's just your imagination.",
-      "\"Let's see what you've learned!\""
-    ],
-    "choices": [
-      {
-        "label": "Attack!",
-        "target": "MICHI_battle",
-        "battle_action": "attack"
-      },
-      {
-        "label": "Skills",
-        "target": "MICHI_battle",
-        "battle_action": "skill"
-      },
-      {
-        "label": "Defend",
-        "target": "MICHI_battle",
-        "battle_action": "defend"
-      },
-      {
-        "label": "Item",
-        "target": "MICHI_battle",
-        "battle_action": "item"
-      }
-    ]
-  },
-  "quiz_excursion2_win": {
-    "id": "quiz_excursion2_win",
-    "bg": "sunny_street_freedom.jpg",
-    "set_skills": [
-      "Floristic Knowledge"
-    ],
-    "textBlocks": [
-      "Siegrun closes her notebook with satisfaction. \"Not bad. You actually paid attention during those vegetation surveys. I was half convinced you were just there for the astronaut food.\"",
-      "\"I hereby certify that you possess genuine **Floristic Knowledge**,\" she declares. \"The plants would be proud. Well, the ones that survived your fieldwork. That Sempervivum you stepped on might hold a grudge.\""
-    ],
-    "choices": [
-      {
-        "label": "Take the elevator",
-        "target": "elevator1"
-      }
-    ]
-  },
-  "JONI": {
-    "id": "JONI",
-    "bg": "office_corridor.jpg",
-    "textBlocks": [
-      "You hear someone \"granteln\" around the corner. That distinctive Viennese grumbling, complaining in that derogatory, ranting way. You immediately recognize who it is. You round the corner to find Joni, freshly returned from somewhere, talking to a colleague.",
-      "He spots you and his face lights up. Well, as much as a Viennese face lights up. \"Andi! Du bist ja da!\" He comes over with a knowing smile. \"I'm so glad you're still here. You know, while I was gone, I was SO annoyed by the toxic positivity around this place.\"",
-      "You nod sympathetically. Sometimes you need someone who properly \"grantelt\" to balance out all that cheerfulness."
-    ],
-    "choices": [
-      {
-        "label": "Visit another colleague",
-        "target": "ANNA"
-      },
-      {
-        "label": "Go to the smokers' corner",
-        "target": "smoking"
-      }
-    ]
-  },
-  "GIS_scene": {
-    "id": "GIS_scene",
-    "bg": "meeting_room_whiteboard.jpg",
-    "chars": [
-      "charlie_neutral.svg"
-    ],
-    "textBlocks": [
-      "You follow Charlie to his workstation. Maps cover every surface. Topographical nightmares, satellite imagery, layers upon layers of geographic data. Charlie pulls up his code. \"See? I'm trying to transform these coordinates from WGS84 to MGI, but the output keeps landing somewhere in the Atlantic Ocean.\"",
-      "You lean in, scanning the code. Something's off. Line 47\u2014he's swapped the order of the coordinate axes. \"There. You've got latitude and longitude reversed.\" Charlie's face cycles through confusion, realization, and embarrassment."
-    ],
-    "choices": [
-      {
-        "label": "Help fix the code",
-        "target": "GIS_ending"
-      }
-    ]
-  },
-  "coffee_end": {
-    "id": "coffee_end",
-    "bg": "office_kitchen.jpg",
-    "ending_title": "\"BAD ENDING: Death by Decaf (It Wasn't Decaf)\"",
-    "textBlocks": [
-      "You drink the suspicious coffee. It tastes like someone dissolved a battery in lukewarm water and added despair. For a moment, nothing happens. Then everything happens.",
-      "The caffeine hits like a freight train made of anxiety. Your heart rate triples. Your hands shake. You can see in four dimensions. Is that a new color? The world vibrates at a frequency only you can perceive. You try to speak but only manage a high-pitched whine that sends Norbert running. Hours later, you're found in a supply closet, having reorganized it alphabetically, by color, AND by atomic weight."
-    ],
-    "choices": []
-  },
-  "FRANZ_impressed": {
-    "id": "FRANZ_impressed",
+  "WOLFGANG": {
+    "id": "WOLFGANG",
     "bg": "stairwell_landing.jpg",
     "textBlocks": [
-      "Franz's eyes widen with genuine respect. A rare expression from the analog sage. \"You... you have gathered everything,\" he says. \"The smile of friendship. The wisdom of flora. The supplies for the sacred fire.\"",
-      "He places a hand on your shoulder\u2014perhaps the first physical gesture he's made toward you in all your years working here. \"I, who know nothing of your digital realm... am truly impressed by your journey through mine.\"",
-      "\"Go forth to the rooftop, young traveler. Everything awaits. Perhaps the gap between our worlds is not so vast after all.\""
+      "As you pass near Wolfgang's office, you hear his voice call out. \"Andi! May I have a word with you?\" You poke your head in. Wolfgang looks unusually excited. \"Believe it or not, Elon Musk contacted me this morning!\" You raise an eyebrow skeptically.",
+      "\"He wants to buy the FloraWiki for two million Euros! Unfortunately... I can't find it anymore on the server. In fact, I can't even find the server! Please help me!\""
     ],
     "choices": [
       {
-        "label": "Leave",
+        "label": "\"Where was it last?\"",
+        "target": "cellar"
+      },
+      {
+        "label": "\"I really can't right now...\"",
         "target": "stairs_0"
       }
     ]
-  },
-  "floor1": {
-    "id": "floor1",
-    "bg": "hallway_fluorescent.jpg",
-    "textBlocks": [
-      "The first floor. This corridor always feels quieter than the others, with that particular hush that settles over administrative spaces. The carpet absorbs your footsteps as you pass office doors with their brass nameplates and frosted glass panels. Through one window, you catch a glimpse of the courtyard below, bathed in afternoon light."
-    ],
-    "choices": [
-      {
-        "label": "Continue",
-        "target": "office"
-      }
-    ]
-  },
-  "STEFAN_victory": {
-    "id": "STEFAN_victory",
-    "bg": "stairwell_landing.jpg",
-    "music": "victory.mp3",
-    "textBlocks": [
-      "Stefan catches his breath, leaning against the stairwell railing. \"Okay, okay... I yield! Maybe Hercules was as much my fault as yours. We both let that project die.\" He extends a hand. \"No hard feelings?\"",
-      "You shake on it. The ghost of Hercules may never truly rest, but at least the living can move on. Stefan steps aside, and you continue your journey through the building."
-    ],
-    "choices": [
-      {
-        "label": "Head outside",
-        "target": "billa"
-      }
-    ]
-  },
-  "rooftop": {
-    "id": "rooftop",
-    "bg": "rooftop.jpg",
-    "music": "rooftop.mp3",
-    "textBlocks": [
-      "You push open the rooftop door and step out into the late afternoon sun. The terrace stretches before you, bathed in golden light. Potted plants, mismatched furniture, a panoramic view of Vienna spreading out to the distant hills. A warm breeze carries the scent of summer and something else... is that a grill warming up?",
-      "Your colleagues are gathered in clusters, setting up tables and arranging chairs. Someone has strung fairy lights between the posts, though they won't be visible until dusk. As you step forward, faces turn your way. \"Andi! You made it!\" someone calls out, and suddenly everyone is waving, smiling, beckoning you over.",
-      "The smiles are genuine, welcoming. Everyone seems to be waiting for something. Expecting something. You realize with a start that they're waiting for you to smile back, to show that you're genuinely happy to be here."
-    ],
-    "choices": [
-      {
-        "label": "Smile back",
-        "target": "bbq1",
-        "require_skills": [
-          "Smile"
-        ]
-      },
-      {
-        "label": "Stand awkwardly",
-        "target": "ending_bbq_nosmile"
-      }
-    ]
-  },
-  "AGNES_battle": {
-    "id": "AGNES_battle",
-    "bg": "office_corridor.jpg",
-    "music": "BOSS_TIME.mp3",
-    "chars": [
-      "agnes_angry.svg"
-    ],
-    "actions": [
-      {
-        "type": "start_battle",
-        "enemy_id": "agnes_hr",
-        "win_target": "AGNES_victory",
-        "lose_target": "AGNES_defeat"
-      }
-    ],
-    "textBlocks": [
-      "Agnes assumes a fighting stance. Her HR badge glints under the fluorescent lights like a warning.",
-      "\"You're not leaving without a fight!\""
-    ],
-    "choices": [
-      {
-        "label": "Attack!",
-        "target": "AGNES_battle",
-        "battle_action": "attack"
-      },
-      {
-        "label": "Skills",
-        "target": "AGNES_battle",
-        "battle_action": "skill"
-      },
-      {
-        "label": "Defend",
-        "target": "AGNES_battle",
-        "battle_action": "defend"
-      },
-      {
-        "label": "Item",
-        "target": "AGNES_battle",
-        "battle_action": "item"
-      }
-    ]
-  },
-  "MICHI": {
-    "id": "MICHI",
-    "bg": "hallway_fluorescent.jpg",
-    "textBlocks": [
-      "On the 4th floor, you find Michi standing guard by the whiteboard. The legendary whiteboard. Where all important announcements are posted. And where Michi keeps his prized possession: a professional-grade magnifying glass.",
-      "\"Andi! Leaving so soon?\" He blocks your path. \"You know, I've always wondered... can a computer guy handle himself in a real confrontation?\" He pulls out a marker like it's a weapon. \"Let's find out.\""
-    ],
-    "choices": [
-      {
-        "label": "Face Michi",
-        "target": "MICHI_battle"
-      }
-    ]
-  },
-  "office": {
-    "id": "office",
-    "bg": "dark_office_desk.jpg",
-    "textBlocks": [
-      "You step into one of the first-floor offices. The door swings shut with a soft click. Quiet, except for the gentle hum of equipment. Desks covered in papers, reference books stacked precariously, monitors casting blue light across the walls. It could be any office in any research institute\u2014yet somehow, it's distinctly this place."
-    ],
-    "choices": [
-      {
-        "label": "Continue",
-        "target": "ending_early_exit"
-      }
-    ]
-  },
-  "ending_bbq_nocharcoal": {
-    "id": "ending_bbq_nocharcoal",
-    "bg": "rooftop.jpg",
-    "music": "game_over.mp3",
-    "ending_title": "\"BAD ENDING: Cold Grill\"",
-    "textBlocks": [
-      "You approach the grill with confidence. Then you look down at the empty metal basin. No charcoal. The grill sits there, cold and accusatory. \"Did anyone bring the charcoal?\" All eyes turn to you.",
-      "Someone pulls out their phone and starts googling pizza delivery. Others follow suit. \"I'll have the Margherita,\" \"Make mine a Quattro Formaggi,\" \"Does anyone have the code for the building door?\"",
-      "A farewell party with delivered pizza is not a farewell party. It's just pizza on a roof."
-    ],
-    "choices": []
-  },
-  "hallway": {
-    "id": "hallway",
-    "bg": "office_corridor.jpg",
-    "textBlocks": [
-      "You reach the main crossing of the building, where all paths seem to intersect. The smell of coffee drifts from somewhere nearby. Voices echo from multiple directions.",
-      "Three corridors branch off from here. The kitchen is just around the corner. Down one hallway, you can hear someone talking. Another corridor leads toward the common areas."
-    ],
-    "choices": [
-      {
-        "label": "Go to the kitchen",
-        "target": "kitchen"
-      },
-      {
-        "label": "Check who's talking",
-        "target": "JONI"
-      },
-      {
-        "label": "Head toward the common area",
-        "target": "ADRIAN"
-      }
-    ]
-  },
-  "out2": {
-    "id": "out2",
-    "bg": "sunny_street_freedom.jpg",
-    "textBlocks": [
-      "The side exit deposits you into the quieter courtyard, away from the bustle of Rennweg. Here, the building's shadow provides some relief from the afternoon sun, and you can hear birdsong from the trees that line the neighboring Botanical Garden. A familiar path stretches before you\u2014how many times have you walked this way to grab lunch, or to clear your head during a particularly frustrating debugging session?"
-    ],
-    "choices": [
-      {
-        "label": "Continue",
-        "target": "ending_early_exit"
-      }
-    ]
-  },
-  "MICHI_defeat": {
-    "id": "MICHI_defeat",
-    "bg": "hallway_fluorescent.jpg",
-    "music": "game_over.mp3",
-    "ending_title": "\"BAD ENDING: Whiteboard Warrior's Triumph\"",
-    "textBlocks": [
-      "Michi stands over you, marker in hand, shaking his head slowly. \"Computer guys... always thinking you can debug your way out of everything.\" He turns back to his whiteboard, leaving you crumpled on the floor.",
-      "You'll never get that magnifying glass now."
-    ],
-    "choices": []
-  },
-  "JACQUELINE": {
-    "id": "JACQUELINE",
-    "bg": "office_corridor.jpg",
-    "textBlocks": [
-      "You spot Jacqueline struggling with a large stack of boxes. She's visibly pregnant, and the boxes look heavy. \"Let me help you with those.\"",
-      "\"Oh, thank goodness! I need to move these from the fifth floor to the first floor... then from Karl Reiter's office to Franz's office... and then back to the fifth floor.\" You spend the next hour becoming intimately familiar with the building's stairwell.",
-      "\"That was so kind of you, Andi. Want to grab lunch? I'm starving!\" You agree, though you've already finished your lunch in 30 seconds as usual. But good manners dictate waiting for your meal partner. And since she's eating for two, this takes a while. There are gherkins involved. Multiple courses. An hour later, you're finally free."
-    ],
-    "choices": [
-      {
-        "label": "Leave the building",
-        "target": "ending_early_exit"
-      },
-      {
-        "label": "Visit the stairwell",
-        "target": "FRANZ2_2",
-        "require_flags": [
-          "!met_franz"
-        ]
-      },
-      {
-        "label": "Take the elevator",
-        "target": "elevator0"
-      }
-    ]
-  },
-  "ending_bbq_charcoal_nolighter": {
-    "id": "ending_bbq_charcoal_nolighter",
-    "bg": "rooftop.jpg",
-    "music": "game_over.mp3",
-    "ending_title": "\"BAD ENDING: No Spark\"",
-    "textBlocks": [
-      "You arrange the charcoal perfectly, building a pyramid that would make a scout leader proud. \"Now I just need to...\" You pat your pockets. Nothing. No lighter. No matches.",
-      "\"Does anyone have a lighter?\" Everyone searches. But this is a health-conscious academic department. No one smokes here except... the people at the smokers' corner. Down in the courtyard. Where you didn't go.",
-      "The charcoal sits there, cold and useless. All the fuel in the world means nothing without a spark."
-    ],
-    "choices": []
   }
 };
 
