@@ -97,6 +97,26 @@
     }
 }
 
+/* === Screen Fade Overlay ===
+ * Used by wake_sequence and other fade-to-black effects.
+ * Sits above background but below UI, fades in/out to create transitions.
+ */
+#fade-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #000;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 5; /* Above background (1), below text-box (10) */
+}
+
+#fade-overlay.fade-visible {
+    opacity: 1;
+}
+
 /* === Animated Background Video ===
  * Video element for WebM/MP4 animated backgrounds.
  * Hidden by default, shown when video background is active.

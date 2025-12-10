@@ -507,24 +507,29 @@ const VNEngine = (function() {
             }
 
             var bgLayer = elements.backgroundLayer;
+            var fadeOverlay = document.getElementById('fade-overlay');
 
             // Step 1: Show "..." with typewriter effect
             renderText('...', '', function() {
-                // Step 2: Start slow fade to target background
-                if (bgLayer && targetScene.bg) {
-                    // Set a longer transition for the slow fade
-                    bgLayer.style.transition = 'opacity ' + (totalFadeDuration / 1000) + 's ease-in-out';
-                    bgLayer.classList.add('fading');
+                // Step 2: Fade from black to target background
+                if (fadeOverlay && targetScene.bg) {
+                    // Start with black overlay visible (we're on black.svg)
+                    fadeOverlay.style.transition = 'none';
+                    fadeOverlay.classList.add('fade-visible');
 
-                    // Preload target background then start the fade-in
+                    // Preload target background
                     var targetPath = config.assetPaths.bg + targetScene.bg;
                     var preloadImg = new Image();
                     preloadImg.onload = function() {
-                        // Swap background while faded out (after brief delay)
+                        // Set new background while hidden behind black overlay
+                        bgLayer.style.backgroundImage = 'url("' + targetPath + '")';
+
+                        // Small delay to ensure background is rendered
                         setTimeout(function() {
-                            bgLayer.style.backgroundImage = 'url("' + targetPath + '")';
-                            bgLayer.classList.remove('fading');  // Start fade in
-                        }, 500);  // Short delay for initial fade out
+                            // Now fade out the black overlay to reveal the new bg
+                            fadeOverlay.style.transition = 'opacity ' + (totalFadeDuration / 1000) + 's ease-in-out';
+                            fadeOverlay.classList.remove('fade-visible');
+                        }, 50);
                     };
                     preloadImg.src = targetPath;
                 }
@@ -546,11 +551,6 @@ const VNEngine = (function() {
                                 // Disable button
                                 wakeButton.disabled = true;
                                 wakeButton.style.opacity = '0.5';
-
-                                // Reset transition to default
-                                if (bgLayer) {
-                                    bgLayer.style.transition = '';
-                                }
 
                                 // Navigate to target immediately
                                 loadScene(target);

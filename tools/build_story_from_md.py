@@ -70,6 +70,10 @@ def parse_frontmatter(content):
     current_answers = None    # List of answer objects for current question
     current_answer = None     # Current answer being parsed
 
+    # Item object parsing state (for add_items/remove_items with object format)
+    current_item_object = None  # Current item object being parsed
+    item_objects_list = None    # List to collect item objects (for add_items/remove_items)
+
     def get_indent(line):
         """Get number of leading spaces."""
         return len(line) - len(line.lstrip())
@@ -225,6 +229,29 @@ def parse_frontmatter(content):
             current_char[key] = value
             continue
 
+        # Check for item object format: - name: ItemName (for add_items/remove_items)
+        if current_key in ('add_items', 'remove_items') and stripped.startswith('- name:'):
+            # Save previous item object if any
+            if current_item_object and item_objects_list is not None:
+                item_objects_list.append(current_item_object)
+            # Start new item object
+            value = stripped[7:].strip()
+            if (value.startswith('"') and value.endswith('"')) or (value.startswith("'") and value.endswith("'")):
+                value = value[1:-1]
+            current_item_object = {'name': value}
+            continue
+
+        # Check for item object properties (type, count) under - name:
+        if current_item_object is not None and indent >= 4 and ':' in stripped:
+            key, _, value = stripped.partition(':')
+            key = key.strip()
+            value = value.strip()
+            # Parse count as int
+            if key == 'count' and value.isdigit():
+                value = int(value)
+            current_item_object[key] = value
+            continue
+
         # Check for simple list item (old format chars or other lists)
         if stripped.startswith('- '):
             item = stripped[2:].strip()
@@ -256,17 +283,31 @@ def parse_frontmatter(content):
                 chars_list.append(current_char)
                 current_char = None
 
+            # Finish any pending item object
+            if current_item_object and item_objects_list is not None:
+                item_objects_list.append(current_item_object)
+                current_item_object = None
+
             # Check if this starts a list
             if value == '':
                 if key == 'actions':
                     current_key = 'actions'
                     current_list = None
+                    item_objects_list = None
                 elif key == 'chars':
                     current_key = 'chars'
                     current_list = None
+                    item_objects_list = None
                     chars_list = []
+                elif key in ('add_items', 'remove_items'):
+                    # Item lists support both string and object format
+                    current_key = key
+                    current_list = []
+                    item_objects_list = current_list  # Items go into same list
+                    frontmatter[key] = current_list
                 else:
                     current_list = []
+                    item_objects_list = None
                     frontmatter[key] = current_list
                     current_key = key
             else:
@@ -297,6 +338,10 @@ def parse_frontmatter(content):
         actions_list.append(current_action)
     if current_char:
         chars_list.append(current_char)
+
+    # Finish any remaining item object
+    if current_item_object and item_objects_list is not None:
+        item_objects_list.append(current_item_object)
 
     if actions_list:
         frontmatter['actions'] = actions_list

@@ -4,7 +4,8 @@ bg: office_kitchen.jpg
 set_flags:
   - visited_kitchen
 add_items:
-  - Coffee Mug
+  - name: Coffee Mug
+    type: consumable
 ---
 
 You enter the kitchen for one last cup of coffee. On the counter, the monstera plant sits in an overflowing saucer. Someone watered it a little too enthusiastically. As you watch, water spills onto the counter and then the floor.

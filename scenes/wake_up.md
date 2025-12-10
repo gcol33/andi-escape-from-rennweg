@@ -6,7 +6,7 @@ actions:
   - type: reset
   - type: wake_sequence
     target: start
-    fade_duration: 5000
+    fade_duration: 2500
     wait_duration: 1500
 random_flavor:
   - "Was that... a premonition? A warning from the universe?"
