@@ -21,7 +21,8 @@ var BattleDiceUI = (function() {
         spinDuration: T ? T.battle.dice.spinDuration : 1800,
         spinInterval: T ? T.battle.dice.spinInterval : 70,
         lingerDelay: T ? T.battle.dice.lingerDelay : 500,
-        typewriterSpeed: T ? T.battle.dice.typewriterSpeed : 25
+        typewriterSpeed: T ? T.battle.dice.typewriterSpeed : 25,
+        scrollThreshold: T ? T.ui.battleLogScrollThreshold : 5  // px hidden before auto-scroll
     };
 
     // =========================================================================
@@ -615,6 +616,29 @@ var BattleDiceUI = (function() {
     }
 
     // =========================================================================
+    // SCROLL HELPER
+    // =========================================================================
+
+    /**
+     * Scroll battle log to bottom if content overflows
+     * Called after adding content to ensure newest text is visible
+     * @param {Element} element - Any element inside the battle log (used to find scroll container)
+     */
+    function scrollLogIfNeeded(element) {
+        var scrollContainer = element ?
+            (element.closest('.battle-log-content') || document.getElementById('battle-log-content')) :
+            document.getElementById('battle-log-content');
+
+        if (!scrollContainer) return;
+
+        // Only scroll if there's content hidden below the current scroll position
+        var hiddenBelow = scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight;
+        if (hiddenBelow > config.scrollThreshold) {
+            scrollContainer.scrollTop = scrollContainer.scrollHeight - scrollContainer.clientHeight;
+        }
+    }
+
+    // =========================================================================
     // TYPEWRITER EFFECT
     // =========================================================================
 
@@ -635,14 +659,11 @@ var BattleDiceUI = (function() {
         var scrollContainer = element.closest('.battle-log-content') ||
                               document.getElementById('battle-log-content');
 
-        // Check if content overflows and scroll if needed
-        // Only scroll when content ACTUALLY overflows the container (not just approaching it)
+        // Local scroll check that uses the cached container
         function checkAndScroll() {
             if (!scrollContainer) return;
-            // Only scroll if content is taller than the visible area AND there's hidden content below
-            var isOverflowing = scrollContainer.scrollHeight > scrollContainer.clientHeight;
             var hiddenBelow = scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight;
-            if (isOverflowing && hiddenBelow > 10) {  // 10px threshold - only scroll when definitely overflowing
+            if (hiddenBelow > config.scrollThreshold) {
                 scrollContainer.scrollTop = scrollContainer.scrollHeight - scrollContainer.clientHeight;
             }
         }
@@ -694,8 +715,9 @@ var BattleDiceUI = (function() {
             // This is more robust and doesn't re-parse existing content
             element.appendChild(document.createTextNode(char));
             index++;
-            // Don't scroll on every character - only at end or on newlines
-            // This prevents the "line 1 jumps up when line 2 starts" bug
+            // Scroll on every character to keep newest content visible
+            // The 5px threshold in checkAndScroll prevents micro-scrolls
+            checkAndScroll();
             diceTimeout(type, speed);
         }
 
@@ -1555,41 +1577,18 @@ var BattleDiceUI = (function() {
                 cooldownNum.className = 'defend-cooldown-number';
                 cooldownNum.textContent = cooldown;
                 line.appendChild(cooldownNum);
+
+                // Scroll after adding cooldown (not typewritten, so need manual scroll)
+                scrollLogIfNeeded(line);
             }
             // Longer linger for defend results
             diceTimeout(callback, config.lingerDelay * 2);
         }
 
         // Phase 1: Type intro text then defender name
-        // If no AC bonus, use simpler text without AC mention
-        var introText = acBonus > 0
-            ? defenderName + ' assumes a defensive stance, Kung-Fu Panda style! ' + defenderName + ' increases defense '
-            : defenderName + ' assumes a defensive stance and rolls ';
+        var introText = defenderName + ' assumes a defensive stance and rolls ';
 
         typewriter(line, introText, function() {
-            // Only show AC bonus if > 0
-            if (acBonus > 0) {
-                // Show AC bonus in dark green (normal font size)
-                var acSpan = document.createElement('span');
-                acSpan.className = 'ac-bonus-text';
-                line.appendChild(acSpan);
-
-                typewriter(acSpan, '+' + acBonus + ' AC', function() {
-                    // Fire the AC complete callback (for floating +AC number)
-                    if (onACComplete) {
-                        onACComplete(acBonus);
-                    }
-
-                    // Add " and rolls " text with typewriter
-                    typewriter(line, ' and rolls ', function() {
-                        showDiceRoll();
-                    });
-                });
-            } else {
-                // No AC bonus - go straight to dice roll
-                showDiceRoll();
-            }
-
             function showDiceRoll() {
                 // Create dice element
                 var diceNum = document.createElement('strong');
@@ -1619,6 +1618,8 @@ var BattleDiceUI = (function() {
                     });
                 }, rollType);
             }
+
+            showDiceRoll();
         });
     }
 
@@ -1673,6 +1674,7 @@ var BattleDiceUI = (function() {
         var damage = options.damage;
         var sides = options.sides || 5;
         var damageText = options.damageText || KEYWORDS.DAMAGE;
+        var onTextComplete = options.onTextComplete;
 
         // Clear container and create roll result line
         container.innerHTML = '';
@@ -1707,6 +1709,9 @@ var BattleDiceUI = (function() {
                 textSpan.className = 'damage-text roll-type-damage';
                 textSpan.textContent = ' ' + damageText;
                 line.appendChild(textSpan);
+
+                // Call onTextComplete before linger (for applying effects)
+                if (onTextComplete) onTextComplete();
 
                 // Linger then callback
                 diceTimeout(function() {

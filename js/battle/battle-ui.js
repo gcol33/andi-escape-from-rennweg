@@ -60,7 +60,8 @@ var BattleUI = (function() {
             battleLogMaxLines: T ? T.ui.battleLogMaxLines : 2,
             battleLogLineHeight: T ? T.ui.battleLogLineHeight : 2.2,  // rem units
             battleChoicesHeight: T ? T.ui.battleChoicesHeight : 7.5,  // rem - 2 rows of buttons
-            battleLogPadding: T ? T.ui.battleLogPadding : 1.5        // rem - panel padding
+            battleLogPadding: T ? T.ui.battleLogPadding : 1.5,       // rem - panel padding
+            scrollThreshold: T ? T.ui.battleLogScrollThreshold : 5   // px hidden before auto-scroll
         }
     };
 
@@ -198,10 +199,14 @@ var BattleUI = (function() {
         battleLog.className = 'battle-log-panel anchor anchor--bottom-flush';
 
         // Calculate log content height from max lines (including padding for box-sizing: border-box)
+        // line-height is a multiplier (1.6), font-size is from TUNING.ui.battleTextSize (0.95rem)
+        // Actual line height in rem = font-size * line-height multiplier
         var maxLines = config.ui.battleLogMaxLines || 2;
-        var lineHeight = config.ui.battleLogLineHeight || 1.6;  // Must match CSS line-height in rem
+        var lineHeightMultiplier = config.ui.battleLogLineHeight || 1.6;
+        var fontSize = T && T.ui ? T.ui.battleTextSize : 0.95;  // rem - from tuning
+        var actualLineHeight = fontSize * lineHeightMultiplier;
         var verticalPadding = 1.0; // 0.5rem top + 0.5rem bottom (must match CSS padding)
-        var logContentHeight = (maxLines * lineHeight) + verticalPadding;
+        var logContentHeight = (maxLines * actualLineHeight) + verticalPadding;
         battleLog.style.setProperty('--battle-log-content-height', logContentHeight + 'rem');
 
         battleLog.innerHTML =
@@ -885,13 +890,8 @@ var BattleUI = (function() {
     function scrollToBottomIfNeeded(container) {
         if (!container) return;
         // Only scroll if there's content hidden below the current scroll position
-        // (scrollHeight - scrollTop - clientHeight > threshold means there's hidden content below)
         var hiddenBelow = container.scrollHeight - container.scrollTop - container.clientHeight;
-        // Use half a line height as threshold to avoid scrolling when
-        // 2-line messages fit but have minor rounding differences
-        var rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
-        var threshold = 1.1 * rootFontSize;  // Half of --battle-log-line-height (2.2rem / 2)
-        if (hiddenBelow > threshold) {
+        if (hiddenBelow > config.ui.scrollThreshold) {
             container.scrollTop = container.scrollHeight - container.clientHeight;
         }
     }

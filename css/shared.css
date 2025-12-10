@@ -2157,15 +2157,15 @@
 
 .battle-log-content {
     /* Fixed height to prevent text shift when lines are added */
-    /* With font-size: 0.95rem and line-height: 1.8 multiplier = 1.71rem per line */
-    /* Height = 2 lines * 1.71rem = 3.42rem + padding (0.8rem + 0.5rem) = ~4.7rem */
+    /* With font-size: 0.95rem and line-height: 1.6 multiplier = 1.52rem per line */
+    /* Height = 2 lines * 1.6rem + padding (1.0rem) = ~4.2rem (set via JS) */
     height: var(--battle-log-content-height, 4.8rem);
     box-sizing: border-box;  /* Include padding in height */
     overflow-y: auto;  /* Allow scrolling - JS scrolls to bottom, CSS hides scrollbar */
     overflow-x: hidden;
     padding: 0.5rem 1rem;  /* Symmetric padding - content starts at top */
     font-size: var(--battle-text-size);
-    line-height: 1.8;  /* More breathing room between lines */
+    line-height: 1.6;  /* Must match TUNING.ui.battleLogLineHeight */
     color: var(--battle-text-color);
     flex-shrink: 0;  /* Don't shrink when in flex container */
     scrollbar-width: none;  /* Firefox - hide scrollbar */

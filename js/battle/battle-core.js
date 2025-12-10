@@ -109,7 +109,6 @@ var BattleCore = (function() {
             items: []
         },
         enemy: createDefaultEnemyState(),
-        summon: null,
         targets: {
             win: null,
             lose: null,
@@ -251,7 +250,6 @@ var BattleCore = (function() {
         state.terrain = config.terrain || 'none';
         state.currentScene = sceneId;
         state.battleLog = [];
-        state.summon = null;
 
         // Reset summon system
         if (_hasBattleSummon) {
@@ -386,6 +384,22 @@ var BattleCore = (function() {
             result: result,
             target: targetScene
         };
+    }
+
+    /**
+     * Reset player stats to defaults (for "Play Again" / full game reset)
+     * This clears persisted HP/mana so next battle starts fresh
+     */
+    function resetPlayerStats() {
+        state.player.hp = null;
+        state.player.mana = null;
+        state.player.maxHP = playerDefaults.defaultMaxHP;
+        state.player.maxMana = playerDefaults.defaultMaxMana;
+        state.player.limitCharge = 0;
+        state.player.statuses = [];
+        state.player.stagger = 0;
+        state.player.defending = false;
+        state.player.defendCooldown = 0;
     }
 
     /**
@@ -1185,50 +1199,20 @@ var BattleCore = (function() {
     // =========================================================================
 
     /**
-     * Create a player summon (legacy support - uses BattleSummon module)
+     * Create a player summon (uses BattleSummon.spawn for HP-based summons)
      */
     function createSummon(summonId) {
-        if (_hasBattleSummon) {
-            var result = BattleSummon.spawnPlayerSummon(summonId);
-            if (result.success) {
-                state.summon = BattleSummon.getPlayerSummon();
-                triggerDialogue('summon_appears');
-                playSfx('summon_appear');
-            }
-            return result;
+        if (!_hasBattleSummon) {
+            return { success: false, reason: 'no_summon_module' };
         }
 
-        // Fallback to legacy implementation if BattleSummon not loaded
-        if (!_hasBattleData) {
-            return { success: false, reason: 'no_data' };
+        // Use HP-based summon system
+        var result = BattleSummon.spawn(summonId, 'player', 'player');
+        if (result.success) {
+            triggerDialogue('summon_appears');
+            playSfx('summon_appear');
         }
-        var summonDef = BattleData.getSummon(summonId);
-        if (!summonDef) {
-            return { success: false, reason: 'unknown_summon' };
-        }
-
-        if (state.summon) {
-            return { success: false, reason: 'summon_active', message: 'A summon is already active!' };
-        }
-
-        state.summon = {
-            id: summonId,
-            name: summonDef.name,
-            icon: summonDef.icon,
-            duration: summonDef.duration,
-            attack: summonDef.attack || null,
-            healPerTurn: summonDef.healPerTurn || 0,
-            passive: summonDef.passive || null
-        };
-
-        triggerDialogue('summon_appears');
-        playSfx('summon_appear');
-
-        return {
-            success: true,
-            summon: state.summon,
-            message: summonDef.icon + ' ' + summonDef.name + ' appears!'
-        };
+        return result;
     }
 
     /**
@@ -1307,112 +1291,34 @@ var BattleCore = (function() {
     }
 
     /**
-     * Process player summon turn (supports both legacy and new HP-based summons)
+     * Process player summon turn (HP-based summons only)
      */
     function processSummonTurn() {
-        if (_hasBattleSummon) {
-            // First check for new HP-based player summons
-            var spawnedSummons = BattleSummon.getActiveBySide('player');
-            if (spawnedSummons.length > 0) {
-                return processSpawnedPlayerSummons(spawnedSummons);
-            }
-
-            // Then check for legacy player summon
-            var summon = BattleSummon.getPlayerSummon();
-            if (!summon) return { acted: false, messages: [] };
-
-            var turnResult = BattleSummon.processPlayerSummonTurn(state.enemy, activeStyle);
-            var messages = turnResult.messages.slice();
-
-            // Apply heal if any
-            if (turnResult.healResult && turnResult.healResult.amount > 0) {
-                var healResult = healPlayer(turnResult.healResult.amount, 'summon');
-                if (healResult.healed > 0) {
-                    messages.unshift(summon.icon + ' ' + summon.name + ' heals you for <span class="battle-number">' + healResult.healed + ' HP</span>!');
-                }
-            }
-
-            // Apply damage if attack hit
-            if (turnResult.attackResult && turnResult.attackResult.hit) {
-                var dmgResult = damageEnemy(turnResult.attackResult.damage, { source: 'summon', type: summon.attack.type });
-                // Replace the generic attack message with one that includes damage
-                for (var i = 0; i < messages.length; i++) {
-                    if (messages[i].indexOf(' uses ') !== -1 && messages[i].indexOf('!') === messages[i].length - 1) {
-                        messages[i] = summon.icon + ' ' + summon.name + ' uses ' +
-                            summon.attack.name + ' for <span class="battle-number">' + dmgResult.damage + ' damage</span>!';
-                        break;
-                    }
-                }
-            }
-
-            // Play expiration sound
-            if (turnResult.expired) {
-                playSfx('summon_expire');
-            }
-
-            // Sync state
-            state.summon = BattleSummon.getPlayerSummon();
-
-            return {
-                acted: true,
-                messages: messages,
-                attackResult: turnResult.attackResult
-            };
+        if (!_hasBattleSummon) {
+            return { acted: false, messages: [] };
         }
 
-        // Fallback to legacy implementation
-        if (!state.summon) return { acted: false, messages: [] };
-
-        var messages = [];
-
-        // Healing
-        if (state.summon.healPerTurn > 0) {
-            var healResult = healPlayer(state.summon.healPerTurn, 'summon');
-            if (healResult.healed > 0) {
-                messages.push(state.summon.icon + ' ' + state.summon.name + ' heals you for <span class="battle-number">' + healResult.healed + ' HP</span>!');
-            }
+        var spawnedSummons = BattleSummon.getActiveBySide('player');
+        if (spawnedSummons.length > 0) {
+            return processSpawnedPlayerSummons(spawnedSummons);
         }
 
-        // Attack (delegated to active style)
-        var attackResult = null;
-        if (state.summon.attack && activeStyle && activeStyle.resolveSummonAttack) {
-            attackResult = activeStyle.resolveSummonAttack(state.summon, state.enemy);
-            if (attackResult.hit) {
-                var dmgResult = damageEnemy(attackResult.damage, { source: 'summon', type: state.summon.attack.type });
-                messages.push(state.summon.icon + ' ' + state.summon.name + ' uses ' +
-                    state.summon.attack.name + ' for <span class="battle-number">' + dmgResult.damage + ' damage</span>!');
-            } else {
-                messages.push(state.summon.icon + ' ' + state.summon.name + '\'s ' +
-                    state.summon.attack.name + ' missed!');
-            }
-        }
-
-        // Decrement duration
-        state.summon.duration--;
-        if (state.summon.duration <= 0) {
-            messages.push(state.summon.icon + ' ' + state.summon.name + ' fades away...');
-            state.summon = null;
-            playSfx('summon_expire');
-        }
-
-        return {
-            acted: true,
-            messages: messages,
-            attackResult: attackResult
-        };
+        return { acted: false, messages: [] };
     }
 
     /**
-     * Dismiss player summon early (uses BattleSummon module)
+     * Dismiss player summon early
      */
     function dismissSummon() {
-        if (_hasBattleSummon) {
-            var result = BattleSummon.dismissPlayerSummon();
-            state.summon = null;
-            return result;
+        if (!_hasBattleSummon) return false;
+
+        var playerSummons = BattleSummon.getActiveBySide('player');
+        if (playerSummons.length === 0) return false;
+
+        // Dismiss all player summons
+        for (var i = 0; i < playerSummons.length; i++) {
+            BattleSummon.dismiss(playerSummons[i].uid, 'dismissed');
         }
-        if (!state.summon) return false;
-        state.summon = null;
         return true;
     }
 
@@ -1505,7 +1411,7 @@ var BattleCore = (function() {
             terrain: state.terrain,
             player: state.player,
             enemy: state.enemy,
-            summon: state.summon,
+            summon: getSummon(),  // Get from BattleSummon module
             targets: state.targets
         };
     }
@@ -1594,7 +1500,12 @@ var BattleCore = (function() {
     }
 
     function getSummon() {
-        return state.summon;
+        // Return first active player summon (HP-based system)
+        if (_hasBattleSummon) {
+            var playerSummons = BattleSummon.getActiveBySide('player');
+            return playerSummons.length > 0 ? playerSummons[0] : null;
+        }
+        return null;
     }
 
     function getTerrain() {
@@ -1622,6 +1533,7 @@ var BattleCore = (function() {
         // Battle flow
         startBattle: startBattle,
         endBattle: endBattle,
+        resetPlayerStats: resetPlayerStats,
         checkBattleEnd: checkBattleEnd,
 
         // HP/Mana

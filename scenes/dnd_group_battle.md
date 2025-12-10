@@ -1,6 +1,8 @@
 ---
 id: dnd_group_battle
 bg: back_stairwell_dim.jpg
+chars:
+  - dnd_group.svg
 music: BOSS_TIME.mp3
 actions:
   - type: start_battle

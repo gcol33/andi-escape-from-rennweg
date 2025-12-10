@@ -605,120 +605,6 @@ var BattleSummon = (function() {
     }
 
     // =========================================================================
-    // PLAYER SUMMON LEGACY SUPPORT
-    // =========================================================================
-
-    // Legacy player summon state (for BattleData-style summons without HP)
-    var playerSummon = null;
-
-    /**
-     * Spawn a player summon using BattleData definitions
-     * Legacy support for the original player summon system
-     * @param {string} summonId - Summon ID from BattleData
-     * @returns {Object} { success, summon, message }
-     */
-    function spawnPlayerSummon(summonId) {
-        if (!_hasBattleData) {
-            return { success: false, reason: 'no_data' };
-        }
-
-        var def = BattleData.getSummon(summonId);
-        if (!def) {
-            return { success: false, reason: 'unknown_summon' };
-        }
-
-        if (playerSummon) {
-            return { success: false, reason: 'summon_active', message: 'A summon is already active!' };
-        }
-
-        playerSummon = {
-            id: summonId,
-            name: def.name,
-            icon: def.icon,
-            duration: def.duration,
-            attack: def.attack || null,
-            healPerTurn: def.healPerTurn || 0,
-            passive: def.passive || null,
-            sprite: def.sprite || null
-        };
-
-        return {
-            success: true,
-            summon: playerSummon,
-            message: def.icon + ' ' + def.name + ' appears!'
-        };
-    }
-
-    /**
-     * Get current player summon (legacy)
-     * @returns {Object|null} Player summon or null
-     */
-    function getPlayerSummon() {
-        return playerSummon;
-    }
-
-    /**
-     * Dismiss player summon (legacy)
-     * @returns {boolean} True if dismissed
-     */
-    function dismissPlayerSummon() {
-        if (!playerSummon) return false;
-        playerSummon = null;
-        return true;
-    }
-
-    /**
-     * Process player summon turn (legacy)
-     * Returns action data but doesn't execute - caller should handle damage/heal
-     * @param {Object} enemy - Enemy target for attacks
-     * @param {Object} styleModule - Active battle style for attack resolution
-     * @returns {Object} { acted, messages, healResult, attackResult }
-     */
-    function processPlayerSummonTurn(enemy, styleModule) {
-        if (!playerSummon) return { acted: false, messages: [] };
-
-        var messages = [];
-        var healResult = null;
-        var attackResult = null;
-
-        // Healing
-        if (playerSummon.healPerTurn > 0) {
-            healResult = {
-                amount: playerSummon.healPerTurn
-            };
-            // Message will be added by caller after applying heal
-        }
-
-        // Attack (delegated to style)
-        if (playerSummon.attack && styleModule && styleModule.resolveSummonAttack) {
-            attackResult = styleModule.resolveSummonAttack(playerSummon, enemy);
-            if (attackResult.hit) {
-                messages.push(playerSummon.icon + ' ' + playerSummon.name + ' uses ' +
-                    playerSummon.attack.name + '!');
-            } else {
-                messages.push(playerSummon.icon + ' ' + playerSummon.name + '\'s ' +
-                    playerSummon.attack.name + ' missed!');
-            }
-        }
-
-        // Decrement duration
-        playerSummon.duration--;
-        var expired = playerSummon.duration <= 0;
-        if (expired) {
-            messages.push(playerSummon.icon + ' ' + playerSummon.name + ' fades away...');
-            playerSummon = null;
-        }
-
-        return {
-            acted: true,
-            messages: messages,
-            healResult: healResult,
-            attackResult: attackResult,
-            expired: expired
-        };
-    }
-
-    // =========================================================================
     // PUBLIC API
     // =========================================================================
 
@@ -757,12 +643,6 @@ var BattleSummon = (function() {
         // Display
         getDisplayData: getDisplayData,
         getAllDisplayData: getAllDisplayData,
-
-        // Player summon legacy support (BattleData-style summons without HP)
-        spawnPlayerSummon: spawnPlayerSummon,
-        getPlayerSummon: getPlayerSummon,
-        dismissPlayerSummon: dismissPlayerSummon,
-        processPlayerSummonTurn: processPlayerSummonTurn,
 
         // Config access (for tuning)
         config: config

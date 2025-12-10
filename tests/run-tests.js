@@ -54,6 +54,10 @@ var battleDataCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 
 eval(battleDataCode);
 var battleDiceCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-dice.js'), 'utf8');
 eval(battleDiceCode);
+var battleSummonCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-summon.js'), 'utf8');
+eval(battleSummonCode);
+var summonsCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'summons.js'), 'utf8');
+eval(summonsCode);
 var battleCoreCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-core.js'), 'utf8');
 eval(battleCoreCode);
 var battleDndCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-dnd.js'), 'utf8');

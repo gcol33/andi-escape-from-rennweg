@@ -734,8 +734,8 @@
 .roll-result, .damage-result {
     display: block;
     margin: 4px 0;
-    line-height: 1.8;  /* Match battle-log-content line-height */
-    min-height: 1.8em;
+    line-height: 1.6;  /* Match battle-log-content and TUNING.ui.battleLogLineHeight */
+    min-height: 1.6em;
     position: relative;  /* For absolute-positioned collapsing modifiers */
     /* Reset theme overrides that may interfere */
     -webkit-text-stroke: 0 !important;

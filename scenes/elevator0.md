@@ -10,4 +10,5 @@ The elevator doors slide open with their familiar mechanical wheeze. You step in
 - Go to rooftop (require_skills: Rooftop Discovery) → rooftop
 - Go to 1st floor → floor1
 - Go to 4th floor (requires: !visited_4th_floor) → floor4
+- Visit the stairwell (requires: !met_franz) → FRANZ2_1
 

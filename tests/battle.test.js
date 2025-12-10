@@ -667,43 +667,36 @@ function testItemSystem() {
 }
 
 function testSummonSystem() {
-    console.log('\n--- Testing Summon System ---');
+    console.log('\n--- Testing Summon System (HP-based) ---');
 
     BattleEngine.reset();
     BattleEngine.init(MockVNEngine);
     BattleEngine.start(defaultBattleConfig, 'test_battle');
 
-    // Test summon types exist
-    TestRunner.assert(BattleEngine.summonTypes !== undefined, 'summonTypes should be defined');
-    TestRunner.assert(BattleEngine.summonTypes.fire_sprite !== undefined, 'fire_sprite summon should exist');
-    TestRunner.assert(BattleEngine.summonTypes.healing_fairy !== undefined, 'healing_fairy summon should exist');
-    TestRunner.assert(BattleEngine.summonTypes.office_assistant !== undefined, 'office_assistant summon should exist');
-
-    // Test summon properties
-    var fireSprite = BattleEngine.summonTypes.fire_sprite;
-    TestRunner.assertEqual(fireSprite.duration, 3, 'Fire sprite should last 3 turns');
-    TestRunner.assert(fireSprite.attack !== undefined, 'Fire sprite should have an attack');
-    TestRunner.assertEqual(fireSprite.attack.type, 'fire', 'Fire sprite attack should be fire type');
-
-    // Test summon function
+    // Test summon functions exist
     TestRunner.assert(typeof BattleEngine.summon === 'function', 'summon should be a function');
     TestRunner.assert(typeof BattleEngine.dismissSummon === 'function', 'dismissSummon should be a function');
     TestRunner.assert(typeof BattleEngine.getSummon === 'function', 'getSummon should be a function');
 
-    // Test creating a summon
-    var result = BattleEngine.summon('fire_sprite');
-    TestRunner.assert(result.success, 'Summoning fire_sprite should succeed');
+    // Test BattleSummon module exists
+    TestRunner.assert(typeof BattleSummon !== 'undefined', 'BattleSummon module should exist');
+    TestRunner.assert(typeof BattleSummon.spawn === 'function', 'BattleSummon.spawn should be a function');
+    TestRunner.assert(typeof BattleSummon.getActiveBySide === 'function', 'BattleSummon.getActiveBySide should be a function');
 
-    var activeSummon = BattleEngine.getSummon();
-    TestRunner.assert(activeSummon !== null, 'Should have an active summon');
-    TestRunner.assertEqual(activeSummon.name, 'Fire Sprite', 'Active summon should be Fire Sprite');
+    // Test spawning a summon (HP-based system uses summons/*.md definitions)
+    // Using office_intern which is defined in summons/office_intern.md
+    var result = BattleSummon.spawn('office_intern', 'player', 'player');
+    TestRunner.assert(result.success, 'Spawning office_intern should succeed');
 
-    // Test duplicate summon fails
-    var result2 = BattleEngine.summon('healing_fairy');
-    TestRunner.assert(!result2.success, 'Should not be able to summon while one is active');
+    var activeSummons = BattleSummon.getActiveBySide('player');
+    TestRunner.assert(activeSummons.length > 0, 'Should have active player summons');
+    TestRunner.assertEqual(activeSummons[0].name, 'Office Intern', 'Active summon should be Office Intern');
+
+    // Test getSummon via BattleCore
+    var summon = BattleEngine.getSummon();
+    TestRunner.assert(summon !== null, 'getSummon should return active summon');
 
     // Test dismiss summon
-    // dismissSummon returns true/false (not an object with .dismissed)
     var dismissResult = BattleEngine.dismissSummon();
     TestRunner.assert(dismissResult === true, 'Dismiss should succeed');
     TestRunner.assert(BattleEngine.getSummon() === null, 'Summon should be null after dismiss');

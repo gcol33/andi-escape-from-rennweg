@@ -148,6 +148,7 @@ var TUNING = (function() {
                 outroDelay: 2500,           // Victory/defeat screen duration
                 actionDelay: 300,           // Delay between action phases
                 enemyTurnDelay: 600,        // Delay before enemy takes turn
+                enemyResultDisplay: 800,    // How long enemy attack result shows (no dice animation)
                 damageNumberFloat: 4000,    // How long damage numbers float up (matches CSS animation)
                 screenShake: 300,           // Screen shake effect duration
                 uiTransition: 1500,         // UI fade in/out transitions
@@ -246,6 +247,7 @@ var TUNING = (function() {
             // Battle log sizing
             battleLogMaxLines: 2,           // Max lines visible in battle log
             battleLogLineHeight: 1.6,       // Line-height multiplier (not rem) - CSS uses this as multiplier of font-size
+            battleLogScrollThreshold: 5,    // Pixels of hidden content before auto-scroll kicks in
 
             // Damage numbers (WoW-style floating text)
             damageNumberDuration: 4000,     // How long damage numbers show (matches CSS animation)

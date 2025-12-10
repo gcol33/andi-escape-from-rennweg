@@ -769,6 +769,9 @@ var BattleEngine = (function() {
         // End battle properly (sets active = false)
         BattleCore.endBattle('flee');
 
+        // Reset player stats so next battle starts fresh (for "Play Again")
+        BattleCore.resetPlayerStats();
+
         // Remove any battle overlays
         var overlays = ['battle-intro-overlay', 'battle-intro-flash', 'battle-outro-overlay'];
         overlays.forEach(function(id) {
@@ -1294,6 +1297,16 @@ var BattleEngine = (function() {
                 updateDisplay();
                 if (checkEnd()) return;
                 proceedToEnemyTurn(actionType, messages, callback);
+            }, {
+                onTextComplete: function() {
+                    // Show floating numbers for summon effects (damage/heal already applied in BattleCore)
+                    if (summonResult.attackResult && summonResult.attackResult.hit) {
+                        showDamageNumber(summonResult.attackResult.damage, 'enemy', 'damage');
+                    }
+                    if (summonResult.healResult && summonResult.healResult.healed > 0) {
+                        showDamageNumber(summonResult.healResult.healed, 'player', 'heal');
+                    }
+                }
             });
             return;
         }
@@ -1311,12 +1324,11 @@ var BattleEngine = (function() {
     }
 
     function proceedToEnemyTurn(actionType, messages, callback) {
-        // Process player summon turn first (decrement duration at end of player turn)
-        processPlayerSummonTurn(function() {
-            scheduleTimeout(function() {
-                processEnemyTurn(messages, callback, { playerAction: actionType });
-            }, config.timing.enemyTurnDelay);
-        });
+        // Note: Player summon turns are now processed in afterPlayerAction() via BattleCore.processSummonTurn()
+        // This unifies HP-based and legacy summon processing into a single code path
+        scheduleTimeout(function() {
+            processEnemyTurn(messages, callback, { playerAction: actionType });
+        }, config.timing.enemyTurnDelay);
     }
 
     /**
@@ -2093,83 +2105,9 @@ var BattleEngine = (function() {
         processNextAction();
     }
 
-    /**
-     * Process player summon turn (called after enemy summons, before player turn starts)
-     * @param {Function} callback - Completion callback
-     */
-    function processPlayerSummonTurn(callback) {
-        if (!_hasBattleSummon) {
-            callback();
-            return;
-        }
-
-        var playerSummon = BattleSummon.getPlayerSummon();
-        if (!playerSummon) {
-            callback();
-            return;
-        }
-
-        var state = BattleCore.getState();
-        var style = getActiveStyle();
-        var result = BattleSummon.processPlayerSummonTurn(state.enemy, style);
-
-        if (!result.acted) {
-            callback();
-            return;
-        }
-
-        // Build messages
-        var messages = result.messages || [];
-
-        // Show messages and apply effects
-        if (messages.length > 0) {
-            updateBattleLog(messages.join('<br>'), null, function() {
-                // Update display to show summon is gone if expired
-                if (result.expired && _hasBattleUI && BattleUI.hideSummonSprite) {
-                    var summonData = BattleSummon.getDisplayData(playerSummon.uid);
-                    if (summonData) {
-                        BattleUI.hideSummonSprite(summonData.uid, 'dismiss');
-                    }
-                }
-                updateDisplay();
-                callback();
-            }, {
-                onTextComplete: function() {
-                    // Apply heal if any
-                    if (result.healResult) {
-                        BattleCore.healPlayer(result.healResult.amount, 'summon');
-                        showDamageNumber(result.healResult.amount, 'player', 'heal');
-                    }
-
-                    // Apply attack damage if any
-                    if (result.attackResult && result.attackResult.hit) {
-                        console.log('[Summon Debug] Applying summon attack damage:', result.attackResult.damage);
-                        BattleCore.damageEnemy(result.attackResult.damage, {
-                            source: 'summon',
-                            type: result.attackResult.type || 'physical'
-                        });
-                        console.log('[Summon Debug] Calling showDamageNumber for enemy, damage:', result.attackResult.damage);
-                        showDamageNumber(result.attackResult.damage, 'enemy', 'damage');
-                    }
-
-                    // Update display to show current summon state
-                    if (!result.expired) {
-                        var currentSummon = BattleSummon.getPlayerSummon();
-                        if (currentSummon && _hasBattleUI && BattleUI.updateSummonSprite) {
-                            var displayData = BattleSummon.getDisplayData(currentSummon.uid);
-                            if (displayData) {
-                                BattleUI.updateSummonSprite(displayData);
-                            }
-                        }
-                    }
-
-                    updateDisplay();
-                }
-            });
-        } else {
-            callback();
-        }
-    }
+    // Note: processPlayerSummonTurn has been removed - summon turns are now unified in
+    // afterPlayerAction() via BattleCore.processSummonTurn() which handles both HP-based
+    // and legacy summons in a single code path. Floating numbers are shown via onTextComplete.
 
     function executeEnemyAttack(style, messages, callback) {
         var state = BattleCore.getState();
@@ -2465,16 +2403,16 @@ var BattleEngine = (function() {
     function finishEnemyAction(result, messages, callback) {
         var state = BattleCore.getState();
 
-        // If enemy has an attack roll, show animated dice roll
+        // If enemy has an attack roll, show quick result text (no dice animation)
         if (result.attackResult && result.attackResult.roll !== undefined) {
             var enemyName = state.enemy.name || 'Enemy';
 
-            showAttackRoll(enemyName, result.attackResult, false, function() {
-                // Continue after linger completes
+            showEnemyAttackQuick(enemyName, result.attackResult, function() {
+                // Continue after brief display
                 finishEnemyActionAfterRoll(result, messages, callback, { effectsApplied: true });
             }, {
                 onTextComplete: function() {
-                    // Apply effects when text finishes (before linger)
+                    // Apply effects when text finishes
                     applyEnemyAttackEffects(result);
                 }
             });
@@ -2880,6 +2818,12 @@ var BattleEngine = (function() {
             BattleUI.createBattleUI(state.player, state.enemy);
             BattleUI.showUI();
             hideTextBox();
+
+            // Clear battle log from previous battle
+            var battleLogContent = document.getElementById('battle-log-content');
+            if (battleLogContent) {
+                battleLogContent.innerHTML = '';
+            }
         }
     }
 
@@ -3125,6 +3069,92 @@ var BattleEngine = (function() {
             damageRolls: attackResult.damageRolls,
             onTextComplete: options.onTextComplete
         }, callback);
+    }
+
+    /**
+     * Show quick enemy attack result (no dice animation)
+     * DnD-style: just shows HIT/MISS and damage
+     * @param {string} attackerName - Enemy name
+     * @param {Object} attackResult - Result from resolveAttack
+     * @param {function} callback - Called after brief display
+     * @param {Object} options - { onTextComplete }
+     */
+    function showEnemyAttackQuick(attackerName, attackResult, callback, options) {
+        options = options || {};
+
+        var battleLog = document.getElementById('battle-log-content');
+        if (!battleLog) {
+            if (options.onTextComplete) options.onTextComplete();
+            if (callback) callback();
+            return;
+        }
+
+        // For hits (including crits), show animated damage roll if BattleDiceUI available
+        if (attackResult.hit && typeof BattleDiceUI !== 'undefined' && BattleDiceUI.showSimpleDamageRoll) {
+            battleLog.innerHTML = '';
+            var logEntry = document.createElement('div');
+            logEntry.className = 'battle-log-messages';
+            battleLog.appendChild(logEntry);
+
+            // Use unified roll classes for consistent styling
+            var introText = attackerName + ' ';
+            if (attackResult.isCrit) {
+                introText += '<span class="roll-result-text roll-hit-crit">CRITICAL HIT!</span> ';
+            } else {
+                introText += '<span class="roll-result-text roll-hit-normal">HIT!</span> ';
+            }
+
+            BattleDiceUI.showSimpleDamageRoll({
+                container: logEntry,
+                text: introText,
+                damage: attackResult.damage,
+                sides: 20,  // Assume d20-ish range for animation
+                damageText: 'DAMAGE',
+                onTextComplete: options.onTextComplete
+            }, callback);
+            return;
+        }
+
+        // Static text fallback (for misses, fumbles, or when BattleDiceUI unavailable)
+        var html = '<div class="roll-result">';
+        html += '<span class="roll-attacker">' + attackerName + '</span> ';
+
+        if (attackResult.isCrit) {
+            // Critical hit fallback - yellow with crit glow
+            html += '<span class="roll-result-text roll-hit-crit">CRITICAL HIT!</span> ';
+            html += '<strong class="dice-number roll-damage-crit">' + attackResult.damage + '</strong> ';
+            html += '<span class="damage-text roll-type-damage">DAMAGE</span>';
+        } else if (attackResult.isFumble) {
+            // Fumble - grey with fail glow
+            html += '<span class="roll-result-text roll-hit-fail">FUMBLE!</span>';
+        } else if (attackResult.hit) {
+            // Normal hit - yellow
+            html += '<span class="roll-result-text roll-hit-normal">HIT!</span> ';
+            var damageClass = 'roll-damage-normal';
+            if (attackResult.isMaxDamage) damageClass = 'roll-damage-max';
+            if (attackResult.isMinDamage) damageClass = 'roll-damage-min';
+            html += '<strong class="dice-number ' + damageClass + '">' + attackResult.damage + '</strong> ';
+            html += '<span class="damage-text roll-type-damage">DAMAGE</span>';
+        } else {
+            // Miss - grey/neutral
+            html += '<span class="roll-result-text roll-neutral-normal">MISS!</span>';
+        }
+
+        html += '</div>';
+
+        battleLog.innerHTML = html;
+
+        // Call onTextComplete immediately
+        if (options.onTextComplete) options.onTextComplete();
+
+        // Brief delay then callback
+        var displayTime = TUNING && TUNING.battle && TUNING.battle.timing && TUNING.battle.timing.enemyResultDisplay
+            ? TUNING.battle.timing.enemyResultDisplay
+            : 800;
+
+        setTimeout(function() {
+            if (callback) callback();
+        }, displayTime);
     }
 
     /**

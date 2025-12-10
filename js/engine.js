@@ -3585,6 +3585,11 @@ const VNEngine = (function() {
 
     function checkFlags(required) {
         return required.every(function(flag) {
+            // Support negation: !flag_name means "does NOT have this flag"
+            if (flag.charAt(0) === '!') {
+                var negatedFlag = flag.substring(1);
+                return state.flags[negatedFlag] !== true;
+            }
             return state.flags[flag] === true;
         });
     }

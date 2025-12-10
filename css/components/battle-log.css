@@ -31,14 +31,14 @@
 
 /* === Log Content Area === */
 .battle-log-content {
-    /* Height for ~2 lines of text */
+    /* Height for ~2 lines of text (set via JS --battle-log-content-height) */
     height: var(--battle-log-content-height, 4.8rem);
     box-sizing: border-box;
     overflow-y: auto;
     overflow-x: hidden;
     padding: 0.5rem 1rem;
     font-size: var(--battle-text-size, 0.95rem);
-    line-height: 1.8;
+    line-height: 1.6;  /* Must match TUNING.ui.battleLogLineHeight */
     color: var(--battle-text-color, #fff);
     flex-shrink: 0;
     /* Hide scrollbar */
