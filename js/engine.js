@@ -3356,9 +3356,10 @@ const VNEngine = (function() {
                 return true;
             });
 
-            availableChoices.forEach(function(choice) {
+            availableChoices.forEach(function(choice, index) {
                 var button = document.createElement('button');
-                button.className = 'choice-button';
+                // Use continue-button style if there's only one choice
+                button.className = availableChoices.length === 1 ? 'continue-button' : 'choice-button';
 
                 // Add item requirement indicator to label if uses item
                 var labelText = choice.label;

@@ -108,18 +108,22 @@
     flex-shrink: 0;
 }
 
-/* Portrait mode: show one card at a time */
+/* Portrait mode: stack cards vertically, reveal sequentially but keep all visible */
 @media (orientation: portrait) {
     .tarot-spread-cards {
         flex-direction: column;
         align-items: center;
-        padding: 0;
+        padding: 10px 0;
+        gap: 8px;
+        overflow-y: auto;
+        max-height: 85vh;
     }
 
     .tarot-card-slot {
-        width: 80%;
-        max-width: 300px;
-        display: none;  /* Hidden by default, JS shows current card */
+        width: 90%;
+        max-width: 280px;
+        display: none;  /* Hidden by default, JS adds .active when revealed */
+        flex-shrink: 0;
     }
 
     .tarot-card-slot.active {
@@ -127,17 +131,17 @@
     }
 
     .tarot-card-flip {
-        width: 160px;
-        height: 229px;
+        width: 100px;
+        height: 143px;
     }
 
     .tarot-card-name {
-        font-size: 1rem;
-        margin-top: 8px;
+        font-size: 0.85rem;
+        margin-top: 6px;
     }
 
     .tarot-card-flavor {
-        font-size: 0.85rem;
+        font-size: 0.75rem;
     }
 }
 

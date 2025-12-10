@@ -280,10 +280,13 @@
     text-align: center;
 }
 
-/* Single choice button: 90% width, centered */
+/* Single choice button: match continue button styling */
 #choices-container .choice-button:only-child {
-    flex: 0 1 auto;
-    width: 90%;
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 180px;
+    max-width: 90%;
+    padding: 8px 24px;
 }
 
 /* Responsive: ensure max-height is consistent */
