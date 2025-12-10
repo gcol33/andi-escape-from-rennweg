@@ -11,6 +11,9 @@ const story = {
   "ADRIAN": {
     "id": "ADRIAN",
     "bg": "office_corridor.jpg",
+    "chars": [
+      "adrian_smiling.svg"
+    ],
     "set_skills": [
       "Smile"
     ],
@@ -29,6 +32,9 @@ const story = {
   "AGNES": {
     "id": "AGNES",
     "bg": "office_corridor.jpg",
+    "chars": [
+      "agnes_neutral.svg"
+    ],
     "textBlocks": [
       "As you round the corner, a familiar figure blocks your path. Agnes. From HR. \"Andi! I've been looking for you.\" A chill runs down your spine. Those words never mean anything good. \"About those MICROCLIM timesheets...\"",
       "You groan internally. The timesheets. You'd been putting them off for weeks. You were always precise when you finally filled them out\u2014but actually sitting down to do it... \"Es hat mir immer total gegraust,\" you mutter. Agnes's expression hardens. \"Your resignation has been... REJECTED!\"",
@@ -118,6 +124,9 @@ const story = {
   "ANNA": {
     "id": "ANNA",
     "bg": "office_corridor.jpg",
+    "chars": [
+      "anna_neutral.svg"
+    ],
     "textBlocks": [
       "You drop by Anna's office to say goodbye. She's sitting at her desk with a steaming cup of something that smells... unusual. \"Andi! Perfect timing. Want a farewell tea?\" You eye the cup suspiciously. The liquid has an odd greenish tint."
     ],
@@ -377,6 +386,9 @@ const story = {
   "DIDI": {
     "id": "DIDI",
     "bg": "office_corridor.jpg",
+    "chars": [
+      "didi_neutral.svg"
+    ],
     "textBlocks": [
       "You duck into Didi's office to say goodbye. He's watching something on his computer. Looks like a TV series. You notice a book lying on his desk: the 5th volume of \"The Expanse.\" \"Oh, you've read The Expanse?\" you ask. A dangerous question. Didi's eyes light up.",
       "\"Have you seen the series? I need recommendations. What else should I watch?\" You recognize this trap. A topic you could discuss forever. \"Well, there's Battlestar Galactica... Foundation... The Three-Body Problem...\" An hour later, you've covered every sci-fi series ever made.",
@@ -552,6 +564,9 @@ const story = {
   "EMMA": {
     "id": "EMMA",
     "bg": "hallway_fluorescent.jpg",
+    "chars": [
+      "emma_neutral.svg"
+    ],
     "set_flags": [
       "visited_4th_floor"
     ],
@@ -654,22 +669,21 @@ const story = {
   "ending_early_exit": {
     "id": "ending_early_exit",
     "bg": "sunny_street_freedom.jpg",
-    "music": "last_day.mp3",
+    "music": "game_over.mp3",
+    "ending_title": "\"BAD ENDING: Trapped by CATS\"",
     "textBlocks": [
       "You step through the front doors. The afternoon sun hits your face. Freedom! You could just walk away right now. Start fresh. Leave the Division of Conservation Biology behind forever.",
       "You take three steps toward the tram stop when a stray cat crosses your path.",
       "Cat.",
       "CATS.",
       "The servers. The code. You never said goodbye to CATS. The backup scripts that only you understand. The mysterious cronjob that runs at 3:47 AM and nobody knows why but everything breaks if you disable it.",
-      "You can't just LEAVE. Not like this. Not without saying goodbye to the blinking lights in the server room. Not without one last commit message.",
-      "You turn around and walk back inside. \"Forgot something,\" you mutter. Back to the grind. For now."
+      "You can't just LEAVE. Not like this. You turn around and walk back inside. \"Forgot something,\" you mutter.",
+      "You sit back down at your desk. The monitors glow with familiar lines of code. CATS hums contentedly.",
+      "Just one more commit. One more bug fix. One more optimization.",
+      "Hours pass. Days. The farewell party happens without you. Your new job at the physics institute calls, but you don't answer. There's always something else to check.",
+      "You never leave. CATS needs you. CATS will always need you."
     ],
-    "choices": [
-      {
-        "label": "Back to the elevator",
-        "target": "elevator0"
-      }
-    ]
+    "choices": []
   },
   "ending_quiz_fail_moritz": {
     "id": "ending_quiz_fail_moritz",
@@ -701,11 +715,11 @@ const story = {
     ],
     "choices": [
       {
-        "label": "Take the front door",
+        "label": "Take exit 1",
         "target": "out1"
       },
       {
-        "label": "Take the back door",
+        "label": "Take exit 2",
         "target": "out2"
       }
     ]
@@ -739,6 +753,9 @@ const story = {
   "FRANZ2_1": {
     "id": "FRANZ2_1",
     "bg": "office_corridor.jpg",
+    "chars": [
+      "franz_neutral.svg"
+    ],
     "set_flags": [
       "met_franz"
     ],
@@ -773,6 +790,9 @@ const story = {
   "FRANZ2_2": {
     "id": "FRANZ2_2",
     "bg": "office_corridor.jpg",
+    "chars": [
+      "franz_neutral.svg"
+    ],
     "set_flags": [
       "met_franz"
     ],
@@ -808,6 +828,9 @@ const story = {
     "id": "FRANZ2_tarot",
     "bg": "office_corridor.jpg",
     "music": "tarot.mp3",
+    "chars": [
+      "franz_neutral.svg"
+    ],
     "actions": [
       {
         "type": "draw_tarot",
@@ -824,6 +847,9 @@ const story = {
   "FRANZ2_tarot_result": {
     "id": "FRANZ2_tarot_result",
     "bg": "office_corridor.jpg",
+    "chars": [
+      "franz_neutral.svg"
+    ],
     "textBlocks": [
       "Franz studies your face as you absorb the card's meaning. A slight smile plays at the corner of his lips.",
       "\"The cards speak in riddles, but their wisdom is true. Seek what they reveal, and your path will become clearer.\"",
@@ -840,6 +866,9 @@ const story = {
     "id": "FRANZ3_tarot",
     "bg": "office_corridor.jpg",
     "music": "tarot.mp3",
+    "chars": [
+      "franz_neutral.svg"
+    ],
     "actions": [
       {
         "type": "draw_tarot",
@@ -856,6 +885,9 @@ const story = {
   "FRANZ3_tarot_result": {
     "id": "FRANZ3_tarot_result",
     "bg": "office_corridor.jpg",
+    "chars": [
+      "franz_neutral.svg"
+    ],
     "textBlocks": [
       "Franz studies your face as you absorb the card's meaning. A slight smile plays at the corner of his lips.",
       "\"The cards speak in riddles, but their wisdom is true. Seek what they reveal, and your path will become clearer.\"",
@@ -871,6 +903,9 @@ const story = {
   "FRANZ_1": {
     "id": "FRANZ_1",
     "bg": "stairwell_landing.jpg",
+    "chars": [
+      "franz_neutral.svg"
+    ],
     "set_flags": [
       "met_franz"
     ],
@@ -905,6 +940,9 @@ const story = {
   "FRANZ_impressed": {
     "id": "FRANZ_impressed",
     "bg": "stairwell_landing.jpg",
+    "chars": [
+      "franz_neutral.svg"
+    ],
     "textBlocks": [
       "Franz's eyes widen with genuine respect. A rare expression from the analog sage. \"You... you have gathered everything,\" he says. \"The smile of friendship. The wisdom of flora. The supplies for the sacred fire.\"",
       "He places a hand on your shoulder\u2014perhaps the first physical gesture he's made toward you in all your years working here. \"I, who know nothing of your digital realm... am truly impressed by your journey through mine.\"",
@@ -921,6 +959,9 @@ const story = {
     "id": "FRANZ_tarot",
     "bg": "stairwell_landing.jpg",
     "music": "tarot.mp3",
+    "chars": [
+      "franz_neutral.svg"
+    ],
     "actions": [
       {
         "type": "draw_tarot",
@@ -937,6 +978,9 @@ const story = {
   "FRANZ_tarot_result": {
     "id": "FRANZ_tarot_result",
     "bg": "stairwell_landing.jpg",
+    "chars": [
+      "franz_neutral.svg"
+    ],
     "textBlocks": [
       "Franz studies your face as you absorb the card's meaning. A slight smile plays at the corner of his lips.",
       "\"The cards speak in riddles, but their wisdom is true. Seek what they reveal, and your path will become clearer.\"",
@@ -1006,6 +1050,9 @@ const story = {
   "JACQUELINE": {
     "id": "JACQUELINE",
     "bg": "office_corridor.jpg",
+    "chars": [
+      "jacqueline_neutral.svg"
+    ],
     "textBlocks": [
       "You spot Jacqueline struggling with a large stack of boxes. She's visibly pregnant, and the boxes look heavy. \"Let me help you with those.\"",
       "\"Oh, thank goodness! I need to move these from the fifth floor to the first floor... then from Karl Reiter's office to Franz's office... and then back to the fifth floor.\" You spend the next hour becoming intimately familiar with the building's stairwell.",
@@ -1032,6 +1079,9 @@ const story = {
   "JEN": {
     "id": "JEN",
     "bg": "office_corridor.jpg",
+    "chars": [
+      "jen_neutral.svg"
+    ],
     "textBlocks": [
       "You make your way down the stairs, ready to leave Rennweg for good. Suddenly, Jen catches up to you. \"Hey Andi! Before you go... want to feed the squirrels with me one last time?\" She holds up a small bag of nuts, eyes sparkling with enthusiasm."
     ],
@@ -1067,6 +1117,9 @@ const story = {
   "JONI": {
     "id": "JONI",
     "bg": "office_corridor.jpg",
+    "chars": [
+      "joni_desperate.svg"
+    ],
     "textBlocks": [
       "You hear someone \"granteln\" around the corner. That distinctive Viennese grumbling, complaining in that derogatory, ranting way. You immediately recognize who it is. You round the corner to find Joni, freshly returned from somewhere, talking to a colleague.",
       "He spots you and his face lights up. Well, as much as a Viennese face lights up. \"Andi! Du bist ja da!\" He comes over with a knowing smile. \"I'm so glad you're still here. You know, while I was gone, I was SO annoyed by the toxic positivity around this place.\"",
@@ -1116,6 +1169,9 @@ const story = {
   "LISA_scene": {
     "id": "LISA_scene",
     "bg": "office_kitchen.jpg",
+    "chars": [
+      "lisa_neutral.svg"
+    ],
     "textBlocks": [
       "You run into Lisa near the kitchen. She's making coffee. \"Oh, Andi! Did you hear? Someone said they found a mouse in here.\" You glance around nervously. \"A mouse?\" \"Yeah, but they couldn't find it anymore. Maybe it's hiding somewhere.\"",
       "Lisa reaches for the kitchen cabinet\u2014the infamous party cabinet\u2014and opens it. A MOUSE RUNS OUT! It darts past you both and into the small hallway in front of your office. You and Lisa quickly close the doors, trapping yourselves and the mouse in the two-square-meter space.",
@@ -1135,6 +1191,9 @@ const story = {
   "MICHI": {
     "id": "MICHI",
     "bg": "hallway_fluorescent.jpg",
+    "chars": [
+      "michi_whiteboard.svg"
+    ],
     "textBlocks": [
       "On the 4th floor, you find Michi standing guard by the whiteboard. The legendary whiteboard. Where all important announcements are posted. And where Michi keeps his prized possession: a professional-grade magnifying glass.",
       "\"Andi! Leaving so soon?\" He blocks your path. \"You know, I've always wondered... can a computer guy handle himself in a real confrontation?\" He pulls out a marker like it's a weapon. \"Let's find out.\""
@@ -1226,6 +1285,9 @@ const story = {
   "MORITZ_excursion": {
     "id": "MORITZ_excursion",
     "bg": "sunny_street_freedom.jpg",
+    "chars": [
+      "moritz_neutral.svg"
+    ],
     "textBlocks": [
       "You remember a while back\u2014one of Wolfgang's field excursions that you'd somehow agreed to join. Moritz was there, explaining how the data you work with is actually collected. The destination: the dry meadows of Leithagebirge near Lake Neusiedl. You'd arrived with equipment sufficient for a Himalaya expedition. Everyone stared at your massive backpack as you stepped off the bus.",
       "The course took place in the Wachau and Burgenland\u2014not exactly extreme terrain. But the real challenge wasn't the hiking. It was the plants. Latin names. So many Latin names. And the two things that stuck with you most: the proper equipment needed for fieldwork... and the fact that \"h\u00fcbsch\" is NOT a valid differential characteristic for plant identification. (Because all plants are \"h\u00fcbsch,\" apparently.)",
@@ -1255,14 +1317,12 @@ const story = {
     "id": "out1",
     "bg": "sunny_street_freedom.jpg",
     "textBlocks": [
-      "You push through the glass doors and step out into the Vienna afternoon. The air hits you like a welcome change—warm, carrying the scent of summer and city life.",
-      "You take three steps toward the tram stop when a stray cat crosses your path. Cat. CATS. The servers. The code. You never said goodbye to CATS. The backup scripts that only you understand. The mysterious cronjob that runs at 3:47 AM and nobody knows why but everything breaks if you disable it.",
-      "You can't just LEAVE. Not like this. You turn around and walk back inside."
+      "You push through the glass doors and step out into the Vienna afternoon. The air hits you like a welcome change\u2014warm, carrying the scent of summer and city life and something blooming nearby. After the climate-controlled corridors of the institute, it feels almost tropical. You take a deep breath, looking up at the sky above Rennweg, watching a tram rattle past on its endless circuit through the city."
     ],
     "choices": [
       {
-        "label": "Back to your desk",
-        "target": "ending_cats_trap"
+        "label": "Continue",
+        "target": "ending_early_exit"
       }
     ]
   },
@@ -1270,29 +1330,14 @@ const story = {
     "id": "out2",
     "bg": "sunny_street_freedom.jpg",
     "textBlocks": [
-      "The back door deposits you into the quieter courtyard, away from the bustle of Rennweg. Birdsong drifts from the neighboring Botanical Garden.",
-      "A cat lounges on the garden wall, watching you with knowing eyes. Cat. CATS. The servers. You never said goodbye to CATS. The backup scripts. The cronjob at 3:47 AM.",
-      "You can't just slip away. Not without one last look at those blinking server lights. You turn back."
+      "The side exit deposits you into the quieter courtyard, away from the bustle of Rennweg. Here, the building's shadow provides some relief from the afternoon sun, and you can hear birdsong from the trees that line the neighboring Botanical Garden. A familiar path stretches before you\u2014how many times have you walked this way to grab lunch, or to clear your head during a particularly frustrating debugging session?"
     ],
     "choices": [
       {
-        "label": "Back to your desk",
-        "target": "ending_cats_trap"
+        "label": "Continue",
+        "target": "ending_early_exit"
       }
     ]
-  },
-  "ending_cats_trap": {
-    "id": "ending_cats_trap",
-    "bg": "dark_office_desk.jpg",
-    "music": "game_over.mp3",
-    "ending_title": "\"BAD ENDING: Trapped by CATS\"",
-    "textBlocks": [
-      "You sit back down at your desk. The monitors glow with familiar lines of code. CATS hums contentedly.",
-      "Just one more commit. One more bug fix. One more optimization.",
-      "Hours pass. Days. The farewell party happens without you. Your new job at the physics institute calls, but you don't answer. There's always something else to check.",
-      "You never leave. CATS needs you. CATS will always need you."
-    ],
-    "choices": []
   },
   "quiz_excursion": {
     "id": "quiz_excursion",
@@ -1489,6 +1534,9 @@ const story = {
   "SIEGRUN": {
     "id": "SIEGRUN",
     "bg": "office_corridor.jpg",
+    "chars": [
+      "siegrun_neutral.svg"
+    ],
     "textBlocks": [
       "You encounter Siegrun in the corridor. She looks at you with a mix of fondness and mischief. \"Andi! Remember that Ges\u00e4use field course you joined to save it from cancellation?\" How could you forget? The course was about to be canceled due to low enrollment. You had signed up, knowing mostly what you were getting into."
     ],
@@ -1645,6 +1693,9 @@ const story = {
   "STEFAN": {
     "id": "STEFAN",
     "bg": "stairwell_landing.jpg",
+    "chars": [
+      "stefan_neutral.svg"
+    ],
     "textBlocks": [
       "Stefan looks up from his phone and grins. \"Andi! Leaving already? Without a proper send-off?\" He cracks his knuckles dramatically. \"Remember Hercules? The server we were supposed to build together?\" You wince. The legendary server. Bought in pieces. Never assembled.",
       "\"I've been waiting years to settle this score. The server's ghost haunts me every night. And it's YOUR fault!\" Stefan assumes a fighting stance. This is getting out of hand."
@@ -1752,6 +1803,9 @@ const story = {
   "WOLFGANG": {
     "id": "WOLFGANG",
     "bg": "stairwell_landing.jpg",
+    "chars": [
+      "wolfgang_neutral.svg"
+    ],
     "textBlocks": [
       "As you pass near Wolfgang's office, you hear his voice call out. \"Andi! May I have a word with you?\" You poke your head in. Wolfgang looks unusually excited. \"Believe it or not, Elon Musk contacted me this morning!\" You raise an eyebrow skeptically.",
       "\"He wants to buy the FloraWiki for two million Euros! Unfortunately... I can't find it anymore on the server. In fact, I can't even find the server! Please help me!\""

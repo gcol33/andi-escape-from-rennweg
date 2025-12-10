@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400" width="200" height="400">
+  <!-- Moritz - Field botanist, quiz master -->
+  <defs>
+    <linearGradient id="moritzJacket" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#5a7a5a"/>
+      <stop offset="100%" style="stop-color:#3a5a3a"/>
+    </linearGradient>
+  </defs>
+  <!-- Body/Field Jacket -->
+  <path d="M70 150 Q60 200 55 300 L55 380 L145 380 L145 300 Q140 200 130 150 Z" fill="url(#moritzJacket)"/>
+  <!-- Jacket pockets -->
+  <rect x="60" y="200" width="25" height="20" fill="#4a6a4a" rx="2"/>
+  <rect x="115" y="200" width="25" height="20" fill="#4a6a4a" rx="2"/>
+  <!-- Head -->
+  <ellipse cx="100" cy="80" rx="40" ry="50" fill="#d8b898"/>
+  <!-- Hair - practical short cut -->
+  <path d="M60 68 Q58 28 100 22 Q142 28 140 68 Q130 45 100 42 Q70 45 60 68" fill="#6b5030"/>
+  <!-- Slight stubble suggestion -->
+  <ellipse cx="100" cy="105" rx="25" ry="15" fill="#d0b090" opacity="0.5"/>
+  <!-- Eyes - observant -->
+  <ellipse cx="82" cy="72" rx="5" ry="4" fill="#4a5a3a"/>
+  <ellipse cx="118" cy="72" rx="5" ry="4" fill="#4a5a3a"/>
+  <!-- Slight knowing smile -->
+  <path d="M85 98 Q100 105 115 98" stroke="#6b4513" stroke-width="2" fill="none"/>
+  <!-- Arms - holding flora book -->
+  <path d="M70 160 Q50 200 60 260" stroke="#d8b898" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <path d="M130 160 Q150 200 140 260" stroke="#d8b898" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <!-- Flora identification book -->
+  <rect x="55" y="250" width="35" height="45" fill="#2a5a2a" rx="2"/>
+  <rect x="58" y="255" width="29" height="35" fill="#f5f5dc"/>
+  <text x="72" y="275" text-anchor="middle" font-size="5" fill="#2a5a2a">FLORA</text>
+</svg>

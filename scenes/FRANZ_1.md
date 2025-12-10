@@ -1,6 +1,8 @@
 ---
 id: FRANZ_1
 bg: stairwell_landing.jpg
+chars:
+  - franz_neutral.svg
 set_flags:
   - met_franz
 ---

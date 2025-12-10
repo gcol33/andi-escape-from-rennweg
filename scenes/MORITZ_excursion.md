@@ -1,6 +1,8 @@
 ---
 id: MORITZ_excursion
 bg: sunny_street_freedom.jpg
+chars:
+  - moritz_neutral.svg
 ---
 
 You remember a while back—one of Wolfgang's field excursions that you'd somehow agreed to join. Moritz was there, explaining how the data you work with is actually collected. The destination: the dry meadows of Leithagebirge near Lake Neusiedl. You'd arrived with equipment sufficient for a Himalaya expedition. Everyone stared at your massive backpack as you stepped off the bus.

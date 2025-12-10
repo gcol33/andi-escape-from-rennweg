@@ -1,6 +1,8 @@
 ---
 id: WOLFGANG
 bg: stairwell_landing.jpg
+chars:
+  - wolfgang_neutral.svg
 ---
 
 As you pass near Wolfgang's office, you hear his voice call out. "Andi! May I have a word with you?" You poke your head in. Wolfgang looks unusually excited. "Believe it or not, Elon Musk contacted me this morning!" You raise an eyebrow skeptically.

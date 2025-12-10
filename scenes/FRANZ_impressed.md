@@ -1,6 +1,8 @@
 ---
 id: FRANZ_impressed
 bg: stairwell_landing.jpg
+chars:
+  - franz_neutral.svg
 ---
 
 Franz's eyes widen with genuine respect. A rare expression from the analog sage. "You... you have gathered everything," he says. "The smile of friendship. The wisdom of flora. The supplies for the sacred fire."

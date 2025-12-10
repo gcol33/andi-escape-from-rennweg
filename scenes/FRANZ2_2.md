@@ -1,6 +1,8 @@
 ---
 id: FRANZ2_2
 bg: office_corridor.jpg
+chars:
+  - franz_neutral.svg
 set_flags:
   - met_franz
 ---

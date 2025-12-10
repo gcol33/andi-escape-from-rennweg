@@ -1,6 +1,8 @@
 ---
 id: FRANZ3_tarot
 bg: office_corridor.jpg
+chars:
+  - franz_neutral.svg
 music: tarot.mp3
 actions:
   - type: draw_tarot

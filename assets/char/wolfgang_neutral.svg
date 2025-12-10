@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400" width="200" height="400">
+  <!-- Wolfgang - FloraWiki creator, Elon Musk story -->
+  <defs>
+    <linearGradient id="wolfgangSweater" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4a4a6a"/>
+      <stop offset="100%" style="stop-color:#2a2a4a"/>
+    </linearGradient>
+  </defs>
+  <!-- Body/Academic Sweater -->
+  <path d="M70 150 Q60 200 55 300 L55 380 L145 380 L145 300 Q140 200 130 150 Z" fill="url(#wolfgangSweater)"/>
+  <!-- Collar of shirt underneath -->
+  <path d="M85 150 L100 165 L115 150" stroke="white" stroke-width="3" fill="none"/>
+  <!-- Head -->
+  <ellipse cx="100" cy="80" rx="40" ry="50" fill="#d8c0a8"/>
+  <!-- Hair - balding, distinguished -->
+  <path d="M65 60 Q70 35 100 32 Q130 35 135 60" fill="#a0a0a0"/>
+  <ellipse cx="100" cy="50" rx="25" ry="15" fill="#d8c0a8"/>
+  <!-- Glasses - round academic style -->
+  <circle cx="80" cy="72" r="12" stroke="#333" stroke-width="2" fill="none"/>
+  <circle cx="120" cy="72" r="12" stroke="#333" stroke-width="2" fill="none"/>
+  <line x1="92" y1="72" x2="108" y2="72" stroke="#333" stroke-width="2"/>
+  <!-- Eyes behind glasses -->
+  <ellipse cx="80" cy="72" rx="4" ry="3" fill="#4a4a5a"/>
+  <ellipse cx="120" cy="72" rx="4" ry="3" fill="#4a4a5a"/>
+  <!-- Excited expression -->
+  <path d="M85 100 Q100 110 115 100" stroke="#6b4513" stroke-width="2" fill="none"/>
+  <!-- Arms - gesturing excitedly -->
+  <path d="M70 160 Q30 170 25 210" stroke="#d8c0a8" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <path d="M130 160 Q170 170 175 210" stroke="#d8c0a8" stroke-width="14" fill="none" stroke-linecap="round"/>
+</svg>

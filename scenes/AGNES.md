@@ -1,6 +1,8 @@
 ---
 id: AGNES
 bg: office_corridor.jpg
+chars:
+  - agnes_neutral.svg
 ---
 
 As you round the corner, a familiar figure blocks your path. Agnes. From HR. "Andi! I've been looking for you." A chill runs down your spine. Those words never mean anything good. "About those MICROCLIM timesheets..."

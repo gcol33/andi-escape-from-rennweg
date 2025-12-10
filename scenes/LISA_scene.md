@@ -1,6 +1,8 @@
 ---
 id: LISA_scene
 bg: office_kitchen.jpg
+chars:
+  - lisa_neutral.svg
 ---
 
 You run into Lisa near the kitchen. She's making coffee. "Oh, Andi! Did you hear? Someone said they found a mouse in here." You glance around nervously. "A mouse?" "Yeah, but they couldn't find it anymore. Maybe it's hiding somewhere."

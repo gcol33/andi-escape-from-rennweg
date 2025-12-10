@@ -1,6 +1,8 @@
 ---
 id: DIDI
 bg: office_corridor.jpg
+chars:
+  - didi_neutral.svg
 ---
 
 You duck into Didi's office to say goodbye. He's watching something on his computer. Looks like a TV series. You notice a book lying on his desk: the 5th volume of "The Expanse." "Oh, you've read The Expanse?" you ask. A dangerous question. Didi's eyes light up.

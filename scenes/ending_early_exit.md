@@ -1,7 +1,8 @@
 ---
 id: ending_early_exit
 bg: sunny_street_freedom.jpg
-music: last_day.mp3
+music: game_over.mp3
+ending_title: "BAD ENDING: Trapped by CATS"
 ---
 
 You step through the front doors. The afternoon sun hits your face. Freedom! You could just walk away right now. Start fresh. Leave the Division of Conservation Biology behind forever.
@@ -24,12 +25,20 @@ The servers. The code. You never said goodbye to CATS. The backup scripts that o
 
 ---
 
-You can't just LEAVE. Not like this. Not without saying goodbye to the blinking lights in the server room. Not without one last commit message.
+You can't just LEAVE. Not like this. You turn around and walk back inside. "Forgot something," you mutter.
 
 ---
 
-You turn around and walk back inside. "Forgot something," you mutter. Back to the grind. For now.
+You sit back down at your desk. The monitors glow with familiar lines of code. CATS hums contentedly.
 
-### Choices
+---
 
-- Back to the elevator → elevator0
+Just one more commit. One more bug fix. One more optimization.
+
+---
+
+Hours pass. Days. The farewell party happens without you. Your new job at the physics institute calls, but you don't answer. There's always something else to check.
+
+---
+
+You never leave. CATS needs you. CATS will always need you.

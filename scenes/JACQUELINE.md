@@ -1,6 +1,8 @@
 ---
 id: JACQUELINE
 bg: office_corridor.jpg
+chars:
+  - jacqueline_neutral.svg
 ---
 
 You spot Jacqueline struggling with a large stack of boxes. She's visibly pregnant, and the boxes look heavy. "Let me help you with those."

@@ -1,6 +1,8 @@
 ---
 id: EMMA
 bg: hallway_fluorescent.jpg
+chars:
+  - emma_neutral.svg
 set_flags:
   - visited_4th_floor
 ---

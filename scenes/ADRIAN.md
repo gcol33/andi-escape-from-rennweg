@@ -1,6 +1,8 @@
 ---
 id: ADRIAN
 bg: office_corridor.jpg
+chars:
+  - adrian_smiling.svg
 set_skills:
   - Smile
 ---

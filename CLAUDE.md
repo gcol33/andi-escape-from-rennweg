@@ -26,7 +26,7 @@ node tests/run-qte-tests.js       # QTE tests
 | Player | `player/player.md` | `js/player.js` | Player config, skills |
 | Theme | `theme.md` | `js/theme.js` | Active theme selection |
 
-**Generated files (`js/story.js`, `js/enemies.js`, `js/player.js`, `js/theme.js`) - DO NOT edit manually.**
+**Generated files (`js/story.js`, `js/enemies.js`, `js/player.js`, `js/theme.js`) - DO NOT edit manually. NEVER EVER edit story.js directly - always edit the source files in `scenes/*.md` and run the build script.**
 
 ### Core Modules
 

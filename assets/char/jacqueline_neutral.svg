@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400" width="200" height="400">
+  <!-- Jacqueline - Pregnant colleague with boxes -->
+  <defs>
+    <linearGradient id="jacquelineDress" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#6b4c8a"/>
+      <stop offset="100%" style="stop-color:#4a3560"/>
+    </linearGradient>
+  </defs>
+  <!-- Body/Maternity Dress - wider at middle -->
+  <path d="M70 150 Q50 220 50 280 Q50 350 55 380 L145 380 Q150 350 150 280 Q150 220 130 150 Z" fill="url(#jacquelineDress)"/>
+  <!-- Baby bump suggestion -->
+  <ellipse cx="100" cy="260" rx="45" ry="40" fill="#5a3d70"/>
+  <!-- Head -->
+  <ellipse cx="100" cy="80" rx="38" ry="48" fill="#d4a574"/>
+  <!-- Hair - tied back -->
+  <path d="M62 72 Q58 28 100 22 Q142 28 138 72" fill="#2a1810"/>
+  <ellipse cx="100" cy="30" rx="18" ry="12" fill="#2a1810"/>
+  <!-- Eyes - tired but kind -->
+  <ellipse cx="84" cy="74" rx="5" ry="4" fill="#4a3520"/>
+  <ellipse cx="116" cy="74" rx="5" ry="4" fill="#4a3520"/>
+  <!-- Slight tired smile -->
+  <path d="M85 98 Q100 105 115 98" stroke="#8b4513" stroke-width="2" fill="none"/>
+  <!-- Arms holding belly -->
+  <path d="M70 160 Q45 200 60 260" stroke="#d4a574" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <path d="M130 160 Q155 200 140 260" stroke="#d4a574" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <!-- Box stack nearby -->
+  <rect x="155" y="280" width="35" height="30" fill="#c4a35a" stroke="#8b7355" stroke-width="1"/>
+  <rect x="158" y="255" width="30" height="25" fill="#d4b36a" stroke="#8b7355" stroke-width="1"/>
+</svg>

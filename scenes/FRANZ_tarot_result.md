@@ -1,6 +1,8 @@
 ---
 id: FRANZ_tarot_result
 bg: stairwell_landing.jpg
+chars:
+  - franz_neutral.svg
 ---
 
 Franz studies your face as you absorb the card's meaning. A slight smile plays at the corner of his lips.
