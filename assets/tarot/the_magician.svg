@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 200">
+  <defs>
+    <linearGradient id="cardBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a0a2e"/>
+      <stop offset="50%" style="stop-color:#2d1b4e"/>
+      <stop offset="100%" style="stop-color:#1a0a2e"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffd700"/>
+      <stop offset="50%" style="stop-color:#ffec80"/>
+      <stop offset="100%" style="stop-color:#ffd700"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Card base -->
+  <rect x="2" y="2" width="136" height="196" rx="8" fill="url(#cardBg)" stroke="url(#gold)" stroke-width="2"/>
+
+  <!-- Decorative border -->
+  <rect x="8" y="8" width="124" height="184" rx="4" fill="none" stroke="url(#gold)" stroke-width="0.5" opacity="0.5"/>
+
+  <!-- Card title -->
+  <text x="70" y="25" text-anchor="middle" fill="url(#gold)" font-family="Georgia, serif" font-size="11" font-weight="bold">THE MAGICIAN</text>
+
+  <!-- Roman numeral -->
+  <text x="70" y="38" text-anchor="middle" fill="#9370db" font-family="Georgia, serif" font-size="9" opacity="0.8">I</text>
+
+  <!-- Main illustration area -->
+  <rect x="20" y="45" width="100" height="110" rx="3" fill="#0d0520" stroke="url(#gold)" stroke-width="0.5" opacity="0.8"/>
+
+  <!-- Magician illustration -->
+  <g transform="translate(70, 95)">
+    <!-- Infinity symbol above head -->
+    <path d="M -10,-45 Q -10,-50 -5,-50 Q 0,-50 0,-45 Q 0,-40 5,-40 Q 10,-40 10,-45 Q 10,-50 5,-50 Q 0,-50 0,-45 Q 0,-40 -5,-40 Q -10,-40 -10,-45"
+          fill="none" stroke="url(#gold)" stroke-width="1.5"/>
+
+    <!-- Rose garland around figure -->
+    <ellipse cx="0" cy="0" rx="35" ry="40" fill="none" stroke="#228b22" stroke-width="2" stroke-dasharray="3,5" opacity="0.4"/>
+
+    <!-- Figure -->
+    <!-- Robe -->
+    <path d="M -12,45 L -15,10 Q -15,-5 0,-10 Q 15,-5 15,10 L 12,45" fill="#8b0000"/>
+    <path d="M -8,45 L -10,15 Q -10,5 0,0 Q 10,5 10,15 L 8,45" fill="#fff" opacity="0.3"/>
+
+    <!-- Head -->
+    <circle cx="0" cy="-20" r="10" fill="#deb887"/>
+
+    <!-- Hair -->
+    <ellipse cx="0" cy="-27" rx="9" ry="5" fill="#4a3010"/>
+
+    <!-- Face -->
+    <circle cx="-3" cy="-21" r="1" fill="#4a3a3a"/>
+    <circle cx="3" cy="-21" r="1" fill="#4a3a3a"/>
+    <path d="M -2,-17 Q 0,-15 2,-17" fill="none" stroke="#8b6914" stroke-width="0.5"/>
+
+    <!-- Raised arm with wand -->
+    <line x1="8" y1="-5" x2="25" y2="-35" stroke="#deb887" stroke-width="4"/>
+    <line x1="25" y1="-35" x2="25" y2="-50" stroke="url(#gold)" stroke-width="2"/>
+    <circle cx="25" cy="-52" r="3" fill="#fff"/>
+
+    <!-- Pointing down arm -->
+    <line x1="-8" y1="0" x2="-20" y2="25" stroke="#deb887" stroke-width="4"/>
+
+    <!-- Table -->
+    <rect x="-35" y="30" width="70" height="5" fill="#5a4030"/>
+    <rect x="-33" y="35" width="3" height="15" fill="#4a3020"/>
+    <rect x="30" y="35" width="3" height="15" fill="#4a3020"/>
+
+    <!-- Four elements on table -->
+    <!-- Cup -->
+    <path d="M -25,28 L -22,20 L -18,20 L -15,28" fill="url(#gold)"/>
+    <!-- Pentacle -->
+    <circle cx="-5" cy="24" r="5" fill="url(#gold)" opacity="0.8"/>
+    <text x="-5" y="27" text-anchor="middle" fill="#1a0a2e" font-size="6">*</text>
+    <!-- Sword -->
+    <line x1="10" y1="18" x2="10" y2="30" stroke="#c0c0c0" stroke-width="2"/>
+    <line x1="7" y1="20" x2="13" y2="20" stroke="#c0c0c0" stroke-width="1"/>
+    <!-- Wand -->
+    <line x1="22" y1="18" x2="28" y2="30" stroke="#8b7355" stroke-width="2"/>
+  </g>
+
+  <!-- Card meaning -->
+  <text x="70" y="170" text-anchor="middle" fill="#b8a9c9" font-family="Georgia, serif" font-size="7" font-style="italic">Skill</text>
+  <text x="70" y="180" text-anchor="middle" fill="#b8a9c9" font-family="Georgia, serif" font-size="7" font-style="italic">Resourcefulness</text>
+
+  <!-- Bottom decoration -->
+  <text x="70" y="193" text-anchor="middle" fill="url(#gold)" font-family="Georgia, serif" font-size="8" opacity="0.6">I</text>
+</svg>

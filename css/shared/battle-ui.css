@@ -62,6 +62,258 @@
     text-shadow: 1px 1px 0 #000;
 }
 
+/* === Tarot Card Styles === */
+
+/* Full-screen tarot overlay - covers entire VN container */
+.tarot-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(20, 5, 40, 0.95), rgba(40, 20, 60, 0.95));
+    z-index: 100;
+    cursor: pointer;
+}
+
+/* Cards row - full width, cards at 1/3 positions */
+.tarot-spread-cards {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+    padding: 0 8%;
+    box-sizing: border-box;
+}
+
+/* Individual card slot - centered in its 1/3 section */
+.tarot-card-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 30%;
+    max-width: 30%;
+}
+
+/* Card flip container */
+.tarot-card-flip {
+    width: 140px;
+    height: 200px;
+    perspective: 1000px;
+    margin-bottom: 12px;
+    flex-shrink: 0;
+}
+
+/* Portrait mode: show one card at a time */
+@media (orientation: portrait) {
+    .tarot-spread-cards {
+        flex-direction: column;
+        align-items: center;
+        padding: 0;
+    }
+
+    .tarot-card-slot {
+        width: 80%;
+        max-width: 300px;
+        display: none;  /* Hidden by default, JS shows current card */
+    }
+
+    .tarot-card-slot.active {
+        display: flex;
+    }
+
+    .tarot-card-flip {
+        width: 160px;
+        height: 229px;
+    }
+
+    .tarot-card-name {
+        font-size: 1rem;
+        margin-top: 8px;
+    }
+
+    .tarot-card-flavor {
+        font-size: 0.85rem;
+    }
+}
+
+/* Inner container that flips */
+.tarot-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.6s ease-out;
+}
+
+/* Flipped state (triggered by JS) */
+.tarot-card-flip.flipped .tarot-card-inner {
+    transform: rotateY(180deg);
+}
+
+/* Card faces */
+.tarot-card-back,
+.tarot-card-front {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 6px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5),
+                0 0 20px rgba(138, 43, 226, 0.4);
+    overflow: hidden;
+}
+
+.tarot-card-back img,
+.tarot-card-front img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Back of card (visible first) */
+.tarot-card-back {
+    transform: rotateY(0deg);
+}
+
+/* Front of card (visible after flip) */
+.tarot-card-front {
+    transform: rotateY(180deg);
+}
+
+/* Card name below the card */
+.tarot-card-name {
+    font-size: 0.9rem;
+    font-family: inherit;
+    font-weight: bold;
+    color: var(--btn-color, #ffd700);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.4s ease-out;
+    margin-bottom: 6px;
+    width: 100%;
+}
+
+.tarot-card-name.show {
+    opacity: 1;
+}
+
+/* Flavor text for each card - stays within its slot */
+.tarot-card-flavor {
+    font-size: 0.8rem;
+    font-family: inherit;
+    color: var(--text-color, #b8a9c9);
+    font-style: italic;
+    text-align: center;
+    line-height: 1.5;
+    opacity: 0;
+    transition: opacity 0.4s ease-out;
+    width: 100%;
+    padding: 0 4px;
+    box-sizing: border-box;
+}
+
+.tarot-card-flavor.show {
+    opacity: 1;
+}
+
+/* Continue button after all cards revealed */
+.tarot-continue {
+    margin-top: 24px;
+    padding: 12px 32px;
+    font-size: var(--base-font-size, 1rem);
+    font-family: inherit;
+    font-weight: bold;
+    color: var(--btn-color, #ffd700);
+    background: var(--btn-bg, rgba(75, 0, 130, 0.6));
+    border: var(--btn-border, 2px solid #ffd700);
+    border-radius: var(--btn-border-radius, 8px);
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.4s ease-out, transform 0.4s ease-out, background 0.2s;
+}
+
+.tarot-continue.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.tarot-continue:hover {
+    background: var(--btn-bg-hover, rgba(100, 20, 160, 0.8));
+}
+
+/* Tarot hint screen */
+.tarot-hint-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--textbox-bg, linear-gradient(135deg, rgba(20, 5, 40, 0.95), rgba(40, 20, 60, 0.95)));
+    z-index: 100;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.tarot-hint-text {
+    font-size: var(--base-font-size, 1.1rem);
+    font-family: inherit;
+    color: var(--text-color, #ffd700);
+    line-height: 1.8;
+    text-align: center;
+    max-width: 90%;
+    margin-bottom: 30px;
+}
+
+/* Typewriter reveal effect - characters start invisible */
+.tarot-hint-text .hint-char {
+    opacity: 0;
+}
+
+.tarot-hint-text .hint-char.visible {
+    opacity: 1;
+}
+
+.tarot-hint-continue {
+    padding: 12px 32px;
+    font-size: var(--base-font-size, 1rem);
+    font-family: inherit;
+    font-weight: bold;
+    color: var(--btn-color, #ffd700);
+    background: var(--btn-bg, rgba(75, 0, 130, 0.6));
+    border: var(--btn-border, 2px solid #ffd700);
+    border-radius: var(--btn-border-radius, 8px);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.tarot-hint-continue:hover {
+    background: var(--btn-bg-hover, rgba(100, 20, 160, 0.8));
+}
+
+/* Ready state - The World card */
+.tarot-overlay.tarot-ready {
+    background: linear-gradient(135deg, rgba(40, 30, 10, 0.95), rgba(60, 45, 20, 0.95));
+}
+
+.tarot-ready .tarot-card-back,
+.tarot-ready .tarot-card-front {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5),
+                0 0 25px rgba(255, 215, 0, 0.5);
+}
+
 /* Damage roll min/max indicators - shared fumble/crit style */
 /* Use high specificity to override theme-specific roll-result colors */
 .damage-min,

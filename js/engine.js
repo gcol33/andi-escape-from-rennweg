@@ -555,6 +555,334 @@ const VNEngine = (function() {
                     });
                 }, waitDuration);
             });
+        },
+
+        /**
+         * Draw a tarot card action handler
+         * Franz draws a card that hints at undiscovered items/skills
+         * The card is randomly selected from cards whose requirements aren't met
+         *
+         * Config:
+         * - target: Scene to navigate to after viewing the card
+         * - ready_target: Scene to navigate to if player has everything (optional)
+         */
+        /**
+         * Draw a 3-card tarot spread
+         * Franz lays out 3 cards, reveals them one by one with flavor text,
+         * then provides a combined interpretation/hint
+         *
+         * Config:
+         * - target: Scene to navigate to after the reading
+         * - ready_target: Scene if player has everything (optional)
+         */
+        draw_tarot: function(action) {
+            var target = action.target;
+            var readyTarget = action.ready_target;
+
+            // Define tarot cards with their requirements, flavor text, and hints
+            var tarotCards = [
+                // === PARTY / ROOFTOP CATEGORY ===
+                {
+                    name: 'The Tower',
+                    image: 'the_tower.svg',
+                    check: function() { return !hasSkill('Rooftop Discovery'); },
+                    flavor: 'A structure reaching toward the heavens... struck by sudden illumination. What was hidden becomes visible from above.',
+                    hint: 'The gathering above... you must first witness it from the high place with a furry friend.',
+                    category: 'party'
+                },
+                {
+                    name: 'The Sun',
+                    image: 'the_sun.svg',
+                    check: function() { return !hasSkill('Smile'); },
+                    flavor: 'Radiant warmth that melts all coldness. The face that welcomes is the face that belongs.',
+                    hint: 'One must know how to smile. Seek the one who teaches genuine joy.',
+                    category: 'party'
+                },
+                // === KNOWLEDGE CATEGORY ===
+                {
+                    name: 'The Hierophant',
+                    image: 'the_hierophant.svg',
+                    check: function() { return !checkFlags(['has_flora_book']); },
+                    flavor: 'The keeper of ancient wisdom, holding sacred texts. Knowledge passed through trials.',
+                    hint: 'A book from one who tests you on journeys through the city... prove your botanical worth.',
+                    category: 'knowledge'
+                },
+                {
+                    name: 'The Hermit',
+                    image: 'the_hermit.svg',
+                    check: function() { return !hasSkill('Floristic Knowledge'); },
+                    flavor: 'The wanderer with lantern raised, illuminating paths through wilderness unknown.',
+                    hint: 'Wisdom from one who leads excursions into the wild. Seek the wandering teacher.',
+                    category: 'knowledge'
+                },
+                {
+                    name: 'The Magician',
+                    image: 'the_magician.svg',
+                    check: function() { return !checkFlags(['has_magnifying_glass']); },
+                    flavor: 'Tools of transformation laid upon the table. The power to see what others cannot.',
+                    hint: 'The glass that magnifies... the whiteboard keeper guards it.',
+                    category: 'knowledge'
+                },
+                // === SUPPLIES CATEGORY ===
+                {
+                    name: 'The Chariot',
+                    image: 'the_chariot.svg',
+                    check: function() { return !checkFlags(['has_charcoal']); },
+                    flavor: 'Forward motion, driven by opposing forces united. The fuel for the journey ahead.',
+                    hint: 'Black rocks from the market of Billa, that temple of commerce.',
+                    category: 'supplies'
+                },
+                {
+                    name: 'The Star',
+                    image: 'the_star.svg',
+                    check: function() { return !checkFlags(['has_lighter']); },
+                    flavor: 'A spark of hope in darkness. The eternal flame that ignites new beginnings.',
+                    hint: 'The spark of flame awaits at the smokers\' corner.',
+                    category: 'supplies'
+                },
+                {
+                    name: 'Temperance',
+                    image: 'temperance.svg',
+                    check: function() { return !checkFlags(['has_beer']); },
+                    flavor: 'The blending of elements, the flow between vessels. Celebration shared among companions.',
+                    hint: 'The golden liquid of friendship from the dice rollers below.',
+                    category: 'supplies'
+                }
+            ];
+
+            // Filter to only cards for things player is missing
+            var availableCards = tarotCards.filter(function(card) {
+                return card.check();
+            });
+
+            // Get the VN container
+            var vnContainer = document.getElementById('vn-container');
+            if (!vnContainer) return;
+
+            // If player has everything, navigate to ready target
+            if (availableCards.length === 0) {
+                if (readyTarget) {
+                    loadScene(readyTarget);
+                    return;
+                }
+                // Show The World card as single centered card
+                var readyOverlay = document.createElement('div');
+                readyOverlay.className = 'tarot-overlay tarot-ready';
+                readyOverlay.innerHTML =
+                    '<div class="tarot-spread-cards" style="justify-content: center;">' +
+                        '<div class="tarot-card-slot">' +
+                            '<div class="tarot-card-flip flipped">' +
+                                '<div class="tarot-card-inner">' +
+                                    '<div class="tarot-card-back"><img src="assets/tarot/card_back.svg" alt="Card Back"></div>' +
+                                    '<div class="tarot-card-front"><img src="assets/tarot/the_world.svg" alt="The World"></div>' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="tarot-card-name show">The World</div>' +
+                            '<div class="tarot-card-flavor show">Your journey of preparation is complete.</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<button class="tarot-continue show">Continue</button>';
+                vnContainer.appendChild(readyOverlay);
+                readyOverlay.querySelector('.tarot-continue').onclick = function() {
+                    readyOverlay.remove();
+                    loadScene(target);
+                };
+                return;
+            }
+
+            // Shuffle available cards
+            for (var i = availableCards.length - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var temp = availableCards[i];
+                availableCards[i] = availableCards[j];
+                availableCards[j] = temp;
+            }
+
+            // Pick ONE primary card - this determines the hint
+            var primaryCard = availableCards[0];
+            var theHint = primaryCard.hint;
+
+            // Build display cards: primary card + 2 others for visual variety
+            // Use ALL tarot cards (not just missing ones) for the other 2 slots
+            var allOtherCards = tarotCards.filter(function(c) { return c !== primaryCard; });
+            // Shuffle other cards
+            for (var k = allOtherCards.length - 1; k > 0; k--) {
+                var m = Math.floor(Math.random() * (k + 1));
+                var tmp = allOtherCards[k];
+                allOtherCards[k] = allOtherCards[m];
+                allOtherCards[m] = tmp;
+            }
+
+            // Select 3 cards: primary + 2 random others
+            var selectedCards = [primaryCard];
+            selectedCards.push(allOtherCards[0] || primaryCard);
+            selectedCards.push(allOtherCards[1] || primaryCard);
+
+            // Shuffle the 3 cards so primary isn't always first
+            for (var n = selectedCards.length - 1; n > 0; n--) {
+                var p = Math.floor(Math.random() * (n + 1));
+                var t = selectedCards[n];
+                selectedCards[n] = selectedCards[p];
+                selectedCards[p] = t;
+            }
+
+            // Play mystical sound effect
+            playSfx('dice_roll.ogg');
+
+            // Create the tarot overlay
+            var overlay = document.createElement('div');
+            overlay.className = 'tarot-overlay';
+            overlay.id = 'tarot-overlay';
+
+            // Build the 3-card spread HTML
+            var spreadHTML = '<div class="tarot-spread-cards">';
+            selectedCards.forEach(function(card, index) {
+                spreadHTML += '<div class="tarot-card-slot" data-index="' + index + '">';
+                spreadHTML += '<div class="tarot-card-flip" id="tarot-card-' + index + '">';
+                spreadHTML += '<div class="tarot-card-inner">';
+                spreadHTML += '<div class="tarot-card-back"><img src="assets/tarot/card_back.svg" alt="Card Back"></div>';
+                spreadHTML += '<div class="tarot-card-front"><img src="assets/tarot/' + card.image + '" alt="' + card.name + '"></div>';
+                spreadHTML += '</div></div>';
+                spreadHTML += '<div class="tarot-card-name">' + card.name + '</div>';
+                spreadHTML += '<div class="tarot-card-flavor">' + card.flavor + '</div>';
+                spreadHTML += '</div>';
+            });
+            spreadHTML += '</div>';
+            spreadHTML += '<button class="tarot-continue">Continue</button>';
+
+            overlay.innerHTML = spreadHTML;
+            vnContainer.appendChild(overlay);
+
+            // Set up the sequential reveal
+            var slots = overlay.querySelectorAll('.tarot-card-slot');
+            var continueBtn = overlay.querySelector('.tarot-continue');
+            var currentIndex = 0;
+
+            // Check if portrait mode
+            var isPortrait = window.matchMedia('(orientation: portrait)').matches;
+
+            function revealNext() {
+                if (currentIndex >= slots.length) {
+                    // All cards revealed, show continue button
+                    continueBtn.classList.add('show');
+                    overlay.style.cursor = 'default';
+                    return;
+                }
+
+                var slot = slots[currentIndex];
+                var cardFlip = slot.querySelector('.tarot-card-flip');
+                var cardName = slot.querySelector('.tarot-card-name');
+                var cardFlavor = slot.querySelector('.tarot-card-flavor');
+
+                // In portrait mode, reveal cards one at a time (but keep all visible)
+                if (isPortrait) {
+                    slot.classList.add('active');
+                }
+
+                // Flip the card
+                if (cardFlip) {
+                    cardFlip.classList.add('flipped');
+                    playSfx('dice_roll.ogg');
+                }
+
+                // Show name and flavor after flip animation
+                var isLastCard = (currentIndex === slots.length - 1);
+                setTimeout(function() {
+                    if (cardName) cardName.classList.add('show');
+                    if (cardFlavor) cardFlavor.classList.add('show');
+                    // Show continue button after last card's text appears
+                    if (isLastCard) {
+                        setTimeout(function() {
+                            continueBtn.classList.add('show');
+                            overlay.style.cursor = 'default';
+                        }, 400);
+                    }
+                }, 600);
+
+                currentIndex++;
+            }
+
+            // Click anywhere on overlay to reveal next card
+            overlay.onclick = function(e) {
+                if (e.target.tagName === 'BUTTON') return;
+                if (currentIndex < slots.length) {
+                    revealNext();
+                }
+            };
+
+            // Continue button shows hint screen
+            continueBtn.onclick = function(e) {
+                e.stopPropagation();
+                overlay.remove();
+
+                // Show hint screen with typewriter effect (reveal-based for centered text)
+                var hintScreen = document.createElement('div');
+                hintScreen.className = 'tarot-hint-screen';
+
+                // Wrap each character in a span for reveal effect
+                var wrappedChars = '';
+                for (var ci = 0; ci < theHint.length; ci++) {
+                    var ch = theHint[ci];
+                    if (ch === ' ') {
+                        wrappedChars += ' ';
+                    } else {
+                        wrappedChars += '<span class="hint-char">' + ch + '</span>';
+                    }
+                }
+
+                hintScreen.innerHTML =
+                    '<div class="tarot-hint-text">' + wrappedChars + '</div>' +
+                    '<button class="tarot-hint-continue">Continue</button>';
+                vnContainer.appendChild(hintScreen);
+
+                var hintTextEl = hintScreen.querySelector('.tarot-hint-text');
+                var charSpans = hintTextEl.querySelectorAll('.hint-char');
+                var hintContinueBtn = hintScreen.querySelector('.tarot-hint-continue');
+                hintContinueBtn.style.opacity = '0';
+                hintContinueBtn.style.pointerEvents = 'none';
+
+                // Typewriter: reveal characters one at a time
+                var hintIndex = 0;
+                var hintSpeed = 45; // ms per character (slower for readability)
+
+                function revealNextChar() {
+                    if (hintIndex < charSpans.length) {
+                        charSpans[hintIndex].classList.add('visible');
+                        hintIndex++;
+                        setTimeout(revealNextChar, hintSpeed);
+                    } else {
+                        // Done typing, show continue button
+                        hintContinueBtn.style.opacity = '1';
+                        hintContinueBtn.style.pointerEvents = 'auto';
+                    }
+                }
+
+                // Start typewriter after a brief pause
+                setTimeout(revealNextChar, 300);
+
+                // Click to skip typewriter
+                hintScreen.onclick = function(ev) {
+                    if (ev.target.tagName === 'BUTTON') return;
+                    if (hintIndex < charSpans.length) {
+                        // Reveal all remaining
+                        for (var ri = hintIndex; ri < charSpans.length; ri++) {
+                            charSpans[ri].classList.add('visible');
+                        }
+                        hintIndex = charSpans.length;
+                        hintContinueBtn.style.opacity = '1';
+                        hintContinueBtn.style.pointerEvents = 'auto';
+                    }
+                };
+
+                hintContinueBtn.onclick = function(evnt) {
+                    evnt.stopPropagation();
+                    hintScreen.remove();
+                    loadScene(target);
+                };
+            };
+
+            // Auto-reveal first card after a moment
+            setTimeout(revealNext, 500);
         }
     };
 

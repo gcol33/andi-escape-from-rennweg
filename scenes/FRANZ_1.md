@@ -9,13 +9,14 @@ In the stairwell, half-illuminated by afternoon light filtering through a dusty 
 
 ---
 
-Yet there's a knowing look in his eyes. As if he sees something you don't. "Ah, young traveler," he says with that mysterious air you've never been able to tell is genuine wisdom or theatrical affectation. "Your journey is not yet complete. The path to a proper farewell requires... preparation. Ask, and I shall guide you."
+Yet there's a knowing look in his eyes. As if he sees something you don't. "Ah, young traveler," he says with that mysterious air you've never been able to tell is genuine wisdom or theatrical affectation. "Your journey is not yet complete. The path to a proper farewell requires... preparation."
+
+---
+
+He produces a worn deck of cards from his pocket, the edges soft with age. "Let me consult the cards. They see what we cannot."
 
 ### Choices
 
-- "What about the party?" → FRANZ_hint_rooftop
-- "What about knowledge?" → FRANZ_hint_knowledge
-- "What about supplies?" → FRANZ_hint_supplies
+- "Read the cards for me" → FRANZ_tarot
 - "I'm ready" (require_skills: Rooftop Discovery, Floristic Knowledge, Smile) (requires: has_flora_book, has_magnifying_glass, has_charcoal, has_lighter, has_beer) → FRANZ_impressed
-- Leave → stairs_0
 

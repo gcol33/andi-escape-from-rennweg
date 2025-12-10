@@ -11,11 +11,12 @@ You encounter Franz in the corridor. He looks up from a hand-written document—
 
 "Ah, the digital wanderer returns," he says with a slight smile. "Tell me, have you gathered what you need? A proper farewell requires more than just attendance. It requires preparation."
 
+---
+
+He produces a worn deck of cards from his pocket. "Perhaps the cards can guide you further."
+
 ### Choices
 
-- "What about the party?" → FRANZ_hint_rooftop
-- "What about knowledge?" → FRANZ_hint_knowledge
-- "What about supplies?" → FRANZ_hint_supplies
+- "Read the cards for me" → FRANZ2_tarot
 - "I'm ready" (require_skills: Rooftop Discovery, Floristic Knowledge, Smile) (requires: has_flora_book, has_magnifying_glass, has_charcoal, has_lighter, has_beer) → FRANZ_impressed
-- Leave → elevator1
 

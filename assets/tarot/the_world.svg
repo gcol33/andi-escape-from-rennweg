@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 200">
+  <defs>
+    <linearGradient id="cardBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a0a2e"/>
+      <stop offset="50%" style="stop-color:#2d1b4e"/>
+      <stop offset="100%" style="stop-color:#1a0a2e"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffd700"/>
+      <stop offset="50%" style="stop-color:#ffec80"/>
+      <stop offset="100%" style="stop-color:#ffd700"/>
+    </linearGradient>
+    <linearGradient id="wreath" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#228b22"/>
+      <stop offset="50%" style="stop-color:#32cd32"/>
+      <stop offset="100%" style="stop-color:#228b22"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Card base -->
+  <rect x="2" y="2" width="136" height="196" rx="8" fill="url(#cardBg)" stroke="url(#gold)" stroke-width="2"/>
+
+  <!-- Decorative border -->
+  <rect x="8" y="8" width="124" height="184" rx="4" fill="none" stroke="url(#gold)" stroke-width="0.5" opacity="0.5"/>
+
+  <!-- Card title -->
+  <text x="70" y="25" text-anchor="middle" fill="url(#gold)" font-family="Georgia, serif" font-size="11" font-weight="bold">THE WORLD</text>
+
+  <!-- Roman numeral -->
+  <text x="70" y="38" text-anchor="middle" fill="#9370db" font-family="Georgia, serif" font-size="9" opacity="0.8">XXI</text>
+
+  <!-- Main illustration area -->
+  <rect x="20" y="45" width="100" height="110" rx="3" fill="#0d0520" stroke="url(#gold)" stroke-width="0.5" opacity="0.8"/>
+
+  <!-- The World illustration -->
+  <g transform="translate(70, 100)">
+    <!-- Laurel wreath -->
+    <ellipse cx="0" cy="0" rx="35" ry="42" fill="none" stroke="url(#wreath)" stroke-width="8" opacity="0.8"/>
+    <ellipse cx="0" cy="0" rx="35" ry="42" fill="none" stroke="#32cd32" stroke-width="4" stroke-dasharray="3,4" opacity="0.5"/>
+
+    <!-- Ribbons at top and bottom -->
+    <path d="M -8,-42 Q 0,-48 8,-42" fill="none" stroke="#ff6b6b" stroke-width="3"/>
+    <path d="M -8,42 Q 0,48 8,42" fill="none" stroke="#ff6b6b" stroke-width="3"/>
+
+    <!-- Dancing figure -->
+    <ellipse cx="0" cy="5" rx="12" ry="18" fill="#e8d4f0" opacity="0.3"/>
+
+    <!-- Legs -->
+    <line x1="-5" y1="15" x2="-12" y2="30" stroke="#deb887" stroke-width="3"/>
+    <line x1="5" y1="15" x2="15" y2="25" stroke="#deb887" stroke-width="3"/>
+
+    <!-- Body/torso draped -->
+    <path d="M -8,10 Q 0,5 8,10 Q 5,0 8,-10 Q 0,-15 -8,-10 Q -5,0 -8,10" fill="#9370db" opacity="0.6"/>
+
+    <!-- Arms -->
+    <line x1="-5" y1="-5" x2="-18" y2="-15" stroke="#deb887" stroke-width="3"/>
+    <line x1="5" y1="-5" x2="18" y2="-15" stroke="#deb887" stroke-width="3"/>
+
+    <!-- Wands in hands -->
+    <line x1="-18" y1="-15" x2="-22" y2="-25" stroke="url(#gold)" stroke-width="2"/>
+    <line x1="18" y1="-15" x2="22" y2="-25" stroke="url(#gold)" stroke-width="2"/>
+
+    <!-- Head -->
+    <circle cx="0" cy="-18" r="7" fill="#deb887"/>
+    <!-- Hair -->
+    <ellipse cx="0" cy="-22" rx="6" ry="4" fill="#ffd700" opacity="0.7"/>
+
+    <!-- Four corners - creatures -->
+    <!-- Top left - Man (Aquarius) -->
+    <g transform="translate(-38, -38)">
+      <circle cx="0" cy="0" r="8" fill="#1e3a5f"/>
+      <circle cx="0" cy="-2" r="4" fill="#deb887"/>
+      <rect x="-3" y="2" width="6" height="5" fill="#4169e1"/>
+    </g>
+
+    <!-- Top right - Eagle (Scorpio) -->
+    <g transform="translate(38, -38)">
+      <circle cx="0" cy="0" r="8" fill="#1e3a5f"/>
+      <ellipse cx="0" cy="0" rx="5" ry="4" fill="#8b4513"/>
+      <polygon points="0,-3 -2,0 2,0" fill="#ffd700"/>
+      <path d="M -4,0 Q -8,-3 -6,2" fill="#8b4513"/>
+      <path d="M 4,0 Q 8,-3 6,2" fill="#8b4513"/>
+    </g>
+
+    <!-- Bottom left - Lion (Leo) -->
+    <g transform="translate(-38, 38)">
+      <circle cx="0" cy="0" r="8" fill="#1e3a5f"/>
+      <circle cx="0" cy="0" r="5" fill="#daa520"/>
+      <ellipse cx="0" cy="-2" rx="6" ry="4" fill="#b8860b" opacity="0.7"/>
+      <circle cx="-2" cy="-1" r="1" fill="#2a1a10"/>
+      <circle cx="2" cy="-1" r="1" fill="#2a1a10"/>
+    </g>
+
+    <!-- Bottom right - Bull (Taurus) -->
+    <g transform="translate(38, 38)">
+      <circle cx="0" cy="0" r="8" fill="#1e3a5f"/>
+      <ellipse cx="0" cy="1" rx="5" ry="4" fill="#8b7355"/>
+      <path d="M -4,-2 Q -6,-5 -3,-4" fill="#8b7355"/>
+      <path d="M 4,-2 Q 6,-5 3,-4" fill="#8b7355"/>
+      <ellipse cx="0" cy="3" rx="3" ry="2" fill="#deb887"/>
+    </g>
+  </g>
+
+  <!-- Card meaning -->
+  <text x="70" y="170" text-anchor="middle" fill="#b8a9c9" font-family="Georgia, serif" font-size="7" font-style="italic">Completion</text>
+  <text x="70" y="180" text-anchor="middle" fill="#b8a9c9" font-family="Georgia, serif" font-size="7" font-style="italic">Achievement</text>
+
+  <!-- Bottom decoration -->
+  <text x="70" y="193" text-anchor="middle" fill="url(#gold)" font-family="Georgia, serif" font-size="8" opacity="0.6">XXI</text>
+</svg>

@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 200">
+  <defs>
+    <linearGradient id="cardBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a0a2e"/>
+      <stop offset="50%" style="stop-color:#2d1b4e"/>
+      <stop offset="100%" style="stop-color:#1a0a2e"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffd700"/>
+      <stop offset="50%" style="stop-color:#ffec80"/>
+      <stop offset="100%" style="stop-color:#ffd700"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Card base -->
+  <rect x="2" y="2" width="136" height="196" rx="8" fill="url(#cardBg)" stroke="url(#gold)" stroke-width="2"/>
+
+  <!-- Decorative border -->
+  <rect x="8" y="8" width="124" height="184" rx="4" fill="none" stroke="url(#gold)" stroke-width="0.5" opacity="0.5"/>
+
+  <!-- Card title -->
+  <text x="70" y="25" text-anchor="middle" fill="url(#gold)" font-family="Georgia, serif" font-size="10" font-weight="bold">THE HIEROPHANT</text>
+
+  <!-- Roman numeral -->
+  <text x="70" y="38" text-anchor="middle" fill="#9370db" font-family="Georgia, serif" font-size="9" opacity="0.8">V</text>
+
+  <!-- Main illustration area -->
+  <rect x="20" y="45" width="100" height="110" rx="3" fill="#0d0520" stroke="url(#gold)" stroke-width="0.5" opacity="0.8"/>
+
+  <!-- Hierophant illustration -->
+  <g transform="translate(70, 95)">
+    <!-- Throne/arch background -->
+    <path d="M -35,40 L -35,-20 Q -35,-35 0,-40 Q 35,-35 35,-20 L 35,40" fill="#3d2a5a" opacity="0.6"/>
+
+    <!-- Pillars -->
+    <rect x="-38" y="-15" width="8" height="55" fill="#4a3a6a"/>
+    <rect x="30" y="-15" width="8" height="55" fill="#4a3a6a"/>
+
+    <!-- Figure (robed) -->
+    <ellipse cx="0" cy="25" rx="20" ry="15" fill="#8b0000"/>
+    <rect x="-15" y="5" width="30" height="35" fill="#8b0000"/>
+
+    <!-- Head -->
+    <circle cx="0" cy="-10" r="10" fill="#deb887"/>
+
+    <!-- Crown/tiara -->
+    <path d="M -8,-18 L -10,-28 L -3,-22 L 0,-30 L 3,-22 L 10,-28 L 8,-18" fill="url(#gold)"/>
+
+    <!-- Face -->
+    <circle cx="-3" cy="-12" r="1" fill="#4a3a3a"/>
+    <circle cx="3" cy="-12" r="1" fill="#4a3a3a"/>
+    <ellipse cx="0" cy="-6" rx="2" ry="1" fill="#c19a6b"/>
+
+    <!-- Staff -->
+    <line x1="-25" y1="-25" x2="-25" y2="35" stroke="url(#gold)" stroke-width="3"/>
+    <circle cx="-25" cy="-28" r="5" fill="url(#gold)"/>
+    <line x1="-30" y1="-28" x2="-20" y2="-28" stroke="url(#gold)" stroke-width="2"/>
+
+    <!-- Book in hands -->
+    <rect x="-8" y="5" width="16" height="12" fill="#8b4513"/>
+    <line x1="0" y1="5" x2="0" y2="17" stroke="#5a3010" stroke-width="1"/>
+    <rect x="-6" y="7" width="5" height="3" fill="#ffd700" opacity="0.5"/>
+    <rect x="1" y="7" width="5" height="3" fill="#ffd700" opacity="0.5"/>
+
+    <!-- Keys at bottom -->
+    <g transform="translate(0, 38)">
+      <ellipse cx="-8" cy="0" rx="4" ry="3" fill="none" stroke="#c0c0c0" stroke-width="1.5"/>
+      <line x1="-8" y1="3" x2="-8" y2="10" stroke="#c0c0c0" stroke-width="1.5"/>
+      <ellipse cx="8" cy="0" rx="4" ry="3" fill="none" stroke="url(#gold)" stroke-width="1.5"/>
+      <line x1="8" y1="3" x2="8" y2="10" stroke="url(#gold)" stroke-width="1.5"/>
+    </g>
+  </g>
+
+  <!-- Card meaning -->
+  <text x="70" y="170" text-anchor="middle" fill="#b8a9c9" font-family="Georgia, serif" font-size="7" font-style="italic">Tradition</text>
+  <text x="70" y="180" text-anchor="middle" fill="#b8a9c9" font-family="Georgia, serif" font-size="7" font-style="italic">Knowledge</text>
+
+  <!-- Bottom decoration -->
+  <text x="70" y="193" text-anchor="middle" fill="url(#gold)" font-family="Georgia, serif" font-size="8" opacity="0.6">V</text>
+</svg>

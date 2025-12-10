@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 200">
+  <defs>
+    <linearGradient id="cardBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a0a2e"/>
+      <stop offset="50%" style="stop-color:#2d1b4e"/>
+      <stop offset="100%" style="stop-color:#1a0a2e"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffd700"/>
+      <stop offset="50%" style="stop-color:#ffec80"/>
+      <stop offset="100%" style="stop-color:#ffd700"/>
+    </linearGradient>
+    <linearGradient id="water" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4169e1"/>
+      <stop offset="100%" style="stop-color:#1e3a5f"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Card base -->
+  <rect x="2" y="2" width="136" height="196" rx="8" fill="url(#cardBg)" stroke="url(#gold)" stroke-width="2"/>
+
+  <!-- Decorative border -->
+  <rect x="8" y="8" width="124" height="184" rx="4" fill="none" stroke="url(#gold)" stroke-width="0.5" opacity="0.5"/>
+
+  <!-- Card title -->
+  <text x="70" y="25" text-anchor="middle" fill="url(#gold)" font-family="Georgia, serif" font-size="11" font-weight="bold">THE STAR</text>
+
+  <!-- Roman numeral -->
+  <text x="70" y="38" text-anchor="middle" fill="#9370db" font-family="Georgia, serif" font-size="9" opacity="0.8">XVII</text>
+
+  <!-- Main illustration area -->
+  <rect x="20" y="45" width="100" height="110" rx="3" fill="#0a0a20" stroke="url(#gold)" stroke-width="0.5" opacity="0.8"/>
+
+  <!-- Star illustration -->
+  <g transform="translate(70, 95)">
+    <!-- Large central star -->
+    <polygon points="0,-40 5,-25 20,-25 8,-15 13,0 0,-8 -13,0 -8,-15 -20,-25 -5,-25"
+             fill="url(#gold)" opacity="0.9"/>
+
+    <!-- Smaller surrounding stars -->
+    <g fill="#fff" opacity="0.7">
+      <polygon points="-30,-30 -28,-25 -23,-25 -27,-22 -25,-17 -30,-20 -35,-17 -33,-22 -37,-25 -32,-25" transform="scale(0.5)"/>
+      <polygon points="30,-30 32,-25 37,-25 33,-22 35,-17 30,-20 25,-17 27,-22 23,-25 28,-25" transform="scale(0.5) translate(60, 0)"/>
+      <polygon points="-25,-15 -23,-10 -18,-10 -22,-7 -20,-2 -25,-5 -30,-2 -28,-7 -32,-10 -27,-10" transform="scale(0.4) translate(-20, -60)"/>
+      <polygon points="25,-15 27,-10 32,-10 28,-7 30,-2 25,-5 20,-2 22,-7 18,-10 23,-10" transform="scale(0.4) translate(50, -60)"/>
+      <polygon points="35,-5 37,0 42,0 38,3 40,8 35,5 30,8 32,3 28,0 33,0" transform="scale(0.4) translate(50, -40)"/>
+      <polygon points="-35,-5 -33,0 -28,0 -32,3 -30,8 -35,5 -40,8 -38,3 -42,0 -37,0" transform="scale(0.4) translate(-50, -40)"/>
+      <polygon points="0,-50 2,-45 7,-45 3,-42 5,-37 0,-40 -5,-37 -3,-42 -7,-45 -2,-45" transform="scale(0.4) translate(0, -20)"/>
+    </g>
+
+    <!-- Pool of water -->
+    <ellipse cx="0" cy="40" rx="35" ry="10" fill="url(#water)" opacity="0.6"/>
+
+    <!-- Land/grass -->
+    <path d="M -40,35 Q -30,30 -20,35 Q -10,40 0,35 Q 10,30 20,35 Q 30,40 40,35 L 40,50 L -40,50 Z"
+          fill="#228b22" opacity="0.4"/>
+
+    <!-- Figure (simplified) -->
+    <ellipse cx="-5" cy="25" rx="12" ry="8" fill="#deb887" opacity="0.9"/>
+    <circle cx="-5" cy="10" r="7" fill="#deb887"/>
+    <!-- Hair -->
+    <path d="M -12,8 Q -15,0 -10,-5 Q -5,-8 0,-5 Q 3,0 2,8" fill="#ffd700" opacity="0.7"/>
+
+    <!-- Water pouring from vessels -->
+    <!-- Left vessel (to water) -->
+    <ellipse cx="-25" cy="20" rx="5" ry="3" fill="#c0c0c0"/>
+    <path d="M -23,22 Q -20,30 -15,38" fill="none" stroke="#4169e1" stroke-width="2" opacity="0.7"/>
+    <path d="M -24,23 Q -22,32 -18,40" fill="none" stroke="#4169e1" stroke-width="1.5" opacity="0.5"/>
+
+    <!-- Right vessel (to land) -->
+    <ellipse cx="15" cy="22" rx="5" ry="3" fill="#c0c0c0"/>
+    <path d="M 17,24 Q 22,30 25,35" fill="none" stroke="#4169e1" stroke-width="2" opacity="0.7"/>
+    <path d="M 18,25 Q 20,28 22,32 Q 25,36 30,38" fill="none" stroke="#4169e1" stroke-width="1" opacity="0.4"/>
+    <path d="M 16,25 Q 18,30 20,33 Q 23,37 28,40" fill="none" stroke="#4169e1" stroke-width="1" opacity="0.4"/>
+
+    <!-- Bird on tree -->
+    <line x1="32" y1="15" x2="32" y2="35" stroke="#8b4513" stroke-width="2"/>
+    <ellipse cx="32" cy="12" rx="4" ry="3" fill="#ff6b6b"/>
+  </g>
+
+  <!-- Card meaning -->
+  <text x="70" y="170" text-anchor="middle" fill="#b8a9c9" font-family="Georgia, serif" font-size="7" font-style="italic">Hope</text>
+  <text x="70" y="180" text-anchor="middle" fill="#b8a9c9" font-family="Georgia, serif" font-size="7" font-style="italic">Inspiration</text>
+
+  <!-- Bottom decoration -->
+  <text x="70" y="193" text-anchor="middle" fill="url(#gold)" font-family="Georgia, serif" font-size="8" opacity="0.6">XVII</text>
+</svg>

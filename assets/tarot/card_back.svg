@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 200">
+  <defs>
+    <!-- Mystical gradient for background -->
+    <linearGradient id="cardBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a0a2e"/>
+      <stop offset="50%" style="stop-color:#2d1b4e"/>
+      <stop offset="100%" style="stop-color:#1a0a2e"/>
+    </linearGradient>
+    <!-- Gold accent gradient -->
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffd700"/>
+      <stop offset="50%" style="stop-color:#ffec80"/>
+      <stop offset="100%" style="stop-color:#ffd700"/>
+    </linearGradient>
+    <!-- Star pattern -->
+    <pattern id="stars" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="10" cy="10" r="0.5" fill="#fff" opacity="0.3"/>
+      <circle cx="2" cy="5" r="0.3" fill="#fff" opacity="0.2"/>
+      <circle cx="18" cy="15" r="0.4" fill="#fff" opacity="0.25"/>
+    </pattern>
+  </defs>
+
+  <!-- Card base -->
+  <rect x="2" y="2" width="136" height="196" rx="8" fill="url(#cardBg)" stroke="url(#gold)" stroke-width="2"/>
+
+  <!-- Star field overlay -->
+  <rect x="2" y="2" width="136" height="196" rx="8" fill="url(#stars)"/>
+
+  <!-- Decorative border -->
+  <rect x="10" y="10" width="120" height="180" rx="4" fill="none" stroke="url(#gold)" stroke-width="1" opacity="0.6"/>
+  <rect x="15" y="15" width="110" height="170" rx="3" fill="none" stroke="#9370db" stroke-width="0.5" opacity="0.4"/>
+
+  <!-- Central mystical symbol - Eye of providence style -->
+  <g transform="translate(70, 100)">
+    <!-- Outer circle -->
+    <circle cx="0" cy="0" r="35" fill="none" stroke="url(#gold)" stroke-width="1.5" opacity="0.7"/>
+    <circle cx="0" cy="0" r="30" fill="none" stroke="#9370db" stroke-width="0.5" opacity="0.5"/>
+
+    <!-- Triangle -->
+    <polygon points="0,-25 22,15 -22,15" fill="none" stroke="url(#gold)" stroke-width="1.5"/>
+
+    <!-- Inner eye -->
+    <ellipse cx="0" cy="0" rx="12" ry="8" fill="none" stroke="url(#gold)" stroke-width="1"/>
+    <circle cx="0" cy="0" r="4" fill="url(#gold)" opacity="0.8"/>
+
+    <!-- Rays emanating -->
+    <g stroke="url(#gold)" stroke-width="0.5" opacity="0.5">
+      <line x1="0" y1="-38" x2="0" y2="-45"/>
+      <line x1="27" y1="-19" x2="32" y2="-22"/>
+      <line x1="27" y1="19" x2="32" y2="22"/>
+      <line x1="0" y1="38" x2="0" y2="45"/>
+      <line x1="-27" y1="19" x2="-32" y2="22"/>
+      <line x1="-27" y1="-19" x2="-32" y2="-22"/>
+    </g>
+  </g>
+
+  <!-- Corner decorations -->
+  <g fill="url(#gold)" opacity="0.6">
+    <!-- Top left -->
+    <circle cx="20" cy="20" r="3"/>
+    <path d="M 20 25 Q 20 30 25 30" fill="none" stroke="url(#gold)" stroke-width="0.5"/>
+    <!-- Top right -->
+    <circle cx="120" cy="20" r="3"/>
+    <path d="M 120 25 Q 120 30 115 30" fill="none" stroke="url(#gold)" stroke-width="0.5"/>
+    <!-- Bottom left -->
+    <circle cx="20" cy="180" r="3"/>
+    <path d="M 20 175 Q 20 170 25 170" fill="none" stroke="url(#gold)" stroke-width="0.5"/>
+    <!-- Bottom right -->
+    <circle cx="120" cy="180" r="3"/>
+    <path d="M 120 175 Q 120 170 115 170" fill="none" stroke="url(#gold)" stroke-width="0.5"/>
+  </g>
+
+  <!-- Moon phases at top -->
+  <g transform="translate(70, 35)" fill="url(#gold)" opacity="0.5">
+    <circle cx="-25" cy="0" r="5" fill="none" stroke="url(#gold)" stroke-width="0.5"/>
+    <circle cx="0" cy="0" r="6"/>
+    <circle cx="25" cy="0" r="5" fill="none" stroke="url(#gold)" stroke-width="0.5"/>
+    <path d="M -27 0 A 5 5 0 0 1 -23 0" fill="url(#gold)"/>
+    <path d="M 23 0 A 5 5 0 0 0 27 0" fill="url(#gold)"/>
+  </g>
+
+  <!-- Moon phases at bottom -->
+  <g transform="translate(70, 165)" fill="url(#gold)" opacity="0.5">
+    <circle cx="-25" cy="0" r="5" fill="none" stroke="url(#gold)" stroke-width="0.5"/>
+    <circle cx="0" cy="0" r="6"/>
+    <circle cx="25" cy="0" r="5" fill="none" stroke="url(#gold)" stroke-width="0.5"/>
+    <path d="M -27 0 A 5 5 0 0 1 -23 0" fill="url(#gold)"/>
+    <path d="M 23 0 A 5 5 0 0 0 27 0" fill="url(#gold)"/>
+  </g>
+</svg>
