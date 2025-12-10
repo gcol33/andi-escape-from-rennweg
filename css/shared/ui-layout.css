@@ -265,12 +265,12 @@
     gap: 8px;
 }
 
-/* Choices container: horizontal row, centered */
+/* Choices container: horizontal row, centered, equal height buttons */
 #choices-container {
     display: flex;
     flex-wrap: nowrap;
     justify-content: center;
-    align-items: center;
+    align-items: stretch;
     width: 100%;
     gap: 8px;
 }
