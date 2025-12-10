@@ -15,3 +15,9 @@ You take a sip of the tea. It tastes... interesting. After a few minutes, you st
 
 "Oh," Anna says, her voice echoing strangely. "Did I mention I've been experimenting with mushroom teas?" She tilts her furry head. "Is it working?" The world begins to spin. You must fight off the hallucinations!
 
+### Choices
+
+- Attack! (battle: attack) → ANNA_battle
+- Skills (battle: skill) → ANNA_battle
+- Defend (battle: defend) → ANNA_battle
+- Item (battle: item) → ANNA_battle

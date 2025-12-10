@@ -1,7 +1,7 @@
 ---
 id: anna
 name: Anna
-sprite: agnes_neutral.svg
+sprite: anna_neutral.svg
 
 # Base Stats
 hp: 24

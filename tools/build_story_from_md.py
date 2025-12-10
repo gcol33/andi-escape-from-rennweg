@@ -366,6 +366,7 @@ def parse_choices(text):
         # Parse: Label text → target_id
         # Or: Label text (requires: flag) → target_id
         # Or: Label text (sets: flag) → target_id
+        # Or: Label text (require_skills: Skill Name) → target_id
         # Or: Label text (uses: Item Name) → target_id
         # Or: Label text (heals: 5) → target_id
         # Or: Label text (battle: attack) → target_id
@@ -375,6 +376,7 @@ def parse_choices(text):
             'target': '',
             'require_flags': [],
             'set_flags': [],
+            'require_skills': [],
             'require_items': [],
             'uses': [],
             'sfx': None,
@@ -408,6 +410,13 @@ def parse_choices(text):
             flags = [f.strip() for f in sets_match.group(1).split(',')]
             choice['set_flags'] = flags
             label_part = re.sub(r'\(sets:\s*[^)]+\)', '', label_part).strip()
+
+        # (require_skills: Skill Name, Another Skill)
+        require_skills_match = re.search(r'\(require_skills:\s*([^)]+)\)', label_part)
+        if require_skills_match:
+            skills = [s.strip() for s in require_skills_match.group(1).split(',')]
+            choice['require_skills'] = skills
+            label_part = re.sub(r'\(require_skills:\s*[^)]+\)', '', label_part).strip()
 
         # (require_items: Item Name, Another Item)
         require_items_match = re.search(r'\(require_items:\s*([^)]+)\)', label_part)
@@ -455,6 +464,8 @@ def parse_choices(text):
             del choice['require_flags']
         if not choice['set_flags']:
             del choice['set_flags']
+        if not choice['require_skills']:
+            del choice['require_skills']
         if not choice['require_items']:
             del choice['require_items']
         if not choice['uses']:
@@ -514,6 +525,7 @@ def parse_scene_file(filepath):
         'chars': frontmatter.get('chars', []),
         'set_flags': frontmatter.get('set_flags', []),
         'require_flags': frontmatter.get('require_flags', []),
+        'set_skills': frontmatter.get('set_skills', []),
         'add_items': frontmatter.get('add_items', []),
         'remove_items': frontmatter.get('remove_items', []),
         'actions': frontmatter.get('actions', []),
@@ -528,6 +540,8 @@ def parse_scene_file(filepath):
         del scene['set_flags']
     if not scene['require_flags']:
         del scene['require_flags']
+    if not scene['set_skills']:
+        del scene['set_skills']
     if not scene['add_items']:
         del scene['add_items']
     if not scene['remove_items']:

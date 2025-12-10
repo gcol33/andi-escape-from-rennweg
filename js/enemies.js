@@ -187,7 +187,7 @@ const enemies = {
   "anna": {
     "id": "anna",
     "name": "Anna",
-    "sprite": "agnes_neutral.svg",
+    "sprite": "anna_neutral.svg",
     "hp": 24,
     "ac": 12,
     "attack_bonus": 3,
@@ -228,7 +228,7 @@ const enemies = {
   "dnd_group": {
     "id": "dnd_group",
     "name": "D&D Group",
-    "sprite": "stefan_neutral.svg",
+    "sprite": "dnd_group.svg",
     "hp": 30,
     "ac": 13,
     "attack_bonus": 4,

@@ -16,5 +16,5 @@ The smiles are genuine, welcoming. Everyone seems to be waiting for something. E
 
 ### Choices
 
-- Smile back (requires: can_smile) → bbq1
-- Stand awkwardly (requires: !can_smile) → ending_bbq_nosmile
+- Smile back (require_skills: Smile) → bbq1
+- Stand awkwardly → ending_bbq_nosmile

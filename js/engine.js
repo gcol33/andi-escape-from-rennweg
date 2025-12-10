@@ -102,7 +102,8 @@ const VNEngine = (function() {
         flags: {},
         inventory: {
             keyItems: [],      // unique key items (no count)
-            consumables: {}    // consumable items with counts { "Coffee": 2, "Snack": 1 }
+            consumables: {},   // consumable items with counts { "Coffee": 2, "Snack": 1 }
+            skills: []         // learned skills/abilities (persist across soft reset)
         },
         inventoryExpanded: false, // UI state for expandable panel
         playerHP: null, // player HP (null until first battle)
@@ -374,24 +375,18 @@ const VNEngine = (function() {
             // Reset core state (but don't change scene yet)
             state.currentBlockIndex = 0;
 
-            // Persistent flags survive soft reset
-            if (fullReset) {
-                state.flags = {};
-            } else {
-                var preservedFlags = {};
-                PERSISTENT_FLAGS.forEach(function(flag) {
-                    if (state.flags[flag]) {
-                        preservedFlags[flag] = true;
-                    }
-                });
-                state.flags = preservedFlags;
-            }
+            // Flags are always cleared on reset (skills replace persistent flags)
+            state.flags = {};
 
-            // Key items persist across soft reset
+            // Skills persist across soft reset (New Game+ style)
+            // Key items and consumables are cleared
+            // Full reset clears everything including skills
             if (fullReset) {
-                state.inventory = { keyItems: [], consumables: {} };
+                state.inventory = { keyItems: [], consumables: {}, skills: [] };
             } else {
+                state.inventory.keyItems = [];
                 state.inventory.consumables = {};
+                // skills are preserved
             }
 
             // Reset HP and battle state
@@ -896,8 +891,12 @@ const VNEngine = (function() {
 
         if (!choices) return;
 
-        // Filter choices by item requirements and items to use
+        // Filter choices by skill requirements, item requirements, and items to use
         var availableChoices = choices.filter(function(choice) {
+            // Check skill requirements
+            if (choice.require_skills && choice.require_skills.length > 0) {
+                if (!hasSkills(choice.require_skills)) return false;
+            }
             if (choice.require_items && choice.require_items.length > 0) {
                 if (!hasItems(choice.require_items)) return false;
             }
@@ -1331,6 +1330,8 @@ const VNEngine = (function() {
                 setForcedRoll: function(val) { state.devForcedRoll = val; },
                 getForcedDamage: function() { return state.devForcedDamage; },
                 setForcedDamage: function(val) { state.devForcedDamage = val; },
+                loadScene: loadScene,
+                getCurrentScene: function() { return state.currentSceneId; },
                 log: log
             });
         }
@@ -2062,6 +2063,117 @@ const VNEngine = (function() {
 
         container.appendChild(battleSection);
 
+        // Scene jump section
+        var sceneSection = document.createElement('div');
+        sceneSection.className = 'dev-scene-section';
+        sceneSection.innerHTML = '<div class="dev-section-title">Jump to Scene</div>';
+
+        var sceneSearchContainer = document.createElement('div');
+        sceneSearchContainer.className = 'scene-search-container';
+
+        var sceneInput = document.createElement('input');
+        sceneInput.type = 'text';
+        sceneInput.id = 'scene-search-input';
+        sceneInput.placeholder = 'Search scenes...';
+        sceneInput.autocomplete = 'off';
+
+        var sceneDropdown = document.createElement('div');
+        sceneDropdown.id = 'scene-search-dropdown';
+        sceneDropdown.className = 'scene-search-dropdown';
+
+        // Get all scene IDs
+        function getSceneIds() {
+            if (typeof story !== 'undefined') {
+                return Object.keys(story).sort();
+            }
+            return [];
+        }
+
+        function filterScenes(query) {
+            var scenes = getSceneIds();
+            if (!query) return scenes.slice(0, 15); // Show first 15 when empty
+            query = query.toLowerCase();
+            return scenes.filter(function(id) {
+                return id.toLowerCase().indexOf(query) !== -1;
+            }).slice(0, 15);
+        }
+
+        function renderDropdown(scenes) {
+            sceneDropdown.innerHTML = '';
+            if (scenes.length === 0) {
+                sceneDropdown.innerHTML = '<div class="scene-search-empty">No scenes found</div>';
+                sceneDropdown.classList.add('visible');
+                return;
+            }
+            scenes.forEach(function(sceneId) {
+                var item = document.createElement('div');
+                item.className = 'scene-search-item';
+                item.textContent = sceneId;
+                // Highlight if it's the current scene
+                if (sceneId === state.currentSceneId) {
+                    item.classList.add('current');
+                }
+                item.addEventListener('click', function() {
+                    jumpToScene(sceneId);
+                    sceneDropdown.classList.remove('visible');
+                    sceneInput.value = '';
+                });
+                sceneDropdown.appendChild(item);
+            });
+            sceneDropdown.classList.add('visible');
+        }
+
+        function jumpToScene(sceneId) {
+            if (!story[sceneId]) {
+                log.warn('Scene not found: ' + sceneId);
+                return;
+            }
+            // End any active battle
+            if (typeof BattleEngine !== 'undefined' && BattleEngine.isActive()) {
+                BattleEngine.reset();
+            }
+            // Navigate to scene
+            log.debug('[Dev] Jumping to scene: ' + sceneId);
+            loadScene(sceneId);
+        }
+
+        sceneInput.addEventListener('input', function() {
+            var filtered = filterScenes(this.value);
+            renderDropdown(filtered);
+        });
+
+        sceneInput.addEventListener('focus', function() {
+            var filtered = filterScenes(this.value);
+            renderDropdown(filtered);
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!sceneSearchContainer.contains(e.target)) {
+                sceneDropdown.classList.remove('visible');
+            }
+        });
+
+        // Handle enter key to jump to first match
+        sceneInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                var filtered = filterScenes(this.value);
+                if (filtered.length > 0) {
+                    jumpToScene(filtered[0]);
+                    sceneDropdown.classList.remove('visible');
+                    sceneInput.value = '';
+                }
+            } else if (e.key === 'Escape') {
+                sceneDropdown.classList.remove('visible');
+                sceneInput.blur();
+            }
+        });
+
+        sceneSearchContainer.appendChild(sceneInput);
+        sceneSearchContainer.appendChild(sceneDropdown);
+        sceneSection.appendChild(sceneSearchContainer);
+        container.appendChild(sceneSection);
+
         document.body.appendChild(container);
     }
 
@@ -2362,6 +2474,13 @@ const VNEngine = (function() {
         // Set flags if specified
         if (scene.set_flags && scene.set_flags.length > 0) {
             setFlags(scene.set_flags);
+        }
+
+        // Add skills if specified
+        if (scene.set_skills && scene.set_skills.length > 0) {
+            scene.set_skills.forEach(function(skill) {
+                addSkill(skill);
+            });
         }
 
         // Add items if specified
@@ -2888,11 +3007,15 @@ const VNEngine = (function() {
         hideContinueButton();
 
         if (choices && choices.length > 0) {
-            // Filter choices by required flags, required items, AND items to use
+            // Filter choices by required flags, required skills, required items, AND items to use
             var availableChoices = choices.filter(function(choice) {
                 // Check flag requirements
                 if (choice.require_flags && choice.require_flags.length > 0) {
                     if (!checkFlags(choice.require_flags)) return false;
+                }
+                // Check skill requirements
+                if (choice.require_skills && choice.require_skills.length > 0) {
+                    if (!hasSkills(choice.require_skills)) return false;
                 }
                 // Check item requirements
                 if (choice.require_items && choice.require_items.length > 0) {
@@ -3489,6 +3612,39 @@ const VNEngine = (function() {
     }
 
     /**
+     * Add skill to player inventory (unique, persists across soft reset)
+     * @param {string} skill - Skill name
+     */
+    function addSkill(skill) {
+        if (state.inventory.skills.indexOf(skill) === -1) {
+            state.inventory.skills.push(skill);
+            log.info('Learned skill: ' + skill);
+            showItemNotification(skill, 'added', 'skill');
+        }
+        updateInventoryDisplay();
+    }
+
+    /**
+     * Check if player has a skill
+     * @param {string} skill - Skill name
+     * @returns {boolean}
+     */
+    function hasSkill(skill) {
+        return state.inventory.skills.indexOf(skill) !== -1;
+    }
+
+    /**
+     * Check if player has all required skills
+     * @param {string[]} skills - Array of skill names
+     * @returns {boolean}
+     */
+    function hasSkills(skills) {
+        return skills.every(function(skill) {
+            return hasSkill(skill);
+        });
+    }
+
+    /**
      * Add consumable item to player inventory (with count)
      * @param {string} item - Consumable item name
      * @param {number} count - Number to add (default 1)
@@ -3654,7 +3810,7 @@ const VNEngine = (function() {
      * Show a floating notification when items are added/used
      * @param {string} item - Item name
      * @param {string} action - 'added' or 'used'
-     * @param {string} itemType - 'key' or 'consumable'
+     * @param {string} itemType - 'key', 'consumable', or 'skill'
      */
     function showItemNotification(item, action, itemType) {
         var notification = document.createElement('div');
@@ -3664,7 +3820,12 @@ const VNEngine = (function() {
         }
 
         var icon = action === 'added' ? '+' : '−';
-        var typeIcon = itemType === 'key' ? '🔑 ' : '';
+        var typeIcon = '';
+        if (itemType === 'key') {
+            typeIcon = '🔑 ';
+        } else if (itemType === 'skill') {
+            typeIcon = '✨ ';
+        }
         notification.innerHTML = '<span class="item-icon">' + icon + '</span> ' + typeIcon + item;
 
         document.body.appendChild(notification);
@@ -3700,10 +3861,11 @@ const VNEngine = (function() {
         var inventoryContainer = document.getElementById('inventory-display');
         if (!inventoryContainer) return;
 
+        var hasSkills = state.inventory.skills.length > 0;
         var hasKeyItems = state.inventory.keyItems.length > 0;
         var hasConsumables = Object.keys(state.inventory.consumables).length > 0;
 
-        if (!hasKeyItems && !hasConsumables) {
+        if (!hasSkills && !hasKeyItems && !hasConsumables) {
             inventoryContainer.style.display = 'none';
             return;
         }
@@ -3716,16 +3878,26 @@ const VNEngine = (function() {
         // Header with toggle button
         html += '<div class="inventory-header" onclick="VNEngine.toggleInventory()">';
         html += '<span class="inventory-toggle">' + (state.inventoryExpanded ? '▼' : '▶') + '</span>';
-        html += '<span class="inventory-label">Items</span>';
+        html += '<span class="inventory-label">Inventory</span>';
 
-        // Item count badge
-        var totalItems = state.inventory.keyItems.length + Object.keys(state.inventory.consumables).length;
+        // Total count badge (skills + key items + consumables)
+        var totalItems = state.inventory.skills.length + state.inventory.keyItems.length + Object.keys(state.inventory.consumables).length;
         html += '<span class="inventory-count">' + totalItems + '</span>';
         html += '</div>';
 
         // Expanded content
         if (state.inventoryExpanded) {
             html += '<div class="inventory-content">';
+
+            // Skills section (shown first as they persist)
+            if (hasSkills) {
+                html += '<div class="inventory-section">';
+                html += '<div class="inventory-section-label">✨ Skills</div>';
+                state.inventory.skills.forEach(function(skill) {
+                    html += '<div class="inventory-item inventory-item-skill">' + skill + '</div>';
+                });
+                html += '</div>';
+            }
 
             // Key Items section
             if (hasKeyItems) {
@@ -3948,15 +4120,17 @@ const VNEngine = (function() {
                 // Legacy format: convert array to new format (treat as key items)
                 state.inventory = {
                     keyItems: saveData.inventory,
-                    consumables: {}
+                    consumables: {},
+                    skills: []
                 };
             } else if (saveData.inventory && typeof saveData.inventory === 'object') {
                 state.inventory = {
                     keyItems: saveData.inventory.keyItems || [],
-                    consumables: saveData.inventory.consumables || {}
+                    consumables: saveData.inventory.consumables || {},
+                    skills: saveData.inventory.skills || []
                 };
             } else {
-                state.inventory = { keyItems: [], consumables: {} };
+                state.inventory = { keyItems: [], consumables: {}, skills: [] };
             }
             state.playerHP = saveData.playerHP !== undefined ? saveData.playerHP : null;
             var defaultMaxHP = typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxHP : 20;
@@ -4072,38 +4246,27 @@ const VNEngine = (function() {
     // === Game Reset ===
     /**
      * Reset game state and restart from beginning
-     * @param {boolean} fullReset - If true, clears EVERYTHING including key items and saved state
-     *                              If false (Play Again), keeps key items (New Game+ style)
+     * @param {boolean} fullReset - If true, clears EVERYTHING including skills and saved state
+     *                              If false (Play Again), keeps skills (New Game+ style)
      */
-    // Flags that persist across "Play Again" (New Game+ style)
-    var PERSISTENT_FLAGS = ['saw_rooftop', 'can_smile'];
-
     function resetGame(fullReset) {
         // Reset core state
         state.currentSceneId = null;
         state.currentBlockIndex = 0;
 
-        // Persistent flags survive "Play Again" but not full reset
-        if (fullReset) {
-            state.flags = {};
-        } else {
-            // Keep only persistent flags
-            var preservedFlags = {};
-            PERSISTENT_FLAGS.forEach(function(flag) {
-                if (state.flags[flag]) {
-                    preservedFlags[flag] = true;
-                }
-            });
-            state.flags = preservedFlags;
-        }
+        // Flags are always cleared on reset (skills replace persistent flags)
+        state.flags = {};
 
-        // Key items persist across "Play Again" (New Game+ style)
-        // Full reset (↺ button) clears everything
+        // Skills persist across "Play Again" (New Game+ style)
+        // Key items and consumables are cleared
+        // Full reset (↺ button) clears everything including skills
         if (fullReset) {
-            state.inventory = { keyItems: [], consumables: {} };
+            state.inventory = { keyItems: [], consumables: {}, skills: [] };
         } else {
-            // Keep key items, clear consumables only
+            // Keep skills, clear key items and consumables
+            state.inventory.keyItems = [];
             state.inventory.consumables = {};
+            // skills are preserved
         }
         state.playerHP = null;
         state.playerMaxHP = typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxHP : 20;
@@ -4182,12 +4345,14 @@ const VNEngine = (function() {
         addItem: function(item) { addItems([item]); },
         addKeyItem: addKeyItem,
         addConsumable: addConsumable,
+        addSkill: addSkill,
         removeItem: function(item) { removeItems([item]); },
         removeKeyItem: removeKeyItem,
         removeConsumable: removeConsumable,
         hasItem: hasItem,
         hasKeyItem: hasKeyItem,
         hasConsumable: hasConsumable,
+        hasSkill: hasSkill,
         getConsumableCount: getConsumableCount,
         getInventory: function() { return state.inventory; },
         toggleInventory: toggleInventory,

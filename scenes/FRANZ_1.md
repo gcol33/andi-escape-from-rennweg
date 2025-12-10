@@ -16,6 +16,6 @@ Yet there's a knowing look in his eyes. As if he sees something you don't. "Ah, 
 - "What about the party?" → FRANZ_hint_rooftop
 - "What about knowledge?" → FRANZ_hint_knowledge
 - "What about supplies?" → FRANZ_hint_supplies
-- "I'm ready" (requires: saw_rooftop, requires: has_flora_book, requires: floristic_knowledge, requires: has_magnifying_glass, requires: has_charcoal, requires: has_lighter, requires: has_beer, requires: can_smile) → FRANZ_impressed
+- "I'm ready" (require_skills: Rooftop Discovery, Floristic Knowledge, Smile) (requires: has_flora_book, has_magnifying_glass, has_charcoal, has_lighter, has_beer) → FRANZ_impressed
 - Leave → stairs_0
 

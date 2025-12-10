@@ -16,3 +16,10 @@ Agnes assumes a fighting stance. Her HR badge glints under the fluorescent light
 ---
 
 "You're not leaving without a fight!"
+
+### Choices
+
+- Attack! (battle: attack) → AGNES_battle
+- Skills (battle: skill) → AGNES_battle
+- Defend (battle: defend) → AGNES_battle
+- Item (battle: item) → AGNES_battle

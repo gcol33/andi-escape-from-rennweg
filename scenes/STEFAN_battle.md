@@ -15,3 +15,9 @@ Stefan blocks the stairwell, arms crossed. The ghost of Hercules looms between y
 
 "For Hercules!"
 
+### Choices
+
+- Attack! (battle: attack) → STEFAN_battle
+- Skills (battle: skill) → STEFAN_battle
+- Defend (battle: defend) → STEFAN_battle
+- Item (battle: item) → STEFAN_battle

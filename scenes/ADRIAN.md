@@ -1,8 +1,8 @@
 ---
 id: ADRIAN
 bg: office_corridor.jpg
-set_flags:
-  - can_smile
+set_skills:
+  - Smile
 ---
 
 You turn the corner and run straight into Adrian. As always, he's smiling. Radiantly. Permanently. "Andi! Great to see you!" How is he always smiling?

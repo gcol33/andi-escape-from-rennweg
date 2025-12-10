@@ -1,5 +1,5 @@
 /* === Inventory System ===
- * Expandable inventory panel with key items and consumables sections.
+ * Expandable inventory panel with skills, key items, and consumables sections.
  */
 
 /* === Inventory Display === */
@@ -105,6 +105,10 @@
     border-left: 2px solid #4caf50;
 }
 
+.inventory-item-skill {
+    border-left: 2px solid #9c27b0;
+}
+
 .item-count {
     color: rgba(255, 255, 255, 0.6);
     font-size: 0.6rem;
@@ -162,4 +166,13 @@
 
 .item-notification.item-type-key .item-icon {
     color: #ffd700;
+}
+
+/* Skill notification accent */
+.item-notification.item-type-skill {
+    border-color: #9c27b0;
+}
+
+.item-notification.item-type-skill .item-icon {
+    color: #9c27b0;
 }

@@ -68,6 +68,8 @@ var DevPanel = (function() {
         callbacks.setForcedRoll = options.setForcedRoll || function() {};
         callbacks.getForcedDamage = options.getForcedDamage || function() { return null; };
         callbacks.setForcedDamage = options.setForcedDamage || function() {};
+        callbacks.loadScene = options.loadScene || null;
+        callbacks.getCurrentScene = options.getCurrentScene || function() { return null; };
         callbacks.log = options.log || console;
     }
 
@@ -319,6 +321,9 @@ var DevPanel = (function() {
         // Battle section (intents + quick actions)
         container.appendChild(createBattleSection());
 
+        // Scene jump section
+        container.appendChild(createSceneJumpSection());
+
         document.body.appendChild(container);
     }
 
@@ -430,7 +435,7 @@ var DevPanel = (function() {
         hitInput.id = 'forced-hit-input';
         hitInput.min = '1';
         hitInput.max = '20';
-        hitInput.placeholder = 'rand';
+        hitInput.placeholder = 'x';
         hitInput.title = 'Force next d20 hit roll (1-20). Leave empty for random.';
 
         hitInput.addEventListener('input', function() {
@@ -464,7 +469,7 @@ var DevPanel = (function() {
         damageInput.id = 'forced-damage-input';
         damageInput.min = '1';
         damageInput.max = '99';
-        damageInput.placeholder = 'rand';
+        damageInput.placeholder = 'y';
         damageInput.title = 'Force next damage roll (1-99). Leave empty for random.';
 
         damageInput.addEventListener('input', function() {
@@ -680,6 +685,114 @@ var DevPanel = (function() {
         battleSection.appendChild(quickActions);
 
         return battleSection;
+    }
+
+    function createSceneJumpSection() {
+        var section = document.createElement('div');
+        section.className = 'dev-scene-section';
+        section.innerHTML = '<div class="dev-section-title">Jump to Scene</div>';
+
+        var searchContainer = document.createElement('div');
+        searchContainer.className = 'scene-search-container';
+
+        var input = document.createElement('input');
+        input.type = 'text';
+        input.id = 'scene-search-input';
+        input.placeholder = 'Search scenes...';
+        input.autocomplete = 'off';
+
+        var dropdown = document.createElement('div');
+        dropdown.id = 'scene-search-dropdown';
+        dropdown.className = 'scene-search-dropdown';
+
+        function getSceneIds() {
+            if (typeof story !== 'undefined') {
+                return Object.keys(story).sort();
+            }
+            return [];
+        }
+
+        function filterScenes(query) {
+            var scenes = getSceneIds();
+            if (!query) return scenes.slice(0, 15);
+            query = query.toLowerCase();
+            return scenes.filter(function(id) {
+                return id.toLowerCase().indexOf(query) !== -1;
+            }).slice(0, 15);
+        }
+
+        function renderDropdown(scenes) {
+            dropdown.innerHTML = '';
+            if (scenes.length === 0) {
+                dropdown.innerHTML = '<div class="scene-search-empty">No scenes found</div>';
+                dropdown.classList.add('visible');
+                return;
+            }
+            var currentScene = callbacks.getCurrentScene ? callbacks.getCurrentScene() : null;
+            scenes.forEach(function(sceneId) {
+                var item = document.createElement('div');
+                item.className = 'scene-search-item';
+                item.textContent = sceneId;
+                if (sceneId === currentScene) {
+                    item.classList.add('current');
+                }
+                item.addEventListener('click', function() {
+                    jumpToScene(sceneId);
+                    dropdown.classList.remove('visible');
+                    input.value = '';
+                });
+                dropdown.appendChild(item);
+            });
+            dropdown.classList.add('visible');
+        }
+
+        function jumpToScene(sceneId) {
+            if (typeof story === 'undefined' || !story[sceneId]) {
+                callbacks.log.warn('Scene not found: ' + sceneId);
+                return;
+            }
+            if (typeof BattleEngine !== 'undefined' && BattleEngine.isActive()) {
+                BattleEngine.reset();
+            }
+            callbacks.log.debug('[Dev] Jumping to scene: ' + sceneId);
+            if (callbacks.loadScene) {
+                callbacks.loadScene(sceneId);
+            }
+        }
+
+        input.addEventListener('input', function() {
+            renderDropdown(filterScenes(this.value));
+        });
+
+        input.addEventListener('focus', function() {
+            renderDropdown(filterScenes(this.value));
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!searchContainer.contains(e.target)) {
+                dropdown.classList.remove('visible');
+            }
+        });
+
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                var filtered = filterScenes(this.value);
+                if (filtered.length > 0) {
+                    jumpToScene(filtered[0]);
+                    dropdown.classList.remove('visible');
+                    input.value = '';
+                }
+            } else if (e.key === 'Escape') {
+                dropdown.classList.remove('visible');
+                input.blur();
+            }
+        });
+
+        searchContainer.appendChild(input);
+        searchContainer.appendChild(dropdown);
+        section.appendChild(searchContainer);
+
+        return section;
     }
 
     // =========================================================================

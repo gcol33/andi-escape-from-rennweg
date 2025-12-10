@@ -1,7 +1,7 @@
 ---
 id: dnd_group
 name: D&D Group
-sprite: stefan_neutral.svg
+sprite: dnd_group.svg
 
 # Base Stats
 hp: 30

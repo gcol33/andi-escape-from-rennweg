@@ -1,5 +1,5 @@
 ---
-id: crossing_1
+id: hallway
 bg: office_corridor.jpg
 ---
 

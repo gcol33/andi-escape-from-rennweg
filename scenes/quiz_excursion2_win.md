@@ -1,8 +1,8 @@
 ---
 id: quiz_excursion2_win
 bg: sunny_street_freedom.jpg
-set_flags:
-  - floristic_knowledge
+set_skills:
+  - Floristic Knowledge
 ---
 
 Siegrun closes her notebook with satisfaction. "Not bad. You actually paid attention during those vegetation surveys. I was half convinced you were just there for the astronaut food."

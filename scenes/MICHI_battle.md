@@ -15,3 +15,9 @@ Michi twirls the marker between his fingers like a switchblade. The fluorescent 
 
 "Let's see what you've learned!"
 
+### Choices
+
+- Attack! (battle: attack) → MICHI_battle
+- Skills (battle: skill) → MICHI_battle
+- Defend (battle: defend) → MICHI_battle
+- Item (battle: item) → MICHI_battle

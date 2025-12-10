@@ -15,5 +15,5 @@ Five solid minutes of chaos. Diving behind boxes. Scrambling over chairs. Finall
 
 ### Choices
 
-- Go to crossing → crossing_1
+- Go to hallway → hallway
 - Join a field excursion → MORITZ_excursion

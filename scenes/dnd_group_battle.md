@@ -15,3 +15,9 @@ The D&D group rises from their chairs, dice rattling ominously in their hands. C
 
 "Roll for initiative!"
 
+### Choices
+
+- Attack! (battle: attack) → dnd_group_battle
+- Skills (battle: skill) → dnd_group_battle
+- Defend (battle: defend) → dnd_group_battle
+- Item (battle: item) → dnd_group_battle

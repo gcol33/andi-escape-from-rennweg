@@ -293,3 +293,101 @@
     border-bottom: none;
     background: transparent;
 }
+
+/* === Scene Jump Section === */
+.dev-scene-section {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid currentColor;
+    opacity: 0.9;
+}
+
+.dev-scene-section .dev-section-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.7;
+    margin-bottom: 6px;
+    color: inherit;
+}
+
+.scene-search-container {
+    position: relative;
+}
+
+#scene-search-input {
+    width: 100%;
+    padding: 6px 8px;
+    background: transparent;
+    color: inherit !important;
+    border: 1px solid currentColor;
+    border-radius: 3px;
+    font-family: inherit;
+    font-size: 11px;
+    box-sizing: border-box;
+}
+
+#scene-search-input::placeholder {
+    color: inherit;
+    opacity: 0.5;
+}
+
+#scene-search-input:focus {
+    outline: none;
+    border-color: currentColor;
+    box-shadow: 0 0 0 1px currentColor;
+}
+
+.scene-search-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 200px;
+    overflow-y: auto;
+    background: var(--dev-panel-bg, rgba(30, 30, 30, 0.95));
+    border: 1px solid currentColor;
+    border-top: none;
+    border-radius: 0 0 3px 3px;
+    z-index: 100;
+    display: none;
+}
+
+.scene-search-dropdown.visible {
+    display: block;
+}
+
+.scene-search-item {
+    padding: 6px 8px;
+    cursor: pointer;
+    font-size: 11px;
+    color: inherit;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+}
+
+.scene-search-item:last-child {
+    border-bottom: none;
+}
+
+.scene-search-item:hover {
+    background: rgba(128, 128, 128, 0.3);
+}
+
+.scene-search-item.current {
+    background: rgba(0, 255, 0, 0.15);
+    font-weight: bold;
+}
+
+.scene-search-item.current::after {
+    content: ' (current)';
+    opacity: 0.6;
+    font-weight: normal;
+}
+
+.scene-search-empty {
+    padding: 8px;
+    text-align: center;
+    opacity: 0.5;
+    font-style: italic;
+    font-size: 11px;
+}

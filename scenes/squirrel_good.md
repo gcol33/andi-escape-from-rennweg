@@ -1,8 +1,8 @@
 ---
 id: squirrel_good
 bg: sunny_street_freedom.jpg
-set_flags:
-  - saw_rooftop
+set_skills:
+  - Rooftop Discovery
 ---
 
 Together, you stroll through the park behind the building. The autumn sun filters through the trees as you walk along the familiar path. Soon, you spot a fluffy squirrel sitting on a branch, watching you curiously. Jen offers you some nuts. "Here, try feeding it directly!"
