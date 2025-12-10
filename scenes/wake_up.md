@@ -4,6 +4,10 @@ bg: black.svg
 music: lost.mp3
 actions:
   - type: reset
+  - type: wake_sequence
+    target: start
+    fade_duration: 1000
+    wait_duration: 1500
 random_flavor:
   - "Was that... a premonition? A warning from the universe?"
   - "What a strange dream. It felt so real..."
@@ -12,12 +16,3 @@ random_flavor:
   - "You dreamt of bureaucracy. The worst kind of nightmare."
 ---
 
-...
-
----
-
-Your eyes open.
-
-### Choices
-
-- Wake up → wake_up_fade

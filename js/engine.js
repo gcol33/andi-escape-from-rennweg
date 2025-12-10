@@ -470,6 +470,89 @@ const VNEngine = (function() {
                     loadScene(target);
                 }, duration);
             }, duration);
+        },
+
+        /**
+         * Wake sequence action handler
+         * Shows "..." → waits → erases → shows wake text + random flavor → "Wake up" button → fade to target
+         *
+         * Supports:
+         * - target: scene to navigate to after wake up
+         * - fade_duration: fade duration in ms (default 1000)
+         * - wait_duration: time to show "..." before erasing (default 1500)
+         */
+        wake_sequence: function(action) {
+            var target = action.target || 'start';
+            var fadeDuration = action.fade_duration || 1000;
+            var waitDuration = action.wait_duration || 1500;
+
+            var targetScene = story[target];
+            if (!targetScene) {
+                log.error('wake_sequence: target scene not found: ' + target);
+                return;
+            }
+
+            // Get random flavor from current scene
+            var currentScene = story[state.currentSceneId];
+            var flavorText = '';
+            if (currentScene && currentScene.random_flavor && currentScene.random_flavor.length > 0) {
+                var randomIndex = Math.floor(Math.random() * currentScene.random_flavor.length);
+                flavorText = currentScene.random_flavor[randomIndex];
+            }
+
+            // Hide choices container during sequence
+            if (elements.choicesContainer) {
+                elements.choicesContainer.innerHTML = '';
+            }
+
+            // Step 1: Show "..."
+            if (elements.storyOutput) {
+                elements.storyOutput.innerHTML = '<p>...</p>';
+            }
+
+            // Step 2: Wait, then erase and show wake text
+            setTimeout(function() {
+                if (elements.storyOutput) {
+                    var wakeText = 'Your eyes open.';
+                    if (flavorText) {
+                        wakeText += ' ' + flavorText;
+                    }
+                    elements.storyOutput.innerHTML = '<p>' + wakeText + '</p>';
+                }
+
+                // Step 3: Show "Wake up" button
+                if (elements.choicesContainer) {
+                    var wakeButton = document.createElement('button');
+                    wakeButton.className = 'choice-button';
+                    wakeButton.textContent = 'Wake up';
+                    wakeButton.onclick = function() {
+                        // Disable button
+                        wakeButton.disabled = true;
+                        wakeButton.style.opacity = '0.5';
+
+                        // Step 4: Fade background to target scene's background
+                        var bgLayer = elements.backgroundLayer;
+                        if (bgLayer && targetScene.bg) {
+                            bgLayer.classList.add('fading');
+
+                            setTimeout(function() {
+                                var path = config.assetPaths.bg + targetScene.bg;
+                                bgLayer.style.backgroundImage = 'url("' + path + '")';
+                                bgLayer.classList.remove('fading');
+
+                                // Step 5: Navigate to target after fade in
+                                setTimeout(function() {
+                                    loadScene(target);
+                                }, fadeDuration);
+                            }, fadeDuration);
+                        } else {
+                            // No background layer or no target bg, just navigate
+                            loadScene(target);
+                        }
+                    };
+                    elements.choicesContainer.appendChild(wakeButton);
+                }
+            }, waitDuration);
         }
     };
 
@@ -2897,21 +2980,23 @@ const VNEngine = (function() {
             return;
         }
 
-        // Execute first action (for now, we only support one action per scene)
-        var action = scene.actions[0];
-        var handler = actionHandlers[action.type];
+        // Execute all actions in order
+        for (var i = 0; i < scene.actions.length; i++) {
+            var action = scene.actions[i];
+            var handler = actionHandlers[action.type];
 
-        console.log('[Engine] executeActions: action type =', action.type, 'handler exists =', !!handler);
+            console.log('[Engine] executeActions: action type =', action.type, 'handler exists =', !!handler);
 
-        if (handler) {
-            try {
-                handler(action);
-            } catch (e) {
-                console.error('[Engine] Error executing action:', e);
-                console.error('[Engine] Stack trace:', e.stack);
+            if (handler) {
+                try {
+                    handler(action);
+                } catch (e) {
+                    console.error('[Engine] Error executing action:', e);
+                    console.error('[Engine] Stack trace:', e.stack);
+                }
+            } else {
+                log.warn('Unknown action type: ' + action.type);
             }
-        } else {
-            log.warn('Unknown action type: ' + action.type);
         }
     }
 
