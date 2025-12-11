@@ -1252,7 +1252,7 @@ var BattleCore = (function() {
             if (summon.canAttack) {
                 // Select a move
                 var move = summon.moves && summon.moves.length > 0
-                    ? summon.moves[Math.floor(Math.random() * summon.moves.length)]
+                    ? Utils.pickRandom(summon.moves)
                     : { name: 'Attack', damage: summon.damage, type: summon.damageType };
 
                 // Get attack dialogue
@@ -1368,7 +1368,7 @@ var BattleCore = (function() {
         if (state.enemy && state.enemy.dialogue && state.enemy.dialogue[trigger]) {
             var lines = state.enemy.dialogue[trigger];
             if (lines && lines.length > 0) {
-                line = lines[Math.floor(Math.random() * lines.length)];
+                line = Utils.pickRandom(lines);
             }
         }
 
@@ -1449,23 +1449,9 @@ var BattleCore = (function() {
      * Buttons are only interactive during 'player' phase
      */
     function updateBattleButtonsState(phase) {
-        var battleChoices = document.getElementById('battle-choices');
-        if (!battleChoices) return;
-
-        var playerTurn = (phase === 'player');
-
-        // When enabling buttons for player turn, ensure battle log is clear
-        // This prevents "Stun wore off!" from showing alongside active buttons
-        if (playerTurn) {
-            var battleLogContent = document.getElementById('battle-log-content');
-            if (battleLogContent) battleLogContent.innerHTML = '';
-        }
-
-        // Update container class for styling
-        if (playerTurn) {
-            battleChoices.classList.remove('waiting');
-        } else {
-            battleChoices.classList.add('waiting');
+        // Delegate DOM updates to BattleUI (logic/UI separation)
+        if (typeof BattleUI !== 'undefined' && BattleUI.setPhaseDisplay) {
+            BattleUI.setPhaseDisplay(phase);
         }
 
         // Always refresh battle choices - this handles both:

@@ -115,7 +115,7 @@ var VNEngine = (function() {
             muted: false,
             volume: 0.16
         },
-        devMode: true,  // TODO: Set to false before release
+        devMode: false,  // Hold q+w+e+r+t to toggle dev mode
         devKeysHeld: {},
         devForcedRoll: null,  // Dev mode: force next hit roll to this value (null = random)
         devForcedDamage: null,  // Dev mode: force next damage roll to this value (null = random)

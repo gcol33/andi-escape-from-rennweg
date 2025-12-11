@@ -211,6 +211,27 @@ var BattleDiceUI = (function() {
         listenersAdded = true;
     }
 
+    /**
+     * Remove event listeners and clean up state.
+     * Call on battle end to prevent memory leaks.
+     */
+    function cleanup() {
+        if (listenersAdded) {
+            document.removeEventListener('click', handleGlobalClick);
+            document.removeEventListener('keydown', handleGlobalKeydown);
+            listenersAdded = false;
+        }
+        // Clear any active animations
+        activeAnimations = [];
+        // Clear paused timeouts
+        for (var i = 0; i < _activeTimeouts.length; i++) {
+            clearTimeout(_activeTimeouts[i].timeoutId);
+        }
+        _activeTimeouts = [];
+        _pausedTimeouts = [];
+        _isPaused = false;
+    }
+
     // =========================================================================
     // DICE ANIMATION
     // =========================================================================
@@ -1761,6 +1782,9 @@ var BattleDiceUI = (function() {
 
         // Pause system
         pause: pauseDice,
-        unpause: unpauseDice
+        unpause: unpauseDice,
+
+        // Cleanup (call on battle end to prevent memory leaks)
+        cleanup: cleanup
     };
 })();

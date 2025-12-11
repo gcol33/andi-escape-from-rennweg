@@ -532,7 +532,7 @@ var BattleSummon = (function() {
     function selectMove(summon) {
         // If summon has moves array, pick one randomly
         if (summon.moves && summon.moves.length > 0) {
-            return summon.moves[Math.floor(Math.random() * summon.moves.length)];
+            return Utils.pickRandom(summon.moves);
         }
 
         // Default basic attack
@@ -561,7 +561,7 @@ var BattleSummon = (function() {
         var lines = summon.dialogue[situation];
         if (!lines || lines.length === 0) return null;
 
-        return lines[Math.floor(Math.random() * lines.length)];
+        return Utils.pickRandom(lines);
     }
 
     // =========================================================================

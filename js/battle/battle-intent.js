@@ -193,7 +193,7 @@ var BattleIntent = (function() {
 
     function getRandomSkill(moves) {
         if (moves.length === 0) return null;
-        var randomId = moves[Math.floor(Math.random() * moves.length)];
+        var randomId = Utils.pickRandom(moves);
         var move = _hasBattleData ? BattleData.getSkill(randomId) : null;
         return { id: randomId, move: move };
     }

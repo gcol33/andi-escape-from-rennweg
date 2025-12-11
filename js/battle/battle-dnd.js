@@ -950,14 +950,14 @@ var BattleStyleDnD = (function() {
                     if (defHeal) return defHeal;
                 }
                 var buffMove = findMoveByType(moves, 'buff');
-                if (buffMove && Math.random() < 0.3) return buffMove;
-                return moves[Math.floor(Math.random() * moves.length)];
+                if (buffMove && Utils.chance(0.3)) return buffMove;
+                return Utils.pickRandom(moves);
 
             case 'support':
                 // Focus on debuffs and status effects
                 var statusMove = findMoveWithStatus(moves);
-                if (statusMove && Math.random() < 0.5) return statusMove;
-                return moves[Math.floor(Math.random() * moves.length)];
+                if (statusMove && Utils.chance(0.5)) return statusMove;
+                return Utils.pickRandom(moves);
 
             default:
                 // Default: balanced
@@ -966,11 +966,17 @@ var BattleStyleDnD = (function() {
                     if (defaultHeal) return defaultHeal;
                 }
                 // Random selection
-                return moves[Math.floor(Math.random() * moves.length)];
+                return Utils.pickRandom(moves);
         }
     }
 
+    // AI helper functions - delegate to BattleUtils where available
+
     function findMoveByType(moves, type) {
+        if (typeof BattleUtils !== 'undefined' && BattleUtils.findMoveByType) {
+            return BattleUtils.findMoveByType(moves, type);
+        }
+        // Fallback
         for (var i = 0; i < moves.length; i++) {
             if (moves[i].isHeal && type === 'heal') return moves[i];
             if (moves[i].isBuff && type === 'buff') return moves[i];
@@ -979,6 +985,10 @@ var BattleStyleDnD = (function() {
     }
 
     function findHighestDamageMove(moves) {
+        if (typeof BattleUtils !== 'undefined' && BattleUtils.findHighestDamageMove) {
+            return BattleUtils.findHighestDamageMove(moves);
+        }
+        // Fallback
         var best = null;
         var bestDamage = 0;
         for (var i = 0; i < moves.length; i++) {
@@ -994,6 +1004,10 @@ var BattleStyleDnD = (function() {
     }
 
     function findMoveWithStatus(moves) {
+        if (typeof BattleUtils !== 'undefined' && BattleUtils.findMoveWithStatus) {
+            return BattleUtils.findMoveWithStatus(moves);
+        }
+        // Fallback
         for (var i = 0; i < moves.length; i++) {
             if (moves[i].statusEffect) return moves[i];
         }
@@ -1152,7 +1166,12 @@ var BattleStyleDnD = (function() {
     // HELPERS
     // =========================================================================
 
+    // Delegate to BattleUtils (avoid code duplication)
     function getEffectivenessMessage(multiplier) {
+        if (typeof BattleUtils !== 'undefined' && BattleUtils.getEffectivenessMessage) {
+            return BattleUtils.getEffectivenessMessage(multiplier);
+        }
+        // Fallback if BattleUtils not loaded
         if (multiplier >= 2) return "It's super effective!";
         if (multiplier === 0) return "It has no effect...";
         if (multiplier <= 0.5) return "It's not very effective...";

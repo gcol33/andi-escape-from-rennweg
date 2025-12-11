@@ -1679,6 +1679,36 @@ var BattleUI = (function() {
         }
     }
 
+    // === Pause Overlay ===
+
+    var _pauseOverlay = null;
+
+    /**
+     * Show pause overlay
+     */
+    function showPauseOverlay() {
+        if (!_pauseOverlay) {
+            _pauseOverlay = document.createElement('div');
+            _pauseOverlay.id = 'battle-pause-overlay';
+            _pauseOverlay.className = 'battle-pause-overlay';
+            _pauseOverlay.innerHTML = '<div class="pause-text">PAUSED</div><div class="pause-hint">Press P to resume</div>';
+        }
+
+        if (!elements.container) cacheElements();
+        if (elements.container && !_pauseOverlay.parentNode) {
+            elements.container.appendChild(_pauseOverlay);
+        }
+    }
+
+    /**
+     * Hide pause overlay
+     */
+    function hidePauseOverlay() {
+        if (_pauseOverlay && _pauseOverlay.parentNode) {
+            _pauseOverlay.parentNode.removeChild(_pauseOverlay);
+        }
+    }
+
     // === Intent Display ===
 
     /**
@@ -1983,6 +2013,33 @@ var BattleUI = (function() {
         });
     }
 
+    // === Phase Display ===
+
+    /**
+     * Update UI elements based on battle phase.
+     * Called by BattleCore.setPhase() to maintain logic/UI separation.
+     * @param {string} phase - 'player', 'enemy', 'animating', 'ended'
+     */
+    function setPhaseDisplay(phase) {
+        if (!elements.battleChoices) cacheElements();
+        if (!elements.battleChoices) return;
+
+        var playerTurn = (phase === 'player');
+
+        // Clear battle log when player turn starts
+        // Prevents "Stun wore off!" from showing alongside active buttons
+        if (playerTurn && elements.battleLog) {
+            elements.battleLog.innerHTML = '';
+        }
+
+        // Update container class for styling
+        if (playerTurn) {
+            elements.battleChoices.classList.remove('waiting');
+        } else {
+            elements.battleChoices.classList.add('waiting');
+        }
+    }
+
     // === Public API ===
     return {
         // Initialization
@@ -2143,6 +2200,13 @@ var BattleUI = (function() {
         setSummonsTargetable: setSummonsTargetable,
         showSummonIntercept: showSummonIntercept,
         clearAllSummons: clearAllSummons,
+
+        // Phase display (called by BattleCore for logic/UI separation)
+        setPhaseDisplay: setPhaseDisplay,
+
+        // Pause overlay (called by BattleFacade for logic/UI separation)
+        showPauseOverlay: showPauseOverlay,
+        hidePauseOverlay: hidePauseOverlay,
 
         // Expose config for external timing needs
         config: config,

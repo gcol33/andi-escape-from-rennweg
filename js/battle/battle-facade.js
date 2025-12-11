@@ -74,7 +74,6 @@ var BattleEngine = (function() {
     // =========================================================================
 
     var _isPaused = false;
-    var _pauseOverlay = null;
     var _pauseKeyListenerAdded = false;
     var _pausedTimeouts = [];  // Track paused timeouts with remaining time
     var _activeTimeouts = [];  // Track active timeout IDs and their info
@@ -173,17 +172,9 @@ var BattleEngine = (function() {
         }
         _activeTimeouts = [];
 
-        // Create pause overlay if it doesn't exist
-        if (!_pauseOverlay) {
-            _pauseOverlay = document.createElement('div');
-            _pauseOverlay.id = 'battle-pause-overlay';
-            _pauseOverlay.className = 'battle-pause-overlay';
-            _pauseOverlay.innerHTML = '<div class="pause-text">PAUSED</div><div class="pause-hint">Press P to resume</div>';
-        }
-
-        var container = document.getElementById('vn-container');
-        if (container) {
-            container.appendChild(_pauseOverlay);
+        // Show pause overlay via BattleUI (logic/UI separation)
+        if (_hasBattleUI && BattleUI.showPauseOverlay) {
+            BattleUI.showPauseOverlay();
         }
 
         // Pause dice animations
@@ -201,8 +192,9 @@ var BattleEngine = (function() {
         if (!_isPaused) return;
         _isPaused = false;
 
-        if (_pauseOverlay && _pauseOverlay.parentNode) {
-            _pauseOverlay.parentNode.removeChild(_pauseOverlay);
+        // Hide pause overlay via BattleUI (logic/UI separation)
+        if (_hasBattleUI && BattleUI.hidePauseOverlay) {
+            BattleUI.hidePauseOverlay();
         }
 
         // Resume dice animations
@@ -213,25 +205,36 @@ var BattleEngine = (function() {
         // Resume all paused timeouts with their remaining time
         var now = Date.now();
         for (var i = 0; i < _pausedTimeouts.length; i++) {
-            var info = _pausedTimeouts[i];
-            info.startTime = now;
-            (function(capturedInfo) {
-                capturedInfo.timeoutId = setTimeout(function() {
-                    // Remove from active list
-                    for (var j = _activeTimeouts.length - 1; j >= 0; j--) {
-                        if (_activeTimeouts[j].id === capturedInfo.id) {
-                            _activeTimeouts.splice(j, 1);
-                            break;
-                        }
-                    }
-                    capturedInfo.callback();
-                }, capturedInfo.remaining);
-            })(info);
-            _activeTimeouts.push(info);
+            resumeTimeout(_pausedTimeouts[i], now);
         }
 
         _log.debug('BattleEngine', 'Unpaused -', _pausedTimeouts.length, 'timeouts resumed');
         _pausedTimeouts = [];
+    }
+
+    /**
+     * Resume a single paused timeout
+     * Extracted from unpause() to reduce nesting depth
+     */
+    function resumeTimeout(info, startTime) {
+        info.startTime = startTime;
+        info.timeoutId = setTimeout(function() {
+            removeFromActiveTimeouts(info.id);
+            info.callback();
+        }, info.remaining);
+        _activeTimeouts.push(info);
+    }
+
+    /**
+     * Remove timeout from active list by ID
+     */
+    function removeFromActiveTimeouts(id) {
+        for (var i = _activeTimeouts.length - 1; i >= 0; i--) {
+            if (_activeTimeouts[i].id === id) {
+                _activeTimeouts.splice(i, 1);
+                return;
+            }
+        }
     }
 
     /**
@@ -258,6 +261,16 @@ var BattleEngine = (function() {
         if (_pauseKeyListenerAdded) return;
         document.addEventListener('keydown', handlePauseKey);
         _pauseKeyListenerAdded = true;
+    }
+
+    /**
+     * Remove pause key listener (call on battle end to prevent memory leaks)
+     */
+    function removePauseKeyListener() {
+        if (_pauseKeyListenerAdded) {
+            document.removeEventListener('keydown', handlePauseKey);
+            _pauseKeyListenerAdded = false;
+        }
     }
 
     /**
@@ -698,6 +711,12 @@ var BattleEngine = (function() {
         // Clear action lock when battle ends
         _actionInProgress = false;
 
+        // Clean up event listeners to prevent memory leaks
+        removePauseKeyListener();
+        if (typeof BattleDiceUI !== 'undefined' && BattleDiceUI.cleanup) {
+            BattleDiceUI.cleanup();
+        }
+
         // Reset intent system
         if (_hasBattleIntent) {
             BattleIntent.reset();
@@ -742,13 +761,19 @@ var BattleEngine = (function() {
         // Clear all pending timeouts to prevent callbacks after reset
         clearAllScheduledTimeouts();
 
+        // Clean up event listeners to prevent memory leaks
+        removePauseKeyListener();
+        if (typeof BattleDiceUI !== 'undefined' && BattleDiceUI.cleanup) {
+            BattleDiceUI.cleanup();
+        }
+
         // Clear action lock
         _actionInProgress = false;
 
         // Make sure we're not paused
         _isPaused = false;
-        if (_pauseOverlay && _pauseOverlay.parentNode) {
-            _pauseOverlay.parentNode.removeChild(_pauseOverlay);
+        if (_hasBattleUI && BattleUI.hidePauseOverlay) {
+            BattleUI.hidePauseOverlay();
         }
 
         // Reset intent system
@@ -3407,7 +3432,7 @@ var BattleEngine = (function() {
         if (!T || !T.qte || !T.qte.defendFlavorText) return null;
         var textArray = T.qte.defendFlavorText[type];
         if (!textArray || textArray.length === 0) return null;
-        return textArray[Math.floor(Math.random() * textArray.length)];
+        return Utils.pickRandom(textArray);
     }
 
     function showDialogueBubble(text) {
@@ -3826,7 +3851,7 @@ var BattleEngine = (function() {
         }
 
         if (candidates.length === 0) return null;
-        return candidates[Math.floor(Math.random() * candidates.length)];
+        return Utils.pickRandom(candidates);
     }
 
     // =========================================================================

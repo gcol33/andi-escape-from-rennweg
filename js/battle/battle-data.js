@@ -1005,7 +1005,7 @@ var BattleData = (function() {
         if (!lines || lines.length === 0) {
             return null;
         }
-        return lines[Math.floor(Math.random() * lines.length)];
+        return Utils.pickRandom(lines);
     }
 
     /**

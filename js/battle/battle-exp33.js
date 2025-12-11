@@ -702,7 +702,7 @@ var BattleStyleExp33 = (function() {
         }
 
         // Random from affordable
-        return affordable[Math.floor(Math.random() * affordable.length)];
+        return Utils.pickRandom(affordable);
     }
 
     function findMoveByType(moves, type) {
