@@ -45,7 +45,11 @@ console.log('Loading battle engine...');
 var fs = require('fs');
 var path = require('path');
 
-// Load tuning first (battle modules depend on it)
+// Load utils first (provides shared utilities like getLogger)
+var utilsCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'utils.js'), 'utf8');
+eval(utilsCode);
+
+// Load tuning (battle modules depend on it)
 var tuningCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'tuning.js'), 'utf8');
 eval(tuningCode);
 

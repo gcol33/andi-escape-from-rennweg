@@ -25,8 +25,11 @@ var BattleStyleDnD = (function() {
     var _hasBattleIntent = _hasBattleUtils ? BattleUtils.hasBattleIntent() : typeof BattleIntent !== 'undefined';
     var _hasBattleDice = _hasBattleUtils ? BattleUtils.hasBattleDice() : typeof BattleDice !== 'undefined';
 
+    // Use Logger module with fallback via Utils
+    var _log = Utils.getLogger();
+
     if (!_hasBattleData) {
-        console.warn('[BattleStyleDnD] BattleData module not loaded - some features will be unavailable');
+        _log.warn('BattleDnD', 'BattleData module not loaded - some features will be unavailable');
     }
 
     // =========================================================================
@@ -431,10 +434,10 @@ var BattleStyleDnD = (function() {
                 attackResult.barrierResult = barrierResult;
                 attackResult.hadBarrier = true;
                 // Barrier absorbs the hit - no HP damage
-                console.log('[BattleDnD.playerAttack] Barrier absorbed hit!', barrierResult);
+                _log.debug('BattleDnD', 'playerAttack Barrier absorbed hit!', barrierResult);
             } else {
                 // Don't apply damage yet - store for after animation completes
-                console.log('[BattleDnD.playerAttack] Hit! Storing pendingDamage:', attackResult.damage);
+                _log.debug('BattleDnD', 'playerAttack Hit! Storing pendingDamage:', attackResult.damage);
                 pendingDamage = {
                     amount: attackResult.damage,
                     source: 'player',

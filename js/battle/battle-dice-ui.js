@@ -12,6 +12,9 @@
 var BattleDiceUI = (function() {
     'use strict';
 
+    // Use Logger module with fallback via Utils
+    var _log = Utils.getLogger();
+
     // =========================================================================
     // CONFIGURATION
     // =========================================================================
@@ -1283,7 +1286,7 @@ var BattleDiceUI = (function() {
 
         // Defensive check for container
         if (!container) {
-            console.warn('[BattleDiceUI] showHealRoll: container is null');
+            _log.warn('BattleDiceUI', showHealRoll: container is null');
             if (onTextComplete) onTextComplete();
             if (callback) callback();
             return;

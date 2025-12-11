@@ -18,6 +18,9 @@
 var FloatingNumber = (function() {
     'use strict';
 
+    // Use Logger module with fallback via Utils
+    var _log = Utils.getLogger();
+
     // === Configuration ===
     var T = typeof TUNING !== 'undefined' ? TUNING : null;
 
@@ -199,10 +202,10 @@ var FloatingNumber = (function() {
      * @param {string} type - 'damage', 'heal', 'dot', 'crit', 'maxdamage', 'mindamage', 'miss', 'ac-boost'
      */
     function show(amount, target, type) {
-        console.log('[FloatingNumber.show] amount:', amount, 'target:', target, 'type:', type);
+        _log.debug('FloatingNumber', 'show amount:', amount, 'target:', target, 'type:', type);
         var container = getContainer();
         if (!container) {
-            console.log('[FloatingNumber.show] No container found!');
+            _log.debug('FloatingNumber', 'No container found!');
             return;
         }
 

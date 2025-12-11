@@ -31,6 +31,9 @@
 var BattleIntent = (function() {
     'use strict';
 
+    // Use Logger module with fallback via Utils
+    var _log = Utils.getLogger();
+
     // =========================================================================
     // DEPENDENCIES
     // =========================================================================
@@ -366,11 +369,11 @@ var BattleIntent = (function() {
          */
         tick: function() {
             if (!currentIntent || !currentIntent.isTelegraphed) {
-                console.log('[Intent Debug] tick() - no telegraphed intent');
+                _log.debug('BattleIntent', tick() - no telegraphed intent');
                 return false;
             }
             currentIntent.turnsRemaining--;
-            console.log('[Intent Debug] tick() - turnsRemaining now:', currentIntent.turnsRemaining);
+            _log.debug('BattleIntent', tick() - turnsRemaining now:', currentIntent.turnsRemaining);
             return currentIntent.turnsRemaining <= 0;
         },
 

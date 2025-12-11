@@ -27,8 +27,11 @@ var BattleStylePokemon = (function() {
     var _hasBattleUtils = typeof BattleUtils !== 'undefined';
     var _hasBattleData = _hasBattleUtils ? BattleUtils.hasBattleData() : typeof BattleData !== 'undefined';
 
+    // Use Logger module with fallback via Utils
+    var _log = Utils.getLogger();
+
     if (!_hasBattleData) {
-        console.warn('[BattleStylePokemon] BattleData module not loaded - some features will be unavailable');
+        _log.warn('BattlePokemon', 'BattleData module not loaded - some features will be unavailable');
     }
 
     // =========================================================================
@@ -44,17 +47,6 @@ var BattleStylePokemon = (function() {
         defaultPP: 10
     };
 
-    // =========================================================================
-    // HELPERS
-    // =========================================================================
-
-    /**
-     * Roll a random number between min and max (inclusive)
-     */
-    function randomRange(min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-
     /**
      * Calculate damage using Pokemon formula
      * Simplified: ((2*Level/5 + 2) * Power * A/D) / 50 + 2) * modifiers
@@ -64,7 +56,7 @@ var BattleStylePokemon = (function() {
         // Simplified damage formula
         var base = Math.floor((power * attackStat / defenseStat) / 2) + 2;
         // Random modifier 85-100%
-        var randomMod = randomRange(85, 100) / 100;
+        var randomMod = Utils.randomInt(85, 100) / 100;
         return Math.max(config.minDamage, Math.floor(base * randomMod));
     }
 
@@ -333,7 +325,7 @@ var BattleStylePokemon = (function() {
             }
             if (move.isHeal && move.healAmount) {
                 var healAmount = typeof move.healAmount === 'number' ?
-                    move.healAmount : randomRange(10, 20);
+                    move.healAmount : Utils.randomInt(10, 20);
                 var healResult = BattleCore.healPlayer(healAmount, 'move');
                 messages.push('Restored <span class="battle-number-hp">' + healResult.healed + ' HP</span>!');
             }
@@ -611,7 +603,7 @@ var BattleStylePokemon = (function() {
             }
             if (move.isHeal && move.healAmount) {
                 var healAmount = typeof move.healAmount === 'number' ?
-                    move.healAmount : randomRange(10, 20);
+                    move.healAmount : Utils.randomInt(10, 20);
                 var healResult = BattleCore.healEnemy(healAmount, 'move');
                 messages.push('Restored <span class="battle-number-hp">' + healResult.healed + ' HP</span>!');
             }

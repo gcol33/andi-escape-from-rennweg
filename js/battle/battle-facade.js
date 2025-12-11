@@ -26,13 +26,8 @@ var BattleEngine = (function() {
     var _hasBattleSummon = typeof BattleSummon !== 'undefined';
     var _intentsEnabled = true;  // Can be toggled via dev panel
 
-    // Use Logger if available
-    var _log = typeof Logger !== 'undefined' ? Logger : {
-        debug: function() {},
-        info: function(m) { var a = Array.prototype.slice.call(arguments, 1); console.log.apply(console, ['[' + m + ']'].concat(a)); },
-        warn: function(m) { var a = Array.prototype.slice.call(arguments, 1); console.warn.apply(console, ['[' + m + ']'].concat(a)); },
-        error: function(m) { var a = Array.prototype.slice.call(arguments, 1); console.error.apply(console, ['[' + m + ']'].concat(a)); }
-    };
+    // Use Logger module with fallback via Utils
+    var _log = Utils.getLogger();
 
     if (!_hasBattleData) {
         _log.warn('BattleEngine', 'BattleData module not loaded - some features will be unavailable');
@@ -494,7 +489,7 @@ var BattleEngine = (function() {
         current.canBreak = typeDef ? typeDef.canBreak : false;
         current.breakCondition = typeDef ? typeDef.breakCondition : null;
 
-        console.log('[DEV] Forcing immediate intent execution:', intentId, current);
+        _log.debug('BattleFacade', 'Forcing immediate intent execution:', intentId, current);
 
         // Immediately trigger enemy turn to execute the intent
         // Set phase to enemy so player can't act
@@ -508,7 +503,7 @@ var BattleEngine = (function() {
                 // - player status ticks
                 // - setting phase back to player
                 // - checking battle end
-                console.log('[DEV] Enemy intent turn complete');
+                _log.debug('BattleFacade', 'Enemy intent turn complete');
             }, { playerAction: 'dev_skip' });
         }, 100);
 
@@ -575,7 +570,7 @@ var BattleEngine = (function() {
         current.canBreak = typeDef ? typeDef.canBreak : false;
         current.breakCondition = typeDef ? typeDef.breakCondition : null;
 
-        console.log('[DEV] Triggering intent prep phase:', intentId, current);
+        _log.debug('BattleFacade', 'Triggering intent prep phase:', intentId, current);
 
         // Lock actions during the simulated enemy turn
         _actionInProgress = true;
@@ -584,9 +579,9 @@ var BattleEngine = (function() {
         // Show the intent preparation (dialogue + icon) and properly end enemy turn
         showIntentPreparation(enemy, current, function() {
             // Intent announcement IS the enemy's action - end their turn properly
-            console.log('[DEV] Intent prep shown, finishing enemy turn');
+            _log.debug('BattleFacade', 'Intent prep shown, finishing enemy turn');
             finishEnemyTurn([], function() {
-                console.log('[DEV] Enemy turn finished, player can now act');
+                _log.debug('BattleFacade', 'Enemy turn finished, player can now act');
             });
         });
 
@@ -844,17 +839,17 @@ var BattleEngine = (function() {
      * @param {Function} callback - Completion callback
      */
     function executeAction(action, params, callback) {
-        console.log('[Action Debug] executeAction called:', action, '_actionInProgress:', _actionInProgress);
+        _log.debug('BattleFacade', 'executeAction called:', action, '_actionInProgress:', _actionInProgress);
         // Guard against spam-clicking race conditions
         if (_actionInProgress) {
-            console.log('[Action Debug] BLOCKED - action in progress');
+            _log.debug('BattleFacade', 'BLOCKED - action in progress');
             return;
         }
 
         var state = BattleCore.getState();
-        console.log('[Action Debug] state.active:', state.active, 'state.phase:', state.phase);
+        _log.debug('BattleFacade', 'state.active:', state.active, 'state.phase:', state.phase);
         if (!state.active || state.phase !== 'player') {
-            console.log('[Action Debug] BLOCKED - not active or not player phase');
+            _log.debug('BattleFacade', 'BLOCKED - not active or not player phase');
             return;
         }
 
@@ -1343,7 +1338,7 @@ var BattleEngine = (function() {
      * Process enemy turn
      */
     function processEnemyTurn(playerMessages, callback, context) {
-        console.log('[Enemy Turn Debug] processEnemyTurn called with context:', context);
+        _log.debug('BattleFacade', 'processEnemyTurn called with context:', context);
         var state = BattleCore.getState();
         var style = getActiveStyle();
         var enemy = state.enemy;
@@ -1477,7 +1472,7 @@ var BattleEngine = (function() {
             // === INTENT SYSTEM: Check for telegraphed attacks ===
             if (_hasBattleIntent && _intentsEnabled) {
                 var intent = BattleIntent.get();
-                console.log('[Intent Debug] Checking intent:', intent ? {
+                _log.debug('BattleFacade', 'Checking intent:', intent ? {
                     id: intent.id,
                     type: intent.type,
                     isTelegraphed: intent.isTelegraphed,
@@ -1487,7 +1482,7 @@ var BattleEngine = (function() {
 
                 // If there's a ready intent, execute it instead of normal attack
                 if (intent && intent.isTelegraphed && BattleIntent.isReady()) {
-                    console.log('[Intent Debug] Executing intent attack!');
+                    _log.debug('BattleFacade', 'Executing intent attack!');
                     executeIntentAttack(style, intent, remainingMessages, callback);
                     return;
                 }
@@ -1495,16 +1490,16 @@ var BattleEngine = (function() {
                 // If there's an active (not ready) intent that was already announced,
                 // just do a normal attack (the announcement was a previous turn)
                 if (intent && intent.isTelegraphed && intent.turnsRemaining > 0) {
-                    console.log('[Intent Debug] Intent already announced, doing normal attack');
+                    _log.debug('BattleFacade', 'Intent already announced, doing normal attack');
                     // Intent was announced on a previous turn, proceed with normal attack
                 } else {
                     // Check if a new intent should trigger
                     var newIntent = BattleIntent.generate(enemy, state.player);
-                    console.log('[Intent Debug] Generated new intent:', newIntent ? newIntent.id : 'none');
+                    _log.debug('BattleFacade', 'Generated new intent:', newIntent ? newIntent.id : 'none');
                     if (newIntent && newIntent.isTelegraphed) {
                         // New intent triggered - show preparation and END TURN
                         // The preparation IS the enemy's action for this turn
-                        console.log('[Intent Debug] Announcing new intent - this is the enemy turn action');
+                        _log.debug('BattleFacade', 'Announcing new intent - this is the enemy turn action');
                         showIntentPreparation(enemy, newIntent, function() {
                             // End enemy turn WITHOUT attacking - announcement was the action
                             finishEnemyTurn(remainingMessages, callback);
@@ -1515,11 +1510,11 @@ var BattleEngine = (function() {
             }
 
             // Normal attack flow
-            console.log('[Intent Debug] Proceeding to normal attack');
+            _log.debug('BattleFacade', 'Proceeding to normal attack');
             proceedWithNormalAttack();
 
             function proceedWithNormalAttack() {
-                console.log('[Intent Debug] In proceedWithNormalAttack');
+                _log.debug('BattleFacade', 'In proceedWithNormalAttack');
                 // Try to get an enemy taunt based on context
                 var taunt = getEnemyTaunt(context);
                 if (taunt) {
@@ -1594,7 +1589,7 @@ var BattleEngine = (function() {
         // If skill is a summon, there's no attack - skip defend QTE entirely
         // Player's turn is effectively "skipped" since there's nothing to defend against
         if (skill.isSummon) {
-            console.log('[Intent Debug] Summon intent - no attack to defend against, skipping QTE');
+            _log.debug('BattleFacade', 'Summon intent - no attack to defend against, skipping QTE');
             // If player was defending, decrement defending since the turn still passes
             if (player.defending && player.defending > 0) {
                 player.defending--;
@@ -1610,7 +1605,7 @@ var BattleEngine = (function() {
 
         // Check if player is defending - trigger defend QTE for intent attacks too
         if (player.defending && player.defending > 0 && isQTEEnabledForDefend()) {
-            console.log('[Intent Debug] Player defending, triggering defend QTE for intent attack');
+            _log.debug('BattleFacade', 'Player defending, triggering defend QTE for intent attack');
             scheduleTimeout(function() {
                 processIntentDefendQTE(style, skill, intent, messages, callback);
             }, config.timing.dialogueDuration);
@@ -1659,7 +1654,7 @@ var BattleEngine = (function() {
      * Process the result of a defend QTE against an intent attack
      */
     function processIntentDefendQTEResult(style, skill, intent, qteResult, messages, callback) {
-        console.log('[Intent QTE Debug] processIntentDefendQTEResult called with:', qteResult);
+        _log.debug('BattleFacade', 'processIntentDefendQTEResult called with:', qteResult);
         var state = BattleCore.getState();
         var player = state.player;
         var enemy = state.enemy;
@@ -1668,7 +1663,7 @@ var BattleEngine = (function() {
 
         var zone = qteResult.zone || 'normal';
         var mods = qteResult.modifiers || QTEEngine.getDefendModifiers(zone);
-        console.log('[Intent QTE Debug] Zone:', zone, 'Mods:', mods);
+        _log.debug('BattleFacade', 'Zone:', zone, 'Mods:', mods);
 
         // Clear the intent
         BattleIntent.clear(state.turn);
@@ -1730,13 +1725,13 @@ var BattleEngine = (function() {
             resultMessages.push('Defensive stance wore off!');
         }
 
-        console.log('[Intent QTE Debug] Result messages:', resultMessages);
+        _log.debug('BattleFacade', 'Result messages:', resultMessages);
         updateDisplay();
         if (checkEnd()) return;
 
-        console.log('[Intent QTE Debug] Showing result messages, then finishing turn');
+        _log.debug('BattleFacade', 'Showing result messages, then finishing turn');
         updateBattleLog(resultMessages.join('<br>'), null, function() {
-            console.log('[Intent QTE Debug] Result shown, calling finishEnemyTurn');
+            _log.debug('BattleFacade', 'Result shown, calling finishEnemyTurn');
             finishEnemyTurn(messages, callback);
         });
     }
@@ -1750,7 +1745,7 @@ var BattleEngine = (function() {
         var player = state.player;
         var enemyName = enemy.name || 'Enemy';
 
-        console.log('[Intent Debug] executeIntentSkill called:', {
+        _log.debug('BattleFacade', 'executeIntentSkill called:', {
             skill: skill,
             isSummon: skill ? skill.isSummon : 'no skill',
             summonId: skill ? skill.summonId : 'no skill',
@@ -1762,7 +1757,7 @@ var BattleEngine = (function() {
 
         // Handle summon type
         if (skill.isSummon) {
-            console.log('[Intent Debug] Skill is summon, calling executeEnemySummon');
+            _log.debug('BattleFacade', 'Skill is summon, calling executeEnemySummon');
             executeEnemySummon(skill, enemy, messages, callback);
             return;
         }
@@ -1793,12 +1788,12 @@ var BattleEngine = (function() {
         if (wasDefending) {
             var reduction = 0.5;  // 50% damage reduction when defending
             damage = Math.floor(damage * (1 - reduction));
-            console.log('[Intent Attack] Player defending! Damage reduced to:', damage);
+            _log.debug('BattleFacade', 'Player defending! Damage reduced to:', damage);
             // Decrement defending counter (intent attack counts as an enemy attack)
             player.defending--;
         }
 
-        console.log('[Intent Attack] Always hits! Damage:', damage);
+        _log.debug('BattleFacade', 'Always hits! Damage:', damage);
 
         var resultMsgs = [enemyName + ' uses ' + skill.name + '!'];
         resultMsgs.push('<span class="roll-damage-normal">' + damage + ' DAMAGE</span>');
@@ -1917,7 +1912,7 @@ var BattleEngine = (function() {
         var enemyName = enemy.name || 'Enemy';
         var summonId = skill.summonId;
 
-        console.log('[Summon Debug] executeEnemySummon called:', {
+        _log.debug('BattleFacade', 'executeEnemySummon called:', {
             skill: skill,
             summonId: summonId,
             enemyId: enemy.id,
@@ -1938,9 +1933,9 @@ var BattleEngine = (function() {
         }
 
         // Spawn the summon
-        console.log('[Summon Debug] Calling BattleSummon.spawn with:', summonId, enemy.id, 'enemy');
+        _log.debug('BattleFacade', 'Calling BattleSummon.spawn with:', summonId, enemy.id, 'enemy');
         var result = BattleSummon.spawn(summonId, enemy.id, 'enemy');
-        console.log('[Summon Debug] Spawn result:', result);
+        _log.debug('BattleFacade', 'Spawn result:', result);
 
         if (!result.success) {
             // Failed to summon (e.g., max summons reached)
@@ -1957,10 +1952,10 @@ var BattleEngine = (function() {
         summonMsgs.push(result.message);
 
         // Show the summon sprite
-        console.log('[Summon Debug] Checking for BattleUI.showSummonSprite:', _hasBattleUI, BattleUI ? !!BattleUI.showSummonSprite : 'BattleUI undefined');
+        _log.debug('BattleFacade', 'Checking for BattleUI.showSummonSprite:', _hasBattleUI, BattleUI ? !!BattleUI.showSummonSprite : 'BattleUI undefined');
         if (_hasBattleUI && BattleUI.showSummonSprite) {
             var displayData = BattleSummon.getDisplayData(result.summon.uid);
-            console.log('[Summon Debug] Display data:', displayData);
+            _log.debug('BattleFacade', 'Display data:', displayData);
             BattleUI.showSummonSprite(displayData);
         }
 
@@ -1980,9 +1975,9 @@ var BattleEngine = (function() {
      * @param {Function} callback - Completion callback
      */
     function processEnemySummonTurns(callback) {
-        console.log('[Turn Debug] processEnemySummonTurns called');
+        _log.debug('BattleFacade', 'processEnemySummonTurns called');
         if (!_hasBattleSummon || !BattleSummon.hasSummons('enemy')) {
-            console.log('[Turn Debug] No summons, calling callback');
+            _log.debug('BattleFacade', 'No summons, calling callback');
             callback();
             return;
         }
@@ -2156,7 +2151,7 @@ var BattleEngine = (function() {
      *   - Bad (FUMBLE): Confused, hit, lose AC bonus
      */
     function processDefendQTE(style, messages, callback) {
-        console.log('[Defend Debug] processDefendQTE called');
+        _log.debug('BattleFacade', 'processDefendQTE called');
         var state = BattleCore.getState();
         var player = state.player;
         var enemy = state.enemy;
@@ -2166,14 +2161,14 @@ var BattleEngine = (function() {
         // Select enemy move first to know incoming attack
         var move = style.selectEnemyMove ? style.selectEnemyMove() : { name: 'Attack' };
         var moveName = move.name || 'Attack';
-        console.log('[Defend Debug] Enemy move:', moveName, move);
+        _log.debug('BattleFacade', 'Enemy move:', moveName, move);
 
         // Check if this is an attack move (not a heal or buff)
         var isAttackMove = !move.isHeal && !move.isBuff && !move.isDefend;
 
         // If not an attack, skip the defend QTE and just execute the enemy turn normally
         if (!isAttackMove) {
-            console.log('[Defend Debug] Not an attack move, skipping QTE');
+            _log.debug('BattleFacade', 'Not an attack move, skipping QTE');
             var result = style.enemyTurn();
             finishEnemyAction(result, messages, callback);
             return;
@@ -2181,19 +2176,19 @@ var BattleEngine = (function() {
 
         // Show enemy attack announcement and player bracing before QTE
         var preQTEMessage = enemyName + ' uses ' + moveName + '!<br>' + playerName + ' braces himself!';
-        console.log('[Defend Debug] Showing pre-QTE message');
+        _log.debug('BattleFacade', 'Showing pre-QTE message');
 
         updateBattleLog(preQTEMessage, null, function() {
-            console.log('[Defend Debug] Pre-QTE message shown, starting QTE');
+            _log.debug('BattleFacade', 'Pre-QTE message shown, starting QTE');
             // Now launch the defend QTE
             var qteStarted = QTEEngine.startDefendQTE({
                 difficulty: 'normal',
                 enemyAttackName: moveName
             }, function(qteResult) {
-                console.log('[Defend Debug] QTE completed with result:', qteResult);
+                _log.debug('BattleFacade', 'QTE completed with result:', qteResult);
                 processDefendQTEResult(style, player, enemy, move, qteResult, callback);
             });
-            console.log('[Defend Debug] QTE started:', qteStarted);
+            _log.debug('BattleFacade', 'QTE started:', qteStarted);
 
             // If QTE failed to start (e.g., already active), fall back to normal attack flow
             if (!qteStarted) {
@@ -2568,7 +2563,7 @@ var BattleEngine = (function() {
     }
 
     function finishEnemyTurn(messages, callback) {
-        console.log('[Turn Debug] finishEnemyTurn called');
+        _log.debug('BattleFacade', 'finishEnemyTurn called');
 
         // Function to continue after messages are displayed
         function continueAfterMessages() {
@@ -2602,7 +2597,7 @@ var BattleEngine = (function() {
      * Continue finishing enemy turn after summons have acted
      */
     function continueFinishEnemyTurn(callback) {
-        console.log('[Turn Debug] continueFinishEnemyTurn called');
+        _log.debug('BattleFacade', 'continueFinishEnemyTurn called');
         // incrementTurn() handles: turn counter++, dialogue cooldown, AND defend cooldown
         // Cooldown ticks once per full turn cycle (enemy action + player action)
         BattleCore.incrementTurn();
@@ -2611,7 +2606,7 @@ var BattleEngine = (function() {
         // Process player regen/status ticks AFTER enemy turn, BEFORE player can act
         var state = BattleCore.getState();
         var statusResult = BattleCore.tickStatuses(state.player, state.player.name);
-        console.log('[Turn Debug] Player status result:', statusResult);
+        _log.debug('BattleFacade', 'Player status result:', statusResult);
 
         // Apply status damage/healing/mana
         if (statusResult.damage > 0) {
@@ -2707,7 +2702,7 @@ var BattleEngine = (function() {
 
                 // If player is still in defensive stance, enemy attacks again automatically
                 if (state.player.defending && state.player.defending > 0) {
-                    console.log('[Turn Debug] Player still defending (' + state.player.defending + ' attacks remaining), enemy attacks again');
+                    _log.debug('BattleFacade', 'Player still defending (' + state.player.defending + ' attacks remaining), enemy attacks again');
                     state._playerStatusResult = null;
                     processEnemyTurn([], callback, { playerAction: 'defending' });
                     return;
@@ -2743,19 +2738,19 @@ var BattleEngine = (function() {
 
         // If player is still in defensive stance, enemy attacks again automatically
         if (state.player.defending && state.player.defending > 0) {
-            console.log('[Turn Debug] Player still defending (' + state.player.defending + ' attacks remaining), enemy attacks again');
+            _log.debug('BattleFacade', 'Player still defending (' + state.player.defending + ' attacks remaining), enemy attacks again');
             state._playerStatusResult = null;
             processEnemyTurn([], callback, { playerAction: 'defending' });
             return;
         }
 
-        console.log('[Turn Debug] Setting phase to player, unlocking actions');
+        _log.debug('BattleFacade', 'Setting phase to player, unlocking actions');
         BattleCore.setPhase('player');
         updateDisplay();
 
         // Clear action lock - player can now act again
         _actionInProgress = false;
-        console.log('[Turn Debug] Player can now act!');
+        _log.debug('BattleFacade', 'Player can now act!');
 
         if (callback) callback();
     }
@@ -2909,7 +2904,7 @@ var BattleEngine = (function() {
             var hasManaRegen = BattleCore.hasStatus(state.player, 'mana_regen') !== null;
 
             // Update UI
-            console.log('[BattleFacade.updateDisplay] enemy HP:', state.enemy.hp, '/', state.enemy.maxHP);
+            _log.debug('BattleFacade', 'updateDisplay enemy HP:', state.enemy.hp, '/', state.enemy.maxHP);
             BattleUI.updateHP('player', state.player.hp, state.player.maxHP, null, hasHPRegen);
             BattleUI.updateHP('enemy', state.enemy.hp, state.enemy.maxHP);
             BattleUI.updateMana(state.player.mana, state.player.maxMana, hasManaRegen);

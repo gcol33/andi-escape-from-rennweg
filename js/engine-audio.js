@@ -43,12 +43,7 @@ var AudioManager = (function() {
     };
 
     // === Logging ===
-    var _log = typeof Logger !== 'undefined' ? Logger : {
-        debug: function() {},
-        info: function(m) { var a = Array.prototype.slice.call(arguments, 1); console.log.apply(console, ['[' + m + ']'].concat(a)); },
-        warn: function(m) { var a = Array.prototype.slice.call(arguments, 1); console.warn.apply(console, ['[' + m + ']'].concat(a)); },
-        error: function(m) { var a = Array.prototype.slice.call(arguments, 1); console.error.apply(console, ['[' + m + ']'].concat(a)); }
-    };
+    var _log = Utils.getLogger();
 
     /**
      * Initialize the audio manager

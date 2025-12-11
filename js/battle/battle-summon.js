@@ -32,6 +32,9 @@
 var BattleSummon = (function() {
     'use strict';
 
+    // Use Logger module with fallback via Utils
+    var _log = Utils.getLogger();
+
     // =========================================================================
     // DEPENDENCIES
     // =========================================================================
@@ -135,7 +138,7 @@ var BattleSummon = (function() {
         // Get definition
         var def = getDefinition(summonId);
         if (!def) {
-            console.warn('[BattleSummon] Unknown summon ID:', summonId);
+            _log.warn('BattleSummon', 'Unknown summon ID:', summonId);
             return {
                 success: false,
                 reason: 'unknown_summon',

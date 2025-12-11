@@ -17,12 +17,12 @@
  * - Typewriter text effect with speed controls
  */
 
-const VNEngine = (function() {
+var VNEngine = (function() {
     'use strict';
 
     // === Configuration ===
     // Many values now sourced from TUNING.js for centralized game feel tuning
-    const config = {
+    var config = {
         assetPaths: {
             bg: 'assets/bg/',
             char: 'assets/char/',
@@ -68,23 +68,8 @@ const VNEngine = (function() {
     };
 
     // === Logging Utilities ===
-    // Standardized logging with consistent prefixes
-    var log = {
-        info: function(msg) {
-            console.log('VNEngine: ' + msg);
-        },
-        warn: function(msg) {
-            console.warn('VNEngine: ' + msg);
-        },
-        error: function(msg) {
-            console.error('VNEngine: ' + msg);
-        },
-        debug: function(msg) {
-            if (state.devMode) {
-                console.log('VNEngine [DEBUG]: ' + msg);
-            }
-        }
-    };
+    // Use Logger module with fallback via Utils
+    var _log = Utils.getLogger();
 
     // === Touch Device Detection ===
     // Detect if the device primarily uses touch input
@@ -96,7 +81,7 @@ const VNEngine = (function() {
     }
 
     // === State ===
-    const state = {
+    var state = {
         currentSceneId: null,
         currentBlockIndex: 0,
         flags: {},           // regular flags (cleared on Play Again)
@@ -141,7 +126,7 @@ const VNEngine = (function() {
     };
 
     // === Action Handler Registry ===
-    const actionHandlers = {
+    var actionHandlers = {
         /**
          * Roll dice action handler
          * Rolls specified dice, compares to threshold, navigates to success/failure scene
@@ -176,7 +161,7 @@ const VNEngine = (function() {
             if (state.devMode && forcedRoll !== null && forcedRoll >= 1 && forcedRoll <= sides) {
                 roll1 = forcedRoll;
                 roll2 = forcedRoll;
-                log.debug('Using forced dice roll: ' + forcedRoll);
+                _log.debug('Engine','Using forced dice roll: ' + forcedRoll);
             } else {
                 roll1 = Math.floor(Math.random() * sides) + 1;
                 roll2 = Math.floor(Math.random() * sides) + 1;
@@ -269,7 +254,7 @@ const VNEngine = (function() {
             if (typeof window[handlerName] === 'function') {
                 window[handlerName](params, state);
             } else {
-                log.warn('Custom handler not found: ' + handlerName);
+                _log.warn('Engine','Custom handler not found: ' + handlerName);
             }
         },
 
@@ -322,7 +307,7 @@ const VNEngine = (function() {
                     }
                 };
             } else {
-                log.error('BattleEngine module not loaded');
+                _log.error('Engine','BattleEngine module not loaded');
             }
         },
 
@@ -332,7 +317,7 @@ const VNEngine = (function() {
          */
         start_quiz: function(action) {
             if (typeof QuizEngine === 'undefined') {
-                log.error('QuizEngine module not loaded');
+                _log.error('Engine','QuizEngine module not loaded');
                 return;
             }
 
@@ -353,7 +338,7 @@ const VNEngine = (function() {
                 if (result.target) {
                     loadScene(result.target);
                 } else {
-                    log.error('Quiz ended without target scene');
+                    _log.error('Engine','Quiz ended without target scene');
                 }
             });
         },
@@ -415,7 +400,7 @@ const VNEngine = (function() {
                 textBox.classList.remove('battle-mode');
             }
 
-            log.info('Game state reset' + (fullReset ? ' (full)' : ' (soft)'));
+            _log.info('Engine','Game state reset' + (fullReset ? ' (full)' : ' (soft)'));
         },
 
         /**
@@ -431,13 +416,13 @@ const VNEngine = (function() {
             var duration = action.duration || 1000;
 
             if (!target) {
-                log.error('fade_to_scene: no target specified');
+                _log.error('Engine','fade_to_scene: no target specified');
                 return;
             }
 
             var targetScene = story[target];
             if (!targetScene) {
-                log.error('fade_to_scene: target scene not found: ' + target);
+                _log.error('Engine','fade_to_scene: target scene not found: ' + target);
                 return;
             }
 
@@ -485,7 +470,7 @@ const VNEngine = (function() {
 
             var targetScene = story[target];
             if (!targetScene) {
-                log.error('wake_sequence: target scene not found: ' + target);
+                _log.error('Engine','wake_sequence: target scene not found: ' + target);
                 return;
             }
 
@@ -947,7 +932,7 @@ const VNEngine = (function() {
     function markBattleWon(sceneId) {
         state.wonBattles[sceneId] = true;
         saveState();
-        log.debug('Battle marked as won: ' + sceneId);
+        _log.debug('Engine','Battle marked as won: ' + sceneId);
     }
 
     /**
@@ -1203,7 +1188,7 @@ const VNEngine = (function() {
         // Get the battle choices container (inside battle UI)
         var battleChoicesContainer = document.getElementById('battle-choices');
         if (!battleChoicesContainer) {
-            log.warn('Battle choices container not found');
+            _log.warn('Engine','Battle choices container not found');
             return;
         }
 
@@ -2243,12 +2228,12 @@ const VNEngine = (function() {
             var val = this.value.trim();
             if (val === '') {
                 state.devForcedRoll = null;
-                log.debug('Forced hit roll cleared - using random');
+                _log.debug('Engine','Forced hit roll cleared - using random');
             } else {
                 var num = parseInt(val, 10);
                 if (!isNaN(num) && num >= 1 && num <= 20) {
                     state.devForcedRoll = num;
-                    log.debug('Forced hit roll set to: ' + num);
+                    _log.debug('Engine','Forced hit roll set to: ' + num);
                 } else {
                     state.devForcedRoll = null;
                 }
@@ -2279,12 +2264,12 @@ const VNEngine = (function() {
             var val = this.value.trim();
             if (val === '') {
                 state.devForcedDamage = null;
-                log.debug('Forced damage roll cleared - using random');
+                _log.debug('Engine','Forced damage roll cleared - using random');
             } else {
                 var num = parseInt(val, 10);
                 if (!isNaN(num) && num >= 1 && num <= 99) {
                     state.devForcedDamage = num;
-                    log.debug('Forced damage roll set to: ' + num);
+                    _log.debug('Engine','Forced damage roll set to: ' + num);
                 } else {
                     state.devForcedDamage = null;
                 }
@@ -2308,7 +2293,7 @@ const VNEngine = (function() {
 
         statusCheckbox.addEventListener('change', function() {
             state.devGuaranteeStatus = this.checked;
-            log.debug('Guarantee status effects: ' + this.checked);
+            _log.debug('Engine','Guarantee status effects: ' + this.checked);
         });
 
         statusLabel.appendChild(statusCheckbox);
@@ -2330,7 +2315,7 @@ const VNEngine = (function() {
 
         intentsCheckbox.addEventListener('change', function() {
             state.devIntentsEnabled = this.checked;
-            log.debug('Intents enabled: ' + this.checked);
+            _log.debug('Engine','Intents enabled: ' + this.checked);
             // Update battle system if available
             if (typeof BattleEngine !== 'undefined' && BattleEngine.setIntentsEnabled) {
                 BattleEngine.setIntentsEnabled(this.checked);
@@ -2371,12 +2356,12 @@ const VNEngine = (function() {
                 e.stopPropagation();
                 if (typeof BattleEngine !== 'undefined' && BattleEngine.devTriggerIntent) {
                     var result = BattleEngine.devTriggerIntent(intent.id);
-                    log.debug('[Dev] ' + result.message);
+                    _log.debug('Engine','[Dev] ' + result.message);
                     if (!result.success) {
-                        log.warn(result.message);
+                        _log.warn('Engine',result.message);
                     }
                 } else {
-                    log.warn('Battle not active or devTriggerIntent not available');
+                    _log.warn('Engine','Battle not active or devTriggerIntent not available');
                 }
             });
 
@@ -2392,12 +2377,12 @@ const VNEngine = (function() {
                 e.stopPropagation();
                 if (typeof BattleEngine !== 'undefined' && BattleEngine.devForceIntent) {
                     var result = BattleEngine.devForceIntent(intent.id);
-                    log.debug('[Dev] ' + result.message);
+                    _log.debug('Engine','[Dev] ' + result.message);
                     if (!result.success) {
-                        log.warn(result.message);
+                        _log.warn('Engine',result.message);
                     }
                 } else {
-                    log.warn('Battle not active');
+                    _log.warn('Engine','Battle not active');
                 }
             });
 
@@ -2421,7 +2406,7 @@ const VNEngine = (function() {
                 var state = BattleEngine.getState();
                 if (state && state.player) {
                     BattleEngine.healPlayer(state.player.maxHP);
-                    log.debug('[Dev] Healed player to full HP');
+                    _log.debug('Engine','[Dev] Healed player to full HP');
                 }
             }
         });
@@ -2437,7 +2422,7 @@ const VNEngine = (function() {
                 var enemy = BattleCore.getEnemy();
                 if (enemy) {
                     BattleCore.damageEnemy(enemy.hp);
-                    log.debug('[Dev] Killed enemy');
+                    _log.debug('Engine','[Dev] Killed enemy');
                 }
             }
         });
@@ -2451,7 +2436,7 @@ const VNEngine = (function() {
             e.preventDefault();
             if (typeof BattleEngine !== 'undefined' && BattleEngine.restoreMana) {
                 BattleEngine.restoreMana(100);
-                log.debug('[Dev] Restored full mana');
+                _log.debug('Engine','[Dev] Restored full mana');
             }
         });
 
@@ -2524,7 +2509,7 @@ const VNEngine = (function() {
 
         function jumpToScene(sceneId) {
             if (!story[sceneId]) {
-                log.warn('Scene not found: ' + sceneId);
+                _log.warn('Engine','Scene not found: ' + sceneId);
                 return;
             }
             // End any active battle
@@ -2532,7 +2517,7 @@ const VNEngine = (function() {
                 BattleEngine.reset();
             }
             // Navigate to scene
-            log.debug('[Dev] Jumping to scene: ' + sceneId);
+            _log.debug('Engine','[Dev] Jumping to scene: ' + sceneId);
             loadScene(sceneId);
         }
 
@@ -2580,7 +2565,7 @@ const VNEngine = (function() {
      * Go back one text block, or to previous scene if at first block (dev mode only)
      */
     function undoScene() {
-        log.debug('undoScene: blockIndex=' + state.currentBlockIndex + ', scene=' + state.currentSceneId + ', historyLen=' + state.history.length);
+        _log.debug('Engine','undoScene: blockIndex=' + state.currentBlockIndex + ', scene=' + state.currentSceneId + ', historyLen=' + state.history.length);
 
         if (!state.devMode) {
             flashUndoError();
@@ -2590,12 +2575,12 @@ const VNEngine = (function() {
         // If battle is active or was active, end it and clean up
         if (typeof BattleEngine !== 'undefined') {
             if (BattleEngine.isActive()) {
-                log.debug('Undo during active battle - ending battle');
+                _log.debug('Engine','Undo during active battle - ending battle');
                 BattleEngine.reset();  // reset() calls destroyUI() and showTextBox()
             } else {
                 // Even if battle is not "active", UI elements might persist
                 // Always clean up to be safe when undoing
-                log.debug('Undo after battle - cleaning up battle UI');
+                _log.debug('Engine','Undo after battle - cleaning up battle UI');
                 BattleEngine.destroyUI();
             }
         }
@@ -2619,7 +2604,7 @@ const VNEngine = (function() {
 
         // If we're past the first text block, go back one block
         if (state.currentBlockIndex > 0) {
-            log.debug('Going back one text block');
+            _log.debug('Engine','Going back one text block');
             state.currentBlockIndex--;
 
             // Clear choices immediately when going back
@@ -2817,7 +2802,7 @@ const VNEngine = (function() {
         // Delegate to ThemeUtils if available
         if (typeof ThemeUtils !== 'undefined') {
             ThemeUtils.setTheme(themeName);
-            log.info('Theme changed to: ' + themeName);
+            _log.info('Engine','Theme changed to: ' + themeName);
             return;
         }
         // Fallback for backwards compatibility
@@ -2825,7 +2810,7 @@ const VNEngine = (function() {
         if (link) {
             link.href = 'css/themes/' + themeName + '.css';
             localStorage.setItem(config.themeKey, themeName);
-            log.info('Theme changed to: ' + themeName);
+            _log.info('Engine','Theme changed to: ' + themeName);
         }
     }
 
@@ -2852,7 +2837,7 @@ const VNEngine = (function() {
         var scene = story[sceneId];
 
         if (!scene) {
-            log.error('Scene not found: ' + sceneId);
+            _log.error('Engine','Scene not found: ' + sceneId);
             showErrorScreen({
                 title: 'Scene Not Found',
                 message: 'Could not find scene: "' + sceneId + '"',
@@ -2865,7 +2850,7 @@ const VNEngine = (function() {
         // Check flag requirements
         if (scene.require_flags && scene.require_flags.length > 0) {
             if (!checkFlags(scene.require_flags)) {
-                log.warn('Flag requirements not met for scene: ' + sceneId);
+                _log.warn('Engine','Flag requirements not met for scene: ' + sceneId);
                 return;
             }
         }
@@ -3530,7 +3515,7 @@ const VNEngine = (function() {
                     console.error('[Engine] Stack trace:', e.stack);
                 }
             } else {
-                log.warn('Unknown action type: ' + action.type);
+                _log.warn('Engine','Unknown action type: ' + action.type);
             }
         }
     }
@@ -3571,14 +3556,14 @@ const VNEngine = (function() {
                 elements.bgVideo.src = path;
                 elements.bgVideo.style.display = 'block';
                 elements.bgVideo.onerror = function() {
-                    log.warn('Failed to load video background: ' + filename);
+                    _log.warn('Engine','Failed to load video background: ' + filename);
                     emitAssetError('bg', filename);
                     // Fall back to static image
                     elements.bgVideo.style.display = 'none';
                     elements.backgroundLayer.style.backgroundImage = 'url(' + config.fallbackAssets.bg + ')';
                 };
                 elements.bgVideo.play().catch(function(err) {
-                    log.warn('Video autoplay blocked: ' + err.message);
+                    _log.warn('Engine','Video autoplay blocked: ' + err.message);
                 });
             }
         } else {
@@ -3594,7 +3579,7 @@ const VNEngine = (function() {
                 elements.backgroundLayer.style.backgroundImage = 'url(' + path + ')';
             };
             img.onerror = function() {
-                log.warn('Failed to load background: ' + filename);
+                _log.warn('Engine','Failed to load background: ' + filename);
                 emitAssetError('bg', filename);
                 elements.backgroundLayer.style.backgroundImage = 'url(' + config.fallbackAssets.bg + ')';
             };
@@ -3657,7 +3642,7 @@ const VNEngine = (function() {
             var img = document.createElement('img');
             img.alt = filename;
             img.onerror = function() {
-                log.warn('Failed to load character sprite: ' + filename);
+                _log.warn('Engine','Failed to load character sprite: ' + filename);
                 emitAssetError('char', filename);
                 // Use fallback image
                 if (config.fallbackAssets.char) {
@@ -3821,7 +3806,7 @@ const VNEngine = (function() {
 
         elements.bgMusic.play().catch(function() {
             // Autoplay blocked - will retry after user interaction
-            log.info('Music autoplay blocked, will retry after interaction');
+            _log.info('Engine','Music autoplay blocked, will retry after interaction');
         });
     }
 
@@ -3850,7 +3835,7 @@ const VNEngine = (function() {
         }
 
         audio.play().catch(function() {
-            log.info('SFX playback failed (autoplay blocked or file not found)');
+            _log.info('Engine','SFX playback failed (autoplay blocked or file not found)');
             if (callback) callback();
         });
     }
@@ -3895,7 +3880,7 @@ const VNEngine = (function() {
                 audio.addEventListener('ended', onComplete);
                 audio.addEventListener('error', onComplete);
                 audio.play().catch(function() {
-                    log.info('SFX playback failed');
+                    _log.info('Engine','SFX playback failed');
                     onComplete();
                 });
             } else {
@@ -3907,7 +3892,7 @@ const VNEngine = (function() {
 
                 // Play first instance
                 audio.play().catch(function() {
-                    log.info('SFX playback failed');
+                    _log.info('Engine','SFX playback failed');
                     onComplete();
                 });
                 playsRemaining--;
@@ -3929,7 +3914,7 @@ const VNEngine = (function() {
 
         // Handle case where metadata fails to load
         audio.addEventListener('error', function() {
-            log.warn('SFX load failed: ' + filename);
+            _log.warn('Engine','SFX load failed: ' + filename);
             onComplete();
         });
 
@@ -4035,7 +4020,7 @@ const VNEngine = (function() {
     function addKeyItem(item) {
         if (state.inventory.keyItems.indexOf(item) === -1) {
             state.inventory.keyItems.push(item);
-            log.info('Added key item: ' + item);
+            _log.info('Engine','Added key item: ' + item);
             showItemNotification(item, 'added', 'key');
         }
         updateInventoryDisplay();
@@ -4048,7 +4033,7 @@ const VNEngine = (function() {
     function addSkill(skill) {
         if (state.inventory.skills.indexOf(skill) === -1) {
             state.inventory.skills.push(skill);
-            log.info('Learned skill: ' + skill);
+            _log.info('Engine','Learned skill: ' + skill);
             showItemNotification(skill, 'added', 'skill');
         }
         updateInventoryDisplay();
@@ -4091,7 +4076,7 @@ const VNEngine = (function() {
         } else {
             state.inventory.consumables[item] = count;
         }
-        log.info('Added consumable: ' + item + ' x' + count);
+        _log.info('Engine','Added consumable: ' + item + ' x' + count);
         showItemNotification(item + ' x' + count, 'added', 'consumable');
         updateInventoryDisplay();
     }
@@ -4125,7 +4110,7 @@ const VNEngine = (function() {
         var index = state.inventory.keyItems.indexOf(item);
         if (index !== -1) {
             state.inventory.keyItems.splice(index, 1);
-            log.info('Removed key item: ' + item);
+            _log.info('Engine','Removed key item: ' + item);
             showItemNotification(item, 'used', 'key');
         }
         updateInventoryDisplay();
@@ -4144,7 +4129,7 @@ const VNEngine = (function() {
             if (state.inventory.consumables[item] <= 0) {
                 delete state.inventory.consumables[item];
             }
-            log.info('Removed consumable: ' + item + ' x' + count);
+            _log.info('Engine','Removed consumable: ' + item + ' x' + count);
             showItemNotification(item, 'used', 'consumable');
             updateInventoryDisplay();
             return true;
@@ -4563,10 +4548,10 @@ const VNEngine = (function() {
                 wonBattles: state.wonBattles,
                 history: state.history
             };
-            log.debug('saveState: history=' + JSON.stringify(state.history));
+            _log.debug('Engine','saveState: history=' + JSON.stringify(state.history));
             localStorage.setItem(config.saveKey, JSON.stringify(saveData));
         } catch (e) {
-            log.warn('Could not save state: ' + e.message);
+            _log.warn('Engine','Could not save state: ' + e.message);
         }
     }
 
@@ -4579,7 +4564,7 @@ const VNEngine = (function() {
 
             // Validate save data structure
             if (!isValidSaveData(saveData)) {
-                log.warn('Invalid save data structure, clearing corrupted save');
+                _log.warn('Engine','Invalid save data structure, clearing corrupted save');
                 clearSavedState();
                 return false;
             }
@@ -4610,7 +4595,7 @@ const VNEngine = (function() {
             state.readBlocks = saveData.readBlocks || {};
             state.wonBattles = saveData.wonBattles || {};
             state.history = saveData.history || [];
-            log.debug('loadSavedState: loaded history=' + JSON.stringify(state.history));
+            _log.debug('Engine','loadSavedState: loaded history=' + JSON.stringify(state.history));
 
             // Update inventory and HP displays
             updateInventoryDisplay();
@@ -4629,7 +4614,7 @@ const VNEngine = (function() {
 
             // Load the saved scene
             if (saveData.currentSceneId && story[saveData.currentSceneId]) {
-                log.info('Resuming from saved scene: ' + saveData.currentSceneId);
+                _log.info('Engine','Resuming from saved scene: ' + saveData.currentSceneId);
                 state.currentSceneId = saveData.currentSceneId;
                 state.currentBlockIndex = saveData.currentBlockIndex || 0;
 
@@ -4663,12 +4648,12 @@ const VNEngine = (function() {
                 return true;
             } else if (saveData.currentSceneId) {
                 // Saved scene no longer exists - clear corrupted save
-                log.warn('Saved scene "' + saveData.currentSceneId + '" no longer exists, clearing save');
+                _log.warn('Engine','Saved scene "' + saveData.currentSceneId + '" no longer exists, clearing save');
                 clearSavedState();
                 return false;
             }
         } catch (e) {
-            log.warn('Could not load saved state: ' + e.message);
+            _log.warn('Engine','Could not load saved state: ' + e.message);
         }
         return false;
     }
@@ -4677,7 +4662,7 @@ const VNEngine = (function() {
         try {
             localStorage.removeItem(config.saveKey);
         } catch (e) {
-            log.warn('Could not clear saved state: ' + e.message);
+            _log.warn('Engine','Could not clear saved state: ' + e.message);
         }
     }
 

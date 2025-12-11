@@ -30,8 +30,11 @@ var BattleCore = (function() {
     var _hasBattleData = _hasBattleUtils ? BattleUtils.hasBattleData() : typeof BattleData !== 'undefined';
     var _hasBattleSummon = _hasBattleUtils ? BattleUtils.hasBattleSummon() : typeof BattleSummon !== 'undefined';
 
+    // Use Logger module with fallback via Utils
+    var _log = Utils.getLogger();
+
     if (!_hasBattleData) {
-        console.warn('[BattleCore] BattleData module not loaded - some features will be unavailable');
+        _log.warn('BattleCore', 'BattleData module not loaded - some features will be unavailable');
     }
 
     // Dev mode: callback to check if status effects should be guaranteed
@@ -519,7 +522,7 @@ var BattleCore = (function() {
 
         var oldHP = state.enemy.hp;
         state.enemy.hp = Math.max(0, state.enemy.hp - actualDamage);
-        console.log('[BattleCore.damageEnemy] amount:', amount, 'actualDamage:', actualDamage, 'oldHP:', oldHP, 'newHP:', state.enemy.hp);
+        _log.debug('BattleCore', 'damageEnemy amount:', amount, 'actualDamage:', actualDamage, 'oldHP:', oldHP, 'newHP:', state.enemy.hp);
 
         // Add limit charge when dealing damage
         addLimitCharge(combatConfig.limitChargeOnHit);
@@ -567,7 +570,7 @@ var BattleCore = (function() {
     function healEnemy(amount, source) {
         var oldHP = state.enemy.hp;
         state.enemy.hp = Math.min(state.enemy.maxHP, state.enemy.hp + amount);
-        console.log('[BattleCore.healEnemy] amount:', amount, 'source:', source, 'oldHP:', oldHP, 'newHP:', state.enemy.hp);
+        _log.debug('BattleCore', 'healEnemy amount:', amount, 'source:', source, 'oldHP:', oldHP, 'newHP:', state.enemy.hp);
         return {
             healed: state.enemy.hp - oldHP,
             oldHP: oldHP,

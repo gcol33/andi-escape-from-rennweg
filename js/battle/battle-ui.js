@@ -29,6 +29,9 @@ var BattleUI = (function() {
     var _hasStatBar = typeof StatBar !== 'undefined';
     var _hasElementUtils = typeof ElementUtils !== 'undefined';
 
+    // Use Logger module with fallback via Utils
+    var _log = Utils.getLogger();
+
     // === Configuration ===
     // Values sourced from TUNING.js when available, with fallbacks
     var T = typeof TUNING !== 'undefined' ? TUNING : null;
@@ -672,8 +675,7 @@ var BattleUI = (function() {
 
         // Debug: detect if we're interrupting an existing animation
         if (animationState.active) {
-            console.warn('[BattleUI] updateBattleLog called while animation active! Current text:', elements.battleLog.textContent, '| New html:', html ? html.substring(0, 50) : html);
-            console.trace('[BattleUI] Interrupting call stack');
+            _log.warn('BattleUI', 'updateBattleLog called while animation active! Current text:', elements.battleLog.textContent, '| New html:', html ? html.substring(0, 50) : html);
         }
 
         // Clear previous animation state
@@ -999,12 +1001,12 @@ var BattleUI = (function() {
      * @param {string} type - 'damage', 'heal', 'dot', 'crit', 'maxdamage', 'mindamage', 'miss'
      */
     function showDamageNumber(amount, target, type) {
-        console.log('[BattleUI.showDamageNumber] amount:', amount, 'target:', target, 'type:', type, 'animationState.active:', animationState.active);
+        _log.debug('BattleUI', 'showDamageNumber amount:', amount, 'target:', target, 'type:', type, 'animationState.active:', animationState.active);
         if (animationState.active) {
-            console.log('[BattleUI.showDamageNumber] Queuing damage number (animation active)');
+            _log.debug('BattleUI', 'showDamageNumber Queuing damage number (animation active)');
             queueDamageNumber(amount, target, type);
         } else {
-            console.log('[BattleUI.showDamageNumber] Showing immediately (animation not active)');
+            _log.debug('BattleUI', 'showDamageNumber Showing immediately (animation not active)');
             showDamageNumberImmediate(amount, target, type);
         }
     }
@@ -1513,17 +1515,17 @@ var BattleUI = (function() {
      * @param {function} callback - Called when intro completes
      */
     function showBattleIntro(callback) {
-        console.log('[BattleUI] showBattleIntro called');
+        _log.debug('BattleUI', 'showBattleIntro called');
         if (!elements.container) {
             elements.container = document.getElementById('vn-container');
         }
         if (!elements.container) {
-            console.log('[BattleUI] No container found, calling callback immediately');
+            _log.debug('BattleUI', 'No container found, calling callback immediately');
             if (callback) callback();
             return;
         }
 
-        console.log('[BattleUI] Container found, hiding text box and playing sfx');
+        _log.debug('BattleUI', 'Container found, hiding text box and playing sfx');
         hideTextBox();
         playSfx('alert.ogg');
 
@@ -1548,10 +1550,10 @@ var BattleUI = (function() {
 
         elements.container.appendChild(flash);
         elements.container.appendChild(overlay);
-        console.log('[BattleUI] Intro overlay appended, starting timeout:', config.timing.battleIntro, 'ms');
+        _log.debug('BattleUI', 'Intro overlay appended, starting timeout:', config.timing.battleIntro, 'ms');
 
         setTimeout(function() {
-            console.log('[BattleUI] Intro timeout fired, cleaning up');
+            _log.debug('BattleUI', 'Intro timeout fired, cleaning up');
             var introOverlay = document.getElementById('battle-intro-overlay');
             if (introOverlay && introOverlay.parentNode) {
                 introOverlay.parentNode.removeChild(introOverlay);
@@ -1563,7 +1565,7 @@ var BattleUI = (function() {
             if (spriteLayer) {
                 spriteLayer.classList.remove('battle-intro-enemy');
             }
-            console.log('[BattleUI] Calling callback');
+            _log.debug('BattleUI', 'Calling callback');
             if (callback) callback();
         }, config.timing.battleIntro);
     }
@@ -1776,18 +1778,18 @@ var BattleUI = (function() {
      * @param {Object} displayData - Display data from BattleSummon.getDisplayData()
      */
     function showSummonSprite(displayData) {
-        console.log('[SummonUI Debug] showSummonSprite called with:', displayData);
+        _log.debug('BattleUI', 'showSummonSprite called with:', displayData);
         if (!displayData) {
-            console.log('[SummonUI Debug] No displayData, returning');
+            _log.debug('BattleUI', 'No displayData, returning');
             return;
         }
 
         var spriteLayer = document.getElementById('sprite-layer');
         if (!spriteLayer) {
-            console.log('[SummonUI Debug] No sprite-layer element found, returning');
+            _log.debug('BattleUI', 'No sprite-layer element found, returning');
             return;
         }
-        console.log('[SummonUI Debug] Found sprite-layer, creating summon element');
+        _log.debug('BattleUI', 'Found sprite-layer, creating summon element');
 
         // Remove existing summon with same UID
         hideSummonSprite(displayData.uid);

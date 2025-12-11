@@ -26,8 +26,11 @@ var BattleStyleExp33 = (function() {
     var _hasBattleUtils = typeof BattleUtils !== 'undefined';
     var _hasBattleData = _hasBattleUtils ? BattleUtils.hasBattleData() : typeof BattleData !== 'undefined';
 
+    // Use Logger module with fallback via Utils
+    var _log = Utils.getLogger();
+
     if (!_hasBattleData) {
-        console.warn('[BattleStyleExp33] BattleData module not loaded - some features will be unavailable');
+        _log.warn('BattleExp33', 'BattleData module not loaded - some features will be unavailable');
     }
 
     // =========================================================================
