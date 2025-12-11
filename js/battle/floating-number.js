@@ -23,7 +23,13 @@ var FloatingNumber = (function() {
 
     var config = {
         duration: T ? T.battle.timing.damageNumberFloat : 4000,
-        statChangeDelay: 200  // Delay between sequential stat popups
+        statChangeDelay: 200,  // Delay between sequential stat popups
+        // Scatter values (from TUNING.battle.effects)
+        scatterX: T && T.battle && T.battle.effects ? T.battle.effects.damageScatterX : 10,
+        scatterY: T && T.battle && T.battle.effects ? T.battle.effects.damageScatterY : 8,
+        spreadBase: T && T.battle && T.battle.effects ? T.battle.effects.damageSpreadBase : 3,
+        spreadRandom: T && T.battle && T.battle.effects ? T.battle.effects.damageSpreadRandom : 5,
+        missScatterX: T && T.battle && T.battle.effects ? T.battle.effects.missScatterX : 6
     };
 
     // Track positions to avoid overlap
@@ -131,8 +137,8 @@ var FloatingNumber = (function() {
             }
             baseY = targetY;
             // Add some random spread
-            baseX += (Math.random() * 10 - 5);
-            baseY += (Math.random() * 8 - 4);
+            baseX += (Math.random() * config.scatterX - config.scatterX / 2);
+            baseY += (Math.random() * config.scatterY - config.scatterY / 2);
         } else {
             // Enemy damage - centered on the enemy sprite
             var spriteLayer = document.getElementById('sprite-layer');
@@ -149,9 +155,9 @@ var FloatingNumber = (function() {
                 baseY = targetY;
             }
             // Add some random spread to avoid overlap
-            var spread = (positionState.counter % 2 === 0 ? -1 : 1) * (3 + Math.random() * 5);
+            var spread = (positionState.counter % 2 === 0 ? -1 : 1) * (config.spreadBase + Math.random() * config.spreadRandom);
             baseX += spread;
-            baseY += (Math.random() * 8 - 4);
+            baseY += (Math.random() * config.scatterY - config.scatterY / 2);
         }
 
         return { x: baseX, y: baseY };
@@ -179,7 +185,7 @@ var FloatingNumber = (function() {
         }
 
         // Add small random offset
-        baseX += (Math.random() * 6 - 3);
+        baseX += (Math.random() * config.missScatterX - config.missScatterX / 2);
 
         return { x: baseX, y: baseY };
     }

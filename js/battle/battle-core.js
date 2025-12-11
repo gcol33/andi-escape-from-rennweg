@@ -852,8 +852,11 @@ var BattleCore = (function() {
             // Skip on first turn (justApplied) - confusion shouldn't tick the turn it's applied
             if (def.selfDamageChance && !skipDOT) {
                 if (Math.random() < def.selfDamageChance) {
-                    // Hit self - roll 1-5 damage like a combat attack
-                    var selfDamage = Math.floor(Math.random() * 5) + 1;  // 1-5 damage
+                    // Hit self - roll damage like a combat attack
+                    var effectsCfg = T && T.battle && T.battle.effects ? T.battle.effects : {};
+                    var minDmg = effectsCfg.confusionDamageMin || 1;
+                    var maxDmg = effectsCfg.confusionDamageMax || 5;
+                    var selfDamage = Math.floor(Math.random() * (maxDmg - minDmg + 1)) + minDmg;
                     result.confusionDamage = selfDamage;  // Store separately for proper display
                     result.canAct = false;  // Can't act when confused and hurt self
                     result.confusionTriggered = true;

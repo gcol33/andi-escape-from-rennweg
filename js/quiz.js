@@ -200,6 +200,14 @@ var QuizEngine = (function() {
         stopTimer();
 
         var question = state.questions[state.currentIndex];
+
+        // Bounds check for answer index
+        if (!question || !question.answers || answerIndex < 0 || answerIndex >= question.answers.length) {
+            console.error('[Quiz] Invalid answer index:', answerIndex, 'for question:', state.currentIndex);
+            endQuiz(false, 'error');
+            return;
+        }
+
         var selectedAnswer = question.answers[answerIndex];
         var isCorrect = selectedAnswer && selectedAnswer.correct === true;
 

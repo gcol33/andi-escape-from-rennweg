@@ -169,7 +169,25 @@ var TUNING = (function() {
             effects: {
                 sparkleInterval: 150,       // Interval between victory sparkles
                 sparkleLifetime: 2000,      // How long each sparkle lives
-                spriteFlash: 300            // Sprite damage flash duration
+                spriteFlash: 300,           // Sprite damage flash duration
+
+                // Damage number scatter (random offset from base position)
+                damageScatterX: 10,         // Max X scatter (pixels)
+                damageScatterY: 8,          // Max Y scatter (pixels)
+                damageSpreadBase: 3,        // Base spread for stacked numbers
+                damageSpreadRandom: 5,      // Random spread added
+                missScatterX: 6,            // Scatter for miss text
+
+                // Victory sparkle positions (% of container)
+                sparkleLeftMin: 10,
+                sparkleLeftMax: 90,
+                sparkleTopMin: 40,
+                sparkleTopMax: 80,
+                sparkleAnimDelayMax: 0.5,   // Max animation delay (seconds)
+
+                // Confusion self-damage
+                confusionDamageMin: 1,
+                confusionDamageMax: 5
             },
 
             // === Combat Balance ===
