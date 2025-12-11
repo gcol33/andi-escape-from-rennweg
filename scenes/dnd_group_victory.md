@@ -5,8 +5,6 @@ music: victory.mp3
 add_items:
   - name: Beer
     type: key
-set_flags:
-  - has_beer
 ---
 
 The D&D group falls back in defeat. "Impressive," Tobias admits, gathering his scattered dice. "You fight like a level 20 character. The Shadowrun challenge shall wait for another day."

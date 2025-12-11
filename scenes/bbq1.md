@@ -11,8 +11,8 @@ Then someone points at the rooftop garden, where a cluster of succulents sits in
 
 ### Choices
 
-- Wing it without the Flora Book (requires: !has_flora_book) → ending_bbq_noflora
-- Check the Flora Book but guess (require_items: Flora Book, requires: !floristic_knowledge) → ending_bbq_flora_noknowledge
-- Use knowledge but can't see clearly (require_items: Flora Book, requires: floristic_knowledge, requires: !has_magnifying_glass) → ending_bbq_flora_knowledge_nomagglass
-- Identify with confidence (require_items: Flora Book, require_items: Magnifying Glass, requires: floristic_knowledge) → bbq2
+- Wing it without the Flora Book (require_items: !Flora Book) → ending_bbq_noflora
+- Check the Flora Book but guess (require_items: Flora Book) (require_skills: !Floristic Knowledge) → ending_bbq_flora_noknowledge
+- Use knowledge but can't see clearly (require_items: Flora Book, !Magnifying Glass) (require_skills: Floristic Knowledge) → ending_bbq_flora_knowledge_nomagglass
+- Identify with confidence (require_items: Flora Book, Magnifying Glass) (require_skills: Floristic Knowledge) → bbq2
 

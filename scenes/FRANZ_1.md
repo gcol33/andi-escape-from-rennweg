@@ -20,5 +20,5 @@ He produces a worn deck of cards from his pocket, the edges soft with age. "Let 
 ### Choices
 
 - "Read the cards for me" → FRANZ_tarot
-- "I'm ready" (require_skills: Rooftop Discovery, Floristic Knowledge, Smile) (requires: has_flora_book, has_magnifying_glass, has_charcoal, has_lighter, has_beer) → FRANZ_impressed
+- "I'm ready" (require_skills: Rooftop Discovery, Floristic Knowledge, Smile) (require_items: Flora Book, Magnifying Glass, Charcoal, Lighter, Beer) → FRANZ_impressed
 

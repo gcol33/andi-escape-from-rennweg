@@ -20,5 +20,5 @@ He tucks away the specimen and produces his deck of cards. "Let me see what the 
 ### Choices
 
 - "Read the cards for me" → FRANZ3_tarot
-- "I'm ready" (require_skills: Rooftop Discovery, Floristic Knowledge, Smile) (requires: has_flora_book, has_magnifying_glass, has_charcoal, has_lighter, has_beer) → FRANZ_impressed
+- "I'm ready" (require_skills: Rooftop Discovery, Floristic Knowledge, Smile) (require_items: Flora Book, Magnifying Glass, Charcoal, Lighter, Beer) → FRANZ_impressed
 

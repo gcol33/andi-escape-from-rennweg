@@ -4,8 +4,6 @@ bg: sunny_street_freedom.jpg
 add_items:
   - name: Lighter
     type: key
-set_flags:
-  - has_lighter
 ---
 
 You head to the smokers' corner outside. A few colleagues are gathered there, enjoying the fresh air (and nicotine). "Andi! You don't even smoke, what are you doing here?" "Just... saying goodbye to everyone."

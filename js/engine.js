@@ -99,10 +99,11 @@ const VNEngine = (function() {
     const state = {
         currentSceneId: null,
         currentBlockIndex: 0,
-        flags: {},
+        flags: {},           // regular flags (cleared on Play Again)
+        keyFlags: {},        // key flags (persist across Play Again, like skills)
         inventory: {
-            keyItems: [],      // unique key items (no count)
-            consumables: {},   // consumable items with counts { "Coffee": 2, "Snack": 1 }
+            keyItems: [],      // unique key items (no count) - persist across Play Again
+            consumables: {},   // consumable items with counts { "Coffee": 2, "Snack": 1 } - cleared on Play Again
             skills: []         // learned skills/abilities (persist across soft reset)
         },
         inventoryExpanded: false, // UI state for expandable panel
@@ -1345,6 +1346,10 @@ const VNEngine = (function() {
         var battleState = BattleEngine.getState();
         var currentMana = battleState.player.mana;
 
+        console.log('[Skill Menu] Opened with mana:', currentMana, 'skills:', playerSkills.map(function(s) {
+            return { name: s.name, cost: s.manaCost, canUse: s.canUse };
+        }));
+
         playerSkills.forEach(function(skill) {
             var skillItem = document.createElement('div');
             skillItem.className = 'skill-item' + (skill.canUse ? '' : ' disabled');
@@ -1374,32 +1379,68 @@ const VNEngine = (function() {
             skillItem.appendChild(skillCost);
 
             if (skill.canUse) {
-                skillItem.onclick = function() {
-                    // Remove submenu and restore battle log content
-                    var menu = document.getElementById('skill-submenu');
-                    if (menu) menu.parentNode.removeChild(menu);
-                    // Show battle choices and log content again
-                    var battleChoices = document.getElementById('battle-choices');
-                    var battleLogContent = document.getElementById('battle-log-content');
-                    var battleLogPanel = document.querySelector('.battle-log-panel');
-                    var playerStats = document.getElementById('player-stats-panel');
-                    if (battleChoices) {
-                        battleChoices.style.display = '';
-                    }
-                    if (battleLogContent) {
-                        battleLogContent.style.display = '';
-                    }
-                    // Remove expanded class
-                    if (battleLogPanel) {
-                        battleLogPanel.classList.remove('menu-expanded');
-                    }
-                    if (playerStats) {
-                        playerStats.classList.remove('menu-expanded');
-                    }
+                (function(skillData, skillElement) {
+                    skillElement.onclick = function() {
+                        // Re-check mana at click time to prevent race conditions
+                        var currentState = BattleEngine.getState();
+                        var currentMana = currentState.player.mana;
+                        if (currentMana < skillData.manaCost) {
+                            console.warn('[Skill] Mana desync detected!', {
+                                skill: skillData.name,
+                                skillCost: skillData.manaCost,
+                                displayedCanUse: skillData.canUse,
+                                actualMana: currentMana,
+                                phase: currentState.phase,
+                                turn: currentState.turn,
+                                playerDefending: currentState.player.defending,
+                                playerStatuses: currentState.player.statuses
+                            });
 
-                    // Execute skill action
-                    executeBattleAction('skill', { skillId: skill.id });
-                };
+                            // Show feedback - update this button to disabled state
+                            skillElement.classList.add('disabled');
+                            var costSpan = skillElement.querySelector('.skill-cost');
+                            if (costSpan) costSpan.classList.add('insufficient');
+
+                            // Show message in battle log
+                            var battleLogContent = document.getElementById('battle-log-content');
+                            if (battleLogContent) {
+                                battleLogContent.innerHTML = '<div class="battle-log-messages"><span class="battle-message-fail">Not enough MP!</span></div>';
+                            }
+
+                            // Play fail sound
+                            if (typeof BattleEngine !== 'undefined' && BattleEngine.playSfx) {
+                                BattleEngine.playSfx('negative');
+                            }
+
+                            return; // Don't execute - mana changed since menu was shown
+                        }
+
+                        // Remove submenu and restore battle log content
+                        var menu = document.getElementById('skill-submenu');
+                        if (menu) menu.parentNode.removeChild(menu);
+                        // Show battle choices and log content again
+                        var battleChoices = document.getElementById('battle-choices');
+                        var battleLogContent = document.getElementById('battle-log-content');
+                        var battleLogPanel = document.querySelector('.battle-log-panel');
+                        var playerStats = document.getElementById('player-stats-panel');
+                        if (battleChoices) {
+                            battleChoices.style.display = '';
+                        }
+                        if (battleLogContent) {
+                            battleLogContent.style.display = '';
+                        }
+                        // Remove expanded class
+                        if (battleLogPanel) {
+                            battleLogPanel.classList.remove('menu-expanded');
+                        }
+                        if (playerStats) {
+                            playerStats.classList.remove('menu-expanded');
+                        }
+
+                        // Execute skill action
+                        executeBattleAction('skill', { skillId: skillData.id });
+                    };
+                })(skill, skillItem);
             }
 
             skillItem.title = skill.description || '';
@@ -2804,6 +2845,11 @@ const VNEngine = (function() {
             setFlags(scene.set_flags);
         }
 
+        // Set key flags if specified (persist across Play Again)
+        if (scene.set_key_flags && scene.set_key_flags.length > 0) {
+            setKeyFlags(scene.set_key_flags);
+        }
+
         // Add skills if specified
         if (scene.set_skills && scene.set_skills.length > 0) {
             scene.set_skills.forEach(function(skill) {
@@ -3910,6 +3956,20 @@ const VNEngine = (function() {
         flags.forEach(function(flag) {
             state.flags[flag] = true;
         });
+        // Update inventory display to show new flags
+        updateInventoryDisplay();
+    }
+
+    /**
+     * Set key flags (persist across Play Again)
+     * @param {string[]} flags - Array of flag names to set
+     */
+    function setKeyFlags(flags) {
+        flags.forEach(function(flag) {
+            state.keyFlags[flag] = true;
+        });
+        // Update inventory display to show new key flags
+        updateInventoryDisplay();
     }
 
     function checkFlags(required) {
@@ -3917,14 +3977,20 @@ const VNEngine = (function() {
             // Support negation: !flag_name means "does NOT have this flag"
             if (flag.charAt(0) === '!') {
                 var negatedFlag = flag.substring(1);
-                return state.flags[negatedFlag] !== true;
+                // Check both regular and key flags for negation
+                return state.flags[negatedFlag] !== true && state.keyFlags[negatedFlag] !== true;
             }
-            return state.flags[flag] === true;
+            // Check both regular and key flags
+            return state.flags[flag] === true || state.keyFlags[flag] === true;
         });
     }
 
     function getFlag(flag) {
-        return state.flags[flag] || false;
+        return state.flags[flag] || state.keyFlags[flag] || false;
+    }
+
+    function hasKeyFlag(flag) {
+        return state.keyFlags[flag] === true;
     }
 
     function clearFlags() {
@@ -3969,11 +4035,16 @@ const VNEngine = (function() {
 
     /**
      * Check if player has all required skills
-     * @param {string[]} skills - Array of skill names
+     * @param {string[]} skills - Array of skill names (supports !Skill for negation)
      * @returns {boolean}
      */
     function hasSkills(skills) {
         return skills.every(function(skill) {
+            // Support negation: !Skill Name means "does NOT have this skill"
+            if (skill.charAt(0) === '!') {
+                var negatedSkill = skill.substring(1);
+                return !hasSkill(negatedSkill);
+            }
             return hasSkill(skill);
         });
     }
@@ -4096,11 +4167,16 @@ const VNEngine = (function() {
 
     /**
      * Check if player has specific items (legacy support)
-     * @param {string[]} items - Array of item names to check
-     * @returns {boolean} - True if player has all items
+     * @param {string[]} items - Array of item names to check (supports !Item for negation)
+     * @returns {boolean} - True if player has all items (or doesn't have negated items)
      */
     function hasItems(items) {
         return items.every(function(item) {
+            // Support negation: !Item Name means "does NOT have this item"
+            if (item.charAt(0) === '!') {
+                var negatedItem = item.substring(1);
+                return !hasKeyItem(negatedItem) && !hasConsumable(negatedItem);
+            }
             return hasKeyItem(item) || hasConsumable(item);
         });
     }
@@ -4198,12 +4274,11 @@ const VNEngine = (function() {
         var hasSkills = state.inventory.skills.length > 0;
         var hasKeyItems = state.inventory.keyItems.length > 0;
         var hasConsumables = Object.keys(state.inventory.consumables).length > 0;
+        var hasKeyFlags = Object.keys(state.keyFlags).length > 0;
+        var hasFlags = Object.keys(state.flags).length > 0;
+        var hasAnyContent = hasSkills || hasKeyItems || hasConsumables || hasKeyFlags || hasFlags;
 
-        if (!hasSkills && !hasKeyItems && !hasConsumables) {
-            inventoryContainer.style.display = 'none';
-            return;
-        }
-
+        // Always show inventory container (even when empty) so players know to collect items
         inventoryContainer.style.display = 'block';
 
         // Build the inventory HTML
@@ -4214,8 +4289,10 @@ const VNEngine = (function() {
         html += '<span class="inventory-toggle">' + (state.inventoryExpanded ? '▼' : '▶') + '</span>';
         html += '<span class="inventory-label">Inventory</span>';
 
-        // Total count badge (skills + key items + consumables)
-        var totalItems = state.inventory.skills.length + state.inventory.keyItems.length + Object.keys(state.inventory.consumables).length;
+        // Total count badge (skills + key items + consumables + key flags + flags)
+        var totalItems = state.inventory.skills.length + state.inventory.keyItems.length +
+                         Object.keys(state.inventory.consumables).length +
+                         Object.keys(state.keyFlags).length + Object.keys(state.flags).length;
         html += '<span class="inventory-count">' + totalItems + '</span>';
         html += '</div>';
 
@@ -4223,37 +4300,66 @@ const VNEngine = (function() {
         if (state.inventoryExpanded) {
             html += '<div class="inventory-content">';
 
-            // Skills section (shown first as they persist)
-            if (hasSkills) {
-                html += '<div class="inventory-section">';
-                html += '<div class="inventory-section-label">✨ Skills</div>';
-                state.inventory.skills.forEach(function(skill) {
-                    html += '<div class="inventory-item inventory-item-skill">' + skill + '</div>';
-                });
-                html += '</div>';
-            }
-
-            // Key Items section
-            if (hasKeyItems) {
-                html += '<div class="inventory-section">';
-                html += '<div class="inventory-section-label">🔑 Key Items</div>';
-                state.inventory.keyItems.forEach(function(item) {
-                    html += '<div class="inventory-item inventory-item-key">' + item + '</div>';
-                });
-                html += '</div>';
-            }
-
-            // Consumables section
-            if (hasConsumables) {
-                html += '<div class="inventory-section">';
-                html += '<div class="inventory-section-label">📦 Consumables</div>';
-                Object.keys(state.inventory.consumables).forEach(function(item) {
-                    var count = state.inventory.consumables[item];
-                    html += '<div class="inventory-item inventory-item-consumable">';
-                    html += item + ' <span class="item-count">x' + count + '</span>';
+            if (!hasAnyContent) {
+                // Show empty state message
+                html += '<div class="inventory-empty">No items yet...</div>';
+            } else {
+                // Skills section (shown first as they persist)
+                if (hasSkills) {
+                    html += '<div class="inventory-section">';
+                    html += '<div class="inventory-section-label">✨ Skills</div>';
+                    state.inventory.skills.forEach(function(skill) {
+                        html += '<div class="inventory-item inventory-item-skill">' + skill + '</div>';
+                    });
                     html += '</div>';
-                });
-                html += '</div>';
+                }
+
+                // Key Items section (persist across Play Again)
+                if (hasKeyItems) {
+                    html += '<div class="inventory-section">';
+                    html += '<div class="inventory-section-label">🔑 Key Items</div>';
+                    state.inventory.keyItems.forEach(function(item) {
+                        html += '<div class="inventory-item inventory-item-key">' + item + '</div>';
+                    });
+                    html += '</div>';
+                }
+
+                // Consumables section (cleared on Play Again)
+                if (hasConsumables) {
+                    html += '<div class="inventory-section">';
+                    html += '<div class="inventory-section-label">📦 Consumables</div>';
+                    Object.keys(state.inventory.consumables).forEach(function(item) {
+                        var count = state.inventory.consumables[item];
+                        html += '<div class="inventory-item inventory-item-consumable">';
+                        html += item + ' <span class="item-count">x' + count + '</span>';
+                        html += '</div>';
+                    });
+                    html += '</div>';
+                }
+
+                // Key Flags section (persist across Play Again - major story milestones)
+                if (hasKeyFlags) {
+                    html += '<div class="inventory-section">';
+                    html += '<div class="inventory-section-label">⭐ Milestones</div>';
+                    Object.keys(state.keyFlags).forEach(function(flag) {
+                        // Format flag name for display (replace underscores, capitalize)
+                        var displayName = flag.replace(/_/g, ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); });
+                        html += '<div class="inventory-item inventory-item-keyflag">' + displayName + '</div>';
+                    });
+                    html += '</div>';
+                }
+
+                // Regular Flags section (cleared on Play Again - current run progress)
+                if (hasFlags) {
+                    html += '<div class="inventory-section">';
+                    html += '<div class="inventory-section-label">🚩 Progress</div>';
+                    Object.keys(state.flags).forEach(function(flag) {
+                        // Format flag name for display (replace underscores, capitalize)
+                        var displayName = flag.replace(/_/g, ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); });
+                        html += '<div class="inventory-item inventory-item-flag">' + displayName + '</div>';
+                    });
+                    html += '</div>';
+                }
             }
 
             html += '</div>';
@@ -4419,6 +4525,7 @@ const VNEngine = (function() {
                 currentSceneId: state.currentSceneId,
                 currentBlockIndex: state.currentBlockIndex,
                 flags: state.flags,
+                keyFlags: state.keyFlags,
                 inventory: state.inventory,
                 playerHP: state.playerHP,
                 playerMaxHP: state.playerMaxHP,
@@ -4449,6 +4556,7 @@ const VNEngine = (function() {
 
             // Restore state
             state.flags = saveData.flags || {};
+            state.keyFlags = saveData.keyFlags || {};
             // Handle both old (array) and new (object) inventory formats
             if (Array.isArray(saveData.inventory)) {
                 // Legacy format: convert array to new format (treat as key items)
@@ -4580,27 +4688,28 @@ const VNEngine = (function() {
     // === Game Reset ===
     /**
      * Reset game state and restart from beginning
-     * @param {boolean} fullReset - If true, clears EVERYTHING including skills and saved state
-     *                              If false (Play Again), keeps skills (New Game+ style)
+     * @param {boolean} fullReset - If true, clears EVERYTHING including skills, key items, key flags
+     *                              If false (Play Again), keeps skills, key items, key flags (New Game+ style)
      */
     function resetGame(fullReset) {
         // Reset core state
         state.currentSceneId = null;
         state.currentBlockIndex = 0;
 
-        // Flags are always cleared on reset (skills replace persistent flags)
+        // Regular flags are always cleared on reset
         state.flags = {};
 
-        // Skills persist across "Play Again" (New Game+ style)
-        // Key items and consumables are cleared
-        // Full reset (↺ button) clears everything including skills
+        // Full reset (↺ button) clears everything including persistent items
+        // Play Again keeps: skills, key items, key flags
         if (fullReset) {
             state.inventory = { keyItems: [], consumables: {}, skills: [] };
+            state.keyFlags = {};
         } else {
-            // Keep skills, clear key items and consumables
-            state.inventory.keyItems = [];
+            // Keep skills and key items, clear only consumables
             state.inventory.consumables = {};
+            // keyItems are preserved
             // skills are preserved
+            // keyFlags are preserved
         }
         state.playerHP = null;
         state.playerMaxHP = typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxHP : 20;
@@ -4672,9 +4781,14 @@ const VNEngine = (function() {
         getState: function() { return state; },
         // Flag management
         getFlag: getFlag,
-        hasFlag: function(flag) { return state.flags[flag] === true; },
-        setFlag: function(flag) { state.flags[flag] = true; },
-        clearFlag: function(flag) { delete state.flags[flag]; },
+        hasFlag: function(flag) { return state.flags[flag] === true || state.keyFlags[flag] === true; },
+        setFlag: function(flag) { state.flags[flag] = true; updateInventoryDisplay(); },
+        clearFlag: function(flag) { delete state.flags[flag]; updateInventoryDisplay(); },
+        // Key flag management (persist across Play Again)
+        hasKeyFlag: hasKeyFlag,
+        setKeyFlag: function(flag) { state.keyFlags[flag] = true; updateInventoryDisplay(); },
+        clearKeyFlag: function(flag) { delete state.keyFlags[flag]; updateInventoryDisplay(); },
+        getKeyFlags: function() { return state.keyFlags; },
         // Inventory management
         addItem: function(item) { addItems([item]); },
         addKeyItem: addKeyItem,

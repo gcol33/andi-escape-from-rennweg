@@ -4,8 +4,6 @@ bg: sunny_street_freedom.jpg
 add_items:
   - name: Charcoal
     type: key
-set_flags:
-  - has_charcoal
 ---
 
 You step outside to the nearby Billa. The automatic doors slide open with a familiar whoosh. For Stefan's defense party, Sophy couldn't get a clear answer about what to buy. So she just bought EVERYTHING. A legendary shopping trip.

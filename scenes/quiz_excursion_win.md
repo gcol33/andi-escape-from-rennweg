@@ -4,8 +4,6 @@ bg: meeting_room_whiteboard.jpg
 add_items:
   - name: Flora Book
     type: key
-set_flags:
-  - has_flora_book
 ---
 
 Moritz's eyebrows rise fractionally—in Moritz-speak, roughly equivalent to a standing ovation. "Not bad for a computer guy."

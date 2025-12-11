@@ -5,8 +5,6 @@ music: victory.mp3
 add_items:
   - name: Magnifying Glass
     type: key
-set_flags:
-  - has_magnifying_glass
 ---
 
 Michi steps back, impressed. "Not bad, computer guy. Not bad at all." He reaches behind the whiteboard and produces his prized magnifying glass. "Here. Take this. For seeing the small things that others miss."

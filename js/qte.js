@@ -1178,13 +1178,22 @@ var QTEEngine = (function() {
 
     // === Input Binding ===
 
+    /** @type {boolean} - Track if inputs are bound */
+    var inputsBound = false;
+
     /**
      * Bind input handlers for QTE
      * Should be called once during setup
      */
     function bindInputs() {
-        // Keyboard input
-        document.addEventListener('keydown', function(e) {
+        // Prevent double-binding
+        if (inputsBound) return;
+        inputsBound = true;
+
+        var hasListenerManager = typeof ListenerManager !== 'undefined';
+
+        // Keyboard handler
+        var keyHandler = function(e) {
             if (!state.active || state.phase !== 'running') return;
 
             // Space or Enter to confirm timing
@@ -1192,10 +1201,10 @@ var QTEEngine = (function() {
                 e.preventDefault();
                 handleInput();
             }
-        });
+        };
 
-        // Click/tap input (for mobile and mouse)
-        document.addEventListener('click', function(e) {
+        // Click handler
+        var clickHandler = function(e) {
             if (!state.active || state.phase !== 'running') return;
 
             // Check if click is on QTE area
@@ -1204,10 +1213,10 @@ var QTEEngine = (function() {
                 e.preventDefault();
                 handleInput();
             }
-        });
+        };
 
-        // Touch input
-        document.addEventListener('touchstart', function(e) {
+        // Touch handler
+        var touchHandler = function(e) {
             if (!state.active || state.phase !== 'running') return;
 
             var qteContainer = document.getElementById('qte-container');
@@ -1215,7 +1224,28 @@ var QTEEngine = (function() {
                 e.preventDefault();
                 handleInput();
             }
-        }, { passive: false });
+        };
+
+        // Bind with ListenerManager if available, otherwise direct
+        if (hasListenerManager) {
+            ListenerManager.add(document, 'keydown', keyHandler, 'qte');
+            ListenerManager.add(document, 'click', clickHandler, 'qte');
+            ListenerManager.add(document, 'touchstart', touchHandler, 'qte', { passive: false });
+        } else {
+            document.addEventListener('keydown', keyHandler);
+            document.addEventListener('click', clickHandler);
+            document.addEventListener('touchstart', touchHandler, { passive: false });
+        }
+    }
+
+    /**
+     * Unbind input handlers (for cleanup)
+     */
+    function unbindInputs() {
+        if (typeof ListenerManager !== 'undefined') {
+            ListenerManager.removeAll('qte');
+        }
+        inputsBound = false;
     }
 
     // === Combo System (Future Enhancement) ===
@@ -1318,6 +1348,7 @@ var QTEEngine = (function() {
         setUI: setUI,
         setDifficulty: setDifficulty,
         bindInputs: bindInputs,
+        unbindInputs: unbindInputs,
 
         // QTE control - Finalized Battle System (NEW)
         startSkillQTE: startSkillQTE,       // Skills: advantage/disadvantage on rolls

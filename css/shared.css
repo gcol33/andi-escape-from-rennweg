@@ -1134,6 +1134,26 @@
     border: 1px solid rgba(255, 215, 0, 0.4);
 }
 
+/* Key flag items (milestones - persist across Play Again) */
+.inventory-item-keyflag {
+    background: rgba(255, 215, 0, 0.3);
+    border-color: rgba(255, 215, 0, 0.6);
+}
+
+/* Regular flag items (story progress - cleared on Play Again) */
+.inventory-item-flag {
+    background: rgba(100, 149, 237, 0.2);
+    border-color: rgba(100, 149, 237, 0.4);
+}
+
+/* Empty inventory state */
+.inventory-empty {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.7rem;
+    font-style: italic;
+    padding: 4px 0;
+}
+
 /* === Item Notifications === */
 .item-notification {
     position: fixed;

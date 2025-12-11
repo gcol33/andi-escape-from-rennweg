@@ -291,6 +291,39 @@ var BattleDice = (function() {
     }
 
     // =========================================================================
+    // UTILITY FUNCTIONS
+    // =========================================================================
+
+    /**
+     * Pick a random element from an array
+     * @param {Array} arr - Array to pick from
+     * @returns {*} Random element, or undefined if empty
+     */
+    function pickRandom(arr) {
+        if (!arr || arr.length === 0) return undefined;
+        return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    /**
+     * Generate a random integer in range [min, max] inclusive
+     * @param {number} min - Minimum value
+     * @param {number} max - Maximum value
+     * @returns {number} Random integer
+     */
+    function randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    /**
+     * Random chance check
+     * @param {number} probability - Probability 0-1 (e.g., 0.3 for 30%)
+     * @returns {boolean} True if success
+     */
+    function chance(probability) {
+        return Math.random() < probability;
+    }
+
+    // =========================================================================
     // PUBLIC API
     // =========================================================================
 
@@ -320,6 +353,11 @@ var BattleDice = (function() {
         rollDamage: rollDamage,
         rollDamageDetailed: rollDamageDetailed,
         rollDamageWithAdvantage: rollDamageWithAdvantage,
-        rollDamageWithDisadvantage: rollDamageWithDisadvantage
+        rollDamageWithDisadvantage: rollDamageWithDisadvantage,
+
+        // Utilities
+        pickRandom: pickRandom,
+        randomInt: randomInt,
+        chance: chance
     };
 })();

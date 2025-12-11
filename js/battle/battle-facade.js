@@ -26,8 +26,16 @@ var BattleEngine = (function() {
     var _hasBattleSummon = typeof BattleSummon !== 'undefined';
     var _intentsEnabled = true;  // Can be toggled via dev panel
 
+    // Use Logger if available
+    var _log = typeof Logger !== 'undefined' ? Logger : {
+        debug: function() {},
+        info: function(m) { var a = Array.prototype.slice.call(arguments, 1); console.log.apply(console, ['[' + m + ']'].concat(a)); },
+        warn: function(m) { var a = Array.prototype.slice.call(arguments, 1); console.warn.apply(console, ['[' + m + ']'].concat(a)); },
+        error: function(m) { var a = Array.prototype.slice.call(arguments, 1); console.error.apply(console, ['[' + m + ']'].concat(a)); }
+    };
+
     if (!_hasBattleData) {
-        console.warn('[BattleEngine] BattleData module not loaded - some features will be unavailable');
+        _log.warn('BattleEngine', 'BattleData module not loaded - some features will be unavailable');
     }
 
     // =========================================================================
@@ -188,7 +196,7 @@ var BattleEngine = (function() {
             BattleDiceUI.pause();
         }
 
-        console.log('[BattleEngine] Paused -', _pausedTimeouts.length, 'timeouts frozen');
+        _log.debug('BattleEngine', 'Paused -', _pausedTimeouts.length, 'timeouts frozen');
     }
 
     /**
@@ -227,7 +235,7 @@ var BattleEngine = (function() {
             _activeTimeouts.push(info);
         }
 
-        console.log('[BattleEngine] Unpaused -', _pausedTimeouts.length, 'timeouts resumed');
+        _log.debug('BattleEngine', 'Unpaused -', _pausedTimeouts.length, 'timeouts resumed');
         _pausedTimeouts = [];
     }
 
@@ -290,7 +298,7 @@ var BattleEngine = (function() {
      */
     function setStyle(name) {
         if (!styles[name]) {
-            console.warn('[BattleEngine] Unknown style:', name, '- falling back to dnd');
+            _log.warn('BattleEngine', 'Unknown style:', name, '- falling back to dnd');
             name = 'dnd';
         }
         activeStyleName = name;
@@ -615,7 +623,7 @@ var BattleEngine = (function() {
      * @returns {Object} Battle state for engine compatibility
      */
     function start(battleConfig, sceneId) {
-        console.log('[BattleEngine] start() called', { battleConfig: battleConfig, sceneId: sceneId });
+        _log.debug('BattleEngine', 'start() called', { battleConfig: battleConfig, sceneId: sceneId });
 
         // Ensure pause key listener is set up
         ensurePauseKeyListener();
@@ -626,7 +634,7 @@ var BattleEngine = (function() {
         // Determine style from config
         var styleName = battleConfig.style || 'dnd';
         setStyle(styleName);
-        console.log('[BattleEngine] Style set to:', styleName);
+        _log.debug('BattleEngine', 'Style set to:', styleName);
 
         // Pass forced roll to style
         var style = getActiveStyle();
@@ -648,25 +656,25 @@ var BattleEngine = (function() {
         resetMusicState();
 
         // Start battle in core (accepts flat config format from story.js)
-        console.log('[BattleEngine] Calling BattleCore.startBattle...');
+        _log.debug('BattleEngine', 'Calling BattleCore.startBattle...');
         BattleCore.startBattle(battleConfig, sceneId);
-        console.log('[BattleEngine] BattleCore.startBattle completed');
+        _log.debug('BattleEngine', 'BattleCore.startBattle completed');
 
         // Get state for UI and sync to mutable battleState
         var coreState = BattleCore.getState();
-        console.log('[BattleEngine] Core state:', { player: coreState.player, enemy: coreState.enemy });
+        _log.debug('BattleEngine', 'Core state:', { player: coreState.player, enemy: coreState.enemy });
         battleState.player = coreState.player;
         battleState.enemy = coreState.enemy;
         battleState.onBattleReady = null;  // Reset callback
 
         // Show battle intro
-        console.log('[BattleEngine] Calling showBattleIntro...');
+        _log.debug('BattleEngine', 'Calling showBattleIntro...');
         showBattleIntro(coreState.enemy, function() {
-            console.log('[BattleEngine] Intro callback fired');
+            _log.debug('BattleEngine', 'Intro callback fired');
             showUI();
-            console.log('[BattleEngine] showUI() completed');
+            _log.debug('BattleEngine', 'showUI() completed');
             updateDisplay();
-            console.log('[BattleEngine] updateDisplay() completed');
+            _log.debug('BattleEngine', 'updateDisplay() completed');
 
             // Trigger start dialogue
             var startLine = BattleCore.triggerDialogue('battle_start');
@@ -675,15 +683,15 @@ var BattleEngine = (function() {
             }
 
             // Call onBattleReady callback if set by engine
-            console.log('[BattleEngine] Checking onBattleReady:', typeof battleState.onBattleReady);
+            _log.debug('BattleEngine', 'Checking onBattleReady:', typeof battleState.onBattleReady);
             if (typeof battleState.onBattleReady === 'function') {
-                console.log('[BattleEngine] Calling onBattleReady...');
+                _log.debug('BattleEngine', 'Calling onBattleReady...');
                 battleState.onBattleReady();
             }
         });
 
         // Return mutable state for engine compatibility (allows setting callbacks)
-        console.log('[BattleEngine] start() returning battleState');
+        _log.debug('BattleEngine', 'start() returning battleState');
         return battleState;
     }
 
@@ -903,7 +911,7 @@ var BattleEngine = (function() {
                 break;
 
             default:
-                console.warn('[BattleEngine] Unknown action:', action);
+                _log.warn('BattleEngine', 'Unknown action:', action);
                 BattleCore.setPhase('player');
         }
     }
@@ -1565,7 +1573,7 @@ var BattleEngine = (function() {
         // Get the skill from the intent
         var skill = intent.skill || BattleIntent.getSkill();
         if (!skill) {
-            console.warn('[BattleEngine] Intent has no skill, falling back to normal attack');
+            _log.warn('BattleEngine', 'Intent has no skill, falling back to normal attack');
             BattleIntent.clear(state.turn);
             if (_hasBattleUI && BattleUI.hideIntentIndicator) {
                 BattleUI.hideIntentIndicator('execute');
@@ -1641,7 +1649,7 @@ var BattleEngine = (function() {
 
             // Fallback if QTE fails to start
             if (!qteStarted) {
-                console.warn('[BattleEngine] Intent defend QTE failed to start, executing normally');
+                _log.warn('BattleEngine', 'Intent defend QTE failed to start, executing normally');
                 executeIntentSkill(style, skill, intent, messages, callback);
             }
         });
@@ -1918,13 +1926,13 @@ var BattleEngine = (function() {
         });
 
         if (!_hasBattleSummon) {
-            console.warn('[BattleEngine] BattleSummon module not loaded - cannot summon');
+            _log.warn('BattleEngine', 'BattleSummon module not loaded - cannot summon');
             finishEnemyTurn([], callback);
             return;
         }
 
         if (!summonId) {
-            console.warn('[BattleEngine] Summon skill has no summonId:', skill);
+            _log.warn('BattleEngine', 'Summon skill has no summonId:', skill);
             finishEnemyTurn([], callback);
             return;
         }
@@ -2189,7 +2197,7 @@ var BattleEngine = (function() {
 
             // If QTE failed to start (e.g., already active), fall back to normal attack flow
             if (!qteStarted) {
-                console.warn('[BattleEngine] Defend QTE failed to start, falling back to normal attack');
+                _log.warn('BattleEngine', 'Defend QTE failed to start, falling back to normal attack');
                 var result = style.enemyTurn();
                 finishEnemyAction(result, messages, callback);
             }
@@ -2787,7 +2795,7 @@ var BattleEngine = (function() {
         });
         // If QTE failed to start, fall back with empty result
         if (!qteStarted) {
-            console.warn('[BattleEngine] Attack QTE failed to start');
+            _log.warn('BattleEngine', 'Attack QTE failed to start');
             callback({});
         }
     }
@@ -2803,7 +2811,7 @@ var BattleEngine = (function() {
         });
         // If QTE failed to start, fall back with empty result
         if (!qteStarted) {
-            console.warn('[BattleEngine] Dodge QTE failed to start');
+            _log.warn('BattleEngine', 'Dodge QTE failed to start');
             callback({});
         }
     }
@@ -3414,12 +3422,12 @@ var BattleEngine = (function() {
     }
 
     function showBattleIntro(enemy, callback) {
-        console.log('[BattleEngine] showBattleIntro called, BattleUI defined:', typeof BattleUI !== 'undefined');
+        _log.debug('BattleEngine', 'showBattleIntro called, BattleUI defined:', typeof BattleUI !== 'undefined');
         if (typeof BattleUI !== 'undefined') {
-            console.log('[BattleEngine] Calling BattleUI.showIntro...');
+            _log.debug('BattleEngine', 'Calling BattleUI.showIntro...');
             BattleUI.showIntro(enemy, callback);
         } else {
-            console.log('[BattleEngine] BattleUI not defined, using fallback timeout');
+            _log.debug('BattleEngine', 'BattleUI not defined, using fallback timeout');
             scheduleTimeout(callback, config.timing.battleIntro);
         }
     }
@@ -3885,7 +3893,7 @@ var BattleEngine = (function() {
                     BattleUI.hideIntentIndicator('cancel');
                 }
             }
-            console.log('[BattleEngine] Intents ' + (enabled ? 'enabled' : 'disabled'));
+            _log.debug('BattleEngine', 'Intents ' + (enabled ? 'enabled' : 'disabled'));
         },
         getIntentsEnabled: function() { return _intentsEnabled; },
 

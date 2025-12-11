@@ -15,8 +15,8 @@ You pull out the Flora Book and the Magnifying Glass. Crouching by the terracott
 
 ### Choices
 
-- Look at the empty grill (requires: !has_charcoal) → ending_bbq_nocharcoal
-- Realize you forgot a lighter (require_items: Charcoal, requires: !has_lighter) → ending_bbq_charcoal_nolighter
-- Set up without refreshments (require_items: Charcoal, require_items: Lighter, requires: !has_beer) → ending_bbq_charcoal_lighter_nobeer
-- Fire up the grill properly (require_items: Charcoal, require_items: Lighter, require_items: Beer) → bbq3
+- Look at the empty grill (require_items: !Charcoal) → ending_bbq_nocharcoal
+- Realize you forgot a lighter (require_items: Charcoal, !Lighter) → ending_bbq_charcoal_nolighter
+- Set up without refreshments (require_items: Charcoal, Lighter, !Beer) → ending_bbq_charcoal_lighter_nobeer
+- Fire up the grill properly (require_items: Charcoal, Lighter, Beer) → bbq3
 
