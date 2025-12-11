@@ -1705,6 +1705,36 @@ const VNEngine = (function() {
             });
         }
 
+        // Initialize engine modules
+        if (typeof AudioManager !== 'undefined') {
+            AudioManager.init({
+                assetPaths: config.assetPaths,
+                defaultMusic: config.defaultMusic,
+                sfxDuckVolume: config.sfxDuckVolume,
+                sfxMinDuration: config.sfxMinDuration,
+                sfxRepeatGap: config.sfxRepeatGap,
+                sfxPreDelay: config.sfxPreDelay,
+                sfxPostDelay: config.sfxPostDelay
+            });
+        }
+
+        if (typeof InventoryManager !== 'undefined') {
+            InventoryManager.init();
+            // Set external refs for flags display in inventory
+            InventoryManager.setExternalRefs({
+                flags: state.flags,
+                keyFlags: state.keyFlags
+            });
+        }
+
+        if (typeof SaveManager !== 'undefined') {
+            SaveManager.init({
+                saveKey: config.saveKey,
+                themeKey: config.themeKey,
+                kenBurnsKey: config.kenBurnsKey
+            });
+        }
+
         // Show dev mode indicator if enabled by default
         if (state.devMode) {
             showDevModeIndicator(true);
