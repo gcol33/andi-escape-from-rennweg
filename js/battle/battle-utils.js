@@ -68,6 +68,52 @@ var BattleUtils = (function() {
         }
     }
 
+    /**
+     * Get all dependency statuses at once
+     * Useful for debugging and consolidated checks
+     * @returns {Object} All dependency statuses
+     */
+    function getAllDependencies() {
+        refreshDependencies();
+        return {
+            BattleData: _dependencies.BattleData,
+            BattleCore: _dependencies.BattleCore,
+            BattleDice: _dependencies.BattleDice,
+            BattleBarrier: _dependencies.BattleBarrier,
+            BattleIntent: _dependencies.BattleIntent,
+            BattleSummon: _dependencies.BattleSummon,
+            BattleUI: _dependencies.BattleUI,
+            QTEEngine: _dependencies.QTEEngine,
+            EventEmitter: _dependencies.EventEmitter,
+            TimerManager: typeof TimerManager !== 'undefined',
+            ListenerManager: typeof ListenerManager !== 'undefined'
+        };
+    }
+
+    /**
+     * Validate required dependencies and log warnings
+     * @param {string[]} required - Array of required module names
+     * @param {string} callerName - Name of calling module for logging
+     * @returns {boolean} True if all required dependencies are available
+     */
+    function validateDependencies(required, callerName) {
+        var allPresent = true;
+        var missing = [];
+
+        for (var i = 0; i < required.length; i++) {
+            if (!hasModule(required[i])) {
+                allPresent = false;
+                missing.push(required[i]);
+            }
+        }
+
+        if (!allPresent && typeof Logger !== 'undefined') {
+            Logger.warn(callerName, 'Missing dependencies:', missing.join(', '));
+        }
+
+        return allPresent;
+    }
+
     // =========================================================================
     // STATUS EFFECT UTILITIES
     // =========================================================================
@@ -375,6 +421,96 @@ var BattleUtils = (function() {
     }
 
     // =========================================================================
+    // TEXT UTILITIES (for battle log rendering)
+    // =========================================================================
+
+    /**
+     * Measure text and split into lines that fit within a container width.
+     * Uses a hidden measurement element to calculate where line breaks occur.
+     * Words are kept as units (including trailing punctuation like ., , ! ? : ;)
+     * @param {string} text - Plain text to measure (HTML should be stripped)
+     * @param {HTMLElement} container - Container to measure against (for width/font)
+     * @returns {string[]} Array of line strings
+     */
+    function measureTextLines(text, container) {
+        if (!container || !text) return [text || ''];
+
+        // Create measurement element with same styling as container
+        var measure = document.createElement('span');
+        measure.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;';
+        // Copy font styling from container
+        var style = window.getComputedStyle(container);
+        measure.style.font = style.font;
+        measure.style.fontSize = style.fontSize;
+        measure.style.fontFamily = style.fontFamily;
+        measure.style.letterSpacing = style.letterSpacing;
+        document.body.appendChild(measure);
+
+        var containerWidth = container.clientWidth;
+        var lines = [];
+        var currentLine = '';
+
+        // Split by whitespace but keep words with their punctuation as units
+        // \S+ matches non-whitespace sequences (words + punctuation together)
+        // \s+ matches whitespace sequences
+        var tokens = text.match(/\S+|\s+/g) || [];
+
+        for (var i = 0; i < tokens.length; i++) {
+            var token = tokens[i];
+            var testLine = currentLine + token;
+            measure.textContent = testLine;
+
+            if (measure.offsetWidth > containerWidth && currentLine !== '') {
+                // Current line is full, start new line
+                lines.push(currentLine);
+                // Skip leading whitespace for new line
+                currentLine = /^\s/.test(token) ? '' : token;
+            } else {
+                currentLine = testLine;
+            }
+        }
+
+        // Don't forget the last line
+        if (currentLine) {
+            lines.push(currentLine);
+        }
+
+        document.body.removeChild(measure);
+        return lines.length > 0 ? lines : [''];
+    }
+
+    /**
+     * Get the two fixed row elements for battle log
+     * @returns {Object|null} { row1, row2 } or null if not available
+     */
+    function getBattleLogRows() {
+        var row1 = document.getElementById('battle-log-row-1');
+        var row2 = document.getElementById('battle-log-row-2');
+        if (!row1 || !row2) return null;
+        return { row1: row1, row2: row2 };
+    }
+
+    /**
+     * Shift battle log rows: move row2 content to row1, clear row2
+     * @param {Object} rows - { row1, row2 } from getBattleLogRows
+     */
+    function shiftBattleLogRows(rows) {
+        if (!rows) return;
+        rows.row1.innerHTML = rows.row2.innerHTML;
+        rows.row2.innerHTML = '';
+    }
+
+    /**
+     * Clear both battle log rows
+     * @param {Object} rows - { row1, row2 } from getBattleLogRows
+     */
+    function clearBattleLogRows(rows) {
+        if (!rows) return;
+        rows.row1.innerHTML = '';
+        rows.row2.innerHTML = '';
+    }
+
+    // =========================================================================
     // PUBLIC API
     // =========================================================================
 
@@ -390,6 +526,8 @@ var BattleUtils = (function() {
         hasBattleUI: hasBattleUI,
         hasQTEEngine: hasQTEEngine,
         refreshDependencies: refreshDependencies,
+        getAllDependencies: getAllDependencies,
+        validateDependencies: validateDependencies,
 
         // Status effect utilities
         getStatusModifiers: getStatusModifiers,
@@ -415,6 +553,12 @@ var BattleUtils = (function() {
         // AI utilities
         findMoveByType: findMoveByType,
         findHighestDamageMove: findHighestDamageMove,
-        findMoveWithStatus: findMoveWithStatus
+        findMoveWithStatus: findMoveWithStatus,
+
+        // Text utilities (for battle log rendering)
+        measureTextLines: measureTextLines,
+        getBattleLogRows: getBattleLogRows,
+        shiftBattleLogRows: shiftBattleLogRows,
+        clearBattleLogRows: clearBattleLogRows
     };
 })();

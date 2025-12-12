@@ -10,6 +10,9 @@
 var QuizUI = (function() {
     'use strict';
 
+    // Use Logger module via Utils
+    var _log = Utils.getLogger();
+
     // === DOM Element Cache ===
     var elements = {
         container: null,      // #vn-container
@@ -289,25 +292,14 @@ var QuizUI = (function() {
      * Create sparkle effects for victory screen (copied from battle-ui.js)
      */
     function createVictorySparkles(container) {
-        var sparkleCount = 12;
-        for (var i = 0; i < sparkleCount; i++) {
-            (function(index) {
-                setTimeout(function() {
-                    var sparkle = document.createElement('div');
-                    sparkle.className = 'victory-sparkle';
-                    sparkle.style.left = (Math.random() * 80 + 10) + '%';
-                    sparkle.style.top = (Math.random() * 40 + 30) + '%';
-                    sparkle.style.animationDelay = (Math.random() * 0.5) + 's';
-                    container.appendChild(sparkle);
-
-                    setTimeout(function() {
-                        if (sparkle.parentNode) {
-                            sparkle.parentNode.removeChild(sparkle);
-                        }
-                    }, 1500);
-                }, index * 100);
-            })(i);
-        }
+        // Use shared Utils function
+        Utils.createVictorySparkles(container, {
+            count: 12,
+            interval: 100,
+            lifetime: 1500,
+            topMin: 30,
+            topRange: 40
+        });
     }
 
     // === Utility ===
@@ -326,7 +318,7 @@ var QuizUI = (function() {
                 audio.volume = 0.5;
                 audio.play().catch(function() {});
             } catch (e) {
-                console.warn('[QuizUI] Could not play SFX:', filename);
+                _log.warn('QuizUI', 'Could not play SFX:', filename);
             }
         }
     }
@@ -347,6 +339,35 @@ var QuizUI = (function() {
     }
 
     /**
+     * Show an error message to the user
+     * @param {string} message - Error message to display
+     * @param {function} callback - Called after error is acknowledged
+     */
+    function showError(message, callback) {
+        // Play error sound
+        playSfx('failure.ogg');
+
+        // Show error in question text if available, otherwise alert
+        if (elements.questionText) {
+            elements.questionText.textContent = message;
+            elements.questionText.classList.add('quiz-error');
+        }
+
+        // Disable answer buttons
+        if (elements.answersContainer) {
+            var buttons = elements.answersContainer.querySelectorAll('button');
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].disabled = true;
+            }
+        }
+
+        // Call callback after brief delay
+        setTimeout(function() {
+            if (callback) callback();
+        }, 1500);
+    }
+
+    /**
      * Check if quiz UI is visible
      * @returns {boolean}
      */
@@ -361,6 +382,7 @@ var QuizUI = (function() {
         updateCountdown: updateCountdown,
         showAnswerFeedback: showAnswerFeedback,
         showOutro: showOutro,
+        showError: showError,
         hide: hide,
         isVisible: isVisible
     };

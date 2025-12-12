@@ -95,7 +95,7 @@
                     <button class="speed-btn active" data-speed="normal" title="Normal speed" aria-label="Normal text speed" aria-pressed="true"><span class="icon-landscape" aria-hidden="true">▶</span><span class="icon-portrait" aria-hidden="true">1x</span></button>
                     <button class="speed-btn" data-speed="auto" title="Auto" aria-label="Auto-advance text" aria-pressed="false"><span class="icon-landscape" aria-hidden="true">▶|</span><span class="icon-portrait" aria-hidden="true">A</span></button>
                     <button class="speed-btn" data-speed="fast" title="Fast" aria-label="Fast text speed" aria-pressed="false"><span class="icon-landscape" aria-hidden="true">▶▶</span><span class="icon-portrait" aria-hidden="true">2x</span></button>
-                    <button class="speed-btn" data-speed="skip" title="Skip read text" id="skip-btn" aria-label="Skip already-read text" aria-pressed="false"><span class="icon-landscape" aria-hidden="true">⏭</span><span class="icon-portrait" aria-hidden="true">Skip</span></button>
+                    <button class="speed-btn" data-speed="skip" title="Skip read text" id="skip-btn" aria-label="Skip already-read text" aria-pressed="false"><span class="icon-landscape" aria-hidden="true">▶▶|</span><span class="icon-portrait" aria-hidden="true">Skip</span></button>
                     <div id="volume-control" role="group" aria-label="Volume controls">
                         <button id="mute-btn" class="mute-btn" title="Mute" aria-label="Toggle mute" aria-pressed="false">
                             <svg class="sound-on" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -134,8 +134,27 @@
     <script src="js/utils.js"></script>
     <script src="js/logger.js"></script>
     <script src="js/listener-manager.js"></script>
+    <script src="js/timer-manager.js"></script>
     <script src="js/events.js"></script>
     <script src="js/animation-manager.js"></script>
+
+    <!-- Core architecture modules -->
+    <script src="js/core/events.js"></script>
+    <script src="js/core/event-bus.js"></script>
+    <script src="js/core/store.js"></script>
+    <script src="js/core/errors.js"></script>
+    <script src="js/core/bootstrap.js"></script>
+
+    <!-- Manager modules (new architecture - not yet active) -->
+    <script src="js/managers/base-manager.js"></script>
+    <script src="js/managers/audio-manager.js"></script>
+    <script src="js/managers/flag-manager.js"></script>
+    <script src="js/managers/inventory-manager.js"></script>
+    <script src="js/managers/save-manager.js"></script>
+    <script src="js/managers/scene-manager.js"></script>
+
+    <!-- Input handling -->
+    <script src="js/input/input-controller.js"></script>
 
     <!-- Engine modules (load before engine.js) -->
     <script src="js/engine-audio.js"></script>

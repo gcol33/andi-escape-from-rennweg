@@ -102,6 +102,8 @@ var SaveManager = (function() {
                 inventory: state.inventory,
                 playerHP: state.playerHP,
                 playerMaxHP: state.playerMaxHP,
+                playerMana: state.playerMana,
+                playerMaxMana: state.playerMaxMana,
                 readBlocks: state.readBlocks,
                 wonBattles: state.wonBattles,
                 history: history
@@ -127,6 +129,11 @@ var SaveManager = (function() {
             // Validate save data structure
             if (!isValid(saveData)) {
                 _log.warn('SaveManager', 'Invalid save data structure, clearing corrupted save');
+                // Notify user if possible (via console and optional UI callback)
+                console.warn('[Andi VN] Save data was corrupted and has been reset. Your progress has been cleared.');
+                if (typeof window !== 'undefined' && window.onSaveCorrupted) {
+                    window.onSaveCorrupted('Save data was corrupted and has been reset.');
+                }
                 clear();
                 return null;
             }

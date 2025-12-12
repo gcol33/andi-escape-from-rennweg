@@ -1,580 +1,370 @@
-# Battle System Modularization & Code Improvements Plan
+# Refactor Plan - Practical Improvements
 
-## Overview
-
-This plan refactors the monolithic `battle.js` (~4600 lines) into a modular, extensible architecture that supports multiple battle styles (D&D, Pokemon, Expedition 33, etc.) while adding robustness improvements across the codebase.
-
----
-
-## Phase 1: Core Infrastructure
-
-### 1.1 Create EventEmitter System (`js/events.js`)
-
-A simple pub/sub system for loose coupling between modules.
-
-```javascript
-var EventEmitter = (function() {
-    var listeners = {};
-
-    return {
-        on: function(event, callback) { ... },
-        off: function(event, callback) { ... },
-        emit: function(event, data) { ... },
-        once: function(event, callback) { ... }
-    };
-})();
-```
-
-**Events to implement:**
-- `battle:start`, `battle:end`, `battle:turn-start`, `battle:turn-end`
-- `player:action`, `player:damaged`, `player:healed`
-- `enemy:action`, `enemy:damaged`, `enemy:defeated`
-- `qte:start`, `qte:complete`
-- `scene:load`, `scene:transition`
-- `asset:load-error`
-
-### 1.2 Create Animation Manager (`js/animation-manager.js`)
-
-Centralized RAF tracking to properly cancel animations on scene transitions.
-
-```javascript
-var AnimationManager = (function() {
-    var activeAnimations = {};  // id -> rafHandle
-
-    return {
-        register: function(id, rafHandle) { ... },
-        cancel: function(id) { ... },
-        cancelAll: function() { ... },  // Called on scene transition
-        isActive: function(id) { ... }
-    };
-})();
-```
+**Updated:** 2025-12-12
+**Constraint:** Pure HTML+JS with IIFE pattern (no build system)
 
 ---
 
-## Phase 2: Battle System Modularization
+## Architecture Assessment
 
-### 2.1 New File Structure
+### What We Have
 
-```
-js/
-├── battle/
-│   ├── battle-core.js      # Shared battle logic, state, flow
-│   ├── battle-dnd.js       # D&D style (d20, AC, crits) - current system
-│   ├── battle-pokemon.js   # Pokemon style (type chart, PP, abilities)
-│   ├── battle-exp33.js     # Expedition 33 style (timeline, QTE-heavy)
-│   └── battle-data.js      # Skills, status effects, items (extracted from battle.js)
-├── battle-ui.js            # (existing, unchanged)
-├── battle.js               # Facade that delegates to active style
-```
+**Legacy System (active, working):**
+- `engine.js` - Main VN engine (~5000 lines)
+- `engine-audio.js` - Audio module (legacy AudioManager)
+- `engine-inventory.js` - Inventory module (legacy InventoryManager)
+- `engine-saves.js` - Save/load module (legacy SaveManager)
 
-### 2.2 BattleCore (`js/battle/battle-core.js`)
+**New Foundation (ready, not yet active):**
+- `js/core/` - EventBus, Store, Error classes, Bootstrap bridge
+- `js/managers/` - New manager templates (flagManager, inventoryManager, etc.)
+- `js/input/input-controller.js` - Centralized input handling (keyboard/mouse/touch)
+- SceneManager initialized, CoreBridge syncing state to store
 
-Shared functionality all styles use:
+**Utility Modules (active, used by engine):**
+- `js/timer-manager.js` - Centralized timeout/interval tracking with cleanup
+- `js/listener-manager.js` - Event listener tracking with automatic cleanup
+- `js/animation-manager.js` - Animation frame tracking with cleanup
+- `js/logger.js` - Centralized logging with debug levels
+- `js/utils.js` - DOM utilities and helper functions
 
-```javascript
-var BattleCore = (function() {
-    // === Shared State ===
-    var state = {
-        active: false,
-        phase: 'player',
-        turn: 0,
-        player: { hp, maxHP, mana, statuses, ... },
-        enemy: { hp, maxHP, statuses, ... },
-        terrain: 'none',
-        targets: { win, lose, flee }
-    };
+### The Reality
 
-    // === Shared Systems ===
-    return {
-        // State management
-        getState, setState, isActive,
+The new managers were designed to work with the store, but engine.js works with its own state object. Full migration would require:
+1. Make engine.js read from store instead of its own state
+2. Update all battle/QTE modules to use store
+3. Risk breaking working code
 
-        // HP/Mana management
-        damagePlayer, healPlayer, damageEnemy, healEnemy,
-
-        // Status effect system (shared)
-        applyStatus, removeStatus, hasStatus, tickStatuses,
-
-        // Stagger system (shared)
-        addStagger, decayStagger,
-
-        // Flow control
-        startBattle, endBattle, checkBattleEnd,
-
-        // Item system
-        getAvailableItems, useItem,
-
-        // Summon system
-        createSummon, processSummonTurn,
-
-        // Limit break system
-        addLimitCharge, isLimitReady, executeLimitBreak,
-
-        // Music transitions
-        checkMusicTransitions, setMusicTracks,
-
-        // Dialogue system
-        triggerDialogue, showBattleDialogue
-    };
-})();
-```
-
-### 2.3 BattleStyleDnD (`js/battle/battle-dnd.js`)
-
-Current D&D mechanics extracted:
-
-```javascript
-var BattleStyleDnD = (function() {
-    return {
-        name: 'dnd',
-
-        // === D&D-Specific Mechanics ===
-        rollD20: function() { ... },
-        rollDamage: function(diceStr) { ... },
-
-        // Attack resolution with AC
-        resolveAttack: function(attacker, defender, move) {
-            // d20 + bonus vs AC
-            // Nat 20 = crit, nat 1 = fumble
-        },
-
-        // Player actions
-        playerAttack: function(move) { ... },
-        playerSkill: function(skillId) { ... },
-        playerDefend: function() { ... },  // +4 AC, mana regen
-        playerFlee: function() { ... },    // d20 >= 10
-
-        // Enemy AI
-        selectEnemyMove: function() { ... },
-        enemyTurn: function() { ... },
-
-        // Passive system
-        getPassiveBonuses: function(target) { ... }
-    };
-})();
-```
-
-### 2.4 BattleStylePokemon (`js/battle/battle-pokemon.js`)
-
-Pokemon-style mechanics:
-
-```javascript
-var BattleStylePokemon = (function() {
-    return {
-        name: 'pokemon',
-
-        // === Pokemon-Specific ===
-        // No AC - always hits (with accuracy modifier)
-        resolveAttack: function(attacker, defender, move) {
-            // Accuracy check (percentage based)
-            // Type effectiveness (2x, 0.5x, 0x)
-            // STAB bonus (+50% if move type matches user type)
-        },
-
-        // PP system instead of mana
-        usePP: function(moveId) { ... },
-
-        // Four-move limit
-        getMoves: function() { ... },  // Max 4 moves
-
-        // Abilities (passive effects)
-        checkAbility: function(trigger) { ... },
-
-        // Status: paralysis, burn, freeze, sleep, poison, confusion
-        tickPokemonStatuses: function() { ... },
-
-        // Weather effects
-        setWeather: function(type) { ... },
-        tickWeather: function() { ... }
-    };
-})();
-```
-
-### 2.5 BattleStyleExpedition33 (`js/battle/battle-exp33.js`)
-
-Expedition 33 mechanics (QTE-heavy, timeline):
-
-```javascript
-var BattleStyleExpedition33 = (function() {
-    return {
-        name: 'expedition33',
-
-        // === Expedition 33-Specific ===
-        // No turns - real-time with cooldowns
-        timeline: [],
-
-        // All attacks require QTE
-        resolveAttack: function(attacker, defender, move, qteResult) {
-            // Damage purely based on QTE result
-            // Perfect = full damage + bonus
-            // Miss = no damage
-        },
-
-        // Chain system
-        startChain: function() { ... },
-        addToChain: function(attack) { ... },
-        finishChain: function() { ... },
-
-        // Focus system (like limit break but per-action)
-        gainFocus: function(amount) { ... },
-        useFocus: function(action) { ... },
-
-        // Dodge is always QTE-based
-        processIncomingDamage: function(damage, qteResult) { ... }
-    };
-})();
-```
-
-### 2.6 BattleData (`js/battle/battle-data.js`)
-
-Extract all data definitions from battle.js:
-
-```javascript
-var BattleData = (function() {
-    return {
-        // Type chart
-        typeChart: { fire: { ice: 2, fire: 0.5 }, ... },
-
-        // Status effects
-        statusEffects: { burn: {...}, poison: {...}, ... },
-
-        // Skills
-        skills: { power_strike: {...}, fireball: {...}, ... },
-
-        // Terrain types
-        terrainTypes: { lava: {...}, ice: {...}, ... },
-
-        // Battle items
-        battleItems: { health_potion: {...}, ... },
-
-        // Summon types
-        summonTypes: { fire_sprite: {...}, ... },
-
-        // Passive abilities
-        passiveTypes: { resilience: {...}, ... },
-
-        // Limit breaks
-        limitBreaks: { overdrive: {...}, ... },
-
-        // Dialogue triggers
-        dialogueTriggers: { player_crit: [...], ... },
-
-        // Sound cues
-        soundCues: { battle_start: 'alert.ogg', ... }
-    };
-})();
-```
-
-### 2.7 Updated BattleEngine Facade (`js/battle.js`)
-
-The existing file becomes a thin facade:
-
-```javascript
-var BattleEngine = (function() {
-    var activeStyle = null;  // Current battle style module
-
-    return {
-        // Style selection
-        setStyle: function(styleName) {
-            switch(styleName) {
-                case 'dnd': activeStyle = BattleStyleDnD; break;
-                case 'pokemon': activeStyle = BattleStylePokemon; break;
-                case 'expedition33': activeStyle = BattleStyleExpedition33; break;
-            }
-        },
-
-        // Delegate to core + style
-        init: function(engine) {
-            BattleCore.init(engine);
-            // Default to D&D style
-            this.setStyle('dnd');
-        },
-
-        start: function(config, sceneId) {
-            // Set style from config if specified
-            if (config.battle_style) {
-                this.setStyle(config.battle_style);
-            }
-            return BattleCore.startBattle(config, sceneId, activeStyle);
-        },
-
-        executeAction: function(action, params, callback) {
-            return activeStyle.executeAction(action, params, callback);
-        },
-
-        // ... delegate other methods
-    };
-})();
-```
+**Better approach:** Incremental improvements that add value without breaking changes.
 
 ---
 
-## Phase 3: Error Handling & Fallbacks
+## Practical Improvements
 
-### 3.1 Asset Loading Fallbacks (`js/engine.js`)
+### 1. Event-Driven Communication (Low Risk)
 
-```javascript
-// Add to VNEngine
-var FALLBACK_ASSETS = {
-    bg: 'assets/bg/fallback.jpg',       // Create a simple gradient image
-    char: 'assets/char/fallback.svg',   // Create a simple silhouette
-    music: null,                         // Silence is fine
-    sfx: null                            // Silence is fine
-};
-
-function loadAsset(type, filename, callback) {
-    var path = config.assetPaths[type] + filename;
-    var asset = new Image();  // or Audio()
-
-    asset.onload = function() { callback(asset); };
-    asset.onerror = function() {
-        console.warn('VNEngine: Failed to load ' + type + ': ' + filename);
-        EventEmitter.emit('asset:load-error', { type: type, filename: filename });
-
-        // Use fallback
-        if (FALLBACK_ASSETS[type]) {
-            console.info('VNEngine: Using fallback for ' + type);
-            asset.src = FALLBACK_ASSETS[type];
-        } else {
-            callback(null);  // No fallback available
-        }
-    };
-
-    asset.src = path;
-}
-```
-
-### 3.2 Scene Loading Error Messages (`js/engine.js`)
+Use eventBus for new features and optional enhancements:
 
 ```javascript
-function loadScene(sceneId) {
-    var scene = story[sceneId];
+// In engine.js, after scene loads:
+eventBus.emit(SceneEvents.SCENE_ENTER, { sceneId: sceneId, scene: scene });
 
-    if (!scene) {
-        showErrorScreen({
-            title: 'Scene Not Found',
-            message: 'Could not find scene: "' + sceneId + '"',
-            suggestion: 'Check that the scene ID is correct in your story files.',
-            canContinue: state.history.length > 0  // Can undo if history exists
-        });
-        return false;
-    }
-
-    // ... existing load logic
-}
-
-function showErrorScreen(options) {
-    var overlay = document.createElement('div');
-    overlay.className = 'error-overlay';
-    overlay.innerHTML =
-        '<div class="error-dialog">' +
-            '<h2>' + options.title + '</h2>' +
-            '<p>' + options.message + '</p>' +
-            (options.suggestion ? '<p class="suggestion">' + options.suggestion + '</p>' : '') +
-            (options.canContinue ? '<button onclick="VNEngine.undo()">Go Back</button>' : '') +
-        '</div>';
-    elements.container.appendChild(overlay);
-}
-```
-
-### 3.3 Password Validation (`js/password.js`)
-
-```javascript
-const config = {
-    password: 'STRAHD',
-    minLength: 6,
-    maxLength: 6,
-    allowedChars: /^[A-Za-z0-9]$/,  // Alphanumeric only
-    // ...
-};
-
-function validateInput(value) {
-    if (value.length > 1) {
-        return value.charAt(0);  // Only keep first char
-    }
-    if (!config.allowedChars.test(value)) {
-        return '';  // Reject non-alphanumeric
-    }
-    return value.toUpperCase();  // Normalize to uppercase
-}
-
-// In input handler:
-input.addEventListener('input', function(e) {
-    var validated = validateInput(this.value);
-    if (validated !== this.value) {
-        this.value = validated;
-    }
-    // ... rest of handler
+// New modules can subscribe without modifying engine.js:
+eventBus.on(SceneEvents.SCENE_ENTER, function(data) {
+    analytics.trackScene(data.sceneId);
 });
 ```
 
+### 2. Store as Debug View (No Risk)
+
+The store is synced with engine state via CoreBridge. Useful for:
+- Dev tools showing current state
+- Debugging save/load issues
+- Future features that need state access
+
+### 3. Code Quality in engine.js (Medium Effort)
+
+Extract cohesive functions into local helpers:
+- Group related functions with comments
+- Reduce nesting in complex functions
+- Add defensive checks
+
+### 4. Test Coverage (High Value)
+
+Expand test suite for:
+- Scene navigation edge cases
+- Flag/inventory interactions
+- Save/load round-trip
+
 ---
 
-## Phase 4: CSS & Documentation Improvements
+## Completed
 
-### 4.1 Z-Index CSS Custom Properties
+- [x] Core architecture (eventBus, store, errors, bootstrap)
+- [x] Manager templates created (base, audio, flag, inventory, save, scene)
+- [x] Input controller created (keyboard/mouse/touch handling)
+- [x] Utility modules (TimerManager, ListenerManager, AnimationManager, Logger, Utils)
+- [x] SceneManager initialized with story data
+- [x] CoreBridge syncing engine→store at key points
+- [x] All 461 tests passing (178 battle + 77 QTE + 125 theme + 81 engine)
+- [x] EventBus emissions added at key points:
+  - `SceneEvents.ENTER` - when scene loads
+  - `SceneEvents.CHOICE_SELECTED` - when choice is clicked
+  - `SceneEvents.BLOCK_ADVANCE` - when text block advances
+  - `BattleEvents.START` - when battle begins
+  - `BattleEvents.END` - when battle ends (win/lose/flee)
+  - `InventoryEvents.ITEM_ADDED` - when key item, consumable, or skill added
+  - `InventoryEvents.ITEM_REMOVED` - when key item or consumable removed
+  - `StateEvents.CHANGED` - when flags or key flags change
+  - `AudioEvents.MUSIC_PLAY` - when music track starts
+  - `AudioEvents.MUSIC_STOP` - when music stops
+  - `AudioEvents.SFX_PLAY` - when sound effect plays
+  - `AudioEvents.MUTE_CHANGE` - when mute toggled
+  - `AudioEvents.VOLUME_CHANGE` - when volume adjusted
+- [x] Dev Panel enhancements (v0.7.0):
+  - **Event Log** - Real-time monitoring of eventBus emissions with color-coded event types
+  - **State Viewer** - Live inspection of store state (scene, player, flags, inventory)
+  - Pause/resume and clear controls for event log
+  - Auto-refresh state viewer on store changes
+  - Subscribes to 24 event types for comprehensive monitoring
+- [x] Engine test suite added (v0.7.5):
+  - **Flag management** - regular flags, key flags, negation support
+  - **Inventory management** - key items, consumables, skills, has checks
+  - **Save/load round-trip** - serialization, deserialization, legacy format conversion
+  - **Edge cases** - empty state handling, null checks, boundary conditions
+  - 81 new tests covering scene navigation, flags, inventory, save/load
 
-Already exists in `shared.css` - just needs to be used consistently:
+---
 
-```css
-/* Already defined in shared.css:
-:root {
-    --z-background: 1;
-    --z-sprites: 2;
-    --z-theme-deco: 10;
-    --z-text-box: 20;
-    --z-battle-ui: 30;
-    --z-battle-effects: 40;
-    --z-overlay: 100;
-    --z-dev-tools: 500;
-    --z-modal: 1000;
-}
-*/
+## Next Actions
 
-/* Audit all z-index usages and replace with variables */
+(All practical improvements completed.)
+
+---
+
+## Completed Migration (v0.7.6)
+
+The Future Migration Path has been implemented:
+
+### Flag Management Delegation
+- `engine.js` flag functions now delegate to `flagManager`
+- Flags stored in `store.player.flags` (Set) and `store.player.keyFlags` (Set)
+- `setFlag()`, `clearFlag()`, `hasFlag()` → `flagManager.set()`, `flagManager.clear()`, `flagManager.has()`
+- `setKeyFlag()`, `clearKeyFlag()`, `hasKeyFlag()` → `flagManager.setKey()`, `flagManager.clearKey()`, `flagManager.hasKey()`
+- `getKeyFlags()` now returns array (was object)
+- Save/load handles both legacy object format and new array format
+
+### Store Updates
+- Added `player.keyFlags` (Set) to store initial state
+- Added `player.inventory.skills` (array) to store initial state
+- Managers write directly to store via `BaseManager.setState()`
+
+### Inventory Manager Updates
+- Added skills support: `addSkill()`, `removeSkill()`, `hasSkill()`, `getSkills()`, `hasAllSkills()`
+- Added `clearEverything()` for full reset (including skills)
+- `clearAll()` now preserves skills (soft reset behavior)
+
+### Test Runner Updates
+- `run-engine-tests.js` now loads core modules (eventBus, store, events)
+- `run-engine-tests.js` now loads managers (BaseManager, flagManager, inventoryManager)
+- All 461 tests passing (178 battle + 77 QTE + 125 theme + 81 engine)
+
+---
+
+## File Structure
+
+```
+js/
+├── core/                      # New architecture core
+│   ├── events.js             # Event type constants (SceneEvents, BattleEvents, etc.)
+│   ├── event-bus.js          # Pub/sub event system (window.eventBus)
+│   ├── store.js              # State management (window.store)
+│   ├── errors.js             # Custom error classes
+│   └── bootstrap.js          # Core init & bridge (window.CoreBridge)
+├── managers/                  # Domain managers (not yet active)
+│   ├── base-manager.js       # Abstract base class
+│   ├── audio-manager.js      # window.audioManager
+│   ├── flag-manager.js       # window.flagManager
+│   ├── inventory-manager.js  # window.inventoryManager
+│   ├── save-manager.js       # window.saveManager
+│   └── scene-manager.js      # window.sceneManager (initialized)
+├── input/
+│   └── input-controller.js   # window.inputController
+├── utils.js                  # DOM utilities (window.Utils)
+├── logger.js                 # Logging (window.Logger)
+├── timer-manager.js          # Timeout tracking (window.TimerManager)
+├── listener-manager.js       # Event listener tracking (window.ListenerManager)
+├── animation-manager.js      # Animation tracking (window.AnimationManager)
+├── events.js                 # Legacy EventEmitter (window.EventEmitter)
+├── tuning.js                 # Game constants (window.TUNING)
+├── engine.js                 # Main VN engine (window.VNEngine)
+├── engine-audio.js           # Legacy audio (window.AudioManager)
+├── engine-inventory.js       # Legacy inventory (window.InventoryManager)
+├── engine-saves.js           # Legacy saves (window.SaveManager)
+└── battle/                   # Battle system (unchanged)
 ```
 
-**Files to update:**
-- Individual theme CSS files that have hardcoded z-index values
-- Any inline z-index in JS files
+---
 
-### 4.2 JSDoc for TUNING.js
+## Future Migration Path (COMPLETED)
 
-```javascript
-/**
- * @file Andi VN - Tuning Numbers
- * @description Centralized game feel constants for quick iteration.
- */
+~~When ready for full migration:~~
+1. ~~Make engine.js functions delegate to managers~~ ✓ (Flags delegate to flagManager)
+2. ~~Managers write to store~~ ✓ (flagManager, inventoryManager use BaseManager.setState)
+3. ~~Store triggers UI updates via eventBus~~ ✓ (StateEvents.CHANGED emitted on updates)
+4. ~~Remove duplicate logic from engine.js~~ ✓ (state.flags/state.keyFlags removed)
 
-var TUNING = (function() {
-    'use strict';
-
-    return {
-        /**
-         * Text display settings
-         * @type {Object}
-         */
-        text: {
-            /**
-             * Typewriter effect speeds (milliseconds per character)
-             * @type {Object}
-             * @property {number} normal - Default reading pace (18ms)
-             * @property {number} fast - Noticeably faster but readable (10ms)
-             * @property {number} auto - Same as normal, auto-advances when done
-             * @property {number} skip - Instant, only for already-read blocks
-             */
-            speed: {
-                normal: 18,
-                fast: 10,
-                auto: 18,
-                skip: 0
-            },
-
-            /**
-             * Delay before auto-advancing to next text block (ms)
-             * @type {number}
-             */
-            autoAdvanceDelay: 1500,
-
-            // ... etc
-        },
-
-        // ... continue for all sections
-    };
-})();
-```
-
-### 4.3 RAF Cleanup on Scene Transition
-
-```javascript
-// In AnimationManager
-var AnimationManager = (function() {
-    var animations = {};
-
-    return {
-        register: function(id, rafId) {
-            animations[id] = rafId;
-        },
-
-        cancel: function(id) {
-            if (animations[id]) {
-                cancelAnimationFrame(animations[id]);
-                delete animations[id];
-            }
-        },
-
-        cancelAll: function() {
-            for (var id in animations) {
-                cancelAnimationFrame(animations[id]);
-            }
-            animations = {};
-        }
-    };
-})();
-
-// In VNEngine.loadScene()
-function loadScene(sceneId) {
-    // Cancel all active animations before transitioning
-    AnimationManager.cancelAll();
-
-    // ... rest of load logic
-}
-
-// Update QTEEngine to register its RAF
-state.animationFrame = requestAnimationFrame(updateMarkerPosition);
-AnimationManager.register('qte-marker', state.animationFrame);
-```
+**Remaining future work:**
+- Inventory operations could delegate to inventoryManager (currently engine.js manages state.inventory directly)
+- Audio operations could delegate to audioManager
+- Scene operations could delegate to sceneManager
 
 ---
 
-## Implementation Order
+## Refactoring Table (Code Quality)
 
-1. **Phase 1.1**: Create `events.js` (EventEmitter) - Foundation for loose coupling
-2. **Phase 1.2**: Create `animation-manager.js` - RAF cleanup infrastructure
-3. **Phase 3.1-3.3**: Add error handling (quick wins, independent of refactor)
-4. **Phase 4.1-4.2**: CSS variables audit + JSDoc (can be done in parallel)
-5. **Phase 2.6**: Extract `battle-data.js` (pure data, no logic changes)
-6. **Phase 2.2**: Create `battle-core.js` (shared systems)
-7. **Phase 2.3**: Create `battle-dnd.js` (extract current logic)
-8. **Phase 2.7**: Update `battle.js` facade
-9. **Phase 2.4-2.5**: Add Pokemon/Exp33 styles (new features)
+**Updated:** 2025-12-12
+**Based on:** Clean Code principles, JavaScript best practices, codebase analysis
 
----
+### Priority Legend
+- 🔴 **HIGH** - Significant impact on maintainability/bugs
+- 🟡 **MEDIUM** - Improves readability/consistency
+- 🟢 **LOW** - Nice to have, minor improvement
 
-## Testing Strategy
-
-1. After each phase, run existing battle tests: `node tests/run-tests.js`
-2. Manual testing of a full battle flow
-3. Check that themes still render correctly
-4. Verify no console errors for missing assets
+### Effort Legend
+- **S** - Small (< 1 hour)
+- **M** - Medium (1-4 hours)
+- **L** - Large (4+ hours)
 
 ---
 
-## Files Created/Modified
+### 1. Modern JavaScript (`var` → `const`/`let`)
 
-### New Files:
-- `js/events.js` - EventEmitter
-- `js/animation-manager.js` - RAF tracking
-- `js/battle/battle-core.js` - Shared battle logic
-- `js/battle/battle-dnd.js` - D&D style
-- `js/battle/battle-pokemon.js` - Pokemon style
-- `js/battle/battle-exp33.js` - Expedition 33 style
-- `js/battle/battle-data.js` - Data definitions
-- `assets/bg/fallback.jpg` - Fallback background
-- `assets/char/fallback.svg` - Fallback character
+| Priority | Effort | File | Line(s) | Current | Refactored |
+|----------|--------|------|---------|---------|------------|
+| 🔴 | L | engine.js | 25 | `var config = {...}` | `const config = {...}` |
+| 🔴 | L | engine.js | 87 | `var state = {...}` | `let state = {...}` |
+| 🔴 | M | battle-core.js | 58-60 | `var T = typeof TUNING` | `const hasTuning = typeof TUNING !== 'undefined'` |
+| 🔴 | M | battle-facade.js | 40-63 | `var T = ...` shorthands | `const tuningConfig = ...` |
+| 🔴 | M | qte.js | 50 | `var T = typeof TUNING` | `const hasTuning = ...` |
+| 🔴 | S | password.js | 31 | `var config = {...}` | `const config = {...}` |
+| 🟡 | L | all files | loops | `for (var i = 0; ...)` | `for (let i = 0; ...)` |
+| 🟡 | L | all modules | IIFE vars | `var privateVar` | `const` or `let` as appropriate |
 
-### Modified Files:
-- `js/battle.js` - Becomes facade
-- `js/engine.js` - Add error handling, asset fallbacks
-- `js/password.js` - Add input validation
-- `js/tuning.js` - Add JSDoc
-- `js/qte.js` - Register RAF with AnimationManager
-- `index.html` - Add new script tags
-- `css/themes/*.css` - Use z-index variables (audit)
+**Total `var` occurrences:** ~1004
+**Recommended approach:** File-by-file migration, starting with smaller modules
 
 ---
 
-## Rollback Strategy
+### 2. Magic Numbers → TUNING Constants
 
-All changes are additive until Phase 2.7. The original `battle.js` can be kept as `battle.js.backup` until the refactor is verified working.
+| Priority | Effort | File | Line | Magic Value | TUNING Key |
+|----------|--------|------|------|-------------|------------|
+| 🔴 | S | engine.js | 911 | `hintSpeed = 45` | `TUNING.text.hintSpeed` |
+| 🔴 | S | engine.js | 860 | `setTimeout(..., 400)` | `TUNING.timing.cardRevealDelay` |
+| 🔴 | S | engine.js | 865 | `setTimeout(..., 600)` | `TUNING.timing.cardFlipDuration` |
+| 🟡 | S | qte.js | 306 | `0.5 * Math.sin(...)` | `TUNING.qte.speedOscillationAmplitude` |
+| 🟡 | S | qte.js | 310 | `adjustedTime / 500` | `TUNING.qte.edgeFactorDivisor` |
+| 🟡 | S | qte.js | 310 | `* 0.1` | `TUNING.qte.edgeFactorMultiplier` |
+| 🟡 | M | battle-ui.js | 207-211 | `0.95, 1.6, 0.5, 0.2` | `TUNING.ui.logFontSize`, `.logLineHeight`, etc. |
+| 🟡 | S | engine.js | 754-757 | shuffle loop | Extract to `Utils.shuffle()` |
+| 🟢 | S | password.js | 20 | `lockoutDuration: 5000` | Already in local config (OK) |
+
+**Total magic numbers:** ~347 in various files
+**Recommended approach:** Add `TUNING.ui` and `TUNING.timing` sections
+
+---
+
+### 3. Large Functions → Extract Helpers
+
+| Priority | Effort | File | Function | Lines | Extract To |
+|----------|--------|------|----------|-------|------------|
+| 🔴 | L | battle-core.js | `startBattle()` | 140 | `initializePlayerState()`, `initializeEnemyState()`, `initializeMusicState()` |
+| 🔴 | L | engine.js | `loadScene()` | ~300 | `prepareSceneAssets()`, `renderSceneUI()`, `executeSceneActions()` |
+| 🟡 | M | engine.js | Tarot reveal (800-950) | 150 | `TarotReveal` module or `revealTarotSequence()` |
+| 🟡 | M | battle-facade.js | `processTurn()` | ~200 | `processPlayerTurn()`, `processEnemyTurn()` (already partially done) |
+| 🟡 | S | qte.js | `updateMarkerPosition()` | 42 | Extract sine wave calculation to `calculateMarkerSpeed()` |
+| 🟢 | S | battle-core.js | HP persistence (272-293) | 20 | `initializePlayerHP(config, currentState)` |
+
+---
+
+### 4. Nested Conditionals → Early Returns
+
+| Priority | Effort | File | Line(s) | Nesting | Fix |
+|----------|--------|------|---------|---------|-----|
+| 🟡 | S | engine.js | 829-868 | 4 levels | Early return: `if (currentIndex >= slots.length) return;` |
+| 🟡 | S | qte.js | 237-260 | 4 levels | Extract to `calculateZone(distance, config)` |
+| 🟡 | S | battle-core.js | 272-293 | 3 levels | Use ternary or extract helper |
+| 🟡 | S | battle-ui.js | 356-365 | 3 levels | Early returns for edge cases |
+| 🟢 | S | battle-facade.js | various | 3+ levels | Guard clauses at function start |
+
+---
+
+### 5. DRY Violations → Shared Utilities
+
+| Priority | Effort | Pattern | Locations | Extract To |
+|----------|--------|---------|-----------|------------|
+| 🟡 | M | Dependency checking | battle-core:22, battle-dnd:22, qte:40 | `Utils.checkDependency(name, fallback)` |
+| 🟡 | M | Element caching | battle-ui:315, engine.js, qte-ui.js | `Utils.cacheElements(idMap)` |
+| 🟡 | M | HTML string building | engine:803, battle-ui:261 | `Utils.createPanel(config)` template |
+| 🟢 | S | EventEmitter checks | engine.js (14 occurrences) | Already using `emitEvent()` helper in battle-core |
+
+---
+
+### 6. Naming Conventions
+
+| Priority | Effort | File | Line | Current | Suggested |
+|----------|--------|------|------|---------|-----------|
+| 🟢 | S | battle-core.js | 58 | `var T = typeof TUNING` | `var hasTuning = ...` |
+| 🟢 | S | qte.js | 50 | `var T = typeof TUNING` | `var tuningAvailable = ...` |
+| 🟢 | S | engine.js | 775 | `for (var k = ...)` | `for (var cardIndex = ...)` |
+| 🟢 | S | battle-facade.js | 78-80 | `_pauseKeyListenerAdded` | Consistent underscore prefix (OK, just document convention) |
+
+---
+
+### 7. Callback Nesting → Promises/Async
+
+| Priority | Effort | File | Line(s) | Pattern | Refactored |
+|----------|--------|------|---------|---------|------------|
+| 🟢 | M | engine.js | 855-865 | Double setTimeout | `async function revealCards()` with `await delay()` |
+| 🟢 | S | qte.js | 288-330 | requestAnimationFrame | OK - standard pattern for animation |
+| 🟢 | M | battle-facade.js | 200-230 | Timeout chain | `async function resumeBattle()` |
+
+---
+
+### 8. Missing Cleanup Functions
+
+| Priority | Effort | File | Issue | Fix |
+|----------|--------|------|-------|-----|
+| 🟡 | M | engine.js | No `destroy()` function | Add `VNEngine.destroy()` to remove all listeners |
+| 🟡 | S | battle-ui.js | `cleanup()` added | ✅ Already done |
+| 🟡 | S | qte.js | Countdown cleanup | ✅ Already fixed |
+
+---
+
+### 9. Input Validation
+
+| Priority | Effort | File | Function | Add Validation |
+|----------|--------|------|----------|----------------|
+| 🟡 | S | battle-core.js | `startBattle()` | ✅ Already added (config, win_target, lose_target) |
+| 🟡 | S | engine.js | `loadScene()` | Validate sceneId exists in story |
+| 🟢 | S | qte.js | `start*QTE()` | Validate callback is function |
+
+---
+
+### Implementation Order (Recommended)
+
+| Phase | Tasks | Effort | Impact |
+|-------|-------|--------|--------|
+| **Phase 1** | Magic numbers → TUNING (high-impact values) | M | High |
+| **Phase 2** | Extract large functions in battle-core.js | M | Medium |
+| **Phase 3** | `var` → `const`/`let` in small modules (password.js, utils.js) | S | Medium |
+| **Phase 4** | Reduce nesting with early returns | S | Medium |
+| **Phase 5** | Extract shared utilities (dependency check, element cache) | M | Low |
+| **Phase 6** | `var` → `const`/`let` in large modules (engine.js) | L | Medium |
+| **Phase 7** | Async/await for callback chains | M | Low |
+
+---
+
+### Already Completed (v0.7.4+)
+
+| Task | File | Status |
+|------|------|--------|
+| QTE countdown cleanup | qte.js | ✅ Fixed |
+| Remove `pendingTimeouts` dead code | qte.js | ✅ Removed |
+| Add `BattleUI.cleanup()` | battle-ui.js | ✅ Added |
+| Extract `emitEvent()` helper | battle-core.js | ✅ Done (9 replacements) |
+| Remove unused `createDefaultPlayerState()` | battle-core.js | ✅ Removed |
+| Add `startBattle()` validation | battle-core.js | ✅ Added |
+| Optimize O(n²) item lookup | battle-core.js | ✅ Now O(n) with map |
+
+### Completed (v0.7.5 - Code Quality Refactor)
+
+| Task | File | Status |
+|------|------|--------|
+| Extract magic numbers to TUNING | tuning.js, engine.js | ✅ hintTypewriterSpeed, tarotCardRevealDelay, tarotCardFlipDuration, battleLogPadding, battleLogRowGap |
+| Extract large functions | battle-core.js | ✅ `initializePlayerState()`, `initializeEnemyState()`, `resetAuxiliaryState()` |
+| Modernize password.js | password.js | ✅ All `var` → `const`/`let` (25+ changes) |
+| Reduce nesting | engine.js, qte.js | ✅ Already had early returns in key places |
+
+**Test Results:** 178 battle + 77 QTE = 255 tests passing

@@ -66,33 +66,31 @@ var BattleStyleDnD = (function() {
      * @returns {Object} { roll, isCrit, isFumble }
      */
     function rollD20() {
-        if (typeof BattleDice !== 'undefined') {
+        if (_hasBattleDice) {
             return BattleDice.rollD20();
         }
-        // Fallback
+        // Fallback (should rarely trigger since BattleDice loads before this)
+        _log.warn('BattleDnD', 'BattleDice not available, using fallback d20 roll');
         var roll = Math.floor(Math.random() * 20) + 1;
         return { roll: roll, isCrit: roll >= 20, isFumble: roll === 1 };
     }
 
     /**
      * Roll damage dice using the dice module
+     * Uses BattleUtils.rollDamage as fallback which has its own BattleDice check
      */
     function rollDamage(diceStr) {
-        if (typeof BattleDice !== 'undefined') {
+        if (_hasBattleDice) {
             return BattleDice.rollDamage(diceStr, config.minDamage);
         }
-        // Fallback
-        if (typeof diceStr === 'number') return diceStr;
-        var match = diceStr.match(/(\d*)d(\d+)([+-]\d+)?/i);
-        if (!match) return 1;
-        var numDice = parseInt(match[1], 10) || 1;
-        var sides = parseInt(match[2], 10);
-        var modifier = parseInt(match[3], 10) || 0;
-        var total = modifier;
-        for (var i = 0; i < numDice; i++) {
-            total += Math.floor(Math.random() * sides) + 1;
+        // Use BattleUtils fallback (already has robust parsing)
+        if (_hasBattleUtils) {
+            return BattleUtils.rollDamage(diceStr, config.minDamage);
         }
-        return Math.max(config.minDamage, total);
+        // Last resort fallback
+        _log.warn('BattleDnD', 'No dice module available, using minimal fallback');
+        if (typeof diceStr === 'number') return Math.max(config.minDamage, diceStr);
+        return config.minDamage;
     }
 
     /**

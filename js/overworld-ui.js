@@ -11,6 +11,9 @@
 var OverworldUI = (function() {
     'use strict';
 
+    // Use Logger module via Utils
+    var _log = Utils.getLogger();
+
     // Read tuning values
     var config = typeof TUNING !== 'undefined' ? TUNING.overworld : {};
 
@@ -130,6 +133,33 @@ var OverworldUI = (function() {
             img.onerror = function() { reject(new Error('Failed to load: ' + src)); };
             img.src = src;
         });
+    }
+
+    /**
+     * Create a fallback colored sprite when asset loading fails
+     * @param {string} type - 'player' or 'tileset'
+     * @returns {HTMLCanvasElement} Canvas element usable as image source
+     */
+    function createFallbackSprite(type) {
+        var canvas = document.createElement('canvas');
+        canvas.width = TILE_SIZE;
+        canvas.height = TILE_SIZE;
+        var ctx = canvas.getContext('2d');
+
+        if (type === 'player') {
+            // Blue square with darker border for player
+            ctx.fillStyle = '#4488ff';
+            ctx.fillRect(0, 0, TILE_SIZE, TILE_SIZE);
+            ctx.strokeStyle = '#2255aa';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(0.5, 0.5, TILE_SIZE - 1, TILE_SIZE - 1);
+        } else {
+            // Gray square for generic fallback
+            ctx.fillStyle = '#888888';
+            ctx.fillRect(0, 0, TILE_SIZE, TILE_SIZE);
+        }
+
+        return canvas;
     }
 
     /**
@@ -319,15 +349,21 @@ var OverworldUI = (function() {
 
         /**
          * Load required assets
-         * @returns {Promise}
+         * @returns {Promise} Resolves when all assets loaded, uses fallbacks for failures
          */
         loadAssets: function() {
             return Promise.all([
                 loadImage('assets/overworld/player.png').then(function(img) {
                     state.playerSprite = img;
+                }).catch(function(err) {
+                    _log.warn('[OverworldUI] Player sprite failed to load:', err.message, '- using fallback');
+                    state.playerSprite = createFallbackSprite('player');
                 }),
                 loadImage('assets/overworld/tileset.png').then(function(img) {
                     state.tilesetImage = img;
+                }).catch(function(err) {
+                    _log.warn('[OverworldUI] Tileset failed to load:', err.message, '- using fallback');
+                    state.tilesetImage = createFallbackSprite('tileset');
                 })
             ]);
         },

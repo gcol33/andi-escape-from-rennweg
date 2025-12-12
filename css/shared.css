@@ -2176,37 +2176,37 @@
 }
 
 .battle-log-content {
-    /* Fixed height to prevent text shift when lines are added */
-    /* With font-size: 0.95rem and line-height: 1.6 multiplier = 1.52rem per line */
-    /* Height = 2 lines * 1.6rem + padding (1.0rem) = ~4.2rem (set via JS) */
+    /* Fixed height container with 2 row slots - NO scrolling */
     height: var(--battle-log-content-height, 4.8rem);
-    box-sizing: border-box;  /* Include padding in height */
-    overflow-y: auto;  /* Allow scrolling - JS scrolls to bottom, CSS hides scrollbar */
-    overflow-x: hidden;
-    padding: 0.5rem 1rem;  /* Symmetric padding - content starts at top */
+    box-sizing: border-box;
+    overflow: hidden;  /* No scrolling - fixed rows handle content */
+    padding: 0.25rem 1rem;
     font-size: var(--battle-text-size);
-    line-height: 1.6;  /* Must match TUNING.ui.battleLogLineHeight */
+    line-height: 1.6;
     color: var(--battle-text-color);
-    flex-shrink: 0;  /* Don't shrink when in flex container */
-    scrollbar-width: none;  /* Firefox - hide scrollbar */
-    -ms-overflow-style: none;  /* IE/Edge - hide scrollbar */
-    /* Ensure content starts at top, not centered */
-    display: block;
-    vertical-align: top;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;  /* Rows align to top */
+    gap: 0.2rem;
 }
 
-.battle-log-content::-webkit-scrollbar {
-    display: none;  /* Chrome/Safari */
+/* Fixed row containers - each row is exactly one line height */
+.battle-log-row {
+    flex: 0 0 auto;
+    height: 1.6em;        /* Exactly one line */
+    line-height: 1.6;     /* Match container line-height */
+    overflow: hidden;     /* Clip any overflow - no "shine through" */
 }
 
-/* Messages wrapper - content starts at top, doesn't move when new lines added */
+/* Row 2 collapses when empty (text starts in row 1, row 2 used for second line) */
+#battle-log-row-2:empty {
+    display: none;
+}
+
+/* Messages wrapper - legacy support */
 .battle-log-messages {
-    display: block;
-    /* Remove margin from first roll-result so it starts at container top */
-}
-
-.battle-log-messages .roll-result:first-child {
-    margin-top: 0;
+    display: contents;  /* Pass through to parent flex */
 }
 
 .battle-log-content .roll-result {
@@ -2852,10 +2852,8 @@
 /* === Roll Result Display (Collapsing Modifiers System) === */
 
 .roll-result, .damage-result {
-    display: block;
-    margin: 4px 0;
-    line-height: 1.8;  /* Match battle-log-content line-height */
-    min-height: 1.8em;
+    display: inline;  /* Changed from block - now inline within fixed rows */
+    line-height: 1.6;
     position: relative;  /* For absolute-positioned collapsing modifiers */
     /* Reset theme overrides that may interfere */
     -webkit-text-stroke: 0 !important;

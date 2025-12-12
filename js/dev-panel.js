@@ -1,5 +1,5 @@
 /**
- * Dev Panel Module - v0.6.0
+ * Dev Panel Module - v0.7.0
  *
  * Modular dev panel for debugging and testing.
  * Extracted from engine.js for maintainability.
@@ -12,6 +12,8 @@
  * - Terrain selector
  * - Ken Burns toggle
  * - Draggable panel
+ * - Event Log (real-time eventBus monitoring)
+ * - State Viewer (store state inspection)
  */
 
 var DevPanel = (function() {
@@ -24,7 +26,17 @@ var DevPanel = (function() {
     var elements = {
         indicator: null,
         panel: null,
-        terrainSelect: null
+        terrainSelect: null,
+        eventLog: null,
+        stateViewer: null
+    };
+
+    // Event log state
+    var eventLogState = {
+        entries: [],
+        maxEntries: 50,
+        paused: false,
+        unsubscribers: []
     };
 
     var callbacks = {
@@ -276,14 +288,18 @@ var DevPanel = (function() {
      * Create the main dev panel
      */
     function createPanel() {
-        // Only create if ThemeUtils and themeConfig exist
-        if (typeof ThemeUtils === 'undefined' || typeof themeConfig === 'undefined' || !themeConfig.available) {
-            return;
+        // Check for theme utilities (optional - panel works without them)
+        var hasThemeSupport = typeof ThemeUtils !== 'undefined' &&
+                              typeof themeConfig !== 'undefined' &&
+                              themeConfig.available;
+
+        if (!hasThemeSupport) {
+            callbacks.log.warn('[DevPanel] Theme support not available - panel will have limited features');
         }
 
-        var currentTheme = ThemeUtils.getCurrentTheme();
+        var currentTheme = hasThemeSupport ? ThemeUtils.getCurrentTheme() : 'prototype';
         var link = document.getElementById('theme-css');
-        if (link && link.href) {
+        if (hasThemeSupport && link && link.href) {
             var activeTheme = link.href.match(/themes\/([^.]+)\.css/);
             if (activeTheme && activeTheme[1] !== currentTheme) {
                 ThemeUtils.setTheme(currentTheme);
@@ -300,8 +316,10 @@ var DevPanel = (function() {
         container.appendChild(dragHeader);
         makeDraggable(container, dragHeader);
 
-        // Theme selector
-        container.appendChild(createThemeSection(currentTheme));
+        // Theme selector (only if theme support available)
+        if (hasThemeSupport) {
+            container.appendChild(createThemeSection(currentTheme));
+        }
 
         // Ken Burns toggle
         container.appendChild(createKenBurnsToggle());
@@ -324,7 +342,16 @@ var DevPanel = (function() {
         // Scene jump section
         container.appendChild(createSceneJumpSection());
 
+        // Event Log section (eventBus monitoring)
+        container.appendChild(createEventLogSection());
+
+        // State Viewer section (store inspection)
+        container.appendChild(createStateViewerSection());
+
         document.body.appendChild(container);
+
+        // Subscribe to events after panel is created
+        subscribeToEvents();
     }
 
     function createDragHeader(container) {
@@ -736,7 +763,8 @@ var DevPanel = (function() {
                 if (sceneId === currentScene) {
                     item.classList.add('current');
                 }
-                item.addEventListener('click', function() {
+                item.addEventListener('click', function(e) {
+                    e.stopPropagation();  // Prevent document click from closing dropdown before action
                     jumpToScene(sceneId);
                     dropdown.classList.remove('visible');
                     input.value = '';
@@ -793,6 +821,355 @@ var DevPanel = (function() {
         section.appendChild(searchContainer);
 
         return section;
+    }
+
+    // =========================================================================
+    // EVENT LOG
+    // =========================================================================
+
+    /**
+     * Create the event log section
+     */
+    function createEventLogSection() {
+        var section = document.createElement('div');
+        section.className = 'dev-event-log-section';
+
+        // Header with title and controls
+        var header = document.createElement('div');
+        header.className = 'dev-section-header';
+
+        var title = document.createElement('span');
+        title.className = 'dev-section-title';
+        title.textContent = 'Event Log';
+        header.appendChild(title);
+
+        var controls = document.createElement('div');
+        controls.className = 'dev-log-controls';
+
+        var pauseBtn = document.createElement('button');
+        pauseBtn.type = 'button';
+        pauseBtn.className = 'dev-log-btn';
+        pauseBtn.textContent = '⏸';
+        pauseBtn.title = 'Pause/Resume';
+        pauseBtn.addEventListener('click', function() {
+            eventLogState.paused = !eventLogState.paused;
+            pauseBtn.textContent = eventLogState.paused ? '▶' : '⏸';
+            pauseBtn.classList.toggle('active', eventLogState.paused);
+        });
+        controls.appendChild(pauseBtn);
+
+        var clearBtn = document.createElement('button');
+        clearBtn.type = 'button';
+        clearBtn.className = 'dev-log-btn';
+        clearBtn.textContent = '🗑';
+        clearBtn.title = 'Clear log';
+        clearBtn.addEventListener('click', function() {
+            eventLogState.entries = [];
+            renderEventLog();
+        });
+        controls.appendChild(clearBtn);
+
+        header.appendChild(controls);
+        section.appendChild(header);
+
+        // Log container
+        var logContainer = document.createElement('div');
+        logContainer.className = 'dev-event-log';
+        logContainer.id = 'dev-event-log';
+        elements.eventLog = logContainer;
+        section.appendChild(logContainer);
+
+        return section;
+    }
+
+    /**
+     * Add an entry to the event log
+     * @param {string} eventName - Event name
+     * @param {*} data - Event data
+     */
+    function addEventLogEntry(eventName, data) {
+        if (eventLogState.paused) return;
+
+        var entry = {
+            time: new Date().toLocaleTimeString('en-US', { hour12: false }),
+            event: eventName,
+            data: data
+        };
+
+        eventLogState.entries.unshift(entry);
+
+        // Trim to max entries
+        if (eventLogState.entries.length > eventLogState.maxEntries) {
+            eventLogState.entries = eventLogState.entries.slice(0, eventLogState.maxEntries);
+        }
+
+        renderEventLog();
+    }
+
+    /**
+     * Render the event log UI
+     */
+    function renderEventLog() {
+        if (!elements.eventLog) return;
+
+        if (eventLogState.entries.length === 0) {
+            elements.eventLog.innerHTML = '<div class="dev-log-empty">No events yet...</div>';
+            return;
+        }
+
+        var html = '';
+        eventLogState.entries.forEach(function(entry) {
+            var eventClass = getEventClass(entry.event);
+            var dataStr = formatEventData(entry.data);
+            html += '<div class="dev-log-entry ' + eventClass + '">';
+            html += '<span class="dev-log-time">' + entry.time + '</span>';
+            html += '<span class="dev-log-event">' + entry.event + '</span>';
+            if (dataStr) {
+                html += '<span class="dev-log-data">' + dataStr + '</span>';
+            }
+            html += '</div>';
+        });
+
+        elements.eventLog.innerHTML = html;
+    }
+
+    /**
+     * Get CSS class for event type
+     * @param {string} eventName
+     * @returns {string}
+     */
+    function getEventClass(eventName) {
+        if (eventName.indexOf('scene:') === 0) return 'event-scene';
+        if (eventName.indexOf('battle:') === 0) return 'event-battle';
+        if (eventName.indexOf('inventory:') === 0) return 'event-inventory';
+        if (eventName.indexOf('audio:') === 0) return 'event-audio';
+        if (eventName.indexOf('state:') === 0) return 'event-state';
+        if (eventName.indexOf('qte:') === 0) return 'event-qte';
+        return 'event-other';
+    }
+
+    /**
+     * Format event data for display
+     * @param {*} data
+     * @returns {string}
+     */
+    function formatEventData(data) {
+        if (!data) return '';
+        if (typeof data === 'string') return data;
+
+        // Extract key info for common events
+        if (data.sceneId) return data.sceneId;
+        if (data.item) return data.item + (data.type ? ' (' + data.type + ')' : '');
+        if (data.flag) return data.flag;
+        if (data.filename) return data.filename;
+        if (data.result) return data.result;
+        if (data.enemy && data.enemy.name) return 'vs ' + data.enemy.name;
+
+        // Fallback to JSON (truncated)
+        try {
+            var str = JSON.stringify(data);
+            return str.length > 40 ? str.substring(0, 37) + '...' : str;
+        } catch (e) {
+            return '[object]';
+        }
+    }
+
+    // =========================================================================
+    // STATE VIEWER
+    // =========================================================================
+
+    /**
+     * Create the state viewer section
+     */
+    function createStateViewerSection() {
+        var section = document.createElement('div');
+        section.className = 'dev-state-viewer-section';
+
+        // Header
+        var header = document.createElement('div');
+        header.className = 'dev-section-header';
+
+        var title = document.createElement('span');
+        title.className = 'dev-section-title';
+        title.textContent = 'State Viewer';
+        header.appendChild(title);
+
+        var refreshBtn = document.createElement('button');
+        refreshBtn.type = 'button';
+        refreshBtn.className = 'dev-log-btn';
+        refreshBtn.textContent = '🔄';
+        refreshBtn.title = 'Refresh state';
+        refreshBtn.addEventListener('click', function() {
+            renderStateViewer();
+        });
+        header.appendChild(refreshBtn);
+
+        section.appendChild(header);
+
+        // State container
+        var stateContainer = document.createElement('div');
+        stateContainer.className = 'dev-state-viewer';
+        stateContainer.id = 'dev-state-viewer';
+        elements.stateViewer = stateContainer;
+        section.appendChild(stateContainer);
+
+        // Initial render
+        setTimeout(renderStateViewer, 100);
+
+        return section;
+    }
+
+    /**
+     * Render the state viewer UI
+     */
+    function renderStateViewer() {
+        if (!elements.stateViewer) return;
+
+        var html = '';
+
+        // Scene info from store
+        if (typeof store !== 'undefined') {
+            var sceneState = store.get('scene');
+            if (sceneState) {
+                html += '<div class="dev-state-group">';
+                html += '<div class="dev-state-label">Scene</div>';
+                html += '<div class="dev-state-value">' + (sceneState.currentId || 'none') + '</div>';
+                html += '<div class="dev-state-sublabel">Block: ' + sceneState.blockIndex + '</div>';
+                html += '</div>';
+            }
+
+            // Player state
+            var playerState = store.get('player');
+            if (playerState) {
+                html += '<div class="dev-state-group">';
+                html += '<div class="dev-state-label">Player</div>';
+                if (playerState.hp !== null) {
+                    html += '<div class="dev-state-value">HP: ' + playerState.hp + '/' + playerState.maxHp + '</div>';
+                }
+                if (playerState.mana !== null) {
+                    html += '<div class="dev-state-sublabel">MP: ' + playerState.mana + '/' + playerState.maxMana + '</div>';
+                }
+                html += '</div>';
+
+                // Flags
+                if (playerState.flags && playerState.flags.size > 0) {
+                    html += '<div class="dev-state-group">';
+                    html += '<div class="dev-state-label">Flags (' + playerState.flags.size + ')</div>';
+                    html += '<div class="dev-state-list">';
+                    playerState.flags.forEach(function(flag) {
+                        html += '<span class="dev-state-tag">' + flag + '</span>';
+                    });
+                    html += '</div>';
+                    html += '</div>';
+                }
+
+                // Inventory
+                var inv = playerState.inventory;
+                if (inv && (inv.keyItems.length > 0 || Object.keys(inv.consumables).length > 0)) {
+                    html += '<div class="dev-state-group">';
+                    html += '<div class="dev-state-label">Inventory</div>';
+                    html += '<div class="dev-state-list">';
+                    inv.keyItems.forEach(function(item) {
+                        html += '<span class="dev-state-tag item-key">🔑 ' + item + '</span>';
+                    });
+                    Object.keys(inv.consumables).forEach(function(item) {
+                        html += '<span class="dev-state-tag item-consumable">📦 ' + item + ' x' + inv.consumables[item] + '</span>';
+                    });
+                    html += '</div>';
+                    html += '</div>';
+                }
+            }
+
+            // Battle state
+            var battleState = store.get('battle');
+            if (battleState) {
+                html += '<div class="dev-state-group">';
+                html += '<div class="dev-state-label">Battle</div>';
+                html += '<div class="dev-state-value">Active</div>';
+                html += '</div>';
+            }
+        } else {
+            html = '<div class="dev-state-empty">Store not available</div>';
+        }
+
+        elements.stateViewer.innerHTML = html || '<div class="dev-state-empty">No state data</div>';
+    }
+
+    // =========================================================================
+    // EVENT SUBSCRIPTIONS
+    // =========================================================================
+
+    /**
+     * Subscribe to eventBus events for logging
+     */
+    function subscribeToEvents() {
+        if (typeof eventBus === 'undefined') {
+            callbacks.log.warn('[DevPanel] eventBus not available');
+            return;
+        }
+
+        // List of events to monitor
+        var eventsToMonitor = [
+            // Scene events
+            'scene:enter',
+            'scene:exit',
+            'scene:block:advance',
+            'scene:choice:selected',
+            // Battle events
+            'battle:start',
+            'battle:end',
+            'battle:turn:start',
+            'battle:turn:end',
+            'battle:damage',
+            'battle:heal',
+            // Inventory events
+            'inventory:item:added',
+            'inventory:item:removed',
+            'inventory:item:used',
+            // State events
+            'state:changed',
+            'state:loaded',
+            'state:reset',
+            // Audio events
+            'audio:music:play',
+            'audio:music:stop',
+            'audio:sfx:play',
+            'audio:mute:change',
+            'audio:volume:change',
+            // QTE events
+            'qte:start',
+            'qte:result'
+        ];
+
+        eventsToMonitor.forEach(function(eventName) {
+            var unsubscribe = eventBus.on(eventName, function(data) {
+                addEventLogEntry(eventName, data);
+            });
+            eventLogState.unsubscribers.push(unsubscribe);
+        });
+
+        // Also subscribe store for state viewer updates
+        if (typeof store !== 'undefined') {
+            var unsubStore = store.subscribe(function() {
+                // Debounce state viewer updates
+                if (elements.stateViewer && callbacks.getDevMode && callbacks.getDevMode()) {
+                    renderStateViewer();
+                }
+            });
+            eventLogState.unsubscribers.push(unsubStore);
+        }
+
+        callbacks.log.debug('[DevPanel] Subscribed to ' + eventsToMonitor.length + ' events');
+    }
+
+    /**
+     * Unsubscribe from all events
+     */
+    function unsubscribeFromEvents() {
+        eventLogState.unsubscribers.forEach(function(unsub) {
+            if (typeof unsub === 'function') unsub();
+        });
+        eventLogState.unsubscribers = [];
     }
 
     // =========================================================================

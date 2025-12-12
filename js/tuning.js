@@ -1,5 +1,6 @@
 /**
  * @file Andi VN - Tuning Numbers
+ * @module tuning
  * @description Centralized game feel constants for quick iteration.
  * All timing, speed, and balance values that affect "game feel" live here.
  *
@@ -96,10 +97,7 @@
  * Global tuning configuration object
  * @type {Object}
  */
-var TUNING = (function() {
-    'use strict';
-
-    return {
+const TUNING = {
         // =====================================================================
         // TEXT DISPLAY
         // =====================================================================
@@ -119,6 +117,24 @@ var TUNING = (function() {
 
             // Text block limits
             maxBlockLength: 350         // Characters before auto-splitting
+        },
+
+        // =====================================================================
+        // UI TIMING
+        // =====================================================================
+
+        ui: {
+            // Hint screen (loading screen with tips)
+            hintTypewriterDelay: 300,   // Delay before hint typewriter starts (ms)
+            hintTypewriterSpeed: 45,    // ms per character for hint text
+            hintCardRevealDelay: 500,   // Delay before auto-revealing first hint card (ms)
+
+            // Tarot card reveal
+            tarotCardRevealDelay: 400,  // Delay before card name fades in (ms)
+            tarotCardFlipDuration: 600, // Card flip animation duration (ms)
+
+            // Choice buttons
+            choiceButtonDelay: 300      // Brief delay after showing choice buttons
         },
 
         // =====================================================================
@@ -263,9 +279,11 @@ var TUNING = (function() {
             errorFlash: 300,                // Error flash animation duration
 
             // Battle log sizing
-            battleLogMaxLines: 2,           // Max lines visible in battle log
-            battleLogLineHeight: 1.6,       // Line-height multiplier (not rem) - CSS uses this as multiplier of font-size
-            battleLogScrollThreshold: 5,    // Pixels of hidden content before auto-scroll kicks in
+            battleLogMaxLines: 2,           // Number of fixed rows in battle log
+            battleLogLineHeight: 1.6,       // Line-height multiplier for each fixed row
+            battleLogPadding: 0.5,          // Total vertical padding in rem (0.25 top + 0.25 bottom)
+            battleLogRowGap: 0.2,           // Gap between rows in rem
+            battleLogScrollThreshold: 5,    // Deprecated - fixed rows don't scroll
 
             // Damage numbers (WoW-style floating text)
             damageNumberDuration: 4000,     // How long damage numbers show (matches CSS animation)
@@ -292,6 +310,7 @@ var TUNING = (function() {
         // =====================================================================
 
         player: {
+            defaultName: 'Player',       // Default player display name
             defaultMaxHP: 20,
             defaultMaxMana: 10,
             defaultAC: 10,
@@ -307,6 +326,7 @@ var TUNING = (function() {
         // =====================================================================
 
         enemy: {
+            defaultName: 'Enemy',        // Default enemy display name
             defaultHP: 20,
             defaultMaxMana: 20,          // For enemies that use mana
             defaultAC: 12,
@@ -523,7 +543,8 @@ var TUNING = (function() {
             timing: {
                 startDelay: 300,            // Delay before QTE starts
                 resultDisplay: 800,         // Show result duration
-                fadeOut: 200                // Fade out animation time
+                fadeOut: 200,               // Fade out animation time
+                countdownDuration: 5        // Countdown seconds (5,4,3,2,1)
             },
 
             // === Difficulty Presets (for skill-based QTE scaling) ===
@@ -539,6 +560,13 @@ var TUNING = (function() {
                 showZoneLabels: false,      // Show "PERFECT" etc on zones
                 markerPulse: true,          // Pulse effect on marker
                 screenFlash: true           // Flash screen on result
+            },
+
+            // === Target Position Bounds ===
+            // Random target position range (percentage of bar width)
+            targetPosition: {
+                min: 10,                    // Minimum target position (%)
+                max: 90                     // Maximum target position (%)
             },
 
             // === Sound Effects ===
@@ -608,18 +636,18 @@ var TUNING = (function() {
                 defeat: 'failure.ogg'
             }
         }
-    };
-})();
+};
 
 /**
  * Helper function to get nested tuning value with fallback
  * @param {string} path - Dot-separated path like 'battle.timing.introDelay'
  * @param {*} fallback - Default value if path not found
+ * @returns {*} The value at the path or the fallback
  */
 TUNING.get = function(path, fallback) {
-    var parts = path.split('.');
-    var value = TUNING;
-    for (var i = 0; i < parts.length; i++) {
+    const parts = path.split('.');
+    let value = TUNING;
+    for (let i = 0; i < parts.length; i++) {
         if (value && typeof value === 'object' && parts[i] in value) {
             value = value[parts[i]];
         } else {
@@ -628,3 +656,6 @@ TUNING.get = function(path, fallback) {
     }
     return value;
 };
+
+// Global export (no ES modules - pure browser script)
+window.TUNING = TUNING;

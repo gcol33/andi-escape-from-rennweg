@@ -143,6 +143,7 @@ var BattleUI = (function() {
     // === Text Box Management ===
 
     function hideTextBox() {
+        // elements.textBox is cached in init() - only fallback query if init wasn't called
         if (!elements.textBox) {
             elements.textBox = document.getElementById('text-box');
         }
@@ -152,9 +153,7 @@ var BattleUI = (function() {
     }
 
     function showTextBox() {
-        if (!elements.textBox) {
-            elements.textBox = document.getElementById('text-box');
-        }
+        // elements.textBox is cached in init() - use cached reference
         if (elements.textBox) {
             elements.textBox.classList.remove('battle-mode');
         }
@@ -201,19 +200,23 @@ var BattleUI = (function() {
         battleLog.id = 'battle-log-panel';
         battleLog.className = 'battle-log-panel anchor anchor--bottom-flush';
 
-        // Calculate log content height from max lines (including padding for box-sizing: border-box)
-        // line-height is a multiplier (1.6), font-size is from TUNING.ui.battleTextSize (0.95rem)
-        // Actual line height in rem = font-size * line-height multiplier
+        // Calculate log content height for fixed rows
+        // Each row = fontSize * lineHeight, plus padding and gap between rows
         var maxLines = config.ui.battleLogMaxLines || 2;
-        var lineHeightMultiplier = config.ui.battleLogLineHeight || 1.6;
-        var fontSize = T && T.ui ? T.ui.battleTextSize : 0.95;  // rem - from tuning
-        var actualLineHeight = fontSize * lineHeightMultiplier;
-        var verticalPadding = 1.0; // 0.5rem top + 0.5rem bottom (must match CSS padding)
-        var logContentHeight = (maxLines * actualLineHeight) + verticalPadding;
+        var fontSize = T && T.ui ? T.ui.battleTextSize : 0.95;  // rem
+        var lineHeight = config.ui.battleLogLineHeight || 1.6;
+        var rowHeight = fontSize * lineHeight;
+        var padding = T && T.ui ? T.ui.battleLogPadding : 0.5;
+        var gap = T && T.ui ? T.ui.battleLogRowGap : 0.2;
+        var logContentHeight = (maxLines * rowHeight) + padding + ((maxLines - 1) * gap);
         battleLog.style.setProperty('--battle-log-content-height', logContentHeight + 'rem');
 
+        // Create battle log with fixed row containers (no scrolling needed)
         battleLog.innerHTML =
-            '<div id="battle-log-content" class="battle-log-content"></div>' +
+            '<div id="battle-log-content" class="battle-log-content">' +
+                '<div id="battle-log-row-1" class="battle-log-row"></div>' +
+                '<div id="battle-log-row-2" class="battle-log-row"></div>' +
+            '</div>' +
             '<div id="battle-choices" class="battle-choices"></div>';
 
         // Create player row container (for portrait mode: stats + summon side by side)
@@ -330,8 +333,45 @@ var BattleUI = (function() {
         elements.enemyStatuses = document.getElementById('enemy-statuses');
         elements.enemyStaggerFill = document.getElementById('enemy-stagger-fill');
         elements.terrainIndicator = document.getElementById('terrain-indicator');
-        elements.battleLog = document.getElementById('battle-log-content');
+        elements.battleLogContent = document.getElementById('battle-log-content');
+        elements.battleLogRow1 = document.getElementById('battle-log-row-1');
+        elements.battleLogRow2 = document.getElementById('battle-log-row-2');
+        // battleLog points to row 2 - the active typing row
+        elements.battleLog = elements.battleLogRow2;
         elements.battleChoices = document.getElementById('battle-choices');
+    }
+
+    /**
+     * Get the active row for new content (row 2)
+     * Also handles shifting content when starting a new message
+     */
+    function getActiveLogRow() {
+        return elements.battleLogRow2 || document.getElementById('battle-log-row-2');
+    }
+
+    /**
+     * Prepare log for new message - shift existing content up
+     * Call this before starting a new typewriter message
+     */
+    function prepareLogForNewMessage() {
+        var row1 = elements.battleLogRow1 || document.getElementById('battle-log-row-1');
+        var row2 = elements.battleLogRow2 || document.getElementById('battle-log-row-2');
+        if (!row1 || !row2) return;
+
+        // Move row 2 content to row 1
+        row1.innerHTML = row2.innerHTML;
+        // Clear row 2 for new content
+        row2.innerHTML = '';
+    }
+
+    /**
+     * Clear all log content (both rows)
+     */
+    function clearLog() {
+        var row1 = elements.battleLogRow1 || document.getElementById('battle-log-row-1');
+        var row2 = elements.battleLogRow2 || document.getElementById('battle-log-row-2');
+        if (row1) row1.innerHTML = '';
+        if (row2) row2.innerHTML = '';
     }
 
     // === UI Visibility ===
@@ -356,6 +396,52 @@ var BattleUI = (function() {
         elements.playerStats = null;
         elements.enemyStats = null;
         elements.battleLog = null;
+    }
+
+    /**
+     * Full cleanup of battle UI resources
+     * Call when battle ends or scene changes to prevent memory leaks
+     */
+    function cleanup() {
+        // Clear animation state and tracked timeouts
+        clearAnimationState();
+
+        // Clear battle-specific timers via TimerManager
+        if (typeof TimerManager !== 'undefined') {
+            TimerManager.clearAll('battle');
+            TimerManager.clearAll('battle-ui');
+            TimerManager.clearAll('ui-feedback');
+        }
+
+        // Clear battle-specific listeners via ListenerManager
+        if (typeof ListenerManager !== 'undefined') {
+            ListenerManager.removeAll('battle');
+            ListenerManager.removeAll('battle-ui');
+        }
+
+        // Remove any floating damage numbers still in DOM
+        var floatingNumbers = document.querySelectorAll('.floating-number, .floating-damage, .stat-change-popup');
+        floatingNumbers.forEach(function(el) {
+            if (el.parentNode) {
+                el.parentNode.removeChild(el);
+            }
+        });
+
+        // Remove any lingering battle effects
+        var battleEffects = document.querySelectorAll('.attack-effect, .screen-flash, .battle-intro-overlay, .battle-outro-overlay');
+        battleEffects.forEach(function(el) {
+            if (el.parentNode) {
+                el.parentNode.removeChild(el);
+            }
+        });
+
+        // Clear all summon sprites
+        clearAllSummons();
+
+        // Reset sfx callback
+        playSfxCallback = null;
+
+        _log.debug('BattleUI', 'Cleanup complete');
     }
 
     // === HP/MP/Limit Display Updates ===
@@ -663,10 +749,9 @@ var BattleUI = (function() {
      * @param {object} options - Optional { onTextComplete: function } called when text finishes but BEFORE linger
      */
     function updateBattleLog(html, rollData, callback, options) {
-        if (!elements.battleLog) {
-            elements.battleLog = document.getElementById('battle-log-content');
-        }
-        if (!elements.battleLog) {
+        // Get row containers for the fixed row system
+        var rows = BattleUtils.getBattleLogRows();
+        if (!rows) {
             // Element not found - still call callbacks to prevent freeze
             if (options && options.onTextComplete) options.onTextComplete();
             if (callback) callback();
@@ -675,14 +760,14 @@ var BattleUI = (function() {
 
         // Debug: detect if we're interrupting an existing animation
         if (animationState.active) {
-            _log.warn('BattleUI', 'updateBattleLog called while animation active! Current text:', elements.battleLog.textContent, '| New html:', html ? html.substring(0, 50) : html);
+            _log.warn('BattleUI', 'updateBattleLog called while animation active! Current text:', rows.row1.textContent + ' | ' + rows.row2.textContent, '| New html:', html ? html.substring(0, 50) : html);
         }
 
         // Clear previous animation state
         clearAnimationState();
 
-        // Clear entire log and show only the latest entry (like old battle.js)
-        elements.battleLog.innerHTML = '';
+        // Clear both rows for fresh message
+        BattleUtils.clearBattleLogRows(rows);
 
         // Store onTextComplete callback for completeAnimation to call
         animationState.onTextComplete = options && options.onTextComplete ? options.onTextComplete : null;
@@ -748,6 +833,27 @@ var BattleUI = (function() {
         animationState.onComplete = null;
         animationState.onTextComplete = null;
         animationState.active = false;
+    }
+
+    /**
+     * Full cleanup - call when battle ends to clear DOM cache and prevent memory leaks
+     */
+    function cleanup() {
+        // Clear any ongoing animations
+        clearAnimationState();
+
+        // Clear DOM element cache to prevent memory leaks
+        for (var key in elements) {
+            if (elements.hasOwnProperty(key)) {
+                elements[key] = null;
+            }
+        }
+
+        // Clear battle log rows
+        var rows = BattleUtils.getBattleLogRows();
+        if (rows) {
+            BattleUtils.clearBattleLogRows(rows);
+        }
     }
 
     /**
@@ -885,98 +991,141 @@ var BattleUI = (function() {
     }
 
     /**
-     * Scroll container to bottom if content overflows significantly
-     * Only scrolls when there's actually hidden content below the current view
-     * @param {HTMLElement} container - The scrollable container
+     * Legacy function - kept for API compatibility but no longer shifts mid-typing
+     * Row shifting now happens via prepareLogForNewMessage() before each message
      */
     function scrollToBottomIfNeeded(container) {
-        if (!container) return;
-        // Only scroll if there's content hidden below the current scroll position
-        var hiddenBelow = container.scrollHeight - container.scrollTop - container.clientHeight;
-        if (hiddenBelow > config.ui.scrollThreshold) {
-            container.scrollTop = container.scrollHeight - container.clientHeight;
-        }
+        // No-op: row shifting is now handled by pre-measurement in typewriterEffect
     }
 
     /**
-     * Typewriter effect for text
-     * Types text character by character, scrolling when content overflows
+     * Typewriter effect with pre-measured line breaks.
+     * Measures text first, then renders line by line with proper row shifting.
+     * Uses BattleUtils for text measurement and row management.
      */
     function typewriterEffect(container, text, callback) {
+        var speed = config.dice.typewriterSpeed;
+
+        // Note: rows are cleared by updateBattleLog before calling typewriter
+        // Get the row containers using shared utility
+        var rows = BattleUtils.getBattleLogRows();
+
+        // If no row system, fall back to simple typing
+        if (!rows) {
+            typewriterEffectSimple(container, text, callback);
+            return;
+        }
+
+        var row1 = rows.row1;
+        var row2 = rows.row2;
+
+        // Strip HTML for measurement
+        var plainText = text.replace(/<[^>]*>/g, '');
+
+        // Measure and split into lines using shared utility (use row1 for measurement)
+        var lines = BattleUtils.measureTextLines(plainText, row1);
+
+        var currentLineIndex = 0;
+        var charIndex = 0;
+
+        // Determine which row to type into: row1 for first line, row2 for second
+        function getActiveRow() {
+            return currentLineIndex === 0 ? row1 : row2;
+        }
+
+        function renderNextChar() {
+            if (currentLineIndex >= lines.length) {
+                if (callback) callback();
+                return;
+            }
+
+            var currentLine = lines[currentLineIndex];
+
+            if (charIndex >= currentLine.length) {
+                currentLineIndex++;
+                charIndex = 0;
+
+                // If there's a third+ line, shift: row2 -> row1, clear row2
+                if (currentLineIndex >= 2 && currentLineIndex < lines.length) {
+                    BattleUtils.shiftBattleLogRows(rows);
+                }
+
+                renderNextChar();
+                return;
+            }
+
+            var char = currentLine[charIndex];
+
+            // Handle surrogate pairs
+            if (char.charCodeAt(0) >= 0xD800 && char.charCodeAt(0) <= 0xDBFF &&
+                charIndex + 1 < currentLine.length) {
+                var nextChar = currentLine[charIndex + 1];
+                if (nextChar.charCodeAt(0) >= 0xDC00 && nextChar.charCodeAt(0) <= 0xDFFF) {
+                    char = char + nextChar;
+                    charIndex++;
+                }
+            }
+
+            // Append character to active row (row1 for first line, row2 for subsequent)
+            getActiveRow().appendChild(document.createTextNode(char));
+            charIndex++;
+
+            var t = setTimeout(renderNextChar, 1000 / speed);
+            animationState.timeouts.push(t);
+        }
+
+        renderNextChar();
+    }
+
+    /**
+     * Simple typewriter fallback (no row system)
+     */
+    function typewriterEffectSimple(container, text, callback) {
         var index = 0;
         var speed = config.dice.typewriterSpeed;
 
-        container.innerHTML = '';
-
         function typeNext() {
             if (index < text.length) {
-                // Skip HTML tags instantly, including their full content for styled spans
                 if (text[index] === '<') {
                     var tagEnd = text.indexOf('>', index);
                     if (tagEnd !== -1) {
                         var tagContent = text.substring(index, tagEnd + 1);
-                        // Check if this is an opening tag with a class (styled content)
-                        // If so, include everything up to and including the closing tag
                         var classMatch = tagContent.match(/^<(\w+)\s+class=/);
                         if (classMatch) {
                             var tagName = classMatch[1];
                             var closingTag = '</' + tagName + '>';
                             var closeIndex = text.indexOf(closingTag, tagEnd);
                             if (closeIndex !== -1) {
-                                // Add the entire styled element at once (opening tag + content + closing tag)
-                                // Use insertAdjacentHTML to avoid re-parsing existing content
                                 container.insertAdjacentHTML('beforeend', text.substring(index, closeIndex + closingTag.length));
                                 index = closeIndex + closingTag.length;
-                                scrollToBottomIfNeeded(container);
                                 typeNext();
                                 return;
                             }
                         }
-                        // Regular tag without class - just add the tag
-                        // Use insertAdjacentHTML to avoid re-parsing existing content
                         container.insertAdjacentHTML('beforeend', tagContent);
                         index = tagEnd + 1;
-                        // Check for <br> tags that add new lines
-                        if (tagContent.toLowerCase() === '<br>' || tagContent.toLowerCase() === '<br/>') {
-                            scrollToBottomIfNeeded(container);
-                        }
                         typeNext();
                         return;
                     }
                 }
 
-                // For plain text characters, use createTextNode + appendChild
-                // This is more robust than innerHTML += which re-parses the entire content
                 var char = text[index];
-
-                // Handle surrogate pairs (emojis and other characters outside BMP)
-                // Check if current char is a high surrogate and next is a low surrogate
                 if (char.charCodeAt(0) >= 0xD800 && char.charCodeAt(0) <= 0xDBFF &&
                     index + 1 < text.length) {
                     var nextChar = text[index + 1];
                     if (nextChar.charCodeAt(0) >= 0xDC00 && nextChar.charCodeAt(0) <= 0xDFFF) {
-                        // This is a surrogate pair - combine them
                         char = char + nextChar;
-                        index++; // Skip the low surrogate in next iteration
+                        index++;
                     }
                 }
 
                 container.appendChild(document.createTextNode(char));
                 index++;
 
-                // Scroll on newlines
-                if (text[index - 1] === '\n') {
-                    scrollToBottomIfNeeded(container);
-                }
-
                 var t = setTimeout(typeNext, 1000 / speed);
                 animationState.timeouts.push(t);
             } else {
-                // Animation complete - final scroll
-                scrollToBottomIfNeeded(container);
-                if (callback) {
-                    callback();
-                }
+                if (callback) callback();
             }
         }
 
@@ -1658,25 +1807,14 @@ var BattleUI = (function() {
      * Create sparkle effects for victory screen
      */
     function createVictorySparkles(container) {
-        var sparkleCount = 12;
-        for (var i = 0; i < sparkleCount; i++) {
-            (function(index) {
-                setTimeout(function() {
-                    var sparkle = document.createElement('div');
-                    sparkle.className = 'victory-sparkle';
-                    sparkle.style.left = (Math.random() * 80 + 10) + '%';
-                    sparkle.style.top = (Math.random() * 40 + 40) + '%';
-                    sparkle.style.animationDelay = (Math.random() * 0.5) + 's';
-                    container.appendChild(sparkle);
-
-                    setTimeout(function() {
-                        if (sparkle.parentNode) {
-                            sparkle.parentNode.removeChild(sparkle);
-                        }
-                    }, config.timing.sparkleLifetime);
-                }, index * config.timing.sparkleInterval);
-            })(i);
-        }
+        // Use shared Utils function
+        Utils.createVictorySparkles(container, {
+            count: 12,
+            interval: config.timing.sparkleInterval,
+            lifetime: config.timing.sparkleLifetime,
+            topMin: 40,
+            topRange: 40
+        });
     }
 
     // === Pause Overlay ===
@@ -2055,6 +2193,7 @@ var BattleUI = (function() {
         showUI: showUI,
         hideUI: hideUI,
         destroyUI: destroyUI,
+        cleanup: cleanup,
         cacheElements: cacheElements,
 
         // Display updates (these also queue when animation is active)
@@ -2167,6 +2306,7 @@ var BattleUI = (function() {
         // Battle log
         updateBattleLog: updateBattleLog,
         clearAnimationState: clearAnimationState,
+        cleanup: cleanup,
 
         // Visual effects
         showDamageNumber: showDamageNumber,
@@ -2187,6 +2327,11 @@ var BattleUI = (function() {
         animateDiceRoll: animateDiceRoll,
         scrollToBottomIfNeeded: scrollToBottomIfNeeded,
         typewriterEffect: typewriterEffect,
+
+        // Fixed row log system
+        getActiveLogRow: getActiveLogRow,
+        prepareLogForNewMessage: prepareLogForNewMessage,
+        clearLog: clearLog,
 
         // Intent display (telegraphed enemy attacks)
         showIntentIndicator: showIntentIndicator,

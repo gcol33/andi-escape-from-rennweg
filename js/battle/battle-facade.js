@@ -17,13 +17,15 @@ var BattleEngine = (function() {
     'use strict';
 
     // =========================================================================
-    // MODULE DEPENDENCY CHECK
+    // MODULE DEPENDENCY CHECK (uses BattleUtils for consistency)
     // =========================================================================
 
-    var _hasBattleData = typeof BattleData !== 'undefined';
-    var _hasBattleIntent = typeof BattleIntent !== 'undefined';
-    var _hasBattleUI = typeof BattleUI !== 'undefined';
-    var _hasBattleSummon = typeof BattleSummon !== 'undefined';
+    // Use BattleUtils for centralized dependency checking
+    var _hasBattleUtils = typeof BattleUtils !== 'undefined';
+    var _hasBattleData = _hasBattleUtils ? BattleUtils.hasBattleData() : typeof BattleData !== 'undefined';
+    var _hasBattleIntent = _hasBattleUtils ? BattleUtils.hasBattleIntent() : typeof BattleIntent !== 'undefined';
+    var _hasBattleUI = _hasBattleUtils ? BattleUtils.hasBattleUI() : typeof BattleUI !== 'undefined';
+    var _hasBattleSummon = _hasBattleUtils ? BattleUtils.hasBattleSummon() : typeof BattleSummon !== 'undefined';
     var _intentsEnabled = true;  // Can be toggled via dev panel
 
     // Use Logger module with fallback via Utils
@@ -234,6 +236,32 @@ var BattleEngine = (function() {
                 _activeTimeouts.splice(i, 1);
                 return;
             }
+        }
+    }
+
+    // =========================================================================
+    // FIXED ROW LOG SYSTEM HELPERS
+    // =========================================================================
+
+    /**
+     * Get the active log row for new content (row 2)
+     * Also shifts previous content to row 1
+     * @returns {HTMLElement} The row element to type into
+     */
+    function getActiveLogRow() {
+        // Shift rows: move row 2 content to row 1, clear row 2
+        if (_hasBattleUI && BattleUI.prepareLogForNewMessage) {
+            BattleUI.prepareLogForNewMessage();
+        }
+        return document.getElementById('battle-log-row-2');
+    }
+
+    /**
+     * Clear all battle log content (both rows)
+     */
+    function clearBattleLog() {
+        if (_hasBattleUI && BattleUI.clearLog) {
+            BattleUI.clearLog();
         }
     }
 
@@ -633,6 +661,15 @@ var BattleEngine = (function() {
     function start(battleConfig, sceneId) {
         _log.debug('BattleEngine', 'start() called', { battleConfig: battleConfig, sceneId: sceneId });
 
+        // Reset display state tracking from previous battles
+        prevDisplayState = {
+            playerHP: null,
+            playerMana: null,
+            playerLimit: null,
+            playerAC: null,
+            enemyHP: null
+        };
+
         // Ensure pause key listener is set up
         ensurePauseKeyListener();
 
@@ -698,6 +735,16 @@ var BattleEngine = (function() {
             }
         });
 
+        // Emit battle start event for new architecture
+        if (typeof eventBus !== 'undefined' && typeof BattleEvents !== 'undefined') {
+            eventBus.emit(BattleEvents.START, {
+                sceneId: sceneId,
+                enemy: coreState.enemy,
+                player: coreState.player,
+                style: styleName
+            });
+        }
+
         // Return mutable state for engine compatibility (allows setting callbacks)
         _log.debug('BattleEngine', 'start() returning battleState');
         return battleState;
@@ -711,10 +758,23 @@ var BattleEngine = (function() {
         // Clear action lock when battle ends
         _actionInProgress = false;
 
+        // Clear all scheduled timeouts to prevent callbacks after battle ends
+        clearAllScheduledTimeouts();
+
         // Clean up event listeners to prevent memory leaks
         removePauseKeyListener();
         if (typeof BattleDiceUI !== 'undefined' && BattleDiceUI.cleanup) {
             BattleDiceUI.cleanup();
+        }
+
+        // Clean up QTE system
+        if (typeof QTEEngine !== 'undefined' && QTEEngine.cleanup) {
+            QTEEngine.cleanup();
+        }
+
+        // Clean up BattleUI resources
+        if (_hasBattleUI && BattleUI.cleanup) {
+            BattleUI.cleanup();
         }
 
         // Reset intent system
@@ -736,11 +796,20 @@ var BattleEngine = (function() {
         }
 
         var endInfo = BattleCore.endBattle(result);
+        var battleSceneId = BattleCore.getState().sceneId;
 
         // Mark battle as won if victory
         if (result === 'win' && vnEngine && vnEngine.markBattleWon) {
-            var battleSceneId = BattleCore.getState().sceneId;
             vnEngine.markBattleWon(battleSceneId);
+        }
+
+        // Emit battle end event for new architecture
+        if (typeof eventBus !== 'undefined' && typeof BattleEvents !== 'undefined') {
+            eventBus.emit(BattleEvents.END, {
+                result: result,
+                sceneId: battleSceneId,
+                target: endInfo.target
+            });
         }
 
         // Show outro transition
@@ -765,6 +834,16 @@ var BattleEngine = (function() {
         removePauseKeyListener();
         if (typeof BattleDiceUI !== 'undefined' && BattleDiceUI.cleanup) {
             BattleDiceUI.cleanup();
+        }
+
+        // Clean up QTE system
+        if (typeof QTEEngine !== 'undefined' && QTEEngine.cleanup) {
+            QTEEngine.cleanup();
+        }
+
+        // Clean up BattleUI resources
+        if (_hasBattleUI && BattleUI.cleanup) {
+            BattleUI.cleanup();
         }
 
         // Clear action lock
@@ -989,12 +1068,13 @@ var BattleEngine = (function() {
             VNEngine.refreshBattleChoices();
         }
 
-        var battleLogContent = document.getElementById('battle-log-content');
-        battleLogContent.innerHTML = '';
-        // Create wrapper div for consistent styling with attack rolls
-        var logEntry = document.createElement('div');
-        logEntry.className = 'battle-log-messages';
-        battleLogContent.appendChild(logEntry);
+        // Get active log row (shifts previous content to row 1)
+        var logEntry = getActiveLogRow();
+        if (!logEntry) {
+            updateDisplay();
+            processEnemyTurn(messages, callback, { playerAction: 'defend' });
+            return;
+        }
         BattleDiceUI.showDefendRoll({
             container: logEntry,
             defender: BattleCore.getPlayer().name,
@@ -1392,8 +1472,9 @@ var BattleEngine = (function() {
                 enemy.hp -= confusionDmg;
 
                 // Get battle log container
-                var battleLog = document.getElementById('battle-log-content');
-                if (!battleLog) {
+                // Get active log row (shifts previous content to row 1)
+                var logEntry = getActiveLogRow();
+                if (!logEntry) {
                     finishEnemyConfusionTurn();
                     return;
                 }
@@ -1401,7 +1482,7 @@ var BattleEngine = (function() {
                 // Use modular BattleDiceUI.showSimpleDamageRoll for animated dice
                 if (typeof BattleDiceUI !== 'undefined' && BattleDiceUI.showSimpleDamageRoll) {
                     BattleDiceUI.showSimpleDamageRoll({
-                        container: battleLog,
+                        container: logEntry,
                         text: enemyName + ' hits themselves! ',
                         damage: confusionDmg,
                         sides: 5  // d5 for confusion damage
@@ -1412,7 +1493,7 @@ var BattleEngine = (function() {
                     });
                 } else {
                     // Fallback without animation
-                    battleLog.innerHTML = '<div class="roll-result">' + enemyName + ' hits themselves! <strong class="dice-number roll-damage-normal">' + confusionDmg + '</strong> <span class="damage-text roll-type-damage">DAMAGE</span></div>';
+                    logEntry.innerHTML = enemyName + ' hits themselves! <strong class="dice-number roll-damage-normal">' + confusionDmg + '</strong> <span class="damage-text roll-type-damage">DAMAGE</span>';
                     showDamageNumber(confusionDmg, 'enemy', 'damage');
                     updateDisplay();
                     setTimeout(finishEnemyConfusionTurn, 800);
@@ -2659,9 +2740,9 @@ var BattleEngine = (function() {
                 // Apply damage to player
                 BattleCore.getPlayer().hp -= confusionDmg;
 
-                // Get battle log container
-                var battleLog = document.getElementById('battle-log-content');
-                if (!battleLog) {
+                // Get active log row (shifts previous content to row 1)
+                var logEntry = getActiveLogRow();
+                if (!logEntry) {
                     finishConfusionTurn();
                     return;
                 }
@@ -2669,7 +2750,7 @@ var BattleEngine = (function() {
                 // Use modular BattleDiceUI.showSimpleDamageRoll for animated dice
                 if (typeof BattleDiceUI !== 'undefined' && BattleDiceUI.showSimpleDamageRoll) {
                     BattleDiceUI.showSimpleDamageRoll({
-                        container: battleLog,
+                        container: logEntry,
                         text: playerName + ' hits themselves! ',
                         damage: confusionDmg,
                         sides: 5  // d5 for confusion damage
@@ -2681,7 +2762,7 @@ var BattleEngine = (function() {
                     });
                 } else {
                     // Fallback without animation
-                    battleLog.innerHTML = '<div class="roll-result">' + playerName + ' hits themselves! <strong class="dice-number roll-damage-normal">' + confusionDmg + '</strong> <span class="damage-text roll-type-damage">DAMAGE</span></div>';
+                    logEntry.innerHTML = playerName + ' hits themselves! <strong class="dice-number roll-damage-normal">' + confusionDmg + '</strong> <span class="damage-text roll-type-damage">DAMAGE</span>';
                     showDamageNumber(confusionDmg, 'player', 'damage');
                     updateDisplay();
                     setTimeout(finishConfusionTurn, 800);
@@ -2733,9 +2814,8 @@ var BattleEngine = (function() {
                     return;
                 }
 
-                // Clear the status message before returning control to player
-                var battleLogContent = document.getElementById('battle-log-content');
-                if (battleLogContent) battleLogContent.innerHTML = '';
+                // Clear the log before returning control to player
+                clearBattleLog();
 
                 BattleCore.setPhase('player');
                 updateDisplay();
@@ -2848,10 +2928,7 @@ var BattleEngine = (function() {
             hideTextBox();
 
             // Clear battle log from previous battle
-            var battleLogContent = document.getElementById('battle-log-content');
-            if (battleLogContent) {
-                battleLogContent.innerHTML = '';
-            }
+            clearBattleLog();
         }
     }
 
@@ -3055,19 +3132,13 @@ var BattleEngine = (function() {
             return;
         }
 
-        // Get battle log container
-        var battleLog = document.getElementById('battle-log-content');
-        if (!battleLog) {
+        // Get active log row (shifts previous content to row 1)
+        var logEntry = getActiveLogRow();
+        if (!logEntry) {
             if (options.onTextComplete) options.onTextComplete();
             if (callback) callback();
             return;
         }
-
-        // Clear previous content and create log entry container
-        battleLog.innerHTML = '';
-        var logEntry = document.createElement('div');
-        logEntry.className = 'battle-log-messages';
-        battleLog.appendChild(logEntry);
 
         // Use BattleDiceUI to animate the roll with new phased system
         BattleDiceUI.showAttackRoll({
@@ -3110,8 +3181,9 @@ var BattleEngine = (function() {
     function showEnemyAttackQuick(attackerName, attackResult, callback, options) {
         options = options || {};
 
-        var battleLog = document.getElementById('battle-log-content');
-        if (!battleLog) {
+        // Get active log row (shifts previous content to row 1)
+        var logEntry = getActiveLogRow();
+        if (!logEntry) {
             if (options.onTextComplete) options.onTextComplete();
             if (callback) callback();
             return;
@@ -3119,10 +3191,6 @@ var BattleEngine = (function() {
 
         // For hits (including crits), show animated damage roll if BattleDiceUI available
         if (attackResult.hit && typeof BattleDiceUI !== 'undefined' && BattleDiceUI.showSimpleDamageRoll) {
-            battleLog.innerHTML = '';
-            var logEntry = document.createElement('div');
-            logEntry.className = 'battle-log-messages';
-            battleLog.appendChild(logEntry);
 
             // Use unified roll classes for consistent styling
             var introText = attackerName + ' ';
@@ -3168,9 +3236,8 @@ var BattleEngine = (function() {
             html += '<span class="roll-result-text roll-neutral-normal">MISS!</span>';
         }
 
-        html += '</div>';
-
-        battleLog.innerHTML = html;
+        // Remove wrapper div - just the content for fixed row
+        logEntry.innerHTML = html.replace(/<\/?div[^>]*>/g, '');
 
         // Call onTextComplete immediately
         if (options.onTextComplete) options.onTextComplete();
@@ -3214,19 +3281,13 @@ var BattleEngine = (function() {
             return;
         }
 
-        // Get battle log container
-        var battleLog = document.getElementById('battle-log-content');
-        if (!battleLog) {
+        // Get active log row (shifts previous content to row 1)
+        var logEntry = getActiveLogRow();
+        if (!logEntry) {
             if (options.onTextComplete) options.onTextComplete();
             if (callback) callback();
             return;
         }
-
-        // Clear previous content and create log entry container
-        battleLog.innerHTML = '';
-        var logEntry = document.createElement('div');
-        logEntry.className = 'battle-log-messages';
-        battleLog.appendChild(logEntry);
 
         // Use BattleDiceUI to animate the heal roll
         BattleDiceUI.showHealRoll({

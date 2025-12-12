@@ -359,10 +359,23 @@ var QTEUI = (function() {
 
     /**
      * Determine zone from position (legacy 4-tier)
+     * Delegates to QTEEngine.getZoneForPosition() for authoritative calculation.
+     * Falls back to local calculation only if QTEEngine is unavailable.
+     * @deprecated Use QTEEngine.getZoneForPosition() directly when possible
      * @param {number} position - 0-100
      * @returns {string} - Zone name
      */
     function getZoneFromPosition(position) {
+        // Use QTEEngine as authoritative source when available
+        if (typeof QTEEngine !== 'undefined' && QTEEngine.getZoneForPosition) {
+            return QTEEngine.getZoneForPosition(position);
+        }
+
+        // Fallback for cases when QTEEngine isn't loaded (should not happen in production)
+        // Log warning if using fallback - indicates potential load order issue
+        if (typeof console !== 'undefined') {
+            console.warn('QTEUI: Using fallback zone calculation - QTEEngine not available');
+        }
         if (!uiState.zones) return 'miss';
 
         var distanceFromCenter = Math.abs(position - 50);
@@ -380,11 +393,23 @@ var QTEUI = (function() {
 
     /**
      * Determine zone from position for finalized battle system
-     * Uses distance from random target position (not center)
+     * Delegates to QTEEngine.getZoneForPositionFinalized() for authoritative calculation.
+     * Falls back to local calculation only if QTEEngine is unavailable.
+     * @deprecated Use QTEEngine.getZoneForPositionFinalized() directly when possible
      * @param {number} position - 0-100
      * @returns {string} - 'perfect', 'good', 'normal', or 'bad'
      */
     function getZoneFromPositionFinalized(position) {
+        // Use QTEEngine as authoritative source when available
+        if (typeof QTEEngine !== 'undefined' && QTEEngine.getZoneForPositionFinalized) {
+            return QTEEngine.getZoneForPositionFinalized(position);
+        }
+
+        // Fallback for cases when QTEEngine isn't loaded (should not happen in production)
+        // Log warning if using fallback - indicates potential load order issue
+        if (typeof console !== 'undefined') {
+            console.warn('QTEUI: Using fallback finalized zone calculation - QTEEngine not available');
+        }
         if (!uiState.zones) return 'bad';
 
         // Distance from the random target position
@@ -535,53 +560,19 @@ var QTEUI = (function() {
     }
 
     // === Countdown Display ===
-
-    /**
-     * Start countdown animation: 5,4,3,2,1 then auto-commit
-     * Uses a gaming trick - commits when 1 ends (not on 1, but after showing it)
-     * @param {function} onComplete - Called when countdown finishes
-     * @param {function} onTimeout - Called if player doesn't input during countdown (auto-commit)
-     */
-    function startCountdown(onComplete, onTimeout) {
-        if (!elements.qteCountdown) return;
-
-        elements.qteCountdown.style.display = 'block';
-        uiState.countdownActive = true;
-        uiState.countdownValue = 5;
-
-        // Store callbacks
-        uiState.countdownOnComplete = onComplete;
-        uiState.countdownOnTimeout = onTimeout;
-
-        // Start the countdown
-        updateCountdownDisplay(5);
-        uiState.countdownInterval = setInterval(function() {
-            uiState.countdownValue--;
-
-            if (uiState.countdownValue >= 1) {
-                updateCountdownDisplay(uiState.countdownValue);
-            }
-
-            // After showing 1, auto-commit (the gaming trick - commit when 1 ends)
-            if (uiState.countdownValue < 1) {
-                clearInterval(uiState.countdownInterval);
-                uiState.countdownInterval = null;
-                uiState.countdownActive = false;
-
-                // Commit immediately when 1 ends
-                if (uiState.countdownOnTimeout) {
-                    uiState.countdownOnTimeout();
-                }
-            }
-        }, 1000);
-    }
+    // Note: Timing logic is managed by QTEEngine.
+    // QTEUI only handles visual display of countdown values.
 
     /**
      * Update the countdown display with animation
+     * Called by QTEEngine when countdown ticks
      * @param {number} value - Current countdown value (5,4,3,2,1,0)
      */
     function updateCountdownDisplay(value) {
         if (!elements.qteCountdown) return;
+
+        // Show countdown element
+        elements.qteCountdown.style.display = 'block';
 
         // Remove previous animation class
         elements.qteCountdown.classList.remove('qte-countdown-pulse');
@@ -603,18 +594,65 @@ var QTEUI = (function() {
     }
 
     /**
-     * Stop countdown (player pressed input)
+     * Hide the countdown display
+     * Called when countdown is stopped or QTE completes
+     */
+    function hideCountdown() {
+        if (elements.qteCountdown) {
+            elements.qteCountdown.style.display = 'none';
+            elements.qteCountdown.classList.remove('qte-countdown-pulse', 'qte-countdown-urgent', 'qte-countdown-critical');
+        }
+    }
+
+    /**
+     * Legacy: Start countdown (delegates to QTEEngine if available)
+     * @deprecated Use QTEEngine.startCountdown() instead
+     */
+    function startCountdown(onComplete, onTimeout) {
+        // Delegate to QTEEngine if available
+        if (typeof QTEEngine !== 'undefined' && QTEEngine.startCountdown) {
+            QTEEngine.startCountdown(5, { onTimeout: onTimeout });
+            return;
+        }
+
+        // Fallback: run timer locally (legacy mode)
+        if (!elements.qteCountdown) return;
+
+        elements.qteCountdown.style.display = 'block';
+        uiState.countdownActive = true;
+        uiState.countdownValue = 5;
+
+        updateCountdownDisplay(5);
+        uiState.countdownInterval = TimerManager.setInterval(function() {
+            uiState.countdownValue--;
+
+            if (uiState.countdownValue >= 1) {
+                updateCountdownDisplay(uiState.countdownValue);
+            }
+
+            if (uiState.countdownValue < 1) {
+                TimerManager.clear(uiState.countdownInterval);
+                uiState.countdownInterval = null;
+                uiState.countdownActive = false;
+
+                if (onTimeout) {
+                    onTimeout();
+                }
+            }
+        }, 1000, 'qte-countdown');
+    }
+
+    /**
+     * Legacy: Stop countdown
+     * @deprecated Use hideCountdown() for UI, QTEEngine.stopCountdown() for timer
      */
     function stopCountdown() {
         if (uiState.countdownInterval) {
-            clearInterval(uiState.countdownInterval);
+            TimerManager.clear(uiState.countdownInterval);
             uiState.countdownInterval = null;
         }
         uiState.countdownActive = false;
-
-        if (elements.qteCountdown) {
-            elements.qteCountdown.style.display = 'none';
-        }
+        hideCountdown();
     }
 
     /**
@@ -633,6 +671,15 @@ var QTEUI = (function() {
      */
     function showCombo(combo) {
         if (!elements.qteContainer) return;
+
+        // Validate combo array before processing
+        if (!combo || !Array.isArray(combo) || combo.length === 0) return;
+
+        // Remove existing combo container if present (prevent duplicates)
+        var existingCombo = document.getElementById('qte-combo');
+        if (existingCombo) {
+            existingCombo.remove();
+        }
 
         var comboContainer = document.createElement('div');
         comboContainer.className = 'qte-combo';
@@ -858,8 +905,10 @@ var QTEUI = (function() {
         showResultFinalized: showResultFinalized,  // NEW: For skill/defend QTEs
 
         // Countdown display
-        startCountdown: startCountdown,
-        stopCountdown: stopCountdown,
+        updateCountdownDisplay: updateCountdownDisplay,  // Called by QTEEngine
+        hideCountdown: hideCountdown,                    // Called by QTEEngine
+        startCountdown: startCountdown,                  // Legacy (delegates to engine)
+        stopCountdown: stopCountdown,                    // Legacy
         isCountdownActive: isCountdownActive,
 
         // Chain combo display

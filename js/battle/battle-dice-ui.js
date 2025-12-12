@@ -640,61 +640,35 @@ var BattleDiceUI = (function() {
     }
 
     // =========================================================================
-    // SCROLL HELPER
-    // =========================================================================
-
-    /**
-     * Scroll battle log to bottom if content overflows
-     * Called after adding content to ensure newest text is visible
-     * @param {Element} element - Any element inside the battle log (used to find scroll container)
-     */
-    function scrollLogIfNeeded(element) {
-        var scrollContainer = element ?
-            (element.closest('.battle-log-content') || document.getElementById('battle-log-content')) :
-            document.getElementById('battle-log-content');
-
-        if (!scrollContainer) return;
-
-        // Only scroll if there's content hidden below the current scroll position
-        var hiddenBelow = scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight;
-        if (hiddenBelow > config.scrollThreshold) {
-            scrollContainer.scrollTop = scrollContainer.scrollHeight - scrollContainer.clientHeight;
-        }
-    }
-
-    // =========================================================================
     // TYPEWRITER EFFECT
     // =========================================================================
 
     /**
-     * Typewriter text effect
-     * Only scrolls when content overflows to prevent line jumping during animation.
+     * Typewriter text effect - types into the given element.
+     * Note: This is for dice roll animations which are contained within a single row.
+     * The row system (row1/row2 shifting) is handled by battle-facade.js via prepareLogForNewMessage().
      * @param {Element} element - Element to type into
      * @param {string} text - Text (can include HTML tags)
      * @param {function} callback - Called when done
      */
     function typewriter(element, text, callback) {
         var speed = config.typewriterSpeed;
+
+        // Dice rolls are single-row animations, just type into the given element
+        typewriterSimple(element, text, callback);
+    }
+
+    /**
+     * Simple typewriter fallback (no row system)
+     */
+    function typewriterSimple(element, text, callback) {
+        var speed = config.typewriterSpeed;
         var index = 0;
         var isTag = false;
         var tagBuffer = '';
 
-        // Find scrollable container (battle-log-content)
-        var scrollContainer = element.closest('.battle-log-content') ||
-                              document.getElementById('battle-log-content');
-
-        // Local scroll check that uses the cached container
-        function checkAndScroll() {
-            if (!scrollContainer) return;
-            var hiddenBelow = scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight;
-            if (hiddenBelow > config.scrollThreshold) {
-                scrollContainer.scrollTop = scrollContainer.scrollHeight - scrollContainer.clientHeight;
-            }
-        }
-
         function type() {
             if (index >= text.length) {
-                checkAndScroll();
                 if (callback) callback();
                 return;
             }
@@ -714,7 +688,6 @@ var BattleDiceUI = (function() {
                 tagBuffer += char;
                 if (char === '>') {
                     isTag = false;
-                    // Use insertAdjacentHTML to avoid re-parsing existing content
                     element.insertAdjacentHTML('beforeend', tagBuffer);
                     tagBuffer = '';
                 }
@@ -723,25 +696,18 @@ var BattleDiceUI = (function() {
                 return;
             }
 
-            // Handle surrogate pairs (emojis and other characters outside BMP)
-            // Check if current char is a high surrogate and next is a low surrogate
+            // Handle surrogate pairs
             if (char.charCodeAt(0) >= 0xD800 && char.charCodeAt(0) <= 0xDBFF &&
                 index + 1 < text.length) {
                 var nextChar = text[index + 1];
                 if (nextChar.charCodeAt(0) >= 0xDC00 && nextChar.charCodeAt(0) <= 0xDFFF) {
-                    // This is a surrogate pair - combine them
                     char = char + nextChar;
-                    index++; // Skip the low surrogate in next iteration
+                    index++;
                 }
             }
 
-            // Use createTextNode + appendChild instead of innerHTML +=
-            // This is more robust and doesn't re-parse existing content
             element.appendChild(document.createTextNode(char));
             index++;
-            // Scroll on every character to keep newest content visible
-            // The 5px threshold in checkAndScroll prevents micro-scrolls
-            checkAndScroll();
             diceTimeout(type, speed);
         }
 
@@ -1307,7 +1273,7 @@ var BattleDiceUI = (function() {
 
         // Defensive check for container
         if (!container) {
-            _log.warn('BattleDiceUI', showHealRoll: container is null');
+            _log.warn('BattleDiceUI', 'showHealRoll: container is null');
             if (onTextComplete) onTextComplete();
             if (callback) callback();
             return;
@@ -1601,16 +1567,13 @@ var BattleDiceUI = (function() {
                 cooldownNum.className = 'defend-cooldown-number';
                 cooldownNum.textContent = cooldown;
                 line.appendChild(cooldownNum);
-
-                // Scroll after adding cooldown (not typewritten, so need manual scroll)
-                scrollLogIfNeeded(line);
             }
             // Longer linger for defend results
             diceTimeout(callback, config.lingerDelay * 2);
         }
 
-        // Phase 1: Type intro text then defender name
-        var introText = defenderName + ' assumes a defensive stance and rolls ';
+        // Phase 1: Type intro text with Kung Fu Panda-inspired flavor
+        var introText = defenderName + ' breathes deeply... "Inner peace... inner peace..." The Dragon Warrior stance is assumed! SKADOOSH! Rolling for focus: ';
 
         typewriter(line, introText, function() {
             function showDiceRoll() {

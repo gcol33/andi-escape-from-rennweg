@@ -102,10 +102,10 @@ function runQTETests() {
 function testZoneCalculation() {
     TestRunner.group('Zone Calculation');
 
-    // Test getZoneForPosition with default config
-    // Default zones: perfect=5%, success=20%, partial=35%
+    // Test getZoneForPosition with tuning.js config
+    // Actual zones from TUNING.qte.zones: perfect=10%, success=25%, partial=40%
 
-    // Perfect zone (center ±5%)
+    // Perfect zone (center ±10%)
     TestRunner.assertEqual(
         QTEEngine.getZoneForPosition(50),
         'perfect',
@@ -113,29 +113,35 @@ function testZoneCalculation() {
     );
 
     TestRunner.assertEqual(
-        QTEEngine.getZoneForPosition(52),
-        'perfect',
-        'Position 52 (2% from center) should be perfect zone'
-    );
-
-    TestRunner.assertEqual(
-        QTEEngine.getZoneForPosition(48),
-        'perfect',
-        'Position 48 (2% from center) should be perfect zone'
-    );
-
-    // Edge of perfect zone
-    TestRunner.assertEqual(
         QTEEngine.getZoneForPosition(55),
         'perfect',
-        'Position 55 (5% from center) should still be perfect zone'
+        'Position 55 (5% from center) should be perfect zone'
     );
 
-    // Success zone (5-20% from center)
     TestRunner.assertEqual(
-        QTEEngine.getZoneForPosition(56),
+        QTEEngine.getZoneForPosition(45),
+        'perfect',
+        'Position 45 (5% from center) should be perfect zone'
+    );
+
+    // Edge of perfect zone (±10%)
+    TestRunner.assertEqual(
+        QTEEngine.getZoneForPosition(60),
+        'perfect',
+        'Position 60 (10% from center) should still be perfect zone'
+    );
+
+    TestRunner.assertEqual(
+        QTEEngine.getZoneForPosition(40),
+        'perfect',
+        'Position 40 (10% from center) should still be perfect zone'
+    );
+
+    // Success zone (10-25% from center)
+    TestRunner.assertEqual(
+        QTEEngine.getZoneForPosition(62),
         'success',
-        'Position 56 (6% from center) should be success zone'
+        'Position 62 (12% from center) should be success zone'
     );
 
     TestRunner.assertEqual(
@@ -145,41 +151,41 @@ function testZoneCalculation() {
     );
 
     TestRunner.assertEqual(
-        QTEEngine.getZoneForPosition(70),
+        QTEEngine.getZoneForPosition(75),
         'success',
-        'Position 70 (20% from center) should be success zone'
+        'Position 75 (25% from center) should be success zone'
     );
 
-    // Partial zone (20-35% from center)
+    // Partial zone (25-40% from center)
     TestRunner.assertEqual(
-        QTEEngine.getZoneForPosition(72),
+        QTEEngine.getZoneForPosition(78),
         'partial',
-        'Position 72 (22% from center) should be partial zone'
+        'Position 78 (28% from center) should be partial zone'
     );
 
     TestRunner.assertEqual(
-        QTEEngine.getZoneForPosition(20),
+        QTEEngine.getZoneForPosition(15),
         'partial',
-        'Position 20 (30% from center) should be partial zone'
-    );
-
-    TestRunner.assertEqual(
-        QTEEngine.getZoneForPosition(85),
-        'partial',
-        'Position 85 (35% from center) should be partial zone'
-    );
-
-    // Miss zone (>35% from center)
-    TestRunner.assertEqual(
-        QTEEngine.getZoneForPosition(10),
-        'miss',
-        'Position 10 (40% from center) should be miss zone'
+        'Position 15 (35% from center) should be partial zone'
     );
 
     TestRunner.assertEqual(
         QTEEngine.getZoneForPosition(90),
+        'partial',
+        'Position 90 (40% from center) should be partial zone'
+    );
+
+    // Miss zone (>40% from center)
+    TestRunner.assertEqual(
+        QTEEngine.getZoneForPosition(8),
         'miss',
-        'Position 90 (40% from center) should be miss zone'
+        'Position 8 (42% from center) should be miss zone'
+    );
+
+    TestRunner.assertEqual(
+        QTEEngine.getZoneForPosition(92),
+        'miss',
+        'Position 92 (42% from center) should be miss zone'
     );
 
     TestRunner.assertEqual(
@@ -394,139 +400,92 @@ function testQTEIntegrationWithBattle() {
         'BattleEngine should have isQTEEnabledForDodge method'
     );
 
-    // Test QTE attack methods exist
+    TestRunner.assert(
+        typeof BattleEngine.isQTEEnabledForSkills === 'function',
+        'BattleEngine should have isQTEEnabledForSkills method'
+    );
+
+    // Test QTE attack execution method exists
     TestRunner.assert(
         typeof BattleEngine.executeAttackWithQTE === 'function',
         'BattleEngine should have executeAttackWithQTE method'
     );
 
+    // Test QTE enemy attack processing method exists
     TestRunner.assert(
-        typeof BattleEngine.applyQTEModifiersToAttack === 'function',
-        'BattleEngine should have applyQTEModifiersToAttack method'
+        typeof BattleEngine.processEnemyAttackWithQTE === 'function',
+        'BattleEngine should have processEnemyAttackWithQTE method'
+    );
+
+    // Test QTEEngine modifier getters
+    TestRunner.assert(
+        typeof QTEEngine.getSkillModifiers === 'function',
+        'QTEEngine should have getSkillModifiers method'
     );
 
     TestRunner.assert(
-        typeof BattleEngine.applyQTEDodgeResult === 'function',
-        'BattleEngine should have applyQTEDodgeResult method'
+        typeof QTEEngine.getDefendModifiers === 'function',
+        'QTEEngine should have getDefendModifiers method'
     );
 
-    // Test applyQTEModifiersToAttack with mock data
-    var mockAttackResult = {
-        hit: true,
-        roll: 15,
-        total: 17,
-        targetAC: 12,
-        damage: 10,
-        isCrit: false,
-        isFumble: false
-    };
-
-    var mockQTEResult = {
-        type: 'accuracy',
-        zone: 'perfect',
-        position: 50,
-        modifiers: {
-            hitBonus: 5,
-            damageMultiplier: 1.25,
-            critChanceBonus: 0.15
-        }
-    };
-
-    var modifiedResult = BattleEngine.applyQTEModifiersToAttack(mockAttackResult, mockQTEResult);
-
-    TestRunner.assertEqual(
-        modifiedResult.total,
-        22, // 17 + 5 hit bonus
-        'applyQTEModifiersToAttack should add hit bonus to total'
+    // Test skill modifiers for each zone
+    var perfectMods = QTEEngine.getSkillModifiers('perfect');
+    TestRunner.assert(
+        perfectMods !== null && perfectMods !== undefined,
+        'getSkillModifiers should return modifiers for perfect zone'
     );
 
-    TestRunner.assertEqual(
-        modifiedResult.damage,
-        12, // Math.floor(10 * 1.25)
-        'applyQTEModifiersToAttack should apply damage multiplier'
+    TestRunner.assert(
+        perfectMods.advantage === true,
+        'Perfect skill modifier should grant advantage'
     );
 
-    TestRunner.assertEqual(
-        modifiedResult.qteZone,
-        'perfect',
-        'applyQTEModifiersToAttack should store QTE zone'
+    var goodMods = QTEEngine.getSkillModifiers('good');
+    TestRunner.assert(
+        goodMods !== null && goodMods !== undefined,
+        'getSkillModifiers should return modifiers for good zone'
     );
 
-    // Test applyQTEDodgeResult
-    var baseDamage = 10;
-    var dodgeQTEResult = {
-        type: 'dodge',
-        zone: 'success',
-        position: 40,
-        modifiers: {
-            damageReduction: 0.5,
-            counterAttack: false
-        }
-    };
+    var normalMods = QTEEngine.getSkillModifiers('normal');
+    TestRunner.assert(
+        normalMods !== null && normalMods !== undefined,
+        'getSkillModifiers should return modifiers for normal zone'
+    );
 
-    var dodgeResult = BattleEngine.applyQTEDodgeResult(baseDamage, dodgeQTEResult);
+    var badMods = QTEEngine.getSkillModifiers('bad');
+    TestRunner.assert(
+        badMods !== null && badMods !== undefined,
+        'getSkillModifiers should return modifiers for bad zone'
+    );
 
-    TestRunner.assertEqual(
-        dodgeResult.damage,
-        5, // 10 - (10 * 0.5) = 5
-        'applyQTEDodgeResult should reduce damage by reduction percentage'
+    TestRunner.assert(
+        badMods.disadvantage === true,
+        'Bad skill modifier should grant disadvantage'
+    );
+
+    // Test defend modifiers for each zone
+    var perfectDefend = QTEEngine.getDefendModifiers('perfect');
+    TestRunner.assert(
+        perfectDefend !== null && perfectDefend !== undefined,
+        'getDefendModifiers should return modifiers for perfect zone'
+    );
+
+    TestRunner.assert(
+        perfectDefend.counterAttack === true,
+        'Perfect defend should enable counter attack'
     );
 
     TestRunner.assertEqual(
-        dodgeResult.reduced,
-        5,
-        'applyQTEDodgeResult should track reduced amount'
+        perfectDefend.damageReduction,
+        1.0,
+        'Perfect defend should have 100% damage reduction'
     );
 
+    var badDefend = QTEEngine.getDefendModifiers('bad');
     TestRunner.assertEqual(
-        dodgeResult.counterAttack,
-        false,
-        'applyQTEDodgeResult should pass through counterAttack flag'
-    );
-
-    // Test perfect dodge (full dodge)
-    var perfectDodgeResult = BattleEngine.applyQTEDodgeResult(10, {
-        modifiers: { damageReduction: 1.0, counterAttack: true }
-    });
-
-    TestRunner.assertEqual(
-        perfectDodgeResult.damage,
+        badDefend.damageReduction,
         0,
-        'Perfect dodge should reduce damage to 0'
-    );
-
-    TestRunner.assertEqual(
-        perfectDodgeResult.counterAttack,
-        true,
-        'Perfect dodge should enable counter attack'
-    );
-
-    // Test null QTE result handling
-    var noQTEResult = BattleEngine.applyQTEModifiersToAttack(mockAttackResult, null);
-    TestRunner.assertEqual(
-        noQTEResult.total,
-        mockAttackResult.total,
-        'Null QTE result should not modify attack'
-    );
-
-    var noQTEDodge = BattleEngine.applyQTEDodgeResult(10, null);
-    TestRunner.assertEqual(
-        noQTEDodge.damage,
-        10,
-        'Null QTE dodge result should not reduce damage'
-    );
-
-    // Test auto-miss on QTE failure
-    var missQTEResult = {
-        zone: 'miss',
-        modifiers: { autoMiss: true, hitBonus: -10, damageMultiplier: 0.5 }
-    };
-
-    var missModified = BattleEngine.applyQTEModifiersToAttack(mockAttackResult, missQTEResult);
-    TestRunner.assertEqual(
-        missModified.hit,
-        false,
-        'QTE miss with autoMiss should force attack to miss'
+        'Bad defend should have 0 damage reduction'
     );
 }
 

@@ -5,11 +5,11 @@
  * Auto-checks when all fields are filled. No submit button needed.
  */
 
-var PasswordScreen = (function() {
+const PasswordScreen = (function() {
     'use strict';
 
     // === Configuration ===
-    var config = {
+    const config = {
         // Change this value to update the password (case-insensitive)
         password: 'STRAHD',
         // Validation settings
@@ -44,7 +44,7 @@ var PasswordScreen = (function() {
         if (!value) return '';
 
         // Only keep the first character
-        var char = value.charAt(0);
+        const char = value.charAt(0);
 
         // Check if alphanumeric
         if (!config.allowedChars.test(char)) {
@@ -56,14 +56,23 @@ var PasswordScreen = (function() {
     }
 
     // Track if password has been validated
-    var isValidated = false;
+    let isValidated = false;
+
+    // Track if handlers are already set up (prevent duplicate listeners)
+    let handlersSetup = false;
 
     // Callback to run when password is correct
-    var onSuccessCallback = null;
+    let onSuccessCallback = null;
 
     // Lockout tracking
-    var failedAttempts = 0;
-    var isLockedOut = false;
+    let failedAttempts = 0;
+    let isLockedOut = false;
+
+    // Store event handler references for cleanup
+    const eventHandlers = {
+        inputs: [],      // Array of { element, type, handler } for cleanup
+        countdownTimeoutId: null  // Track lockout countdown timeout for cancellation
+    };
 
     /**
      * Initialize the password screen
@@ -72,7 +81,7 @@ var PasswordScreen = (function() {
     function init(onSuccess) {
         onSuccessCallback = onSuccess;
 
-        var inputs = document.querySelectorAll('.password-char');
+        const inputs = document.querySelectorAll('.password-char');
         if (inputs.length === 0) {
             // No password inputs found, skip password screen
             if (onSuccessCallback) onSuccessCallback();
@@ -88,14 +97,26 @@ var PasswordScreen = (function() {
     }
 
     /**
+     * Add an event listener and track it for cleanup
+     */
+    function addTrackedListener(element, type, handler, options) {
+        element.addEventListener(type, handler, options);
+        eventHandlers.inputs.push({ element: element, type: type, handler: handler, options: options });
+    }
+
+    /**
      * Set up event handlers for all password input fields
      */
     function setupInputHandlers(inputs) {
+        // Prevent duplicate handler setup
+        if (handlersSetup) return;
+        handlersSetup = true;
+
         inputs.forEach(function(input, index) {
             // Handle text input with validation
-            input.addEventListener('input', function(e) {
+            const inputHandler = function(e) {
                 // Validate and sanitize the input
-                var validated = validateInput(this.value);
+                const validated = validateInput(this.value);
 
                 // Update input value if validation changed it
                 if (validated !== this.value) {
@@ -116,10 +137,11 @@ var PasswordScreen = (function() {
 
                 // Check if all fields are filled
                 checkPassword(inputs);
-            });
+            };
+            addTrackedListener(input, 'input', inputHandler);
 
             // Handle keydown for backspace and navigation
-            input.addEventListener('keydown', function(e) {
+            const keydownHandler = function(e) {
                 if (e.key === 'Backspace') {
                     if (!this.value && index > 0) {
                         // Field is empty, go back to previous field
@@ -133,22 +155,24 @@ var PasswordScreen = (function() {
                 } else if (e.key === 'ArrowRight' && index < inputs.length - 1) {
                     inputs[index + 1].focus();
                 }
-            });
+            };
+            addTrackedListener(input, 'keydown', keydownHandler);
 
             // Select all text on focus for easy replacement
-            input.addEventListener('focus', function() {
+            const focusHandler = function() {
                 this.select();
-            });
+            };
+            addTrackedListener(input, 'focus', focusHandler);
 
             // Prevent paste of multi-character strings breaking the UI
-            input.addEventListener('paste', function(e) {
+            const pasteHandler = function(e) {
                 e.preventDefault();
-                var pastedText = (e.clipboardData || window.clipboardData).getData('text');
+                const pastedText = (e.clipboardData || window.clipboardData).getData('text');
 
                 // Distribute pasted characters across fields with validation
-                var validCharsAdded = 0;
-                for (var i = 0; i < pastedText.length && index + validCharsAdded < inputs.length; i++) {
-                    var validated = validateInput(pastedText[i]);
+                let validCharsAdded = 0;
+                for (let i = 0; i < pastedText.length && index + validCharsAdded < inputs.length; i++) {
+                    const validated = validateInput(pastedText[i]);
                     if (validated) {
                         inputs[index + validCharsAdded].value = validated;
                         inputs[index + validCharsAdded].classList.add('filled');
@@ -157,12 +181,13 @@ var PasswordScreen = (function() {
                 }
 
                 // Focus the next empty field or last field
-                var nextEmptyIndex = Math.min(index + validCharsAdded, inputs.length - 1);
+                const nextEmptyIndex = Math.min(index + validCharsAdded, inputs.length - 1);
                 inputs[nextEmptyIndex].focus();
 
                 // Check password after paste
                 checkPassword(inputs);
-            });
+            };
+            addTrackedListener(input, 'paste', pasteHandler);
         });
     }
 
@@ -174,8 +199,8 @@ var PasswordScreen = (function() {
         if (isLockedOut) return;
 
         // Collect all characters
-        var enteredPassword = '';
-        var allFilled = true;
+        let enteredPassword = '';
+        let allFilled = true;
 
         inputs.forEach(function(input) {
             if (!input.value) {
@@ -201,7 +226,10 @@ var PasswordScreen = (function() {
     function handleSuccess() {
         isValidated = true;
 
-        var overlay = document.getElementById('password-overlay');
+        // Clean up event listeners to prevent memory leaks
+        cleanup();
+
+        const overlay = document.getElementById('password-overlay');
         if (overlay) {
             // Fade out the overlay
             overlay.classList.add('hidden');
@@ -227,7 +255,7 @@ var PasswordScreen = (function() {
      * Handle incorrect password entry
      */
     function handleError(inputs) {
-        var inputsContainer = document.getElementById('password-inputs');
+        const inputsContainer = document.getElementById('password-inputs');
 
         // Add error class for shake animation
         inputsContainer.classList.add('error');
@@ -266,20 +294,22 @@ var PasswordScreen = (function() {
         });
 
         // Pick a random message template
-        var messageTemplate = config.lockoutMessages[Math.floor(Math.random() * config.lockoutMessages.length)];
-        var totalSeconds = Math.ceil(config.lockoutDuration / 1000);
-        var secondsRemaining = totalSeconds;
+        const messageTemplate = Utils.pickRandom(config.lockoutMessages);
+        const totalSeconds = Math.ceil(config.lockoutDuration / 1000);
+        let secondsRemaining = totalSeconds;
 
-        // Update countdown function
+        // Update countdown function with tracked timeout
         function updateCountdown() {
             if (secondsRemaining > 0) {
                 showLockoutMessage(messageTemplate.replace('{s}', secondsRemaining));
                 secondsRemaining--;
-                setTimeout(updateCountdown, config.timing.countdownInterval);
+                // Track the timeout ID so it can be cancelled on cleanup
+                eventHandlers.countdownTimeoutId = setTimeout(updateCountdown, config.timing.countdownInterval);
             } else {
                 // Re-enable inputs
                 isLockedOut = false;
                 failedAttempts = 0;
+                eventHandlers.countdownTimeoutId = null;
 
                 inputs.forEach(function(input) {
                     input.disabled = false;
@@ -298,7 +328,7 @@ var PasswordScreen = (function() {
      * Show lockout message overlay
      */
     function showLockoutMessage(message) {
-        var msgElement = document.getElementById('lockout-message');
+        let msgElement = document.getElementById('lockout-message');
 
         if (!msgElement) {
             msgElement = document.createElement('div');
@@ -318,7 +348,7 @@ var PasswordScreen = (function() {
      * Hide lockout message
      */
     function hideLockoutMessage() {
-        var msgElement = document.getElementById('lockout-message');
+        const msgElement = document.getElementById('lockout-message');
         if (msgElement) {
             msgElement.classList.remove('visible');
         }
@@ -334,10 +364,35 @@ var PasswordScreen = (function() {
         return isValidated;
     }
 
+    /**
+     * Clean up all event listeners (for page unload or reset)
+     * This prevents memory leaks if the password screen is dynamically recreated
+     */
+    function cleanup() {
+        // Clear lockout countdown timeout if active
+        if (eventHandlers.countdownTimeoutId) {
+            clearTimeout(eventHandlers.countdownTimeoutId);
+            eventHandlers.countdownTimeoutId = null;
+        }
+
+        // Remove all tracked event listeners
+        for (let i = 0; i < eventHandlers.inputs.length; i++) {
+            const entry = eventHandlers.inputs[i];
+            entry.element.removeEventListener(entry.type, entry.handler, entry.options);
+        }
+        eventHandlers.inputs = [];
+
+        // Reset state for potential re-initialization
+        handlersSetup = false;
+        isLockedOut = false;
+        failedAttempts = 0;
+    }
+
     // === Public API ===
     return {
         init: init,
-        isValidated: isPasswordValidated
+        isValidated: isPasswordValidated,
+        cleanup: cleanup  // For memory leak prevention if needed
     };
 
 })();

@@ -25,6 +25,26 @@
 var QTEEngine = (function() {
     'use strict';
 
+    // === Logging ===
+    // Use Logger module with fallback (safe for test environments without Utils)
+    var _log = (function() {
+        // Try Utils.getLogger() first
+        if (typeof Utils !== 'undefined' && typeof Utils.getLogger === 'function') {
+            return Utils.getLogger();
+        }
+        // Try Logger directly
+        if (typeof Logger !== 'undefined') {
+            return Logger;
+        }
+        // Fallback for test environments
+        return {
+            debug: function() {},
+            info: function() { console.log.apply(console, arguments); },
+            warn: function() { console.warn.apply(console, arguments); },
+            error: function() { console.error.apply(console, arguments); }
+        };
+    })();
+
     // === Configuration ===
     // Values sourced from TUNING.js when available
     var T = typeof TUNING !== 'undefined' ? TUNING : null;
@@ -39,11 +59,15 @@ var QTEEngine = (function() {
         },
 
         // Zone sizes (percentages of bar width, from center)
+        // Note: TUNING.qte.zones is the source of truth, these are fallbacks
         zones: {
-            perfect: qteConfig ? qteConfig.zones.perfect : 5,    // 5% = tiny center (blue)
-            success: qteConfig ? qteConfig.zones.success : 20,   // 20% = hit zone (green)
-            partial: qteConfig ? qteConfig.zones.partial : 35,   // 35% = partial zone (yellow)
-            // Remaining = miss zone (red)
+            perfect: qteConfig && qteConfig.zones ? qteConfig.zones.perfect : 10,  // ±10% = center (blue)
+            good: qteConfig && qteConfig.zones ? qteConfig.zones.good : 25,        // ±25% (green) - finalized name
+            normal: qteConfig && qteConfig.zones ? qteConfig.zones.normal : 40,    // ±40% (yellow) - finalized name
+            // Legacy aliases for backward compatibility
+            success: qteConfig && qteConfig.zones ? qteConfig.zones.success : 25,  // Maps to 'good'
+            partial: qteConfig && qteConfig.zones ? qteConfig.zones.partial : 40   // Maps to 'normal'
+            // Remaining = bad zone (red)
         },
 
         // Result modifiers
@@ -104,7 +128,8 @@ var QTEEngine = (function() {
         timing: {
             startDelay: qteConfig ? qteConfig.timing.startDelay : 300,      // Delay before QTE starts
             resultDisplay: qteConfig ? qteConfig.timing.resultDisplay : 800, // Show result duration
-            fadeOut: qteConfig ? qteConfig.timing.fadeOut : 200              // Fade out time
+            fadeOut: qteConfig ? qteConfig.timing.fadeOut : 200,            // Fade out time
+            countdownDuration: qteConfig && qteConfig.timing.countdownDuration ? qteConfig.timing.countdownDuration : 5
         }
     };
 
@@ -126,7 +151,16 @@ var QTEEngine = (function() {
         },
         callback: null,       // Called when QTE completes
         animationFrame: null,
+        timeoutId: null,      // Track pending timeout for cleanup
         difficulty: 'normal'
+    };
+
+    // === Countdown State ===
+    var countdown = {
+        remaining: 0,         // Seconds remaining
+        timerId: null,        // Timer ID for interval
+        onTick: null,         // Callback when countdown ticks
+        onTimeout: null       // Callback when countdown reaches 0
     };
 
     // Reference to battle engine
@@ -209,10 +243,10 @@ var QTEEngine = (function() {
         // Apply zone scale (defend QTE uses 0.7, skill uses 1.0)
         var zoneScale = state.zoneScale || 1;
 
-        // Use finalized zone names, fallback to legacy if not present
-        var perfectZone = (config.zones.perfect || 5) * zoneMult * zoneScale;
-        var goodZone = (config.zones.good || config.zones.success || 15) * zoneMult * zoneScale;
-        var normalZone = (config.zones.normal || config.zones.partial || 30) * zoneMult * zoneScale;
+        // Use finalized zone names from config (already sourced from TUNING)
+        var perfectZone = (config.zones.perfect || 10) * zoneMult * zoneScale;
+        var goodZone = (config.zones.good || config.zones.success || 25) * zoneMult * zoneScale;
+        var normalZone = (config.zones.normal || config.zones.partial || 40) * zoneMult * zoneScale;
 
         if (distanceFromTarget <= perfectZone) {
             return 'perfect';
@@ -226,10 +260,30 @@ var QTEEngine = (function() {
     }
 
     /**
-     * Update marker position based on elapsed time
-     * Supports two modes:
-     *   - Style 5: Standard smooth sine wave oscillation
+     * Update marker position based on elapsed time using requestAnimationFrame.
+     *
+     * Uses sine wave oscillation to move marker smoothly across the timing bar.
+     * The marker position (0-100) represents percentage from left edge.
+     *
+     * Supports two animation modes:
+     *   - Style 5 (default): Standard smooth sine wave oscillation
+     *     - Marker moves at constant speed, reversing direction at edges
+     *     - Position calculated as: 50 + sin(phase) * 50
+     *
      *   - Style 6: Oscillating speed variant (speeds up/slows down)
+     *     - Marker speed varies based on nested sine wave
+     *     - Creates more challenging, unpredictable timing
+     *     - Enabled via config.bar.oscillating or state.oscillatingMode
+     *
+     * Math explanation (Style 5):
+     *   - cycleTime = duration / oscillations (ms per one-way sweep)
+     *   - phase = (adjustedTime / cycleTime) * PI
+     *   - position = 50 + sin(phase) * 50
+     *   - sin(0) = 0, sin(PI/2) = 1, sin(PI) = 0, sin(3PI/2) = -1
+     *   - So: position oscillates 0 → 100 → 0 → etc.
+     *
+     * @private
+     * @returns {void}
      */
     function updateMarkerPosition() {
         if (!state.active || state.phase !== 'running') return;
@@ -264,12 +318,12 @@ var QTEEngine = (function() {
         // Clamp to 0-100
         state.markerPosition = Math.max(0, Math.min(100, state.markerPosition));
 
-        // Update UI
-        if (qteUI) {
+        // Update UI if available
+        if (qteUI && typeof qteUI.updateMarker === 'function') {
             qteUI.updateMarker(state.markerPosition);
         }
 
-        // Continue animation
+        // Continue animation loop
         if (state.active && state.phase === 'running') {
             state.animationFrame = requestAnimationFrame(updateMarkerPosition);
         }
@@ -279,9 +333,11 @@ var QTEEngine = (function() {
      * Handle player input (tap/click/keypress)
      */
     function handleInput() {
+        // Guard against rapid double-input race condition
         if (!state.active || state.phase !== 'running') return;
 
         // Route to finalized battle handler for skill/defend QTEs
+        // These handlers manage their own phase transition
         if (state.type === 'skill' || state.type === 'defend') {
             handleInputFinalized();
             return;
@@ -293,8 +349,9 @@ var QTEEngine = (function() {
             return;
         }
 
-        state.inputTime = performance.now();
+        // Set phase AFTER routing to prevent race condition with sub-handlers
         state.phase = 'input';
+        state.inputTime = performance.now();
 
         // Stop animation
         if (state.animationFrame) {
@@ -310,8 +367,9 @@ var QTEEngine = (function() {
             qteUI.showResult(state.result, state.markerPosition);
         }
 
-        // Delay before completing (show result)
-        setTimeout(function() {
+        // Delay before completing (show result) - track timeout for cleanup
+        state.timeoutId = setTimeout(function() {
+            state.timeoutId = null;
             completeQTE();
         }, config.timing.resultDisplay);
     }
@@ -334,7 +392,9 @@ var QTEEngine = (function() {
             qteUI.showResult('miss', state.markerPosition);
         }
 
-        setTimeout(function() {
+        // Track timeout for cleanup
+        state.timeoutId = setTimeout(function() {
+            state.timeoutId = null;
             completeQTE();
         }, config.timing.resultDisplay);
     }
@@ -343,12 +403,7 @@ var QTEEngine = (function() {
      * Complete the QTE and return result to caller
      */
     function completeQTE() {
-        // Restore zones if they were modified (parry/guardBreak)
-        if (state.originalZones) {
-            config.zones.perfect = state.originalZones.perfect;
-            config.zones.success = state.originalZones.success;
-            config.zones.partial = state.originalZones.partial;
-        }
+        // Zone scaling is now via state.zoneScale, no config mutation to restore
 
         var result = {
             type: state.type,
@@ -399,6 +454,20 @@ var QTEEngine = (function() {
             cancelAnimationFrame(state.animationFrame);
         }
 
+        // Clear any pending timeouts (single tracked)
+        if (state.timeoutId) {
+            clearTimeout(state.timeoutId);
+            state.timeoutId = null;
+        }
+
+        // Clear all pending timeouts (array)
+        if (state.pendingTimeouts && state.pendingTimeouts.length > 0) {
+            for (var i = 0; i < state.pendingTimeouts.length; i++) {
+                clearTimeout(state.pendingTimeouts[i]);
+            }
+            state.pendingTimeouts = [];
+        }
+
         state.active = false;
         state.type = null;
         state.phase = 'idle';
@@ -411,13 +480,136 @@ var QTEEngine = (function() {
         state.result = null;
         state.callback = null;
         state.animationFrame = null;
-        state.originalZones = null;  // For parry/guardBreak zone restoration
         state.chainCombo = null;     // For chain combo state
         state.combo = {
             required: [],
             entered: [],
             currentIndex: 0
         };
+    }
+
+    /**
+     * Full cleanup - call when battle ends or game resets
+     * Removes all event listeners and clears state
+     */
+    function cleanup() {
+        // Stop countdown FIRST - unconditionally to prevent orphaned intervals
+        stopCountdown();
+
+        // Cancel any running QTE
+        if (state.active) {
+            cancel();
+        }
+
+        // Unbind all input handlers
+        unbindInputs();
+
+        // Clear any pending animation frames
+        if (state.animationFrame) {
+            cancelAnimationFrame(state.animationFrame);
+            state.animationFrame = null;
+        }
+
+        // Clear any pending timeouts
+        if (state.timeoutId) {
+            clearTimeout(state.timeoutId);
+            state.timeoutId = null;
+        }
+
+        // Reset state to idle
+        resetState();
+    }
+
+    // === Countdown Management ===
+
+    /**
+     * Start the countdown timer (5,4,3,2,1 then auto-commit)
+     * @param {number} seconds - Starting countdown value (default 5)
+     * @param {object} callbacks - { onTick, onTimeout }
+     */
+    function startCountdown(seconds, callbacks) {
+        callbacks = callbacks || {};
+        countdown.remaining = seconds || 5;
+        countdown.onTick = callbacks.onTick || null;
+        countdown.onTimeout = callbacks.onTimeout || null;
+
+        // Notify UI of initial value
+        if (qteUI && qteUI.updateCountdownDisplay) {
+            qteUI.updateCountdownDisplay(countdown.remaining);
+        }
+
+        // Use TimerManager if available, otherwise fallback to setInterval
+        var tickFn = function() {
+            countdown.remaining--;
+
+            // Notify UI of tick
+            if (qteUI && qteUI.updateCountdownDisplay) {
+                qteUI.updateCountdownDisplay(countdown.remaining);
+            }
+
+            // Notify callback if provided
+            if (countdown.onTick) {
+                countdown.onTick(countdown.remaining);
+            }
+
+            // Check for timeout (after showing 1, commit when it reaches 0)
+            if (countdown.remaining <= 0) {
+                stopCountdown();
+
+                // Auto-commit at current position if still running
+                if (state.phase === 'running') {
+                    if (state.type === 'skill' || state.type === 'defend') {
+                        handleTimeoutFinalized();
+                    } else {
+                        handleTimeout();
+                    }
+                }
+
+                // Notify timeout callback
+                if (countdown.onTimeout) {
+                    countdown.onTimeout();
+                }
+            }
+        };
+
+        if (typeof TimerManager !== 'undefined') {
+            countdown.timerId = TimerManager.setInterval(tickFn, 1000, 'qte-countdown');
+        } else {
+            countdown.timerId = setInterval(tickFn, 1000);
+        }
+    }
+
+    /**
+     * Stop the countdown timer
+     */
+    function stopCountdown() {
+        if (countdown.timerId) {
+            if (typeof TimerManager !== 'undefined') {
+                TimerManager.clear(countdown.timerId);
+            } else {
+                clearInterval(countdown.timerId);
+            }
+            countdown.timerId = null;
+        }
+        countdown.remaining = 0;
+        countdown.onTick = null;
+        countdown.onTimeout = null;
+    }
+
+    /**
+     * Get current countdown remaining
+     * @returns {number} Seconds remaining
+     */
+    function getCountdownRemaining() {
+        return countdown.remaining;
+    }
+
+    /**
+     * Check if countdown is active
+     * @returns {boolean}
+     */
+    function isCountdownActive() {
+        return countdown.timerId !== null;
     }
 
     // === Public QTE Starters ===
@@ -429,7 +621,7 @@ var QTEEngine = (function() {
      */
     function startAccuracyQTE(params, callback) {
         if (state.active) {
-            console.warn('QTE already active');
+            _log.warn('QTE', 'QTE already active');
             return false;
         }
 
@@ -482,7 +674,7 @@ var QTEEngine = (function() {
      */
     function startDodgeQTE(params, callback) {
         if (state.active) {
-            console.warn('QTE already active');
+            _log.warn('QTE', 'QTE already active');
             return false;
         }
 
@@ -545,7 +737,7 @@ var QTEEngine = (function() {
      */
     function startSkillQTE(params, callback) {
         if (state.active) {
-            console.warn('QTE already active');
+            _log.warn('QTE', 'QTE already active');
             return false;
         }
 
@@ -563,7 +755,10 @@ var QTEEngine = (function() {
         }
 
         // Generate random target position within middle 80% of bar (10% to 90%)
-        state.targetPosition = 10 + Math.random() * 80;
+        // Target position from tuning (defaults: 10-90%)
+        var targetMin = qteConfig && qteConfig.targetPosition ? qteConfig.targetPosition.min : 10;
+        var targetMax = qteConfig && qteConfig.targetPosition ? qteConfig.targetPosition.max : 90;
+        state.targetPosition = targetMin + Math.random() * (targetMax - targetMin);
 
         // Skill QTE uses normal zone sizes
         state.zoneScale = 1.0;
@@ -590,29 +785,9 @@ var QTEEngine = (function() {
             // Begin animation
             state.animationFrame = requestAnimationFrame(updateMarkerPosition);
 
-            // Start countdown timer (5,4,3,2,1,0 then auto-commit after 1 second)
-            // The countdown handles timeout - auto-commits when countdown ends
-            if (qteUI && qteUI.startCountdown) {
-                qteUI.startCountdown(null, function() {
-                    // Timeout callback - auto-commit at current position
-                    if (state.active && state.phase === 'running') {
-                        handleTimeoutFinalized();
-                    }
-                });
-            } else {
-                // Fallback: use old timeout system if countdown not available
-                var totalDuration = config.bar.duration * config.bar.oscillations;
-                var diffMod = config.difficulty[state.difficulty];
-                if (diffMod) {
-                    totalDuration /= diffMod.speedMultiplier;
-                }
-
-                setTimeout(function() {
-                    if (state.active && state.phase === 'running') {
-                        handleTimeoutFinalized();
-                    }
-                }, totalDuration + 100);
-            }
+            // Start countdown timer (configurable, default 5 seconds)
+            // Engine manages timing, UI just displays
+            startCountdown(config.timing.countdownDuration || 5);
 
         }, config.timing.startDelay);
 
@@ -633,9 +808,8 @@ var QTEEngine = (function() {
      * @param {function} callback - Called with result when complete
      */
     function startDefendQTE(params, callback) {
-        console.log('[QTE Debug] startDefendQTE called, state.active:', state.active);
         if (state.active) {
-            console.warn('QTE already active');
+            _log.warn('QTE', 'QTE already active');
             return false;
         }
 
@@ -653,15 +827,16 @@ var QTEEngine = (function() {
         }
 
         // Generate random target position within middle 80% of bar (10% to 90%)
-        state.targetPosition = 10 + Math.random() * 80;
+        // Target position from tuning (defaults: 10-90%)
+        var targetMin = qteConfig && qteConfig.targetPosition ? qteConfig.targetPosition.min : 10;
+        var targetMax = qteConfig && qteConfig.targetPosition ? qteConfig.targetPosition.max : 90;
+        state.targetPosition = targetMin + Math.random() * (targetMax - targetMin);
 
         // Defend QTE has tighter zones (harder than skill)
         state.zoneScale = 0.7; // 70% of normal zone sizes
 
-        console.log('[QTE Debug] qteUI available:', !!qteUI);
         // Show UI with defend label and tighter zones
         if (qteUI) {
-            console.log('[QTE Debug] Calling qteUI.show for defend');
             qteUI.show('defend', config, state.difficulty, {
                 label: 'DEFEND!',
                 subLabel: state.enemyAttackName,
@@ -683,28 +858,9 @@ var QTEEngine = (function() {
             // Begin animation
             state.animationFrame = requestAnimationFrame(updateMarkerPosition);
 
-            // Start countdown timer (5,4,3,2,1,0 then auto-commit after 1 second)
-            if (qteUI && qteUI.startCountdown) {
-                qteUI.startCountdown(null, function() {
-                    // Timeout callback - auto-commit at current position
-                    if (state.active && state.phase === 'running') {
-                        handleTimeoutFinalized();
-                    }
-                });
-            } else {
-                // Fallback: use old timeout system if countdown not available
-                var totalDuration = (config.bar.duration * 0.65) * config.bar.oscillations;
-                var diffMod = config.difficulty[state.difficulty];
-                if (diffMod) {
-                    totalDuration /= diffMod.speedMultiplier;
-                }
-
-                setTimeout(function() {
-                    if (state.active && state.phase === 'running') {
-                        handleTimeoutFinalized();
-                    }
-                }, totalDuration + 100);
-            }
+            // Start countdown timer (configurable, default 5 seconds)
+            // Engine manages timing, UI just displays
+            startCountdown(config.timing.countdownDuration || 5);
 
         }, config.timing.startDelay * 0.4); // Even faster start for defend
 
@@ -726,9 +882,12 @@ var QTEEngine = (function() {
         state.inputTime = performance.now();
         state.phase = 'input';
 
-        // Stop countdown timer
-        if (qteUI && qteUI.stopCountdown) {
-            qteUI.stopCountdown();
+        // Stop countdown timer (engine-managed)
+        stopCountdown();
+
+        // Hide countdown display
+        if (qteUI && qteUI.hideCountdown) {
+            qteUI.hideCountdown();
         }
 
         // Stop animation
@@ -761,9 +920,9 @@ var QTEEngine = (function() {
 
         state.phase = 'timeout';
 
-        // Stop countdown if still running
-        if (qteUI && qteUI.stopCountdown) {
-            qteUI.stopCountdown();
+        // Hide countdown display (engine already stopped the timer)
+        if (qteUI && qteUI.hideCountdown) {
+            qteUI.hideCountdown();
         }
 
         if (state.animationFrame) {
@@ -889,7 +1048,7 @@ var QTEEngine = (function() {
      */
     function startParryQTE(params, callback) {
         if (state.active) {
-            console.warn('QTE already active');
+            _log.warn('QTE', 'QTE already active');
             return false;
         }
 
@@ -900,21 +1059,15 @@ var QTEEngine = (function() {
         state.callback = callback;
         state.difficulty = params.difficulty || 'normal';
 
-        // Parry has tighter zones - scale them down
-        var originalZones = {
-            perfect: config.zones.perfect,
-            success: config.zones.success,
-            partial: config.zones.partial
-        };
+        // Parry has tighter zones - use zoneScale instead of mutating config
+        // This prevents race conditions if multiple QTEs start simultaneously
+        state.zoneScale = 0.65;  // 65% of normal zone sizes for parry
 
-        // Temporarily tighten zones for parry
-        config.zones.perfect = originalZones.perfect * 0.6;
-        config.zones.success = originalZones.success * 0.7;
-        config.zones.partial = originalZones.partial * 0.8;
-
-        // Show UI with parry styling
+        // Show UI with parry styling (pass scaled zones for display)
         if (qteUI) {
-            qteUI.show('parry', config, state.difficulty);
+            qteUI.show('parry', config, state.difficulty, {
+                zoneScale: state.zoneScale
+            });
         }
 
         // Start after delay
@@ -934,18 +1087,11 @@ var QTEEngine = (function() {
 
             setTimeout(function() {
                 if (state.active && state.phase === 'running') {
-                    // Restore zones before timeout
-                    config.zones.perfect = originalZones.perfect;
-                    config.zones.success = originalZones.success;
-                    config.zones.partial = originalZones.partial;
                     handleTimeout();
                 }
             }, totalDuration + 100);
 
         }, config.timing.startDelay * 0.5);  // Faster start for parry
-
-        // Store zones to restore on completion
-        state.originalZones = originalZones;
 
         return true;
     }
@@ -958,7 +1104,7 @@ var QTEEngine = (function() {
      */
     function startGuardBreakQTE(params, callback) {
         if (state.active) {
-            console.warn('QTE already active');
+            _log.warn('QTE', 'QTE already active');
             return false;
         }
 
@@ -969,19 +1115,13 @@ var QTEEngine = (function() {
         state.callback = callback;
         state.difficulty = params.difficulty || 'normal';
 
-        // Guard break has very tight timing
-        var originalZones = {
-            perfect: config.zones.perfect,
-            success: config.zones.success,
-            partial: config.zones.partial
-        };
-
-        config.zones.perfect = originalZones.perfect * 0.5;
-        config.zones.success = originalZones.success * 0.6;
-        config.zones.partial = originalZones.partial * 0.7;
+        // Guard break has very tight timing - use zoneScale instead of mutating config
+        state.zoneScale = 0.55;  // 55% of normal zone sizes for guard break
 
         if (qteUI) {
-            qteUI.show('guardBreak', config, state.difficulty);
+            qteUI.show('guardBreak', config, state.difficulty, {
+                zoneScale: state.zoneScale
+            });
         }
 
         setTimeout(function() {
@@ -1000,16 +1140,11 @@ var QTEEngine = (function() {
 
             setTimeout(function() {
                 if (state.active && state.phase === 'running') {
-                    config.zones.perfect = originalZones.perfect;
-                    config.zones.success = originalZones.success;
-                    config.zones.partial = originalZones.partial;
                     handleTimeout();
                 }
             }, totalDuration + 100);
 
         }, config.timing.startDelay * 0.3);  // Very fast start
-
-        state.originalZones = originalZones;
 
         return true;
     }
@@ -1017,12 +1152,13 @@ var QTEEngine = (function() {
     /**
      * Start a chain combo QTE (multi-hit attack sequence)
      * Player must hit multiple timing windows in succession
+     * @experimental Chain combo system - not yet integrated into main game loop
      * @param {object} params - { difficulty, hits, baseInterval }
      * @param {function} callback - Called with result when complete
      */
     function startChainComboQTE(params, callback) {
         if (state.active) {
-            console.warn('QTE already active');
+            _log.warn('QTE', 'QTE already active');
             return false;
         }
 
@@ -1252,20 +1388,23 @@ var QTEEngine = (function() {
 
     /**
      * Generate a random combo sequence
+     * @experimental Combo system - not yet integrated into main game loop
+     * Enable via TUNING.qte.combo.enabled = true
      * @param {number} length - Number of inputs required
      * @returns {Array} - Array of direction strings
      */
     function generateCombo(length) {
         var combo = [];
         for (var i = 0; i < length; i++) {
-            var randomIndex = Math.floor(Math.random() * config.combo.directions.length);
-            combo.push(config.combo.directions[randomIndex]);
+            combo.push(Utils.pickRandom(config.combo.directions));
         }
         return combo;
     }
 
     /**
      * Handle directional input for combo
+     * @experimental Combo system - not yet integrated into main game loop
+     * Enable via TUNING.qte.combo.enabled = true
      * @param {string} direction - 'up', 'down', 'left', 'right'
      */
     function handleComboInput(direction) {
@@ -1349,6 +1488,7 @@ var QTEEngine = (function() {
         setDifficulty: setDifficulty,
         bindInputs: bindInputs,
         unbindInputs: unbindInputs,
+        cleanup: cleanup,  // Full cleanup for battle end/game reset
 
         // QTE control - Finalized Battle System (NEW)
         startSkillQTE: startSkillQTE,       // Skills: advantage/disadvantage on rolls
@@ -1381,6 +1521,12 @@ var QTEEngine = (function() {
         getType: getType,
         getPhase: getPhase,
         getConfig: getConfig,
+
+        // Countdown management (engine owns timing, UI displays)
+        startCountdown: startCountdown,
+        stopCountdown: stopCountdown,
+        getCountdownRemaining: getCountdownRemaining,
+        isCountdownActive: isCountdownActive,
 
         // Expose config for external access
         config: config,

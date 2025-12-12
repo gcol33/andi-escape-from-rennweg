@@ -37,6 +37,17 @@ var BattleCore = (function() {
         _log.warn('BattleCore', 'BattleData module not loaded - some features will be unavailable');
     }
 
+    /**
+     * Helper to emit events if EventEmitter is available
+     * @param {string} eventName - Event name
+     * @param {*} data - Optional event data
+     */
+    function emitEvent(eventName, data) {
+        if (typeof EventEmitter !== 'undefined') {
+            EventEmitter.emit(eventName, data);
+        }
+    }
+
     // Dev mode: callback to check if status effects should be guaranteed
     var guaranteeStatusCallback = null;
 
@@ -59,6 +70,7 @@ var BattleCore = (function() {
         defaultSkills: P && P.skills ? P.skills : (T && T.player ? T.player.defaultSkills : ['power_strike', 'fireball', 'heal', 'fortify'])
     };
     var enemyDefaults = T ? T.enemy : {
+        defaultName: 'Enemy',
         defaultHP: 20,
         defaultMaxMana: 20,
         defaultAC: 12,
@@ -149,29 +161,6 @@ var BattleCore = (function() {
     // STATE FACTORIES
     // =========================================================================
 
-    function createDefaultPlayerState() {
-        return {
-            name: playerDefaults.defaultName,
-            hp: playerDefaults.defaultMaxHP,
-            maxHP: playerDefaults.defaultMaxHP,
-            mana: playerDefaults.defaultMaxMana,
-            maxMana: playerDefaults.defaultMaxMana,
-            ac: playerDefaults.defaultAC,
-            attackBonus: playerDefaults.defaultAttackBonus,
-            damage: playerDefaults.defaultDamage,
-            type: 'physical',
-            defending: false,
-            statuses: [],
-            skills: playerDefaults.defaultSkills.slice(),
-            stagger: 0,
-            staggerThreshold: playerDefaults.defaultStaggerThreshold,
-            limitCharge: 0,
-            limitBreak: playerDefaults.defaultLimitBreak,
-            passives: [],
-            items: []
-        };
-    }
-
     function createDefaultEnemyState() {
         return {
             name: 'Enemy',
@@ -214,9 +203,7 @@ var BattleCore = (function() {
         }
 
         // Emit init event
-        if (typeof EventEmitter !== 'undefined') {
-            EventEmitter.emit('battle:core-init');
-        }
+        emitEvent('battle:core-init');
     }
 
     /**
@@ -240,52 +227,36 @@ var BattleCore = (function() {
     // =========================================================================
 
     /**
-     * Start a new battle
-     * @param {Object} config - Battle configuration (flat format from story.js)
-     * @param {string} sceneId - Current scene ID
-     * @returns {Object} Initial battle state
+     * Initialize player state from config
+     * @param {Object} config - Battle configuration
      */
-    function startBattle(config, sceneId) {
-        // Reset state
-        state.active = true;
-        state.phase = 'player';
-        state.turn = 1;
-        state.terrain = config.terrain || 'none';
-        state.currentScene = sceneId;
-        state.battleLog = [];
+    function initializePlayerState(config) {
+        // Priority: 1) persisted from engine (localStorage), 2) current session, 3) maxHP
+        var persistedHP = config.persisted_hp !== null && config.persisted_hp !== undefined
+            ? config.persisted_hp
+            : state.player.hp;
+        var persistedMana = config.persisted_mana !== null && config.persisted_mana !== undefined
+            ? config.persisted_mana
+            : state.player.mana;
 
-        // Reset summon system
-        if (_hasBattleSummon) {
-            BattleSummon.reset();
-        }
+        // Set maxHP/maxMana (prefer persisted, then config, then defaults)
+        state.player.maxHP = config.persisted_max_hp || config.player_max_hp || playerDefaults.defaultMaxHP;
+        state.player.maxMana = config.persisted_max_mana || config.player_max_mana || playerDefaults.defaultMaxMana;
 
-        // Set up targets
-        state.targets = {
-            win: config.win_target,
-            lose: config.lose_target,
-            flee: config.flee_target || null
-        };
-
-        // Initialize player stats (matching original battle.js logic)
-        // Keep HP if persisted from previous battle
-        var persistedHP = state.player.hp;
-        var persistedMana = state.player.mana;
-
-        if (persistedHP === null || persistedHP <= 0) {
-            state.player.maxHP = config.player_max_hp || playerDefaults.defaultMaxHP;
-            state.player.hp = state.player.maxHP;
-        }
-        if (persistedMana === null) {
-            state.player.maxMana = config.player_max_mana || playerDefaults.defaultMaxMana;
-            state.player.mana = state.player.maxMana;
-        }
+        // Set current HP/Mana (use persisted if valid, otherwise full)
+        state.player.hp = (persistedHP === null || persistedHP <= 0)
+            ? state.player.maxHP
+            : Math.min(persistedHP, state.player.maxHP);
+        state.player.mana = (persistedMana === null)
+            ? state.player.maxMana
+            : Math.min(persistedMana, state.player.maxMana);
 
         state.player.ac = config.player_ac || playerDefaults.defaultAC;
         state.player.attackBonus = config.player_attack_bonus || playerDefaults.defaultAttackBonus;
         state.player.damage = config.player_damage || playerDefaults.defaultDamage;
         state.player.type = config.player_type || 'physical';
         state.player.defending = false;
-        state.player.defendCooldown = 0;  // Turns until defend is available again
+        state.player.defendCooldown = 0;
         state.player.statuses = [];
         state.player.stagger = 0;
         state.player.staggerThreshold = config.player_stagger_threshold || playerDefaults.defaultStaggerThreshold;
@@ -298,13 +269,27 @@ var BattleCore = (function() {
         state.player.passives = config.player_passives || [];
         state.player.skills = config.player_skills || playerDefaults.defaultSkills.slice();
         state.player.items = [];
+    }
 
-        // Set up enemy from enemies.js if specified
+    /**
+     * Initialize enemy state from config
+     * @param {Object} config - Battle configuration
+     */
+    function initializeEnemyState(config) {
         var enemy = config.enemy || {};
-        if (config.enemy_id && typeof enemies !== 'undefined' && enemies[config.enemy_id]) {
-            var enemyData = enemies[config.enemy_id];
-            enemy = Object.assign({}, enemyData, enemy);
-            enemy.id = config.enemy_id;
+
+        // Load from enemies.js if specified
+        if (config.enemy_id) {
+            if (typeof enemies === 'undefined') {
+                _log.warn('BattleCore', 'enemy_id specified but enemies.js not loaded:', config.enemy_id);
+            } else if (!enemies[config.enemy_id]) {
+                _log.warn('BattleCore', 'enemy_id not found in enemies.js:', config.enemy_id,
+                    'Available enemies:', Object.keys(enemies).join(', '));
+            } else {
+                var enemyData = enemies[config.enemy_id];
+                enemy = Object.assign({}, enemyData, enemy);
+                enemy.id = config.enemy_id;
+            }
         }
 
         state.enemy = {
@@ -329,8 +314,12 @@ var BattleCore = (function() {
             summons: enemy.summons || null,
             intents: enemy.intents || null
         };
+    }
 
-        // Reset music state
+    /**
+     * Reset auxiliary battle state (music, dialogue)
+     */
+    function resetAuxiliaryState() {
         state.musicState = {
             originalTrack: null,
             currentTrack: null,
@@ -339,20 +328,64 @@ var BattleCore = (function() {
             enemyCriticalTriggered: false
         };
 
-        // Reset dialogue state
         state.dialogue = {
             lastTrigger: null,
             cooldown: 0
         };
+    }
+
+    /**
+     * Start a new battle
+     * @param {Object} config - Battle configuration (flat format from story.js)
+     * @param {string} sceneId - Current scene ID
+     * @returns {Object} Initial battle state
+     */
+    function startBattle(config, sceneId) {
+        // Input validation
+        if (!config) {
+            _log.error('BattleCore', 'startBattle called without config');
+            return null;
+        }
+        if (!config.win_target) {
+            _log.error('BattleCore', 'startBattle requires win_target');
+            return null;
+        }
+        if (!config.lose_target) {
+            _log.error('BattleCore', 'startBattle requires lose_target');
+            return null;
+        }
+
+        // Reset core state
+        state.active = true;
+        state.phase = 'player';
+        state.turn = 1;
+        state.terrain = config.terrain || 'none';
+        state.currentScene = sceneId;
+        state.battleLog = [];
+
+        // Reset summon system
+        if (_hasBattleSummon) {
+            BattleSummon.reset();
+        }
+
+        // Set up targets
+        state.targets = {
+            win: config.win_target,
+            lose: config.lose_target,
+            flee: config.flee_target || null
+        };
+
+        // Initialize combatants
+        initializePlayerState(config);
+        initializeEnemyState(config);
+        resetAuxiliaryState();
 
         // Emit event
-        if (typeof EventEmitter !== 'undefined') {
-            EventEmitter.emit('battle:start', {
-                player: state.player,
-                enemy: state.enemy,
-                terrain: state.terrain
-            });
-        }
+        emitEvent('battle:start', {
+            player: state.player,
+            enemy: state.enemy,
+            terrain: state.terrain
+        });
 
         return getState();
     }
@@ -379,9 +412,7 @@ var BattleCore = (function() {
         }
 
         // Emit event
-        if (typeof EventEmitter !== 'undefined') {
-            EventEmitter.emit('battle:end', { result: result, target: targetScene });
-        }
+        emitEvent('battle:end', { result: result, target: targetScene });
 
         return {
             result: result,
@@ -444,16 +475,14 @@ var BattleCore = (function() {
         addLimitCharge(combatConfig.limitChargeOnTakeDamage);
 
         // Emit event
-        if (typeof EventEmitter !== 'undefined') {
-            EventEmitter.emit('player:damaged', {
-                amount: actualDamage,
-                source: options.source,
-                type: options.type,
-                isCrit: options.isCrit,
-                oldHP: oldHP,
-                newHP: state.player.hp
-            });
-        }
+        emitEvent('player:damaged', {
+            amount: actualDamage,
+            source: options.source,
+            type: options.type,
+            isCrit: options.isCrit,
+            oldHP: oldHP,
+            newHP: state.player.hp
+        });
 
         return {
             damage: actualDamage,
@@ -474,12 +503,10 @@ var BattleCore = (function() {
         state.player.hp = Math.min(state.player.maxHP, state.player.hp + amount);
         var actualHeal = state.player.hp - oldHP;
 
-        if (typeof EventEmitter !== 'undefined') {
-            EventEmitter.emit('player:healed', {
-                amount: actualHeal,
-                source: source
-            });
-        }
+        emitEvent('player:healed', {
+            amount: actualHeal,
+            source: source
+        });
 
         return {
             healed: actualHeal,
@@ -536,21 +563,17 @@ var BattleCore = (function() {
             }
         }
 
-        if (typeof EventEmitter !== 'undefined') {
-            EventEmitter.emit('enemy:damaged', {
-                amount: actualDamage,
-                source: options.source,
-                type: options.type,
-                isCrit: options.isCrit,
-                oldHP: oldHP,
-                newHP: state.enemy.hp
-            });
-        }
+        emitEvent('enemy:damaged', {
+            amount: actualDamage,
+            source: options.source,
+            type: options.type,
+            isCrit: options.isCrit,
+            oldHP: oldHP,
+            newHP: state.enemy.hp
+        });
 
         if (state.enemy.hp <= 0) {
-            if (typeof EventEmitter !== 'undefined') {
-                EventEmitter.emit('enemy:defeated', { enemy: state.enemy });
-            }
+            emitEvent('enemy:defeated', { enemy: state.enemy });
         }
 
         return {
@@ -672,13 +695,11 @@ var BattleCore = (function() {
                 justApplied: true  // Skip first tick for DOT effects
             });
 
-            if (typeof EventEmitter !== 'undefined') {
-                EventEmitter.emit('player:status', {
-                    target: target === state.player ? 'player' : 'enemy',
-                    status: statusType,
-                    applied: true
-                });
-            }
+            emitEvent('player:status', {
+                target: target === state.player ? 'player' : 'enemy',
+                status: statusType,
+                applied: true
+            });
 
             return {
                 applied: true,
@@ -727,13 +748,11 @@ var BattleCore = (function() {
                 justApplied: true  // Skip first tick for DOT effects
             });
 
-            if (typeof EventEmitter !== 'undefined') {
-                EventEmitter.emit('player:status', {
-                    target: target === state.player ? 'player' : 'enemy',
-                    status: statusType,
-                    applied: true
-                });
-            }
+            emitEvent('player:status', {
+                target: target === state.player ? 'player' : 'enemy',
+                status: statusType,
+                applied: true
+            });
 
             return {
                 applied: true,
@@ -840,17 +859,23 @@ var BattleCore = (function() {
                 result.messages.push(targetName + ' recovers <span class="regen-mp">+' + def.manaPerTurn + ' MP</span>!');
             }
 
-            // Check if status is marked for removal (reached 0 on previous turn)
+            // Decrement duration BEFORE checking expiry (fixes off-by-one bug)
+            // Skip decrement on first turn (justApplied)
+            if (!skipDOT) {
+                status.duration--;
+            }
+
+            // Check if status expired (duration reached 0 after decrement)
             if (status.duration <= 0) {
                 target.statuses.splice(i, 1);
                 result.expiredStatuses.push(status.type);  // Track expired status
                 result.messages.push(def.icon + ' ' + def.name + ' wore off!');
-                continue;  // Status cleared at start of turn, skip processing
+                continue;  // Status expired, skip further processing
             }
 
             // Confusion self-damage check
             // Logic:
-            // - 40% chance: hurt self (roll 1-5 damage), can't act this turn, confusion stays (will auto-clear next turn)
+            // - 40% chance: hurt self (roll 1-5 damage), can't act this turn, confusion persists
             // - 60% chance: shake off confusion immediately, can act this turn
             // Skip on first turn (justApplied) - confusion shouldn't tick the turn it's applied
             if (def.selfDamageChance && !skipDOT) {
@@ -863,8 +888,8 @@ var BattleCore = (function() {
                     result.confusionDamage = selfDamage;  // Store separately for proper display
                     result.canAct = false;  // Can't act when confused and hurt self
                     result.confusionTriggered = true;
-                    // Set duration to 1 so it clears at START of next turn
-                    status.duration = 1;
+                    // NOTE: Duration already decremented above, don't force duration=1
+                    // Confusion persists naturally until shake-off succeeds or duration expires
                 } else {
                     // Shake off - clear confusion immediately, can act this turn
                     var shakeOffMsg = def.icon + ' ' + targetName + ' shakes off confusion!';
@@ -872,7 +897,7 @@ var BattleCore = (function() {
                     // Remove confusion immediately
                     target.statuses.splice(i, 1);
                     result.expiredStatuses.push(status.type);
-                    continue;  // Skip duration decrement since we removed it
+                    continue;
                 }
             }
 
@@ -885,10 +910,6 @@ var BattleCore = (function() {
                 else if (statusVerb === 'freeze') statusVerb = 'frozen';
                 result.messages.push(def.icon + ' ' + targetName + ' is ' + statusVerb + ' and cannot act!');
             }
-
-            // Decrement duration at end of turn processing
-            // If it reaches 0, status will be cleared at START of next turn
-            status.duration--;
         }
 
         return result;
@@ -1071,6 +1092,7 @@ var BattleCore = (function() {
 
     /**
      * Get available battle items
+     * Uses map for O(n) lookup instead of O(n²) array search
      */
     function getAvailableItems() {
         var available = [];
@@ -1079,16 +1101,18 @@ var BattleCore = (function() {
 
         if (callbacks.getInventory) {
             var inventory = callbacks.getInventory();
+            var itemMap = {};  // Map itemId -> index in available array
+
             for (var i = 0; i < inventory.length; i++) {
                 var itemName = inventory[i];
                 var itemId = itemName.toLowerCase().replace(/\s+/g, '_');
                 var itemDef = BattleData.getItem(itemId);
 
                 if (itemDef) {
-                    var existing = findItemInList(available, itemId);
-                    if (existing) {
-                        existing.quantity++;
+                    if (itemMap.hasOwnProperty(itemId)) {
+                        available[itemMap[itemId]].quantity++;
                     } else {
+                        itemMap[itemId] = available.length;
                         available.push({
                             id: itemId,
                             name: itemDef.name,
@@ -1103,13 +1127,6 @@ var BattleCore = (function() {
         }
 
         return available;
-    }
-
-    function findItemInList(list, itemId) {
-        for (var i = 0; i < list.length; i++) {
-            if (list[i].id === itemId) return list[i];
-        }
-        return null;
     }
 
     /**
@@ -1379,7 +1396,9 @@ var BattleCore = (function() {
 
         if (line) {
             state.dialogue.lastTrigger = trigger;
-            state.dialogue.cooldown = 2;  // Turns until next dialogue
+            // Use tuning value for dialogue cooldown
+            var aiConfig = T && T.battle && T.battle.ai ? T.battle.ai : {};
+            state.dialogue.cooldown = aiConfig.tauntCooldown || 2;
             return line;
         }
         return null;

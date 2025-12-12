@@ -13,6 +13,9 @@
 var QuizEngine = (function() {
     'use strict';
 
+    // Use Logger module via Utils
+    var _log = Utils.getLogger();
+
     // === State ===
     var state = {
         active: false,
@@ -40,6 +43,7 @@ var QuizEngine = (function() {
             var data = localStorage.getItem(STORAGE_KEY);
             return data ? JSON.parse(data) : {};
         } catch (e) {
+            _log.warn('Quiz', 'Could not load seen answers:', e);
             return {};
         }
     }
@@ -57,7 +61,7 @@ var QuizEngine = (function() {
             seen[key] = correctIndex;
             localStorage.setItem(STORAGE_KEY, JSON.stringify(seen));
         } catch (e) {
-            console.warn('[Quiz] Could not save seen answer:', e);
+            _log.warn('Quiz', 'Could not save seen answer:', e);
         }
     }
 
@@ -98,14 +102,37 @@ var QuizEngine = (function() {
      */
     function start(config, onComplete) {
         if (state.active) {
-            console.warn('[Quiz] Already active, ignoring start');
+            _log.warn('Quiz', 'Already active, ignoring start');
             return;
+        }
+
+        // Validate required config
+        if (!config) {
+            _log.error('Quiz', 'No config provided');
+            if (onComplete) onComplete({ won: false, target: null, reason: 'invalid_config' });
+            return;
+        }
+
+        if (!config.questions || !Array.isArray(config.questions) || config.questions.length === 0) {
+            _log.error('Quiz', 'No questions provided or empty questions array');
+            if (onComplete) onComplete({ won: false, target: config.loseTarget || null, reason: 'no_questions' });
+            return;
+        }
+
+        // Validate each question has answers
+        for (var i = 0; i < config.questions.length; i++) {
+            var q = config.questions[i];
+            if (!q || !q.answers || !Array.isArray(q.answers) || q.answers.length === 0) {
+                _log.error('Quiz', 'Question', i, 'has no answers');
+                if (onComplete) onComplete({ won: false, target: config.loseTarget || null, reason: 'invalid_question' });
+                return;
+            }
         }
 
         var cfg = getConfig();
 
         state.active = true;
-        state.questions = config.questions || [];
+        state.questions = config.questions;
         state.currentIndex = 0;
         state.timePerQuestion = config.timePerQuestion || cfg.defaultTime;
         state.timeRemaining = state.timePerQuestion;
@@ -114,7 +141,7 @@ var QuizEngine = (function() {
         state.quizId = config.quizId || 'default';
         state.onComplete = onComplete;
 
-        console.log('[Quiz] Starting with', state.questions.length, 'questions, id:', state.quizId);
+        _log.debug('Quiz', 'Starting with', state.questions.length, 'questions, id:', state.quizId);
 
         // Show first question
         showCurrentQuestion();
@@ -160,10 +187,10 @@ var QuizEngine = (function() {
 
         // Clear any existing timer
         if (state.timerInterval) {
-            clearInterval(state.timerInterval);
+            TimerManager.clear(state.timerInterval);
         }
 
-        state.timerInterval = setInterval(function() {
+        state.timerInterval = TimerManager.setInterval(function() {
             state.timeRemaining--;
 
             // Notify UI of time update
@@ -173,11 +200,11 @@ var QuizEngine = (function() {
 
             // Time's up!
             if (state.timeRemaining <= 0) {
-                clearInterval(state.timerInterval);
+                TimerManager.clear(state.timerInterval);
                 state.timerInterval = null;
                 endQuiz(false, 'timeout');
             }
-        }, cfg.tickInterval);
+        }, cfg.tickInterval, 'quiz');
     }
 
     /**
@@ -185,7 +212,7 @@ var QuizEngine = (function() {
      */
     function stopTimer() {
         if (state.timerInterval) {
-            clearInterval(state.timerInterval);
+            TimerManager.clear(state.timerInterval);
             state.timerInterval = null;
         }
     }
@@ -201,17 +228,24 @@ var QuizEngine = (function() {
 
         var question = state.questions[state.currentIndex];
 
-        // Bounds check for answer index
+        // Bounds check for answer index - show user-facing error before ending quiz
         if (!question || !question.answers || answerIndex < 0 || answerIndex >= question.answers.length) {
-            console.error('[Quiz] Invalid answer index:', answerIndex, 'for question:', state.currentIndex);
-            endQuiz(false, 'error');
+            _log.error('Quiz', 'Invalid answer index:', answerIndex, 'for question:', state.currentIndex);
+            // Show error to user via UI before ending
+            if (typeof QuizUI !== 'undefined' && QuizUI.showError) {
+                QuizUI.showError('An error occurred. Please try again.', function() {
+                    endQuiz(false, 'error');
+                });
+            } else {
+                endQuiz(false, 'error');
+            }
             return;
         }
 
         var selectedAnswer = question.answers[answerIndex];
         var isCorrect = selectedAnswer && selectedAnswer.correct === true;
 
-        console.log('[Quiz] Answer submitted:', answerIndex, 'correct:', isCorrect);
+        _log.debug('Quiz', 'Answer submitted:', answerIndex, 'correct:', isCorrect);
 
         // Find the correct answer index for this question
         var correctIndex = -1;
@@ -262,7 +296,7 @@ var QuizEngine = (function() {
             totalQuestions: state.questions.length
         };
 
-        console.log('[Quiz] Ended:', result);
+        _log.debug('Quiz', 'Ended:', result);
 
         // Show outro screen via UI
         if (typeof QuizUI !== 'undefined') {

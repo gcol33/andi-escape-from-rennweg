@@ -36,16 +36,48 @@ global.document = {
     }
 };
 
-global.window = {
-    location: { search: '' }
-};
+// Make window an alias to global so IIFE exports work (window.X = X)
+global.window = global;
+global.window.location = { search: '' };
 
 // Load battle engine (modular system)
 console.log('Loading battle engine...');
 var fs = require('fs');
 var path = require('path');
 
-// Load utils first (provides shared utilities like getLogger)
+/**
+ * Strip ES module syntax for eval() compatibility
+ * Converts ES modules to work in Node.js CommonJS context
+ * @param {string} code - Source code
+ * @returns {string} Code with ES module syntax removed
+ */
+function stripESModuleSyntax(code) {
+    return code
+        // Remove "export function" -> "function"
+        .replace(/^export function /gm, 'function ')
+        // Remove "export const" -> "var" (var is hoisted to global in eval)
+        .replace(/^export const /gm, 'var ')
+        // Remove "export let" -> "var"
+        .replace(/^export let /gm, 'var ')
+        // Remove "export var" -> "var"
+        .replace(/^export var /gm, 'var ')
+        // Convert const to var (var is hoisted in eval context)
+        .replace(/^const /gm, 'var ')
+        // Convert let to var
+        .replace(/^let /gm, 'var ')
+        // Remove "export default X;" lines
+        .replace(/^export default .*?;?\s*$/gm, '')
+        // Remove "export { ... };" lines
+        .replace(/^export \{[^}]*\};?\s*$/gm, '')
+        // Remove "import ... from ..." lines
+        .replace(/^import .*? from .*?;?\s*$/gm, '');
+}
+
+// Load logger first (Utils.getLogger depends on it)
+var loggerCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'logger.js'), 'utf8');
+eval(loggerCode);
+
+// Load utils (provides shared utilities like getLogger)
 var utilsCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'utils.js'), 'utf8');
 eval(utilsCode);
 
@@ -55,24 +87,24 @@ eval(tuningCode);
 
 // Load modular battle system in dependency order
 var battleDataCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-data.js'), 'utf8');
-eval(battleDataCode);
+eval(stripESModuleSyntax(battleDataCode));
 var battleDiceCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-dice.js'), 'utf8');
-eval(battleDiceCode);
+eval(stripESModuleSyntax(battleDiceCode));
 var battleSummonCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-summon.js'), 'utf8');
-eval(battleSummonCode);
+eval(stripESModuleSyntax(battleSummonCode));
 var summonsCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'summons.js'), 'utf8');
-eval(summonsCode);
+eval(stripESModuleSyntax(summonsCode));
 var battleCoreCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-core.js'), 'utf8');
-eval(battleCoreCode);
+eval(stripESModuleSyntax(battleCoreCode));
 var battleDndCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-dnd.js'), 'utf8');
-eval(battleDndCode);
+eval(stripESModuleSyntax(battleDndCode));
 var battlePokemonCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-pokemon.js'), 'utf8');
-eval(battlePokemonCode);
+eval(stripESModuleSyntax(battlePokemonCode));
 var battleExp33Code = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-exp33.js'), 'utf8');
-eval(battleExp33Code);
+eval(stripESModuleSyntax(battleExp33Code));
 // Note: battle-finalized.js was removed/merged - skipping
 var battleFacadeCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-facade.js'), 'utf8');
-eval(battleFacadeCode);
+eval(stripESModuleSyntax(battleFacadeCode));
 
 // Load test code
 var testCode = fs.readFileSync(path.join(__dirname, 'battle.test.js'), 'utf8');

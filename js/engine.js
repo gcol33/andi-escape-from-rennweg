@@ -61,9 +61,15 @@ var VNEngine = (function() {
         maxBlockLength: typeof TUNING !== 'undefined' ? TUNING.text.maxBlockLength : 350,
         // UI timing from TUNING
         timing: {
-            errorFlash: typeof TUNING !== 'undefined' ? TUNING.ui.errorFlash : 300,
-            damageNumber: typeof TUNING !== 'undefined' ? TUNING.ui.damageNumberDuration : 1500,
-            spriteFlash: typeof TUNING !== 'undefined' ? TUNING.battle.effects.spriteFlash : 300
+            errorFlash: typeof TUNING !== 'undefined' && TUNING.ui ? TUNING.ui.errorFlash : 300,
+            damageNumber: typeof TUNING !== 'undefined' && TUNING.ui ? TUNING.ui.damageNumberDuration : 1500,
+            spriteFlash: typeof TUNING !== 'undefined' ? TUNING.battle.effects.spriteFlash : 300,
+            hintTypewriterDelay: typeof TUNING !== 'undefined' && TUNING.ui ? TUNING.ui.hintTypewriterDelay : 300,
+            hintTypewriterSpeed: typeof TUNING !== 'undefined' && TUNING.ui ? TUNING.ui.hintTypewriterSpeed : 45,
+            hintCardRevealDelay: typeof TUNING !== 'undefined' && TUNING.ui ? TUNING.ui.hintCardRevealDelay : 500,
+            tarotCardRevealDelay: typeof TUNING !== 'undefined' && TUNING.ui ? TUNING.ui.tarotCardRevealDelay : 400,
+            tarotCardFlipDuration: typeof TUNING !== 'undefined' && TUNING.ui ? TUNING.ui.tarotCardFlipDuration : 600,
+            choiceButtonDelay: typeof TUNING !== 'undefined' && TUNING.ui ? TUNING.ui.choiceButtonDelay : 300
         }
     };
 
@@ -84,8 +90,7 @@ var VNEngine = (function() {
     var state = {
         currentSceneId: null,
         currentBlockIndex: 0,
-        flags: {},           // regular flags (cleared on Play Again)
-        keyFlags: {},        // key flags (persist across Play Again, like skills)
+        // Flags are now managed by flagManager (see js/managers/flag-manager.js)
         inventory: {
             keyItems: [],      // unique key items (no count) - persist across Play Again
             consumables: {},   // consumable items with counts { "Coffee": 2, "Snack": 1 } - cleared on Play Again
@@ -94,6 +99,8 @@ var VNEngine = (function() {
         inventoryExpanded: false, // UI state for expandable panel
         playerHP: null, // player HP (null until first battle)
         playerMaxHP: typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxHP : 20,
+        playerMana: null, // player Mana (null until first battle)
+        playerMaxMana: typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxMana : 20,
         battle: null, // active battle state
         history: [],
         readBlocks: {}, // tracks which scene+block combos have been read
@@ -246,10 +253,29 @@ var VNEngine = (function() {
         /**
          * Custom action handler for extensibility
          * Calls named handler functions with params
+         *
+         * Security: Uses allowlist to prevent arbitrary function execution
+         * Add new custom handlers to customHandlerAllowlist below
          */
         custom: function(action) {
             var handlerName = action.handler;
             var params = action.params || {};
+
+            // Allowlist of safe custom handler names
+            // Add new custom handlers here as they are created
+            var customHandlerAllowlist = {
+                'showSpecialEvent': true,
+                'showTutorial': true,
+                'unlockAchievement': true,
+                'showCutscene': true,
+                'triggerMinigame': true
+            };
+
+            // Check allowlist first
+            if (!customHandlerAllowlist[handlerName]) {
+                _log.error('Engine', 'Custom handler not in allowlist: ' + handlerName);
+                return;
+            }
 
             if (typeof window[handlerName] === 'function') {
                 window[handlerName](params, state);
@@ -292,10 +318,19 @@ var VNEngine = (function() {
 
             // Start battle using the module
             if (typeof BattleEngine !== 'undefined') {
-                var battleState = BattleEngine.start(action, state.currentSceneId);
-                // Sync player HP with engine state for saving
+                // Pass persisted HP/Mana from engine state to battle
+                var battleConfig = Object.assign({}, action, {
+                    persisted_hp: state.playerHP,
+                    persisted_max_hp: state.playerMaxHP,
+                    persisted_mana: state.playerMana,
+                    persisted_max_mana: state.playerMaxMana
+                });
+                var battleState = BattleEngine.start(battleConfig, state.currentSceneId);
+                // Sync player HP/Mana with engine state for saving
                 state.playerHP = battleState.player.hp;
                 state.playerMaxHP = battleState.player.maxHP;
+                state.playerMana = battleState.player.mana;
+                state.playerMaxMana = battleState.player.maxMana;
                 state.battle = { active: true }; // Flag for engine to know battle is active
 
                 // Register callback for when battle UI is ready (after intro animation)
@@ -361,23 +396,31 @@ var VNEngine = (function() {
             // Reset core state (but don't change scene yet)
             state.currentBlockIndex = 0;
 
-            // Flags are always cleared on reset (skills replace persistent flags)
-            state.flags = {};
+            // Flags are always cleared on reset (via flagManager)
+            if (typeof flagManager !== 'undefined') {
+                flagManager.clearAll();
+            }
 
-            // Skills persist across soft reset (New Game+ style)
-            // Key items and consumables are cleared
-            // Full reset clears everything including skills
+            // Skills and key items persist across soft reset (New Game+ style)
+            // Consumables are cleared on soft reset
+            // Full reset clears everything including skills, key items
             if (fullReset) {
                 state.inventory = { keyItems: [], consumables: {}, skills: [] };
+                if (typeof flagManager !== 'undefined') {
+                    flagManager.clearAllKey();
+                }
             } else {
-                state.inventory.keyItems = [];
+                // Keep skills and key items, clear only consumables
                 state.inventory.consumables = {};
+                // keyItems are preserved
                 // skills are preserved
             }
 
-            // Reset HP and battle state
+            // Reset HP/Mana and battle state
             state.playerHP = null;
             state.playerMaxHP = typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxHP : 20;
+            state.playerMana = null;
+            state.playerMaxMana = typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxMana : 20;
             state.battle = null;
             state.history = [];
 
@@ -458,6 +501,8 @@ var VNEngine = (function() {
          * Wake sequence action handler
          * Shows "..." → waits → erases → shows wake text + random flavor → "Wake up" button → fade to target
          *
+         * Uses TimerManager for proper cleanup if sequence is aborted.
+         *
          * Supports:
          * - target: scene to navigate to after wake up
          * - fade_duration: fade duration in ms (default 1000)
@@ -474,12 +519,20 @@ var VNEngine = (function() {
                 return;
             }
 
+            // Abort token - allows cancellation if player navigates away
+            var sequenceAborted = false;
+            var sequenceId = state.currentSceneId;  // Track which scene started this
+
+            // Helper to check if sequence should continue
+            function isSequenceActive() {
+                return !sequenceAborted && state.currentSceneId === sequenceId;
+            }
+
             // Get random flavor from current scene
             var currentScene = story[state.currentSceneId];
             var flavorText = '';
             if (currentScene && currentScene.random_flavor && currentScene.random_flavor.length > 0) {
-                var randomIndex = Math.floor(Math.random() * currentScene.random_flavor.length);
-                flavorText = currentScene.random_flavor[randomIndex];
+                flavorText = Utils.pickRandom(currentScene.random_flavor);
             }
 
             // Hide choices container during sequence
@@ -492,6 +545,8 @@ var VNEngine = (function() {
 
             // Step 1: Show "..." with typewriter effect
             renderText('...', '', function() {
+                if (!isSequenceActive()) return;  // Abort check
+
                 // Step 2: Fade from black to target background
                 if (fadeOverlay && targetScene.bg) {
                     // Start with black overlay visible (we're on black.svg)
@@ -502,33 +557,54 @@ var VNEngine = (function() {
                     var targetPath = config.assetPaths.bg + targetScene.bg;
                     var preloadImg = new Image();
                     preloadImg.onload = function() {
+                        if (!isSequenceActive()) return;  // Abort check
+
                         // Set new background while hidden behind black overlay
                         bgLayer.style.backgroundImage = 'url("' + targetPath + '")';
 
-                        // Small delay to ensure background is rendered
-                        setTimeout(function() {
-                            // Now fade out the black overlay to reveal the new bg
-                            fadeOverlay.style.transition = 'opacity ' + (totalFadeDuration / 1000) + 's ease-in-out';
-                            fadeOverlay.classList.remove('fade-visible');
-                        }, 50);
+                        // Small delay to ensure background is rendered - use TimerManager
+                        if (typeof TimerManager !== 'undefined') {
+                            TimerManager.setTimeout(function() {
+                                if (!isSequenceActive()) return;
+                                // Now fade out the black overlay to reveal the new bg
+                                fadeOverlay.style.transition = 'opacity ' + (totalFadeDuration / 1000) + 's ease-in-out';
+                                fadeOverlay.classList.remove('fade-visible');
+                            }, 50, 'wake');
+                        } else {
+                            setTimeout(function() {
+                                if (!isSequenceActive()) return;
+                                fadeOverlay.style.transition = 'opacity ' + (totalFadeDuration / 1000) + 's ease-in-out';
+                                fadeOverlay.classList.remove('fade-visible');
+                            }, 50);
+                        }
                     };
                     preloadImg.src = targetPath;
                 }
 
-                // Step 3: After wait, show wake text (while bg is fading)
-                setTimeout(function() {
+                // Step 3: After wait, show wake text (while bg is fading) - use TimerManager
+                var scheduleWakeText = function() {
+                    if (!isSequenceActive()) return;
+
                     var wakeText = 'Your eyes open.';
                     if (flavorText) {
                         wakeText += ' ' + flavorText;
                     }
 
                     renderText(wakeText, '', function() {
+                        if (!isSequenceActive()) return;  // Abort check
+
                         // Step 4: Show "Wake up" button after text completes
                         if (elements.choicesContainer) {
                             var wakeButton = document.createElement('button');
                             wakeButton.className = 'choice-button';
                             wakeButton.textContent = 'Wake up';
                             wakeButton.onclick = function() {
+                                // Mark sequence as done
+                                sequenceAborted = true;
+                                // Clean up any remaining wake timers
+                                if (typeof TimerManager !== 'undefined') {
+                                    TimerManager.clearAll('wake');
+                                }
                                 // Disable button
                                 wakeButton.disabled = true;
                                 wakeButton.style.opacity = '0.5';
@@ -539,7 +615,13 @@ var VNEngine = (function() {
                             elements.choicesContainer.appendChild(wakeButton);
                         }
                     });
-                }, waitDuration);
+                };
+
+                if (typeof TimerManager !== 'undefined') {
+                    TimerManager.setTimeout(scheduleWakeText, waitDuration, 'wake');
+                } else {
+                    setTimeout(scheduleWakeText, waitDuration);
+                }
             });
         },
 
@@ -781,9 +863,9 @@ var VNEngine = (function() {
                         setTimeout(function() {
                             continueBtn.classList.add('show');
                             overlay.style.cursor = 'default';
-                        }, 400);
+                        }, config.timing.tarotCardRevealDelay);
                     }
-                }, 600);
+                }, config.timing.tarotCardFlipDuration);
 
                 currentIndex++;
             }
@@ -829,7 +911,7 @@ var VNEngine = (function() {
 
                 // Typewriter: reveal characters one at a time
                 var hintIndex = 0;
-                var hintSpeed = 45; // ms per character (slower for readability)
+                var hintSpeed = config.timing.hintTypewriterSpeed;
 
                 function revealNextChar() {
                     if (hintIndex < charSpans.length) {
@@ -844,7 +926,7 @@ var VNEngine = (function() {
                 }
 
                 // Start typewriter after a brief pause
-                setTimeout(revealNextChar, 300);
+                setTimeout(revealNextChar, config.timing.hintTypewriterDelay);
 
                 // Click to skip typewriter
                 hintScreen.onclick = function(ev) {
@@ -868,7 +950,7 @@ var VNEngine = (function() {
             };
 
             // Auto-reveal first card after a moment
-            setTimeout(revealNext, 500);
+            setTimeout(revealNext, config.timing.hintCardRevealDelay);
         }
     };
 
@@ -932,6 +1014,7 @@ var VNEngine = (function() {
     function markBattleWon(sceneId) {
         state.wonBattles[sceneId] = true;
         saveState();
+        syncToStore();
         _log.debug('Engine','Battle marked as won: ' + sceneId);
     }
 
@@ -1172,10 +1255,12 @@ var VNEngine = (function() {
                 // We just need to re-render the choices
                 renderBattleChoices(scene.battle_actions || scene.choices);
 
-                // Sync HP state
+                // Sync HP/Mana state
                 var stats = BattleEngine.getPlayerStats();
                 state.playerHP = stats.hp;
                 state.playerMaxHP = stats.maxHP;
+                state.playerMana = stats.mana;
+                state.playerMaxMana = stats.maxMana;
             }
         });
     }
@@ -1331,7 +1416,7 @@ var VNEngine = (function() {
         var battleState = BattleEngine.getState();
         var currentMana = battleState.player.mana;
 
-        console.log('[Skill Menu] Opened with mana:', currentMana, 'skills:', playerSkills.map(function(s) {
+        _log.debug('Engine', '[Skill Menu] Opened with mana:', currentMana, 'skills:', playerSkills.map(function(s) {
             return { name: s.name, cost: s.manaCost, canUse: s.canUse };
         }));
 
@@ -1370,7 +1455,7 @@ var VNEngine = (function() {
                         var currentState = BattleEngine.getState();
                         var currentMana = currentState.player.mana;
                         if (currentMana < skillData.manaCost) {
-                            console.warn('[Skill] Mana desync detected!', {
+                            _log.warn('Engine', '[Skill] Mana desync detected!', {
                                 skill: skillData.name,
                                 skillCost: skillData.manaCost,
                                 displayedCanUse: skillData.canUse,
@@ -1686,7 +1771,7 @@ var VNEngine = (function() {
                 setForcedDamage: function(val) { state.devForcedDamage = val; },
                 loadScene: loadScene,
                 getCurrentScene: function() { return state.currentSceneId; },
-                log: log
+                log: _log
             });
         }
 
@@ -1705,11 +1790,8 @@ var VNEngine = (function() {
 
         if (typeof InventoryManager !== 'undefined') {
             InventoryManager.init();
-            // Set external refs for flags display in inventory
-            InventoryManager.setExternalRefs({
-                flags: state.flags,
-                keyFlags: state.keyFlags
-            });
+            // Note: Flags are now managed by flagManager, not passed as refs
+            // engine-inventory.js is legacy - engine.js uses its own updateInventoryDisplay()
         }
 
         if (typeof SaveManager !== 'undefined') {
@@ -1718,6 +1800,13 @@ var VNEngine = (function() {
                 themeKey: config.themeKey,
                 kenBurnsKey: config.kenBurnsKey
             });
+        }
+
+        // Initialize new architecture managers (Phase 9 migration)
+        // These coexist with legacy managers during gradual migration
+        if (typeof sceneManager !== 'undefined' && typeof story !== 'undefined') {
+            sceneManager.init(story);
+            _log.debug('Engine', 'SceneManager initialized with story data');
         }
 
         // Show dev mode indicator if enabled by default
@@ -2625,6 +2714,7 @@ var VNEngine = (function() {
                 });
 
                 saveState();
+                syncToStore();
             }
             return true;
         }
@@ -2750,6 +2840,7 @@ var VNEngine = (function() {
         });
 
         saveState();
+        syncToStore();
         return true;
     }
 
@@ -2814,14 +2905,47 @@ var VNEngine = (function() {
         }
     }
 
+    // === Scene Resource Cleanup ===
+    /**
+     * Clean up scene-specific resources to prevent memory leaks
+     * Called on scene transitions and game reset
+     */
+    function cleanupSceneResources() {
+        // Cancel ongoing animations
+        if (typeof AnimationManager !== 'undefined') {
+            AnimationManager.cancelAll();
+        }
+
+        // Clear scene-specific timers (typewriter, auto-advance, UI feedback)
+        if (typeof TimerManager !== 'undefined') {
+            TimerManager.clearAll('typewriter');
+            TimerManager.clearAll('auto-advance');
+            TimerManager.clearAll('ui-feedback');
+            TimerManager.clearAll('scene');
+        }
+
+        // Clear scene-specific listeners (dynamically created choice buttons, etc.)
+        if (typeof ListenerManager !== 'undefined') {
+            ListenerManager.removeAll('scene');
+            ListenerManager.removeAll('choices');
+        }
+
+        // Stop any in-progress typewriter
+        if (state.typewriter.isTyping) {
+            clearTimeout(state.typewriter.timeoutId);
+            clearTimeout(state.typewriter.autoAdvanceId);
+            state.typewriter.isTyping = false;
+            state.typewriter.timeoutId = null;
+            state.typewriter.autoAdvanceId = null;
+        }
+    }
+
     // === Scene Loading ===
     function loadScene(sceneId, prependContent, entrySfx) {
         prependContent = prependContent || '';
 
-        // Cancel any ongoing animations from previous scene
-        if (typeof AnimationManager !== 'undefined') {
-            AnimationManager.cancelAll();
-        }
+        // Clean up resources from previous scene
+        cleanupSceneResources();
 
         // Emit scene transition event
         if (typeof EventEmitter !== 'undefined') {
@@ -2890,11 +3014,23 @@ var VNEngine = (function() {
         // Auto-save progress
         saveState();
 
+        // Sync state to new architecture store (Phase 9 migration)
+        syncToStore();
+
         // Ensure text box is visible (remove any hidden state from tap-to-hide or battle mode)
         var textBox = document.getElementById('text-box');
         if (textBox) {
             textBox.classList.remove('hidden-textbox');
             textBox.classList.remove('battle-mode');
+        }
+
+        // Emit scene enter event for new architecture
+        if (typeof eventBus !== 'undefined' && typeof SceneEvents !== 'undefined') {
+            eventBus.emit(SceneEvents.ENTER, {
+                sceneId: sceneId,
+                scene: scene,
+                previousId: state.history.length > 1 ? state.history[state.history.length - 2] : null
+            });
         }
 
         // Render the scene (pass entry SFX if provided)
@@ -3044,8 +3180,7 @@ var VNEngine = (function() {
 
         // Add random flavor text if scene has random_flavor array
         if (scene.random_flavor && scene.random_flavor.length > 0) {
-            var randomIndex = Math.floor(Math.random() * scene.random_flavor.length);
-            var flavorText = scene.random_flavor[randomIndex];
+            var flavorText = Utils.pickRandom(scene.random_flavor);
             state.processedTextBlocks.push(flavorText);
         }
 
@@ -3093,7 +3228,7 @@ var VNEngine = (function() {
         var currentText = textBlocks[state.currentBlockIndex] || '';
         var isLastBlock = state.currentBlockIndex >= textBlocks.length - 1;
 
-        console.log('[Engine] renderCurrentBlock:', { sceneId: state.currentSceneId, blockIndex: state.currentBlockIndex, isLastBlock: isLastBlock, hasActions: !!(scene.actions && scene.actions.length > 0) });
+        _log.debug('Engine', 'renderCurrentBlock:', { sceneId: state.currentSceneId, blockIndex: state.currentBlockIndex, isLastBlock: isLastBlock, hasActions: !!(scene.actions && scene.actions.length > 0) });
 
         // Hide continue button and choices while typing
         hideContinueButton();
@@ -3101,7 +3236,7 @@ var VNEngine = (function() {
 
         // Render text with callback
         renderText(currentText, prependContent, function() {
-            console.log('[Engine] Text render complete, isLastBlock:', isLastBlock, 'hasActions:', !!(scene.actions && scene.actions.length > 0));
+            _log.debug('Engine', 'Text render complete, isLastBlock:', isLastBlock, 'hasActions:', !!(scene.actions && scene.actions.length > 0));
             if (isLastBlock) {
                 // Check for actions
                 if (scene.actions && scene.actions.length > 0) {
@@ -3109,12 +3244,12 @@ var VNEngine = (function() {
                     var hasRollChoice = scene.choices && scene.choices.some(function(c) {
                         return c.target === '_roll';
                     });
-                    console.log('[Engine] hasRollChoice:', hasRollChoice);
+                    _log.debug('Engine', 'hasRollChoice:', hasRollChoice);
                     if (hasRollChoice) {
                         renderChoices(scene.choices);
                     } else {
                         // Execute actions directly
-                        console.log('[Engine] Calling executeActions()');
+                        _log.debug('Engine', 'Calling executeActions()');
                         executeActions();
                     }
                 } else {
@@ -3127,16 +3262,24 @@ var VNEngine = (function() {
 
                 // Auto mode: auto-advance after delay
                 if (config.currentSpeed === 'auto') {
-                    state.typewriter.autoAdvanceId = setTimeout(function() {
-                        advanceTextBlock();
-                    }, config.autoDelay);
+                    state.typewriter.autoAdvanceId = typeof TimerManager !== 'undefined'
+                        ? TimerManager.setTimeout(function() {
+                            advanceTextBlock();
+                        }, config.autoDelay, 'auto-advance')
+                        : setTimeout(function() {
+                            advanceTextBlock();
+                        }, config.autoDelay);
                 }
 
                 // Skip mode: auto-advance quickly until choice
                 if (config.currentSpeed === 'skip') {
-                    state.typewriter.autoAdvanceId = setTimeout(function() {
-                        advanceTextBlock();
-                    }, config.skipModeDelay);
+                    state.typewriter.autoAdvanceId = typeof TimerManager !== 'undefined'
+                        ? TimerManager.setTimeout(function() {
+                            advanceTextBlock();
+                        }, config.skipModeDelay, 'auto-advance')
+                        : setTimeout(function() {
+                            advanceTextBlock();
+                        }, config.skipModeDelay);
                 }
             }
         });
@@ -3145,7 +3288,11 @@ var VNEngine = (function() {
     function advanceTextBlock() {
         // Cancel any auto-advance timer
         if (state.typewriter.autoAdvanceId) {
-            clearTimeout(state.typewriter.autoAdvanceId);
+            if (typeof TimerManager !== 'undefined') {
+                TimerManager.clear(state.typewriter.autoAdvanceId);
+            } else {
+                clearTimeout(state.typewriter.autoAdvanceId);
+            }
             state.typewriter.autoAdvanceId = null;
         }
 
@@ -3158,6 +3305,17 @@ var VNEngine = (function() {
         if (state.currentBlockIndex < textBlocks.length - 1) {
             state.currentBlockIndex++;
             saveState();  // Auto-save on block advance
+            syncToStore();
+
+            // Emit block advance event for new architecture
+            if (typeof eventBus !== 'undefined' && typeof SceneEvents !== 'undefined') {
+                eventBus.emit(SceneEvents.BLOCK_ADVANCE, {
+                    sceneId: state.currentSceneId,
+                    blockIndex: state.currentBlockIndex,
+                    totalBlocks: textBlocks.length
+                });
+            }
+
             renderCurrentBlock();
         }
     }
@@ -3328,7 +3486,9 @@ var VNEngine = (function() {
                 if (speed === 0) {
                     typeNextChar();
                 } else {
-                    tw.timeoutId = setTimeout(typeNextChar, speed);
+                    tw.timeoutId = typeof TimerManager !== 'undefined'
+                        ? TimerManager.setTimeout(typeNextChar, speed, 'typewriter')
+                        : setTimeout(typeNextChar, speed);
                 }
             } else {
                 tw.currentSegment++;
@@ -3435,6 +3595,15 @@ var VNEngine = (function() {
                 button.onclick = function() {
                     tryPlayMusic(); // Retry music on user interaction
 
+                    // Emit choice selected event for new architecture
+                    if (typeof eventBus !== 'undefined' && typeof SceneEvents !== 'undefined') {
+                        eventBus.emit(SceneEvents.CHOICE_SELECTED, {
+                            choice: choice,
+                            index: index,
+                            sceneId: state.currentSceneId
+                        });
+                    }
+
                     // Check if this is a battle action or battle item use
                     var isBattleActive = typeof BattleEngine !== 'undefined' && BattleEngine.isActive();
                     if (isBattleActive && (choice.battle_action || choice.heals)) {
@@ -3505,14 +3674,14 @@ var VNEngine = (function() {
             var action = scene.actions[i];
             var handler = actionHandlers[action.type];
 
-            console.log('[Engine] executeActions: action type =', action.type, 'handler exists =', !!handler);
+            _log.debug('Engine', 'executeActions: action type =', action.type, 'handler exists =', !!handler);
 
             if (handler) {
                 try {
                     handler(action);
                 } catch (e) {
-                    console.error('[Engine] Error executing action:', e);
-                    console.error('[Engine] Stack trace:', e.stack);
+                    _log.error('Engine', 'Error executing action:', e);
+                    _log.error('Engine', 'Stack trace:', e.stack);
                 }
             } else {
                 _log.warn('Engine','Unknown action type: ' + action.type);
@@ -3796,6 +3965,11 @@ var VNEngine = (function() {
         elements.bgMusic.volume = state.audio.volume;
         state.audio.currentMusic = filename;
 
+        // Emit audio event
+        if (typeof eventBus !== 'undefined' && typeof AudioEvents !== 'undefined') {
+            eventBus.emit(AudioEvents.MUSIC_PLAY, { filename: filename });
+        }
+
         // Try to play
         tryPlayMusic();
     }
@@ -3817,6 +3991,11 @@ var VNEngine = (function() {
         elements.bgMusic.currentTime = 0;
         // Don't set src to empty string or call load() - just pause and track state
         state.audio.currentMusic = null;
+
+        // Emit audio event
+        if (typeof eventBus !== 'undefined' && typeof AudioEvents !== 'undefined') {
+            eventBus.emit(AudioEvents.MUSIC_STOP, {});
+        }
     }
 
     function playSfx(filename, callback) {
@@ -3827,6 +4006,11 @@ var VNEngine = (function() {
 
         var path = config.assetPaths.sfx + filename;
         var audio = new Audio(path);
+
+        // Emit audio event
+        if (typeof eventBus !== 'undefined' && typeof AudioEvents !== 'undefined') {
+            eventBus.emit(AudioEvents.SFX_PLAY, { filename: filename });
+        }
 
         // If callback provided, call it when SFX ends
         if (callback) {
@@ -3929,6 +4113,11 @@ var VNEngine = (function() {
             elements.bgMusic.muted = state.audio.muted;
         }
 
+        // Emit audio event
+        if (typeof eventBus !== 'undefined' && typeof AudioEvents !== 'undefined') {
+            eventBus.emit(AudioEvents.MUTE_CHANGE, { muted: state.audio.muted });
+        }
+
         // Update mute button appearance and accessibility
         if (elements.muteBtn) {
             updateMuteButtonIcon(state.audio.muted);
@@ -3953,6 +4142,11 @@ var VNEngine = (function() {
             elements.bgMusic.volume = volume;
         }
 
+        // Emit audio event
+        if (typeof eventBus !== 'undefined' && typeof AudioEvents !== 'undefined') {
+            eventBus.emit(AudioEvents.VOLUME_CHANGE, { volume: volume });
+        }
+
         // Update mute button icon based on volume
         if (elements.muteBtn && !state.audio.muted) {
             updateMuteButtonIcon(volume === 0);
@@ -3966,12 +4160,13 @@ var VNEngine = (function() {
         }
     }
 
-    // === Flag Management ===
+    // === Flag Management (delegates to flagManager) ===
     function setFlags(flags) {
-        flags.forEach(function(flag) {
-            state.flags[flag] = true;
-        });
-        // Update inventory display to show new flags
+        if (typeof flagManager !== 'undefined') {
+            flags.forEach(function(flag) {
+                flagManager.set(flag);
+            });
+        }
         updateInventoryDisplay();
     }
 
@@ -3980,36 +4175,39 @@ var VNEngine = (function() {
      * @param {string[]} flags - Array of flag names to set
      */
     function setKeyFlags(flags) {
-        flags.forEach(function(flag) {
-            state.keyFlags[flag] = true;
-        });
-        // Update inventory display to show new key flags
+        if (typeof flagManager !== 'undefined') {
+            flags.forEach(function(flag) {
+                flagManager.setKey(flag);
+            });
+        }
         updateInventoryDisplay();
     }
 
     function checkFlags(required) {
-        return required.every(function(flag) {
-            // Support negation: !flag_name means "does NOT have this flag"
-            if (flag.charAt(0) === '!') {
-                var negatedFlag = flag.substring(1);
-                // Check both regular and key flags for negation
-                return state.flags[negatedFlag] !== true && state.keyFlags[negatedFlag] !== true;
-            }
-            // Check both regular and key flags
-            return state.flags[flag] === true || state.keyFlags[flag] === true;
-        });
+        if (typeof flagManager !== 'undefined') {
+            return flagManager.checkRequired(required);
+        }
+        return true; // Fallback: allow if flagManager not available
     }
 
     function getFlag(flag) {
-        return state.flags[flag] || state.keyFlags[flag] || false;
+        if (typeof flagManager !== 'undefined') {
+            return flagManager.hasAnyType(flag);
+        }
+        return false;
     }
 
     function hasKeyFlag(flag) {
-        return state.keyFlags[flag] === true;
+        if (typeof flagManager !== 'undefined') {
+            return flagManager.hasKey(flag);
+        }
+        return false;
     }
 
     function clearFlags() {
-        state.flags = {};
+        if (typeof flagManager !== 'undefined') {
+            flagManager.clearAll();
+        }
     }
 
     // === Inventory Management ===
@@ -4022,6 +4220,10 @@ var VNEngine = (function() {
             state.inventory.keyItems.push(item);
             _log.info('Engine','Added key item: ' + item);
             showItemNotification(item, 'added', 'key');
+            // Emit inventory event
+            if (typeof eventBus !== 'undefined' && typeof InventoryEvents !== 'undefined') {
+                eventBus.emit(InventoryEvents.ITEM_ADDED, { item: item, type: 'key' });
+            }
         }
         updateInventoryDisplay();
     }
@@ -4035,6 +4237,10 @@ var VNEngine = (function() {
             state.inventory.skills.push(skill);
             _log.info('Engine','Learned skill: ' + skill);
             showItemNotification(skill, 'added', 'skill');
+            // Emit inventory event
+            if (typeof eventBus !== 'undefined' && typeof InventoryEvents !== 'undefined') {
+                eventBus.emit(InventoryEvents.ITEM_ADDED, { item: skill, type: 'skill' });
+            }
         }
         updateInventoryDisplay();
     }
@@ -4078,6 +4284,10 @@ var VNEngine = (function() {
         }
         _log.info('Engine','Added consumable: ' + item + ' x' + count);
         showItemNotification(item + ' x' + count, 'added', 'consumable');
+        // Emit inventory event
+        if (typeof eventBus !== 'undefined' && typeof InventoryEvents !== 'undefined') {
+            eventBus.emit(InventoryEvents.ITEM_ADDED, { item: item, type: 'consumable', count: count });
+        }
         updateInventoryDisplay();
     }
 
@@ -4112,6 +4322,10 @@ var VNEngine = (function() {
             state.inventory.keyItems.splice(index, 1);
             _log.info('Engine','Removed key item: ' + item);
             showItemNotification(item, 'used', 'key');
+            // Emit inventory event
+            if (typeof eventBus !== 'undefined' && typeof InventoryEvents !== 'undefined') {
+                eventBus.emit(InventoryEvents.ITEM_REMOVED, { item: item, type: 'key' });
+            }
         }
         updateInventoryDisplay();
     }
@@ -4131,6 +4345,10 @@ var VNEngine = (function() {
             }
             _log.info('Engine','Removed consumable: ' + item + ' x' + count);
             showItemNotification(item, 'used', 'consumable');
+            // Emit inventory event
+            if (typeof eventBus !== 'undefined' && typeof InventoryEvents !== 'undefined') {
+                eventBus.emit(InventoryEvents.ITEM_REMOVED, { item: item, type: 'consumable', count: count });
+            }
             updateInventoryDisplay();
             return true;
         }
@@ -4286,11 +4504,15 @@ var VNEngine = (function() {
         var inventoryContainer = document.getElementById('inventory-display');
         if (!inventoryContainer) return;
 
+        // Get flags from flagManager if available
+        var flags = typeof flagManager !== 'undefined' ? flagManager.getAll() : [];
+        var keyFlagsArr = typeof flagManager !== 'undefined' ? flagManager.getAllKey() : [];
+
         var hasSkills = state.inventory.skills.length > 0;
         var hasKeyItems = state.inventory.keyItems.length > 0;
         var hasConsumables = Object.keys(state.inventory.consumables).length > 0;
-        var hasKeyFlags = Object.keys(state.keyFlags).length > 0;
-        var hasFlags = Object.keys(state.flags).length > 0;
+        var hasKeyFlags = keyFlagsArr.length > 0;
+        var hasFlags = flags.length > 0;
         var hasAnyContent = hasSkills || hasKeyItems || hasConsumables || hasKeyFlags || hasFlags;
 
         // Always show inventory container (even when empty) so players know to collect items
@@ -4307,7 +4529,7 @@ var VNEngine = (function() {
         // Total count badge (skills + key items + consumables + key flags + flags)
         var totalItems = state.inventory.skills.length + state.inventory.keyItems.length +
                          Object.keys(state.inventory.consumables).length +
-                         Object.keys(state.keyFlags).length + Object.keys(state.flags).length;
+                         keyFlagsArr.length + flags.length;
         html += '<span class="inventory-count">' + totalItems + '</span>';
         html += '</div>';
 
@@ -4356,7 +4578,7 @@ var VNEngine = (function() {
                 if (hasKeyFlags) {
                     html += '<div class="inventory-section">';
                     html += '<div class="inventory-section-label">⭐ Milestones</div>';
-                    Object.keys(state.keyFlags).forEach(function(flag) {
+                    keyFlagsArr.forEach(function(flag) {
                         // Format flag name for display (replace underscores, capitalize)
                         var displayName = flag.replace(/_/g, ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); });
                         html += '<div class="inventory-item inventory-item-keyflag">' + displayName + '</div>';
@@ -4368,7 +4590,7 @@ var VNEngine = (function() {
                 if (hasFlags) {
                     html += '<div class="inventory-section">';
                     html += '<div class="inventory-section-label">🚩 Progress</div>';
-                    Object.keys(state.flags).forEach(function(flag) {
+                    flags.forEach(function(flag) {
                         // Format flag name for display (replace underscores, capitalize)
                         var displayName = flag.replace(/_/g, ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); });
                         html += '<div class="inventory-item inventory-item-flag">' + displayName + '</div>';
@@ -4514,9 +4736,9 @@ var VNEngine = (function() {
             }
         }
 
-        // flags must be an object (or undefined)
+        // flags must be an array or object (supports both new and legacy formats)
         if (saveData.flags !== undefined &&
-            (typeof saveData.flags !== 'object' || Array.isArray(saveData.flags))) {
+            typeof saveData.flags !== 'object') {
             return false;
         }
 
@@ -4536,14 +4758,20 @@ var VNEngine = (function() {
 
     function saveState() {
         try {
+            // Get flags from flagManager if available
+            var flagsArr = typeof flagManager !== 'undefined' ? flagManager.getAll() : [];
+            var keyFlagsArr = typeof flagManager !== 'undefined' ? flagManager.getAllKey() : [];
+
             var saveData = {
                 currentSceneId: state.currentSceneId,
                 currentBlockIndex: state.currentBlockIndex,
-                flags: state.flags,
-                keyFlags: state.keyFlags,
+                flags: flagsArr,        // Save as array for JSON compatibility
+                keyFlags: keyFlagsArr,  // Save as array for JSON compatibility
                 inventory: state.inventory,
                 playerHP: state.playerHP,
                 playerMaxHP: state.playerMaxHP,
+                playerMana: state.playerMana,
+                playerMaxMana: state.playerMaxMana,
                 readBlocks: state.readBlocks,
                 wonBattles: state.wonBattles,
                 history: state.history
@@ -4552,6 +4780,16 @@ var VNEngine = (function() {
             localStorage.setItem(config.saveKey, JSON.stringify(saveData));
         } catch (e) {
             _log.warn('Engine','Could not save state: ' + e.message);
+        }
+    }
+
+    /**
+     * Sync engine state to the new architecture store (Phase 9 migration)
+     * This bridges the legacy engine.js state with the new store system
+     */
+    function syncToStore() {
+        if (typeof CoreBridge !== 'undefined' && CoreBridge.syncEngineToStore) {
+            CoreBridge.syncEngineToStore(state);
         }
     }
 
@@ -4569,9 +4807,30 @@ var VNEngine = (function() {
                 return false;
             }
 
-            // Restore state
-            state.flags = saveData.flags || {};
-            state.keyFlags = saveData.keyFlags || {};
+            // Restore flags to flagManager
+            if (typeof flagManager !== 'undefined') {
+                flagManager.clearAll();
+                flagManager.clearAllKey();
+                // Handle both array (new) and object (legacy) formats
+                var savedFlags = saveData.flags || [];
+                var savedKeyFlags = saveData.keyFlags || [];
+                if (Array.isArray(savedFlags)) {
+                    savedFlags.forEach(function(f) { flagManager.set(f); });
+                } else {
+                    // Legacy object format
+                    Object.keys(savedFlags).forEach(function(f) {
+                        if (savedFlags[f]) { flagManager.set(f); }
+                    });
+                }
+                if (Array.isArray(savedKeyFlags)) {
+                    savedKeyFlags.forEach(function(f) { flagManager.setKey(f); });
+                } else {
+                    // Legacy object format
+                    Object.keys(savedKeyFlags).forEach(function(f) {
+                        if (savedKeyFlags[f]) { flagManager.setKey(f); }
+                    });
+                }
+            }
             // Handle both old (array) and new (object) inventory formats
             if (Array.isArray(saveData.inventory)) {
                 // Legacy format: convert array to new format (treat as key items)
@@ -4592,6 +4851,9 @@ var VNEngine = (function() {
             state.playerHP = saveData.playerHP !== undefined ? saveData.playerHP : null;
             var defaultMaxHP = typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxHP : 20;
             state.playerMaxHP = saveData.playerMaxHP || defaultMaxHP;
+            state.playerMana = saveData.playerMana !== undefined ? saveData.playerMana : null;
+            var defaultMaxMana = typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxMana : 20;
+            state.playerMaxMana = saveData.playerMaxMana || defaultMaxMana;
             state.readBlocks = saveData.readBlocks || {};
             state.wonBattles = saveData.wonBattles || {};
             state.history = saveData.history || [];
@@ -4707,18 +4969,25 @@ var VNEngine = (function() {
      *                              If false (Play Again), keeps skills, key items, key flags (New Game+ style)
      */
     function resetGame(fullReset) {
+        // Clean up any scene resources first
+        cleanupSceneResources();
+
         // Reset core state
         state.currentSceneId = null;
         state.currentBlockIndex = 0;
 
-        // Regular flags are always cleared on reset
-        state.flags = {};
+        // Regular flags are always cleared on reset (via flagManager)
+        if (typeof flagManager !== 'undefined') {
+            flagManager.clearAll();
+        }
 
         // Full reset (↺ button) clears everything including persistent items
         // Play Again keeps: skills, key items, key flags
         if (fullReset) {
             state.inventory = { keyItems: [], consumables: {}, skills: [] };
-            state.keyFlags = {};
+            if (typeof flagManager !== 'undefined') {
+                flagManager.clearAllKey();
+            }
         } else {
             // Keep skills and key items, clear only consumables
             state.inventory.consumables = {};
@@ -4728,6 +4997,8 @@ var VNEngine = (function() {
         }
         state.playerHP = null;
         state.playerMaxHP = typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxHP : 20;
+        state.playerMana = null;
+        state.playerMaxMana = typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxMana : 20;
         state.battle = null;
         state.history = [];
 
@@ -4794,16 +5065,31 @@ var VNEngine = (function() {
         init: init,
         loadScene: loadScene,
         getState: function() { return state; },
-        // Flag management
+        // Flag management (delegates to flagManager)
         getFlag: getFlag,
-        hasFlag: function(flag) { return state.flags[flag] === true || state.keyFlags[flag] === true; },
-        setFlag: function(flag) { state.flags[flag] = true; updateInventoryDisplay(); },
-        clearFlag: function(flag) { delete state.flags[flag]; updateInventoryDisplay(); },
+        hasFlag: function(flag) { return getFlag(flag); },
+        setFlag: function(flag) {
+            if (typeof flagManager !== 'undefined') { flagManager.set(flag); }
+            updateInventoryDisplay();
+        },
+        clearFlag: function(flag) {
+            if (typeof flagManager !== 'undefined') { flagManager.clear(flag); }
+            updateInventoryDisplay();
+        },
         // Key flag management (persist across Play Again)
         hasKeyFlag: hasKeyFlag,
-        setKeyFlag: function(flag) { state.keyFlags[flag] = true; updateInventoryDisplay(); },
-        clearKeyFlag: function(flag) { delete state.keyFlags[flag]; updateInventoryDisplay(); },
-        getKeyFlags: function() { return state.keyFlags; },
+        setKeyFlag: function(flag) {
+            if (typeof flagManager !== 'undefined') { flagManager.setKey(flag); }
+            updateInventoryDisplay();
+        },
+        clearKeyFlag: function(flag) {
+            if (typeof flagManager !== 'undefined') { flagManager.clearKey(flag); }
+            updateInventoryDisplay();
+        },
+        getKeyFlags: function() {
+            if (typeof flagManager !== 'undefined') { return flagManager.getAllKey(); }
+            return [];
+        },
         // Inventory management
         addItem: function(item) { addItems([item]); },
         addKeyItem: addKeyItem,
@@ -4839,7 +5125,9 @@ var VNEngine = (function() {
         },
         // Battle skip feature
         markBattleWon: markBattleWon,
-        hasBattleBeenWon: hasBattleBeenWon
+        hasBattleBeenWon: hasBattleBeenWon,
+        // Dev mode
+        showDevModeIndicator: showDevModeIndicator
     };
 
 })();
@@ -4847,9 +5135,33 @@ var VNEngine = (function() {
 // Auto-initialize when DOM is ready
 // Password screen must be completed before game starts
 document.addEventListener('DOMContentLoaded', function() {
-    // Check for ?scene= parameter (editor preview mode)
+    // Check for URL parameters
     var urlParams = new URLSearchParams(window.location.search);
     var previewScene = urlParams.get('scene');
+    var devParam = urlParams.has('dev');
+
+    // Helper to initialize with dev mode if requested
+    function initWithDevMode() {
+        VNEngine.init();
+        if (devParam) {
+            VNEngine.state.devMode = true;
+            // Show dev mode indicator
+            if (typeof VNEngine.showDevModeIndicator === 'function') {
+                VNEngine.showDevModeIndicator(true);
+            } else {
+                // Fallback: create indicator manually
+                var indicator = document.getElementById('dev-mode-indicator');
+                if (!indicator) {
+                    indicator = document.createElement('div');
+                    indicator.id = 'dev-mode-indicator';
+                    indicator.textContent = 'DEV MODE';
+                    document.body.appendChild(indicator);
+                }
+                indicator.style.display = 'block';
+            }
+            console.log('%c[DEV MODE ENABLED via ?dev]', 'color: #00ff00; font-weight: bold;');
+        }
+    }
 
     if (previewScene) {
         // Preview mode: skip password, hide overlay, load specific scene
@@ -4857,9 +5169,19 @@ document.addEventListener('DOMContentLoaded', function() {
         if (passwordOverlay) {
             passwordOverlay.classList.add('hidden');
         }
-        VNEngine.init();
+        initWithDevMode();
         // Override to load the preview scene
         VNEngine.loadScene(previewScene);
+        return;
+    }
+
+    // Dev mode: skip password screen
+    if (devParam) {
+        var passwordOverlay = document.getElementById('password-overlay');
+        if (passwordOverlay) {
+            passwordOverlay.classList.add('hidden');
+        }
+        initWithDevMode();
         return;
     }
 
