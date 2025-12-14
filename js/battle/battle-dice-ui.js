@@ -105,7 +105,16 @@ var BattleDiceUI = (function() {
                     break;
                 }
             }
-            callback();
+            // Defensive: check callback exists and wrap in try-catch to prevent silent failures
+            if (typeof callback === 'function') {
+                try {
+                    callback();
+                } catch (e) {
+                    console.error('[BattleDiceUI] diceTimeout callback error:', e);
+                }
+            } else if (callback !== undefined && callback !== null) {
+                console.warn('[BattleDiceUI] diceTimeout called with non-function callback:', typeof callback);
+            }
         }, delay);
 
         _activeTimeouts.push(info);
@@ -163,7 +172,14 @@ var BattleDiceUI = (function() {
                             break;
                         }
                     }
-                    capturedInfo.callback();
+                    // Defensive: check callback exists and wrap in try-catch
+                    if (typeof capturedInfo.callback === 'function') {
+                        try {
+                            capturedInfo.callback();
+                        } catch (e) {
+                            console.error('[BattleDiceUI] resumed callback error:', e);
+                        }
+                    }
                 }, capturedInfo.remaining);
             })(info);
             _activeTimeouts.push(info);
@@ -332,7 +348,13 @@ var BattleDiceUI = (function() {
         element.classList.add('dice-d' + sides);
 
         function spin() {
-            if (finished || _isPaused) return;
+            if (finished) return;
+
+            // If paused, reschedule to check again shortly (don't abandon the animation)
+            if (_isPaused) {
+                diceTimeout(spin, 50);
+                return;
+            }
 
             if (elapsed >= duration) {
                 finishAnimation();
@@ -527,7 +549,13 @@ var BattleDiceUI = (function() {
         element.classList.add('dice-d' + sides);
 
         function spin() {
-            if (finished || _isPaused) return;
+            if (finished) return;
+
+            // If paused, reschedule to check again shortly (don't abandon the animation)
+            if (_isPaused) {
+                diceTimeout(spin, 50);
+                return;
+            }
 
             if (elapsed >= duration) {
                 finishAnimation();

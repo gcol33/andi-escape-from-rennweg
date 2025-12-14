@@ -116,8 +116,12 @@ var BattleEngine = (function() {
                 }
             }
             // Only execute if battle is still active
-            if (BattleCore.isActive()) {
-                callback();
+            if (BattleCore.isActive() && typeof callback === 'function') {
+                try {
+                    callback();
+                } catch (e) {
+                    console.error('[BattleFacade] scheduleTimeout callback error:', e);
+                }
             }
         }, delay);
 
@@ -222,7 +226,14 @@ var BattleEngine = (function() {
         info.startTime = startTime;
         info.timeoutId = setTimeout(function() {
             removeFromActiveTimeouts(info.id);
-            info.callback();
+            // Defensive: check callback exists and wrap in try-catch
+            if (typeof info.callback === 'function') {
+                try {
+                    info.callback();
+                } catch (e) {
+                    console.error('[BattleFacade] resumeTimeout callback error:', e);
+                }
+            }
         }, info.remaining);
         _activeTimeouts.push(info);
     }
