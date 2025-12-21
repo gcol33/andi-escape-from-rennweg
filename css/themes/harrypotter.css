@@ -215,33 +215,7 @@ h1 {
     box-shadow: 0 0 50px rgba(211, 166, 37, 0.3), 0 0 100px rgba(74, 0, 128, 0.2);
 }
 
-/* Magic corner decorations */
-#vn-container::before,
-#vn-container::after {
-    content: '✧';
-    position: absolute;
-    font-size: 1.5rem;
-    color: var(--gryffindor-gold);
-    z-index: var(--z-theme-deco);
-    text-shadow: 0 0 10px var(--gryffindor-gold);
-    animation: twinkle 2s ease-in-out infinite;
-}
-
-#vn-container::before {
-    top: 8px;
-    left: 12px;
-}
-
-#vn-container::after {
-    top: 8px;
-    right: 12px;
-    animation-delay: 1s;
-}
-
-@keyframes twinkle {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(0.8); }
-}
+/* Magic corner decorations - REMOVED: overlapped with UI elements */
 
 /* === Background Layer === */
 #background-layer {
@@ -335,28 +309,7 @@ h1 {
 }
 
 /* === Text Speed Controls === */
-#text-controls {
-    display: flex;
-    margin: 8px 10px;
-    justify-content: flex-end;
-}
-
-#text-controls > * {
-    margin-left: 4px;
-}
-
-#text-controls > *:first-child {
-    margin-left: 0;
-}
-
-@supports (gap: 4px) {
-    #text-controls {
-        gap: 4px;
-    }
-    #text-controls > * {
-        margin-left: 0;
-    }
-}
+/* Layout handled by shared.css - themes only style appearance */
 
 .speed-btn {
     padding: 3px 10px;
@@ -715,11 +668,6 @@ h1 {
     #sprite-layer img {
         max-width: 140px;
     }
-
-    #vn-container::before,
-    #vn-container::after {
-        display: none;
-    }
 }
 
 /* === Portrait Mode === */
@@ -754,10 +702,6 @@ h1 {
         height: auto;
         min-height: 40%;
         max-height: 75%;
-    }
-
-    #text-controls {
-        justify-content: center;
     }
 
     #text-box.ending-scene {
@@ -817,45 +761,4 @@ h1 {
     .restart-button:focus {
         outline: none;
     }
-
-    #vn-container::before,
-    #vn-container::after {
-        display: none;
-    }
-}
-
-/* === Theme Selector (Dev Mode) === */
-#theme-selector {
-    position: fixed;
-    top: 40px;
-    right: 10px;
-    background: var(--parchment);
-    border: 3px solid var(--gryffindor-gold);
-    padding: 4px;
-    z-index: var(--z-dev-tools);
-    font-family: 'Cinzel', 'Times New Roman', serif;
-    font-size: 12px;
-    display: none;
-}
-
-#theme-selector.visible {
-    display: block;
-}
-
-#theme-selector select {
-    font-family: inherit;
-    font-size: inherit;
-    background: var(--parchment-dark);
-    border: 2px solid var(--gryffindor-red);
-    color: var(--gryffindor-red);
-    padding: 2px 4px;
-}
-
-#theme-selector label {
-    color: var(--gryffindor-red);
-    font-family: 'Cinzel', 'Times New Roman', serif;
-}
-
-#theme-selector input[type="checkbox"] {
-    accent-color: var(--gryffindor-gold);
 }

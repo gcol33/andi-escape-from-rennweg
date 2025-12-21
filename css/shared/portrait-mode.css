@@ -111,17 +111,20 @@
         max-height: 90% !important;
     }
 
+    /* Switch header to single-column stacked layout */
     #text-box-header {
-        flex-direction: column !important;
+        grid-template-columns: 1fr !important;
+        grid-template-rows: auto auto !important;
+        justify-items: center !important;
         padding: 4px 8px !important;
+        gap: 4px !important;
     }
 
     #text-box-title {
-        position: static !important;
-        transform: none !important;
+        grid-column: 1 !important;
+        grid-row: 1 !important;
+        justify-self: center !important;
         max-width: 100% !important;
-        order: 1;
-        margin-bottom: 4px;
     }
 
     #header-spacer {
@@ -129,9 +132,22 @@
     }
 
     #text-controls {
-        order: 2;
-        justify-content: center !important;
-        width: 100%;
+        grid-column: 1 !important;
+        grid-row: 2 !important;
+        justify-self: center !important;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+
+    /* Make buttons shrinkable on mobile - prevent text cutoff */
+    #text-controls .speed-btn,
+    #text-controls .mute-btn {
+        flex-shrink: 1 !important;
+        min-width: 0 !important;
+        font-size: clamp(0.6rem, 2.5vw, 0.75rem) !important;
+        padding: 0.2em 0.4em !important;
+        height: auto !important;
+        min-height: 1.8em !important;
     }
 
     #volume-slider {

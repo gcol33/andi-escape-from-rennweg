@@ -306,28 +306,7 @@ h1 {
 }
 
 /* === Text Speed Controls === */
-#text-controls {
-    display: flex;
-    margin: 8px 10px;
-    justify-content: flex-end;
-}
-
-#text-controls > * {
-    margin-left: 4px;
-}
-
-#text-controls > *:first-child {
-    margin-left: 0;
-}
-
-@supports (gap: 4px) {
-    #text-controls {
-        gap: 4px;
-    }
-    #text-controls > * {
-        margin-left: 0;
-    }
-}
+/* Layout handled by shared.css - themes only style appearance */
 
 .speed-btn {
     padding: 3px 10px;
@@ -735,10 +714,6 @@ h1 {
         height: auto;
         min-height: 40%;
         max-height: 75%;
-    }
-
-    #text-controls {
-        justify-content: center;
     }
 
     #text-box.ending-scene {

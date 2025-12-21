@@ -115,29 +115,6 @@
     background-color: #fdd;
 }
 
-/* === Theme Selector (dev mode) === */
-#theme-selector {
-    background: rgba(250, 241, 224, 0.95);
-    border: 1px solid #d3c2a8;
-    border-radius: 4px;
-}
-
-#theme-selector label {
-    color: #5c4732;
-    font-family: 'Arial', sans-serif;
-}
-
-#theme-selector select {
-    background: #fffbe9;
-    color: #4b3e2a;
-    border: 1px solid #b08b5a;
-    border-radius: 3px;
-}
-
-#theme-selector input[type="checkbox"] {
-    accent-color: #b08b5a;
-}
-
 /* === Reset & Base === */
 * {
     margin: 0;
@@ -293,30 +270,7 @@ h1 {
 }
 
 /* === Text Speed Controls === */
-#text-controls {
-    display: flex;
-    margin-bottom: 8px;
-    justify-content: flex-end;
-}
-
-/* Fallback spacing for browsers without gap support */
-#text-controls > * {
-    margin-left: 8px;
-}
-
-#text-controls > *:first-child {
-    margin-left: 0;
-}
-
-/* Modern browsers: use gap and remove margin fallback */
-@supports (gap: 8px) {
-    #text-controls {
-        gap: 8px;
-    }
-    #text-controls > * {
-        margin-left: 0;
-    }
-}
+/* Layout handled by shared.css - themes only style appearance */
 
 .speed-btn {
     padding: 4px 12px;
@@ -697,11 +651,6 @@ h1 {
         height: auto;
         min-height: 40%;
         max-height: 75%;
-    }
-
-    /* Center text controls in portrait */
-    #text-controls {
-        justify-content: center;
     }
 
     #text-box.ending-scene {

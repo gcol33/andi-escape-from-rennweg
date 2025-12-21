@@ -156,45 +156,50 @@
     transform-origin: center center;
 }
 
-/* === Text Box Header Band ===
- * Header band contains the title and speed/volume controls.
- * Themes style the appearance (colors, fonts, decorations).
+/* === Text Box Header & Controls ===
+ * Uses 3-column CSS Grid: [spacer 1fr] [title auto] [controls 1fr]
+ * Columns 1 and 3 are equal, so title is truly centered when short.
+ * Title shrinks with ellipsis if too long.
  */
 #text-box-header {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr minmax(0, auto) 1fr;
+    grid-template-rows: 1fr;
     align-items: center;
     flex-shrink: 0;
     padding: 4px 12px !important;
-    position: relative;
 }
 
-/* Spacer takes up left side to push controls right */
+/* Spacer balances controls on the right */
 #header-spacer {
-    flex: 1;
+    grid-column: 1;
+    grid-row: 1;
 }
 
-/* Title is absolutely centered, independent of controls width */
+/* Title truly centered, shrinks with ellipsis if needed */
 #text-box-title {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: center;
     font-weight: bold;
     text-align: center;
     font-size: var(--label-font-size, 0.85rem);
-    /* Prevent title from overflowing into buttons */
-    max-width: 60%;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     pointer-events: none;
+    padding: 0 0.5em;
 }
 
 #text-controls {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
     display: flex;
+    flex-wrap: nowrap;
     align-items: center;
-    flex-shrink: 0;
-    /* Override theme margins - controls are now inside header band */
+    gap: 4px;
     margin: 0 !important;
 }
 
@@ -204,9 +209,7 @@
 }
 
 /* === Control Button Height Consistency ===
- * All header buttons (speed-btn and mute-btn) must have same height.
- * Step 1: Normalize font-size to a common base (use small-font-size variable)
- * Step 2: Apply consistent height in em units (relative to normalized font)
+ * All header buttons must have same height.
  */
 #text-controls .speed-btn,
 #text-controls .mute-btn {
@@ -218,17 +221,17 @@
     align-items: center !important;
     justify-content: center !important;
     padding: 0 0.6em !important;
+    flex-shrink: 1;
+    min-width: 0;
 }
 
-/* === Choice Button Overflow Fix ===
- * Prevent text from overflowing choice buttons.
- * Buttons should grow as needed but text should wrap.
- */
-.choice-button {
-    overflow: hidden;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    hyphens: auto;
+/* Narrow landscape screens - shrink buttons to prevent cutoff */
+@media (max-width: 37.5em) and (orientation: landscape) {
+    #text-controls .speed-btn,
+    #text-controls .mute-btn {
+        font-size: clamp(0.55rem, 1.8vw, 0.7rem) !important;
+        padding: 0.2em 0.4em !important;
+    }
 }
 
 /* === Text Box Layout Fix ===

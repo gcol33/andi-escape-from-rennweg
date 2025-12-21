@@ -150,10 +150,10 @@ html {
     font-size: var(--base-font-size);
 }
 
-/* Pixel font themes need smaller base sizes */
+/* Pixel font themes need smaller base sizes - use rem not px */
 .theme-zelda {
-    --base-font-size-fallback: 16px;
-    --base-font-size: clamp(14px, 1.15vw, 18px);
+    --base-font-size-fallback: 0.9rem;
+    --base-font-size: clamp(0.8rem, 1.1vw, 1rem);
 }
 
 body {
@@ -213,26 +213,7 @@ h1 {
     box-shadow: 0 0 50px rgba(255, 215, 0, 0.3), 8px 8px 0 var(--dark-bg);
 }
 
-/* Triforce corner decorations */
-#vn-container::before,
-#vn-container::after {
-    content: '▲';
-    position: absolute;
-    font-size: 1.2rem;
-    color: var(--triforce-gold);
-    z-index: var(--z-theme-deco);
-    text-shadow: 0 0 10px var(--triforce-gold);
-}
-
-#vn-container::before {
-    top: 8px;
-    left: 12px;
-}
-
-#vn-container::after {
-    top: 8px;
-    right: 12px;
-}
+/* Triforce corner decorations - REMOVED: overlapped with UI elements */
 
 /* === Background Layer === */
 #background-layer {
@@ -327,28 +308,8 @@ h1 {
 }
 
 /* === Text Speed Controls === */
-#text-controls {
-    display: flex;
-    margin: 8px 10px;
-    justify-content: flex-end;
-}
+/* Layout handled by shared.css - themes only style appearance */
 
-#text-controls > * {
-    margin-left: 4px;
-}
-
-#text-controls > *:first-child {
-    margin-left: 0;
-}
-
-@supports (gap: 4px) {
-    #text-controls {
-        gap: 4px;
-    }
-    #text-controls > * {
-        margin-left: 0;
-    }
-}
 
 .speed-btn {
     padding: 4px 8px;
@@ -704,11 +665,6 @@ h1 {
     #sprite-layer img {
         max-width: 140px;
     }
-
-    #vn-container::before,
-    #vn-container::after {
-        display: none;
-    }
 }
 
 /* === Portrait Mode === */
@@ -743,10 +699,6 @@ h1 {
         height: auto;
         min-height: 40%;
         max-height: 75%;
-    }
-
-    #text-controls {
-        justify-content: center;
     }
 
     #text-box.ending-scene {
@@ -806,78 +758,6 @@ h1 {
     .restart-button:focus {
         outline: none;
     }
-
-    #vn-container::before,
-    #vn-container::after {
-        display: none;
-    }
-}
-
-/* === Theme Selector (Dev Mode) === */
-#theme-selector {
-    position: fixed;
-    top: 40px;
-    right: 10px;
-    background: var(--dark-bg);
-    border: 3px solid var(--triforce-gold);
-    padding: 4px;
-    z-index: var(--z-dev-tools);
-    font-family: 'Press Start 2P', monospace;
-    font-size: 10px;
-    display: none;
-}
-
-#theme-selector.visible {
-    display: block;
-}
-
-#theme-selector select {
-    font-family: inherit;
-    font-size: inherit;
-    background: var(--forest-green);
-    border: 2px solid var(--triforce-gold);
-    color: var(--triforce-gold);
-    padding: 2px 4px;
-}
-
-#theme-selector,
-#theme-selector label,
-#theme-selector span,
-#theme-selector div,
-#theme-selector .dev-checkbox-label {
-    color: var(--triforce-gold) !important;
-    font-family: 'Press Start 2P', 'Courier New', monospace;
-}
-
-#theme-selector input[type="checkbox"] {
-    accent-color: var(--triforce-gold);
-}
-
-#theme-selector input[type="number"],
-#theme-selector input[type="text"] {
-    color: var(--triforce-gold) !important;
-    background: var(--forest-green);
-    border: 1px solid var(--triforce-gold) !important;
-    font-family: 'Press Start 2P', 'Courier New', monospace;
-}
-
-#theme-selector button,
-#theme-selector .dev-intent-btn,
-#theme-selector .dev-quick-btn {
-    color: var(--triforce-gold) !important;
-    font-family: 'Press Start 2P', 'Courier New', monospace;
-    border-color: var(--triforce-gold) !important;
-}
-
-#theme-selector .dev-section-title,
-#theme-selector .dev-battle-section {
-    color: var(--triforce-gold) !important;
-}
-
-#theme-selector .dev-drag-header,
-#theme-selector .dev-collapse-btn {
-    color: var(--triforce-gold) !important;
-    border-color: var(--triforce-gold) !important;
 }
 
 /* Summon name in Zelda theme */

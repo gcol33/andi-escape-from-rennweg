@@ -218,26 +218,7 @@ h1 {
     box-shadow: inset 0 0 0 4px var(--menu-border), 0 0 50px rgba(0, 0, 170, 0.4);
 }
 
-/* Crystal decorations */
-#vn-container::before,
-#vn-container::after {
-    content: '◆';
-    position: absolute;
-    font-size: 1rem;
-    color: var(--crystal-purple);
-    z-index: var(--z-theme-deco);
-    text-shadow: 0 0 10px var(--crystal-purple);
-}
-
-#vn-container::before {
-    top: 6px;
-    left: 10px;
-}
-
-#vn-container::after {
-    top: 6px;
-    right: 10px;
-}
+/* Crystal decorations - REMOVED: overlapped with UI elements */
 
 /* === Background Layer === */
 #background-layer {
@@ -331,28 +312,7 @@ h1 {
 }
 
 /* === Text Speed Controls === */
-#text-controls {
-    display: flex;
-    margin: 8px 10px;
-    justify-content: flex-end;
-}
-
-#text-controls > * {
-    margin-left: 4px;
-}
-
-#text-controls > *:first-child {
-    margin-left: 0;
-}
-
-@supports (gap: 4px) {
-    #text-controls {
-        gap: 4px;
-    }
-    #text-controls > * {
-        margin-left: 0;
-    }
-}
+/* Layout handled by shared.css - themes only style appearance */
 
 .speed-btn {
     padding: 4px 8px;
@@ -724,11 +684,6 @@ h1 {
     #sprite-layer img {
         max-width: 140px;
     }
-
-    #vn-container::before,
-    #vn-container::after {
-        display: none;
-    }
 }
 
 /* === Portrait Mode === */
@@ -763,10 +718,6 @@ h1 {
         height: auto;
         min-height: 40%;
         max-height: 75%;
-    }
-
-    #text-controls {
-        justify-content: center;
     }
 
     #text-box.ending-scene {
@@ -826,48 +777,4 @@ h1 {
     .restart-button:focus {
         outline: none;
     }
-
-    #vn-container::before,
-    #vn-container::after {
-        display: none;
-    }
-}
-
-/* === Theme Selector (Dev Mode) === */
-#theme-selector {
-    position: fixed;
-    top: 40px;
-    right: 10px;
-    background: var(--ff-blue-dark);
-    border: 3px solid var(--ff-white);
-    border-radius: 4px;
-    padding: 4px;
-    z-index: var(--z-dev-tools);
-    font-family: 'Press Start 2P', monospace;
-    font-size: 10px;
-    display: none;
-    box-shadow: inset 0 0 0 2px var(--menu-border);
-}
-
-#theme-selector.visible {
-    display: block;
-}
-
-#theme-selector select {
-    font-family: inherit;
-    font-size: inherit;
-    background: var(--ff-blue-mid);
-    border: 2px solid var(--ff-white);
-    border-radius: 2px;
-    color: var(--ff-white);
-    padding: 2px 4px;
-}
-
-#theme-selector label {
-    color: var(--ff-white);
-    font-family: 'Press Start 2P', 'Courier New', monospace;
-}
-
-#theme-selector input[type="checkbox"] {
-    accent-color: var(--ff-white);
 }
