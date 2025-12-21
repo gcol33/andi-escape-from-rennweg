@@ -661,62 +661,11 @@ var BattleCore = (function() {
      * Apply a status effect to a target
      * @param {Object} target - player or enemy state
      * @param {string} statusType - Status effect ID
-     * @param {number} stacks - Number of stacks
-     * @returns {Object} { applied, message }
-     */
-    function applyStatus(target, statusType, stacks) {
-        if (!_hasBattleData) return { applied: false, message: '' };
-        var effectDef = BattleData.getStatusEffect(statusType);
-        if (!effectDef) return { applied: false, message: '' };
-
-        stacks = stacks || 1;
-        var existing = findStatus(target, statusType);
-
-        if (existing) {
-            if (effectDef.stacks) {
-                existing.stacks += stacks;
-                existing.duration = Math.max(existing.duration, effectDef.duration);
-                return {
-                    applied: true,
-                    message: effectDef.icon + ' ' + effectDef.name + ' x' + existing.stacks + '!'
-                };
-            } else {
-                existing.duration = effectDef.duration;
-                return {
-                    applied: true,
-                    message: effectDef.icon + ' ' + effectDef.name + ' refreshed!'
-                };
-            }
-        } else {
-            target.statuses.push({
-                type: statusType,
-                duration: effectDef.duration,
-                stacks: stacks,
-                justApplied: true  // Skip first tick for DOT effects
-            });
-
-            emitEvent('player:status', {
-                target: target === state.player ? 'player' : 'enemy',
-                status: statusType,
-                applied: true
-            });
-
-            return {
-                applied: true,
-                message: effectDef.icon + ' Inflicted ' + effectDef.name + '!'
-            };
-        }
-    }
-
-    /**
-     * Apply a status effect with optional custom duration
-     * @param {Object} target - player or enemy state
-     * @param {string} statusType - Status effect ID
-     * @param {number} stacks - Number of stacks
+     * @param {number} stacks - Number of stacks (default 1)
      * @param {number} customDuration - Optional custom duration (overrides default)
      * @returns {Object} { applied, message }
      */
-    function applyStatusWithDuration(target, statusType, stacks, customDuration) {
+    function applyStatus(target, statusType, stacks, customDuration) {
         if (!_hasBattleData) return { applied: false, message: '' };
         var effectDef = BattleData.getStatusEffect(statusType);
         if (!effectDef) return { applied: false, message: '' };
@@ -756,9 +705,17 @@ var BattleCore = (function() {
 
             return {
                 applied: true,
-                message: effectDef.icon + ' ' + effectDef.name + ' applied!'
+                message: effectDef.icon + ' Inflicted ' + effectDef.name + '!'
             };
         }
+    }
+
+    /**
+     * @deprecated Use applyStatus(target, statusType, stacks, customDuration) instead
+     * Kept for backwards compatibility
+     */
+    function applyStatusWithDuration(target, statusType, stacks, customDuration) {
+        return applyStatus(target, statusType, stacks, customDuration);
     }
 
     /**
@@ -917,8 +874,13 @@ var BattleCore = (function() {
 
     /**
      * Get AC modifier from statuses
+     * Delegates to BattleUtils for efficiency when available
      */
     function getStatusACModifier(target) {
+        if (_hasBattleUtils) {
+            return BattleUtils.getStatusACModifier(target);
+        }
+        // Fallback if BattleUtils not loaded
         var modifier = 0;
         if (!_hasBattleData) return modifier;
         for (var i = 0; i < target.statuses.length; i++) {
@@ -930,8 +892,13 @@ var BattleCore = (function() {
 
     /**
      * Get attack modifier from statuses
+     * Delegates to BattleUtils for efficiency when available
      */
     function getStatusAttackModifier(target) {
+        if (_hasBattleUtils) {
+            return BattleUtils.getStatusAttackModifier(target);
+        }
+        // Fallback if BattleUtils not loaded
         var modifier = 0;
         if (!_hasBattleData) return modifier;
         for (var i = 0; i < target.statuses.length; i++) {
@@ -943,8 +910,13 @@ var BattleCore = (function() {
 
     /**
      * Get damage modifier from statuses
+     * Delegates to BattleUtils for efficiency when available
      */
     function getStatusDamageModifier(target) {
+        if (_hasBattleUtils) {
+            return BattleUtils.getStatusDamageModifier(target);
+        }
+        // Fallback if BattleUtils not loaded
         var modifier = 0;
         if (!_hasBattleData) return modifier;
         for (var i = 0; i < target.statuses.length; i++) {

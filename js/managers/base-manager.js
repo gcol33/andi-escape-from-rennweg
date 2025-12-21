@@ -85,48 +85,28 @@ BaseManager.prototype.setState = function(path, updater) {
 };
 
 /**
- * Log debug message
+ * Internal log helper - prepends manager name to arguments
+ * @private
  */
-BaseManager.prototype.debug = function() {
-    var args = [this.name];
-    for (var i = 0; i < arguments.length; i++) {
-        args.push(arguments[i]);
+BaseManager.prototype._log = function(level, args) {
+    var logArgs = [this.name];
+    for (var i = 0; i < args.length; i++) {
+        logArgs.push(args[i]);
     }
-    Logger.debug.apply(Logger, args);
+    Logger[level].apply(Logger, logArgs);
 };
 
-/**
- * Log info message
- */
-BaseManager.prototype.info = function() {
-    var args = [this.name];
-    for (var i = 0; i < arguments.length; i++) {
-        args.push(arguments[i]);
-    }
-    Logger.info.apply(Logger, args);
-};
+/** Log debug message */
+BaseManager.prototype.debug = function() { this._log('debug', arguments); };
 
-/**
- * Log warning message
- */
-BaseManager.prototype.warn = function() {
-    var args = [this.name];
-    for (var i = 0; i < arguments.length; i++) {
-        args.push(arguments[i]);
-    }
-    Logger.warn.apply(Logger, args);
-};
+/** Log info message */
+BaseManager.prototype.info = function() { this._log('info', arguments); };
 
-/**
- * Log error message
- */
-BaseManager.prototype.error = function() {
-    var args = [this.name];
-    for (var i = 0; i < arguments.length; i++) {
-        args.push(arguments[i]);
-    }
-    Logger.error.apply(Logger, args);
-};
+/** Log warning message */
+BaseManager.prototype.warn = function() { this._log('warn', arguments); };
+
+/** Log error message */
+BaseManager.prototype.error = function() { this._log('error', arguments); };
 
 // Global export
 window.BaseManager = BaseManager;

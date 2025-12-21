@@ -49,7 +49,7 @@ var BattleStyleDnD = (function() {
     };
 
     // =========================================================================
-    // DICE ROLLING (delegates to BattleDice module)
+    // DICE ROLLING (delegates to BattleUtils which delegates to BattleDice)
     // =========================================================================
 
     /**
@@ -62,39 +62,34 @@ var BattleStyleDnD = (function() {
     }
 
     /**
-     * Roll a d20 using the dice module
+     * Roll a d20 - delegates to BattleUtils for centralized fallback handling
      * @returns {Object} { roll, isCrit, isFumble }
      */
     function rollD20() {
-        if (_hasBattleDice) {
-            return BattleDice.rollD20();
+        if (_hasBattleUtils) {
+            return BattleUtils.rollD20();
         }
-        // Fallback (should rarely trigger since BattleDice loads before this)
-        _log.warn('BattleDnD', 'BattleDice not available, using fallback d20 roll');
+        // Last resort fallback
         var roll = Math.floor(Math.random() * 20) + 1;
         return { roll: roll, isCrit: roll >= 20, isFumble: roll === 1 };
     }
 
     /**
-     * Roll damage dice using the dice module
-     * Uses BattleUtils.rollDamage as fallback which has its own BattleDice check
+     * Roll damage dice - delegates to BattleUtils for centralized fallback handling
+     * @param {string} diceStr - Dice notation (e.g., '2d6+3')
+     * @returns {number} Rolled damage
      */
     function rollDamage(diceStr) {
-        if (_hasBattleDice) {
-            return BattleDice.rollDamage(diceStr, config.minDamage);
-        }
-        // Use BattleUtils fallback (already has robust parsing)
         if (_hasBattleUtils) {
             return BattleUtils.rollDamage(diceStr, config.minDamage);
         }
         // Last resort fallback
-        _log.warn('BattleDnD', 'No dice module available, using minimal fallback');
         if (typeof diceStr === 'number') return Math.max(config.minDamage, diceStr);
         return config.minDamage;
     }
 
     /**
-     * Roll heal dice
+     * Roll heal dice (alias for rollDamage)
      */
     function rollHeal(diceStr) {
         return rollDamage(diceStr);
@@ -968,13 +963,11 @@ var BattleStyleDnD = (function() {
         }
     }
 
-    // AI helper functions - delegate to BattleUtils where available
+    // AI helper functions - delegate to BattleUtils (uses cached _hasBattleUtils check)
 
     function findMoveByType(moves, type) {
-        if (typeof BattleUtils !== 'undefined' && BattleUtils.findMoveByType) {
-            return BattleUtils.findMoveByType(moves, type);
-        }
-        // Fallback
+        if (_hasBattleUtils) return BattleUtils.findMoveByType(moves, type);
+        // Minimal fallback
         for (var i = 0; i < moves.length; i++) {
             if (moves[i].isHeal && type === 'heal') return moves[i];
             if (moves[i].isBuff && type === 'buff') return moves[i];
@@ -983,29 +976,13 @@ var BattleStyleDnD = (function() {
     }
 
     function findHighestDamageMove(moves) {
-        if (typeof BattleUtils !== 'undefined' && BattleUtils.findHighestDamageMove) {
-            return BattleUtils.findHighestDamageMove(moves);
-        }
-        // Fallback
-        var best = null;
-        var bestDamage = 0;
-        for (var i = 0; i < moves.length; i++) {
-            if (moves[i].damage) {
-                var avg = estimateAverageDamage(moves[i].damage);
-                if (avg > bestDamage) {
-                    bestDamage = avg;
-                    best = moves[i];
-                }
-            }
-        }
-        return best;
+        if (_hasBattleUtils) return BattleUtils.findHighestDamageMove(moves);
+        return moves[0] || null;  // Minimal fallback
     }
 
     function findMoveWithStatus(moves) {
-        if (typeof BattleUtils !== 'undefined' && BattleUtils.findMoveWithStatus) {
-            return BattleUtils.findMoveWithStatus(moves);
-        }
-        // Fallback
+        if (_hasBattleUtils) return BattleUtils.findMoveWithStatus(moves);
+        // Minimal fallback
         for (var i = 0; i < moves.length; i++) {
             if (moves[i].statusEffect) return moves[i];
         }
@@ -1013,13 +990,10 @@ var BattleStyleDnD = (function() {
     }
 
     function estimateAverageDamage(diceStr) {
+        if (_hasBattleUtils) return BattleUtils.estimateAverageDamage(diceStr);
+        // Minimal fallback
         if (typeof diceStr === 'number') return diceStr;
-        var match = diceStr.match(/(\d*)d(\d+)([+-]\d+)?/i);
-        if (!match) return 1;
-        var numDice = parseInt(match[1], 10) || 1;
-        var sides = parseInt(match[2], 10);
-        var modifier = parseInt(match[3], 10) || 0;
-        return numDice * ((sides + 1) / 2) + modifier;
+        return 5;  // Default estimate
     }
 
     /**

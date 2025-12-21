@@ -248,6 +248,61 @@ var BattleUtils = (function() {
     // =========================================================================
 
     /**
+     * Roll a d20 using BattleDice if available, with fallback
+     * @returns {Object} { roll, isCrit, isFumble }
+     */
+    function rollD20() {
+        if (hasBattleDice()) {
+            return BattleDice.rollD20();
+        }
+        // Fallback implementation
+        var roll = Math.floor(Math.random() * 20) + 1;
+        return { roll: roll, isCrit: roll >= 20, isFumble: roll === 1 };
+    }
+
+    /**
+     * Roll with advantage using BattleDice if available
+     * @returns {Object} { roll, isCrit, isFumble, rolls, hadAdvantage }
+     */
+    function rollWithAdvantage() {
+        if (hasBattleDice() && BattleDice.rollWithAdvantage) {
+            return BattleDice.rollWithAdvantage();
+        }
+        // Fallback: roll twice, take higher
+        var roll1 = Math.floor(Math.random() * 20) + 1;
+        var roll2 = Math.floor(Math.random() * 20) + 1;
+        var roll = Math.max(roll1, roll2);
+        return {
+            roll: roll,
+            isCrit: roll >= 20,
+            isFumble: roll === 1,
+            rolls: [roll1, roll2],
+            hadAdvantage: true
+        };
+    }
+
+    /**
+     * Roll with disadvantage using BattleDice if available
+     * @returns {Object} { roll, isCrit, isFumble, rolls, hadDisadvantage }
+     */
+    function rollWithDisadvantage() {
+        if (hasBattleDice() && BattleDice.rollWithDisadvantage) {
+            return BattleDice.rollWithDisadvantage();
+        }
+        // Fallback: roll twice, take lower
+        var roll1 = Math.floor(Math.random() * 20) + 1;
+        var roll2 = Math.floor(Math.random() * 20) + 1;
+        var roll = Math.min(roll1, roll2);
+        return {
+            roll: roll,
+            isCrit: roll >= 20,
+            isFumble: roll === 1,
+            rolls: [roll1, roll2],
+            hadDisadvantage: true
+        };
+    }
+
+    /**
      * Parse dice string into components
      * @param {string} diceStr - Dice notation (e.g., '2d6+3')
      * @returns {Object|null} { numDice, sides, modifier } or null if invalid
@@ -538,6 +593,9 @@ var BattleUtils = (function() {
         findStatusSourceName: findStatusSourceName,
 
         // Dice utilities
+        rollD20: rollD20,
+        rollWithAdvantage: rollWithAdvantage,
+        rollWithDisadvantage: rollWithDisadvantage,
         parseDiceString: parseDiceString,
         rollDamage: rollDamage,
         estimateAverageDamage: estimateAverageDamage,

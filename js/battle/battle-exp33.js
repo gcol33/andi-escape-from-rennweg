@@ -705,7 +705,11 @@ var BattleStyleExp33 = (function() {
         return Utils.pickRandom(affordable);
     }
 
+    // AI helper functions - delegate to BattleUtils (uses cached _hasBattleUtils check)
+
     function findMoveByType(moves, type) {
+        if (_hasBattleUtils) return BattleUtils.findMoveByType(moves, type);
+        // Minimal fallback
         for (var i = 0; i < moves.length; i++) {
             if (type === 'heal' && moves[i].isHeal) return moves[i];
             if (type === 'buff' && moves[i].isBuff) return moves[i];
@@ -714,29 +718,15 @@ var BattleStyleExp33 = (function() {
     }
 
     function findStrongestMove(moves) {
-        var best = null;
-        var bestDamage = 0;
-
-        for (var i = 0; i < moves.length; i++) {
-            if (moves[i].damage) {
-                var est = estimateDamage(moves[i].damage);
-                if (est > bestDamage) {
-                    bestDamage = est;
-                    best = moves[i];
-                }
-            }
-        }
-        return best;
+        if (_hasBattleUtils) return BattleUtils.findHighestDamageMove(moves);
+        return moves[0] || null;  // Minimal fallback
     }
 
     function estimateDamage(diceStr) {
+        if (_hasBattleUtils) return BattleUtils.estimateAverageDamage(diceStr);
+        // Minimal fallback
         if (typeof diceStr === 'number') return diceStr;
-        var match = diceStr.match(/(\d*)d(\d+)([+-]\d+)?/i);
-        if (!match) return 5;
-        var numDice = parseInt(match[1], 10) || 1;
-        var sides = parseInt(match[2], 10);
-        var modifier = parseInt(match[3], 10) || 0;
-        return numDice * ((sides + 1) / 2) + modifier;
+        return 5;
     }
 
     /**

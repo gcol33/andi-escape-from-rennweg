@@ -64,6 +64,33 @@
     opacity: 0.3;
 }
 
+/* === Password Inputs Gap Fallback ===
+ * Shared fallback for flexbox gap support.
+ * Uses margin fallback for older browsers, gap for modern.
+ * Themes only need to set display:flex on #password-inputs.
+ */
+#password-inputs > * {
+    margin: 0 7.5px;
+}
+
+#password-inputs > *:first-child {
+    margin-left: 0;
+}
+
+#password-inputs > *:last-child {
+    margin-right: 0;
+}
+
+/* Modern browsers: use gap and remove margin fallback */
+@supports (gap: 15px) {
+    #password-inputs {
+        gap: 15px;
+    }
+    #password-inputs > * {
+        margin: 0;
+    }
+}
+
 /* === Password Character Input Sizing ===
  * Base sizing using CSS variables - themes override colors/borders only.
  * Uses text-align for horizontal centering.
@@ -258,14 +285,39 @@
     overflow-x: hidden !important;
 }
 
-/* Button area: never shrink, never cut, always centered */
+/* === Fixed-Height Text Mode ===
+ * When .fixed-height class is added:
+ * - Story output has fixed height based on --story-fixed-lines
+ * - No scrolling - text is paginated instead
+ * - Provides stable, non-jumping UI
+ */
+#story-output.fixed-height {
+    flex: 0 0 auto !important;
+    height: var(--story-fixed-height) !important;
+    min-height: var(--story-fixed-height) !important;
+    max-height: var(--story-fixed-height) !important;
+    overflow: hidden !important;
+}
+
+/* In fixed mode, text box doesn't need to grow as much */
+#text-box.fixed-text-mode {
+    height: auto;
+    min-height: auto;
+}
+
+/* Button area: never shrink, never cut, always centered
+ * min-height reserves space to prevent layout shift when buttons appear/disappear
+ * Uses CSS variable so themes can override if needed
+ */
 #button-area {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     flex-shrink: 0;
     padding: 0.625em;
     gap: 8px;
+    min-height: var(--button-area-min-height, 3.75em);
 }
 
 /* Choices container: horizontal row, centered, equal height buttons */
@@ -302,5 +354,16 @@
 @media (max-width: 37.5em) {
     #text-box {
         max-height: 75% !important;
+    }
+}
+
+/* Portrait mode: reserve more space for stacked buttons
+ * 2 buttons (~2.5em each) + gap (0.5em) + padding (1.25em) = ~6.75em
+ * This prevents major layout shift for typical 2-choice scenes.
+ * Scenes with 3+ choices will still cause some shift, but that's acceptable.
+ */
+@media (orientation: portrait) {
+    #button-area {
+        min-height: var(--button-area-min-height-portrait, 6.75em);
     }
 }
