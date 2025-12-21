@@ -156,7 +156,7 @@
 }
 
 /* Mobile responsive - smaller intent indicator */
-@media (max-width: 600px) {
+@media (max-width: 37.5em) {
     .intent-icon {
         width: 2.5rem;
         height: 2.5rem;

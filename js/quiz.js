@@ -348,6 +348,18 @@ var QuizEngine = (function() {
         }
     }
 
+    /**
+     * Clear all seen answers (called on full game reset)
+     */
+    function clearSeenAnswers() {
+        try {
+            localStorage.removeItem(STORAGE_KEY);
+            _log.debug('Quiz', 'Cleared seen answers');
+        } catch (e) {
+            _log.warn('Quiz', 'Could not clear seen answers:', e);
+        }
+    }
+
     // === Module Export ===
     return {
         start: start,
@@ -355,7 +367,8 @@ var QuizEngine = (function() {
         isActive: isActive,
         getCurrentIndex: getCurrentIndex,
         getTimeRemaining: getTimeRemaining,
-        cancel: cancel
+        cancel: cancel,
+        clearSeenAnswers: clearSeenAnswers
     };
 
 })();

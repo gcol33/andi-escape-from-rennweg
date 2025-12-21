@@ -783,12 +783,7 @@ var BattleEngine = (function() {
             QTEEngine.cleanup();
         }
 
-        // Clean up BattleUI resources
-        if (_hasBattleUI && BattleUI.cleanup) {
-            BattleUI.cleanup();
-        }
-
-        // Reset intent system
+        // Reset intent system (but don't cleanup BattleUI yet - outro needs it)
         if (_hasBattleIntent) {
             BattleIntent.reset();
         }
@@ -823,8 +818,13 @@ var BattleEngine = (function() {
             });
         }
 
-        // Show outro transition
+        // Show outro transition - cleanup happens AFTER outro completes
         showBattleOutro(result, function() {
+            // Now cleanup BattleUI after outro is done
+            if (_hasBattleUI && BattleUI.cleanup) {
+                BattleUI.cleanup();
+            }
+
             hideUI();
             showTextBox();
 

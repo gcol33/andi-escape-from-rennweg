@@ -359,7 +359,7 @@ var DevPanel = (function() {
         dragHeader.className = 'dev-drag-header';
 
         var headerText = document.createElement('span');
-        headerText.textContent = '⋮⋮ Dev Panel';
+        headerText.textContent = 'Dev Tools';
         headerText.className = 'dev-header-text';
         dragHeader.appendChild(headerText);
 
@@ -710,6 +710,60 @@ var DevPanel = (function() {
         quickActions.appendChild(killBtn);
         quickActions.appendChild(manaBtn);
         battleSection.appendChild(quickActions);
+
+        // Second row: Skills and Items
+        var unlockActions = document.createElement('div');
+        unlockActions.className = 'dev-quick-actions';
+        unlockActions.style.marginTop = '4px';
+
+        var allSkillsBtn = document.createElement('button');
+        allSkillsBtn.type = 'button';
+        allSkillsBtn.className = 'dev-quick-btn';
+        allSkillsBtn.textContent = '✨ Skills';
+        allSkillsBtn.title = 'Unlock all story skills (for endings)';
+        allSkillsBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Add story skills for unlocking endings (NOT battle skills)
+            var storySkills = [
+                'Rooftop Discovery',
+                'Smile',
+                'Floristic Knowledge'
+            ];
+            var addedCount = 0;
+            storySkills.forEach(function(skill) {
+                if (typeof VNEngine !== 'undefined' && VNEngine.addSkill) {
+                    VNEngine.addSkill(skill);
+                    addedCount++;
+                }
+            });
+            callbacks.log.debug('[Dev] Added ' + addedCount + ' story skills');
+        });
+
+        var allItemsBtn = document.createElement('button');
+        allItemsBtn.type = 'button';
+        allItemsBtn.className = 'dev-quick-btn';
+        allItemsBtn.textContent = '🎒 Items';
+        allItemsBtn.title = 'Add test key items';
+        allItemsBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Add common test items
+            var testItems = [
+                'Coffee Mug', 'Lighter', 'Beer', 'Magnifying Glass',
+                'Flora Book', 'Charcoal', 'Master Key', 'Office Badge'
+            ];
+            var addedCount = 0;
+            testItems.forEach(function(item) {
+                if (typeof VNEngine !== 'undefined' && VNEngine.addKeyItem) {
+                    VNEngine.addKeyItem(item);
+                    addedCount++;
+                }
+            });
+            callbacks.log.debug('[Dev] Added ' + addedCount + ' key items');
+        });
+
+        unlockActions.appendChild(allSkillsBtn);
+        unlockActions.appendChild(allItemsBtn);
+        battleSection.appendChild(unlockActions);
 
         return battleSection;
     }

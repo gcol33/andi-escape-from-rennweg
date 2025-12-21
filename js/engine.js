@@ -403,11 +403,15 @@ var VNEngine = (function() {
 
             // Skills and key items persist across soft reset (New Game+ style)
             // Consumables are cleared on soft reset
-            // Full reset clears everything including skills, key items
+            // Full reset clears everything including skills, key items, quiz progress
             if (fullReset) {
                 state.inventory = { keyItems: [], consumables: {}, skills: [] };
                 if (typeof flagManager !== 'undefined') {
                     flagManager.clearAllKey();
+                }
+                // Clear quiz seen answers
+                if (typeof QuizEngine !== 'undefined' && QuizEngine.clearSeenAnswers) {
+                    QuizEngine.clearSeenAnswers();
                 }
             } else {
                 // Keep skills and key items, clear only consumables
@@ -803,7 +807,8 @@ var VNEngine = (function() {
             overlay.id = 'tarot-overlay';
 
             // Build the 3-card spread HTML
-            var spreadHTML = '<div class="tarot-spread-cards">';
+            var spreadHTML = '<div class="tarot-click-hint">Click to reveal</div>';
+            spreadHTML += '<div class="tarot-spread-cards">';
             selectedCards.forEach(function(card, index) {
                 spreadHTML += '<div class="tarot-card-slot" data-index="' + index + '">';
                 spreadHTML += '<div class="tarot-card-flip" id="tarot-card-' + index + '">';
@@ -871,9 +876,14 @@ var VNEngine = (function() {
             }
 
             // Click anywhere on overlay to reveal next card
+            var clickHint = overlay.querySelector('.tarot-click-hint');
             overlay.onclick = function(e) {
                 if (e.target.tagName === 'BUTTON') return;
                 if (currentIndex < slots.length) {
+                    // Hide click hint on first reveal
+                    if (clickHint && currentIndex === 0) {
+                        clickHint.classList.add('hidden');
+                    }
                     revealNext();
                 }
             };
@@ -949,8 +959,9 @@ var VNEngine = (function() {
                 };
             };
 
-            // Auto-reveal first card after a moment
-            setTimeout(revealNext, config.timing.hintCardRevealDelay);
+            // Cards start face-down, user clicks to reveal each one
+            // Add visual hint that cards are clickable
+            overlay.style.cursor = 'pointer';
         }
     };
 
@@ -4504,16 +4515,10 @@ var VNEngine = (function() {
         var inventoryContainer = document.getElementById('inventory-display');
         if (!inventoryContainer) return;
 
-        // Get flags from flagManager if available
-        var flags = typeof flagManager !== 'undefined' ? flagManager.getAll() : [];
-        var keyFlagsArr = typeof flagManager !== 'undefined' ? flagManager.getAllKey() : [];
-
         var hasSkills = state.inventory.skills.length > 0;
         var hasKeyItems = state.inventory.keyItems.length > 0;
         var hasConsumables = Object.keys(state.inventory.consumables).length > 0;
-        var hasKeyFlags = keyFlagsArr.length > 0;
-        var hasFlags = flags.length > 0;
-        var hasAnyContent = hasSkills || hasKeyItems || hasConsumables || hasKeyFlags || hasFlags;
+        var hasAnyContent = hasSkills || hasKeyItems || hasConsumables;
 
         // Always show inventory container (even when empty) so players know to collect items
         inventoryContainer.style.display = 'block';
@@ -4526,10 +4531,9 @@ var VNEngine = (function() {
         html += '<span class="inventory-toggle">' + (state.inventoryExpanded ? '▼' : '▶') + '</span>';
         html += '<span class="inventory-label">Inventory</span>';
 
-        // Total count badge (skills + key items + consumables + key flags + flags)
+        // Total count badge (skills + key items + consumables only - flags are internal state)
         var totalItems = state.inventory.skills.length + state.inventory.keyItems.length +
-                         Object.keys(state.inventory.consumables).length +
-                         keyFlagsArr.length + flags.length;
+                         Object.keys(state.inventory.consumables).length;
         html += '<span class="inventory-count">' + totalItems + '</span>';
         html += '</div>';
 
@@ -4570,30 +4574,6 @@ var VNEngine = (function() {
                         html += '<div class="inventory-item inventory-item-consumable">';
                         html += item + ' <span class="item-count">x' + count + '</span>';
                         html += '</div>';
-                    });
-                    html += '</div>';
-                }
-
-                // Key Flags section (persist across Play Again - major story milestones)
-                if (hasKeyFlags) {
-                    html += '<div class="inventory-section">';
-                    html += '<div class="inventory-section-label">⭐ Milestones</div>';
-                    keyFlagsArr.forEach(function(flag) {
-                        // Format flag name for display (replace underscores, capitalize)
-                        var displayName = flag.replace(/_/g, ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); });
-                        html += '<div class="inventory-item inventory-item-keyflag">' + displayName + '</div>';
-                    });
-                    html += '</div>';
-                }
-
-                // Regular Flags section (cleared on Play Again - current run progress)
-                if (hasFlags) {
-                    html += '<div class="inventory-section">';
-                    html += '<div class="inventory-section-label">🚩 Progress</div>';
-                    flags.forEach(function(flag) {
-                        // Format flag name for display (replace underscores, capitalize)
-                        var displayName = flag.replace(/_/g, ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); });
-                        html += '<div class="inventory-item inventory-item-flag">' + displayName + '</div>';
                     });
                     html += '</div>';
                 }
@@ -5023,11 +5003,15 @@ var VNEngine = (function() {
             textBox.classList.remove('battle-mode');
         }
 
-        // Full reset also clears read history and saved state
+        // Full reset also clears read history, saved state, and quiz progress
         if (fullReset) {
             state.readBlocks = {};
             clearSavedState();
             updateSkipButtonVisibility();
+            // Clear quiz seen answers
+            if (typeof QuizEngine !== 'undefined' && QuizEngine.clearSeenAnswers) {
+                QuizEngine.clearSeenAnswers();
+            }
         }
 
         // Clear visuals and audio
