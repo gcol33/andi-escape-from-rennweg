@@ -5211,6 +5211,16 @@ var VNEngine = (function() {
         // HP management
         getHP: function() { return state.playerHP; },
         getMaxHP: function() { return state.playerMaxHP; },
+        getMana: function() { return state.playerMana; },
+        getMaxMana: function() { return state.playerMaxMana; },
+        getPlayerStats: function() {
+            return {
+                hp: state.playerHP,
+                maxHP: state.playerMaxHP,
+                mana: state.playerMana,
+                maxMana: state.playerMaxMana
+            };
+        },
         heal: healPlayer,
         damage: damagePlayer,
         initHP: initPlayerHP,
@@ -5231,6 +5241,10 @@ var VNEngine = (function() {
         hasBattleBeenWon: hasBattleBeenWon,
         // Dev mode
         showDevModeIndicator: showDevModeIndicator,
+        isDevMode: function() { return state.devMode === true; },
+        setDevMode: function(enabled) { state.devMode = enabled; },
+        // Audio
+        playSfx: playSfx,
         // Text display mode ('fixed' or 'expanding')
         getTextDisplayMode: function() { return config.textDisplayMode; },
         setTextDisplayMode: function(mode) {
@@ -5264,7 +5278,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function initWithDevMode() {
         VNEngine.init();
         if (devParam) {
-            VNEngine.state.devMode = true;
+            VNEngine.setDevMode(true);
             // Show dev mode indicator
             if (typeof VNEngine.showDevModeIndicator === 'function') {
                 VNEngine.showDevModeIndicator(true);

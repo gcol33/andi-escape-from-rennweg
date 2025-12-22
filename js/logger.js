@@ -26,8 +26,8 @@
  */
 function isDevMode() {
     // Check VNEngine state first, then fall back to window flag
-    if (typeof VNEngine !== 'undefined' && VNEngine.state) {
-        return VNEngine.state.devMode === true;
+    if (typeof VNEngine !== 'undefined' && VNEngine.isDevMode) {
+        return VNEngine.isDevMode();
     }
     return window.__DEV_MODE__ === true;
 }
