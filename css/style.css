@@ -391,8 +391,9 @@ h1 {
 #story-output {
     flex: 1;
     color: #4b3e2a;
-    font-size: 1.1rem;
-    line-height: 1.6;
+    font-size: var(--story-font-size-fallback, 1.1rem);  /* Fallback for older browsers */
+    font-size: var(--story-font-size);  /* Scales with viewport for consistent line wrapping */
+    line-height: var(--story-line-height, 1.6);
     overflow-y: auto;
     padding-right: 10px;
     cursor: default;
@@ -436,31 +437,21 @@ h1 {
     51%, 100% { opacity: 0; }
 }
 
-/* Already-read text indicator */
+/* Already-read text indicator - in header next to MENU */
 .already-read {
     opacity: 0.85;
 }
 
-/* Fallback: JS adds .has-already-read class to #story-output */
-#story-output.has-already-read::before {
-    content: '(already read)';
-    display: block;
-    font-size: 0.75rem;
+#already-read-indicator {
+    font-size: var(--small-font-size, 0.65rem);
     color: #a09080;
     font-style: italic;
-    margin-bottom: 5px;
+    margin-left: 0.5em;
+    white-space: nowrap;
 }
 
-/* Modern browsers: use :has() selector */
-@supports selector(:has(*)) {
-    #story-output:has(.already-read)::before {
-        content: '(already read)';
-        display: block;
-        font-size: 0.75rem;
-        color: #a09080;
-        font-style: italic;
-        margin-bottom: 5px;
-    }
+#already-read-indicator.hidden {
+    display: none;
 }
 
 /* === Button Area (contains continue + choices) === */

@@ -26,14 +26,20 @@
     --base-font-size-fallback: 1.35rem;  /* ~22px */
     --base-font-size: clamp(1.2rem, 1.7vw, 1.8rem);  /* 19px-29px */
 
-    /* Story text sizing (+20%) */
-    --story-font-size: 1.3rem;
+    /* Story text sizing - scales with viewport for consistent line wrapping */
+    /* Reduced ~15% from original to accommodate 2-line button text */
+    --story-font-size-fallback: 1.1rem;  /* Fallback for older browsers */
+    --story-font-size: clamp(0.85rem, 1.9vw, 1.2rem);  /* 14px min, scales, 19px max */
     --story-line-height: 1.6;
 
-    /* UI element sizing */
-    --button-font-size: 0.9rem;
-    --small-font-size: 0.75rem;
-    --label-font-size: 0.85rem;
+    /* Fixed-height text box mode (set via JS from TUNING.text.fixedLines) */
+    --story-fixed-lines: 3;
+    --story-fixed-height: calc(var(--story-font-size) * var(--story-line-height) * var(--story-fixed-lines));
+
+    /* UI element sizing - reduced ~15% for better 2-line button fit */
+    --button-font-size: 0.76rem;
+    --small-font-size: 0.65rem;
+    --label-font-size: 0.72rem;
 
     /* Spacing - using rem for scalability (1rem = 16px at default) */
     --spacing-xs: 0.25rem;   /* 4px */
@@ -127,6 +133,10 @@
 
     /* Battle log height (used for bottom positioning) */
     --battle-log-height: 13.4rem;
+
+    /* Button area reserved height (prevents layout shift) */
+    --button-area-min-height: 3.75em;          /* Landscape: single row */
+    --button-area-min-height-portrait: 6.75em; /* Portrait: 2 stacked buttons */
 }
 
 /* === Battle Panel Colors === */

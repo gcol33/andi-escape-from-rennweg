@@ -491,26 +491,6 @@ h1 {
     opacity: 0.8;
 }
 
-#story-output.has-already-read::before {
-    content: '◄ REWIND ►';
-    display: block;
-    font-size: 0.65rem;
-    color: var(--snes-cyan);
-    margin-bottom: 8px;
-    text-shadow: 1px 1px 0 var(--snes-blue);
-}
-
-@supports selector(:has(*)) {
-    #story-output:has(.already-read)::before {
-        content: '◄ REWIND ►';
-        display: block;
-        font-size: 0.65rem;
-        color: var(--snes-cyan);
-        margin-bottom: 8px;
-        text-shadow: 1px 1px 0 var(--snes-blue);
-    }
-}
-
 /* === Choice Buttons === */
 .choice-button {
     display: inline-block;
@@ -556,12 +536,6 @@ h1 {
     align-items: center;
 }
 
-@supports selector(:has(*)) {
-    #choices-container:has(.game-over) {
-        flex-direction: column;
-        align-items: center;
-    }
-}
 
 /* === Restart Button === */
 .restart-button {

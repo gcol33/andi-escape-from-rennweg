@@ -85,11 +85,36 @@
             <!-- Inventory Display (shown when player has items) -->
             <div id="inventory-display" role="status" aria-label="Your inventory"></div>
 
+            <!-- Game Menu Overlay (full-screen RPG menu) -->
+            <div id="game-menu-overlay" class="hidden" role="dialog" aria-modal="true" aria-label="Game menu">
+                <div id="game-menu-container">
+                    <div class="menu-header">
+                        <span class="menu-title">MENU</span>
+                        <button class="menu-close-btn" aria-label="Close menu">&times;</button>
+                    </div>
+                    <div class="menu-tabs" role="tablist">
+                        <button class="menu-tab active" data-tab="items" role="tab" aria-selected="true" aria-controls="tab-items">Items</button>
+                        <button class="menu-tab" data-tab="skills" role="tab" aria-selected="false" aria-controls="tab-skills">Skills</button>
+                        <button class="menu-tab" data-tab="stats" role="tab" aria-selected="false" aria-controls="tab-stats">Stats</button>
+                        <button class="menu-tab" data-tab="journal" role="tab" aria-selected="false" aria-controls="tab-journal">Journal</button>
+                    </div>
+                    <div class="menu-content">
+                        <div id="tab-items" class="tab-panel active" role="tabpanel" aria-labelledby="tab-items"></div>
+                        <div id="tab-skills" class="tab-panel" role="tabpanel" aria-labelledby="tab-skills"></div>
+                        <div id="tab-stats" class="tab-panel" role="tabpanel" aria-labelledby="tab-stats"></div>
+                        <div id="tab-journal" class="tab-panel" role="tabpanel" aria-labelledby="tab-journal"></div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Text Box (lower third) -->
             <div id="text-box" role="region" aria-label="Story text and controls">
                 <!-- Header band with title and controls -->
                 <div id="text-box-header">
-                    <div id="header-spacer" aria-hidden="true"></div>
+                    <div id="header-spacer">
+                        <button id="menu-btn" class="menu-btn" aria-label="Open game menu">MENU</button>
+                        <span id="already-read-indicator" class="hidden" aria-label="Previously read content">(read)</span>
+                    </div>
                     <span id="text-box-title"></span>
                     <div id="text-controls" role="toolbar" aria-label="Text speed controls">
                     <button class="speed-btn active" data-speed="normal" title="Normal speed" aria-label="Normal text speed" aria-pressed="true"><span class="icon-landscape" aria-hidden="true">▶</span><span class="icon-portrait" aria-hidden="true">1x</span></button>
@@ -193,6 +218,9 @@
     <!-- Overworld System -->
     <script src="js/overworld-ui.js"></script>
     <script src="js/overworld.js"></script>
+
+    <!-- Game Menu (full-screen RPG menu) -->
+    <script src="js/game-menu.js"></script>
 
     <!-- Dev Panel (load before engine) -->
     <script src="js/dev-panel.js"></script>

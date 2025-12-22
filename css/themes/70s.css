@@ -466,28 +466,6 @@ h1 {
     opacity: 0.85;
 }
 
-#story-output.has-already-read::before {
-    content: '~ déjà vu ~';
-    display: block;
-    font-size: 0.75rem;
-    color: var(--disco-avocado);
-    font-style: italic;
-    margin-bottom: 5px;
-    font-family: 'Cooper Black', 'Georgia', serif;
-}
-
-@supports selector(:has(*)) {
-    #story-output:has(.already-read)::before {
-        content: '~ déjà vu ~';
-        display: block;
-        font-size: 0.75rem;
-        color: var(--disco-avocado);
-        font-style: italic;
-        margin-bottom: 5px;
-        font-family: 'Cooper Black', 'Georgia', serif;
-    }
-}
-
 /* === Choice Buttons === */
 .choice-button {
     display: inline-block;
@@ -534,12 +512,6 @@ h1 {
     align-items: center;
 }
 
-@supports selector(:has(*)) {
-    #choices-container:has(.game-over) {
-        flex-direction: column;
-        align-items: center;
-    }
-}
 
 /* === Restart Button === */
 .restart-button {

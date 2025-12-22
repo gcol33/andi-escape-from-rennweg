@@ -3475,23 +3475,32 @@ var VNEngine = (function() {
             textElement.innerHTML = formattedText;
             textElement.classList.add('typewriter-complete');
             textElement.classList.add('already-read');
-            // Fallback for browsers without :has() support
-            elements.storyOutput.classList.add('has-already-read');
+            showAlreadyReadIndicator(true);
             if (onComplete) onComplete();
         } else if (alreadyRead) {
             // Already-read text with normal/fast: still typewriter but can skip
             textElement.classList.add('already-read');
-            // Fallback for browsers without :has() support
-            elements.storyOutput.classList.add('has-already-read');
+            showAlreadyReadIndicator(true);
             startTypewriter(formattedText, textElement, onComplete, true);
         } else if (config.currentSpeed === 'skip') {
             // Skip mode on new text: use fast speed instead
-            elements.storyOutput.classList.remove('has-already-read');
+            showAlreadyReadIndicator(false);
             startTypewriter(formattedText, textElement, onComplete, false, 'fast');
         } else {
             // New text: typewriter effect (no skip allowed on first read)
-            elements.storyOutput.classList.remove('has-already-read');
+            showAlreadyReadIndicator(false);
             startTypewriter(formattedText, textElement, onComplete, false);
+        }
+    }
+
+    /**
+     * Show or hide the "(read)" indicator in the header
+     * @param {boolean} show - Whether to show the indicator
+     */
+    function showAlreadyReadIndicator(show) {
+        var indicator = document.getElementById('already-read-indicator');
+        if (indicator) {
+            indicator.classList.toggle('hidden', !show);
         }
     }
 

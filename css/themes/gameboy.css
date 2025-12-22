@@ -432,24 +432,6 @@ h1 {
     opacity: 0.7;
 }
 
-#story-output.has-already-read::before {
-    content: '(SEEN)';
-    display: block;
-    font-size: 0.6rem;
-    color: var(--gb-light);
-    margin-bottom: 4px;
-}
-
-@supports selector(:has(*)) {
-    #story-output:has(.already-read)::before {
-        content: '(SEEN)';
-        display: block;
-        font-size: 0.6rem;
-        color: var(--gb-light);
-        margin-bottom: 4px;
-    }
-}
-
 /* === Choice Buttons === */
 .choice-button {
     display: inline-block;
@@ -491,12 +473,6 @@ h1 {
     align-items: center;
 }
 
-@supports selector(:has(*)) {
-    #choices-container:has(.game-over) {
-        flex-direction: column;
-        align-items: center;
-    }
-}
 
 /* === Restart Button === */
 .restart-button {
