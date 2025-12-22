@@ -274,10 +274,7 @@ var DevPanel = (function() {
     }
 
     function removeUndoButton() {
-        var undoBtn = document.getElementById('dev-undo-btn');
-        if (undoBtn) {
-            undoBtn.parentNode.removeChild(undoBtn);
-        }
+        Utils.removeElement(document.getElementById('dev-undo-btn'));
     }
 
     // =========================================================================

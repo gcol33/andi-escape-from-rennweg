@@ -259,17 +259,13 @@ var FloatingNumber = (function() {
             container.appendChild(hitLabel);
 
             setTimeout(function() {
-                if (hitLabel.parentNode) {
-                    hitLabel.parentNode.removeChild(hitLabel);
-                }
+                Utils.removeElement(hitLabel);
             }, config.duration);
         }
 
         // Remove damage number after animation
         setTimeout(function() {
-            if (damageNum.parentNode) {
-                damageNum.parentNode.removeChild(damageNum);
-            }
+            Utils.removeElement(damageNum);
         }, config.duration);
     }
 
@@ -374,9 +370,7 @@ var FloatingNumber = (function() {
         container.appendChild(statNum);
 
         setTimeout(function() {
-            if (statNum.parentNode) {
-                statNum.parentNode.removeChild(statNum);
-            }
+            Utils.removeElement(statNum);
         }, config.duration);
     }
 

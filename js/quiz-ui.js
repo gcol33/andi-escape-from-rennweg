@@ -276,10 +276,7 @@ var QuizUI = (function() {
         // Clean up after delay
         setTimeout(function() {
             // Remove outro overlay
-            var outro = document.getElementById('quiz-outro-overlay');
-            if (outro && outro.parentNode) {
-                outro.parentNode.removeChild(outro);
-            }
+            Utils.removeElement(document.getElementById('quiz-outro-overlay'));
 
             // Remove quiz overlay
             hide();
@@ -327,9 +324,7 @@ var QuizUI = (function() {
      * Hide and remove quiz UI
      */
     function hide() {
-        if (elements.quizOverlay && elements.quizOverlay.parentNode) {
-            elements.quizOverlay.parentNode.removeChild(elements.quizOverlay);
-        }
+        Utils.removeElement(elements.quizOverlay);
 
         elements.quizOverlay = null;
         elements.questionText = null;

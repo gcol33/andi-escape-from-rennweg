@@ -322,9 +322,7 @@ function createVictorySparkles(container, options) {
                 container.appendChild(sparkle);
 
                 setTimeout(function() {
-                    if (sparkle.parentNode) {
-                        sparkle.parentNode.removeChild(sparkle);
-                    }
+                    removeElement(sparkle);
                 }, lifetime);
             }, index * interval);
         })(i);

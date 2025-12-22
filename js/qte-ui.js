@@ -754,9 +754,7 @@ var QTEUI = (function() {
 
         // Remove after animation
         setTimeout(function() {
-            if (flash.parentNode) {
-                flash.parentNode.removeChild(flash);
-            }
+            Utils.removeElement(flash);
         }, 300);
     }
 
@@ -822,9 +820,7 @@ var QTEUI = (function() {
         elements.qteContainer.classList.add('qte-hiding');
 
         setTimeout(function() {
-            if (elements.qteContainer && elements.qteContainer.parentNode) {
-                elements.qteContainer.parentNode.removeChild(elements.qteContainer);
-            }
+            Utils.removeElement(elements.qteContainer);
 
             // Clear element references
             elements.qteContainer = null;
@@ -850,9 +846,7 @@ var QTEUI = (function() {
         // Stop countdown if running
         stopCountdown();
 
-        if (elements.qteContainer && elements.qteContainer.parentNode) {
-            elements.qteContainer.parentNode.removeChild(elements.qteContainer);
-        }
+        Utils.removeElement(elements.qteContainer);
 
         elements.qteContainer = null;
         elements.qteBar = null;

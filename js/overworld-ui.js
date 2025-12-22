@@ -470,9 +470,7 @@ var OverworldUI = (function() {
             if (state.animationFrame) {
                 cancelAnimationFrame(state.animationFrame);
             }
-            if (elements.container && elements.container.parentNode) {
-                elements.container.parentNode.removeChild(elements.container);
-            }
+            Utils.removeElement(elements.container);
             elements = { container: null, canvas: null, ctx: null };
             state.playerSprite = null;
             state.tilesetImage = null;

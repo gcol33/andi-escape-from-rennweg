@@ -387,10 +387,7 @@ var BattleUI = (function() {
     }
 
     function destroyUI() {
-        var battleUI = document.getElementById('battle-ui');
-        if (battleUI && battleUI.parentNode) {
-            battleUI.parentNode.removeChild(battleUI);
-        }
+        Utils.removeElement(document.getElementById('battle-ui'));
         // Clear cached references
         elements.battleUI = null;
         elements.playerStats = null;
@@ -422,17 +419,13 @@ var BattleUI = (function() {
         // Remove any floating damage numbers still in DOM
         var floatingNumbers = document.querySelectorAll('.floating-number, .floating-damage, .stat-change-popup');
         floatingNumbers.forEach(function(el) {
-            if (el.parentNode) {
-                el.parentNode.removeChild(el);
-            }
+            Utils.removeElement(el);
         });
 
         // Remove any lingering battle effects
         var battleEffects = document.querySelectorAll('.attack-effect, .screen-flash, .battle-intro-overlay, .battle-outro-overlay');
         battleEffects.forEach(function(el) {
-            if (el.parentNode) {
-                el.parentNode.removeChild(el);
-            }
+            Utils.removeElement(el);
         });
 
         // Clear all summon sprites
@@ -1349,16 +1342,12 @@ var BattleUI = (function() {
             container.appendChild(hitLabel);
 
             setTimeout(function() {
-                if (hitLabel.parentNode) {
-                    hitLabel.parentNode.removeChild(hitLabel);
-                }
+                Utils.removeElement(hitLabel);
             }, config.timing.damageNumberDuration);
         }
 
         setTimeout(function() {
-            if (damageNum.parentNode) {
-                damageNum.parentNode.removeChild(damageNum);
-            }
+            Utils.removeElement(damageNum);
         }, config.timing.damageNumberDuration);
     }
 
@@ -1470,9 +1459,7 @@ var BattleUI = (function() {
         container.appendChild(statNum);
 
         setTimeout(function() {
-            if (statNum.parentNode) {
-                statNum.parentNode.removeChild(statNum);
-            }
+            Utils.removeElement(statNum);
         }, config.timing.damageNumberDuration);
     }
 
@@ -1530,9 +1517,7 @@ var BattleUI = (function() {
 
         // Remove after animation completes
         setTimeout(function() {
-            if (announcement.parentNode) {
-                announcement.parentNode.removeChild(announcement);
-            }
+            Utils.removeElement(announcement);
         }, 1500);
     }
 
@@ -1561,9 +1546,7 @@ var BattleUI = (function() {
         elements.container.appendChild(effect);
 
         setTimeout(function() {
-            if (effect.parentNode) {
-                effect.parentNode.removeChild(effect);
-            }
+            Utils.removeElement(effect);
         }, config.effects.spriteFlash);
     }
 
@@ -1623,9 +1606,7 @@ var BattleUI = (function() {
             if (dialogue.parentNode) {
                 dialogue.classList.add('fade-out');
                 setTimeout(function() {
-                    if (dialogue.parentNode) {
-                        dialogue.parentNode.removeChild(dialogue);
-                    }
+                    Utils.removeElement(dialogue);
                 }, config.timing.fadeOutDuration);
             }
         }, config.timing.dialogueDuration);
@@ -1651,9 +1632,7 @@ var BattleUI = (function() {
         elements.container.appendChild(effect);
 
         setTimeout(function() {
-            if (effect.parentNode) {
-                effect.parentNode.removeChild(effect);
-            }
+            Utils.removeElement(effect);
         }, config.timing.uiTransition);
     }
 
@@ -1703,14 +1682,8 @@ var BattleUI = (function() {
 
         setTimeout(function() {
             _log.debug('BattleUI', 'Intro timeout fired, cleaning up');
-            var introOverlay = document.getElementById('battle-intro-overlay');
-            if (introOverlay && introOverlay.parentNode) {
-                introOverlay.parentNode.removeChild(introOverlay);
-            }
-            var introFlash = document.getElementById('battle-intro-flash');
-            if (introFlash && introFlash.parentNode) {
-                introFlash.parentNode.removeChild(introFlash);
-            }
+            Utils.removeElement(document.getElementById('battle-intro-overlay'));
+            Utils.removeElement(document.getElementById('battle-intro-flash'));
             if (spriteLayer) {
                 spriteLayer.classList.remove('battle-intro-enemy');
             }
@@ -1792,10 +1765,7 @@ var BattleUI = (function() {
         }
 
         setTimeout(function() {
-            var outroOverlay = document.getElementById('battle-outro-overlay');
-            if (outroOverlay && outroOverlay.parentNode) {
-                outroOverlay.parentNode.removeChild(outroOverlay);
-            }
+            Utils.removeElement(document.getElementById('battle-outro-overlay'));
             if (spriteLayer && spriteClass) {
                 spriteLayer.classList.remove(spriteClass);
             }
@@ -1842,9 +1812,7 @@ var BattleUI = (function() {
      * Hide pause overlay
      */
     function hidePauseOverlay() {
-        if (_pauseOverlay && _pauseOverlay.parentNode) {
-            _pauseOverlay.parentNode.removeChild(_pauseOverlay);
-        }
+        Utils.removeElement(_pauseOverlay);
     }
 
     // === Intent Display ===
@@ -1909,15 +1877,11 @@ var BattleUI = (function() {
 
             // Remove after animation
             setTimeout(function() {
-                if (indicator.parentNode) {
-                    indicator.parentNode.removeChild(indicator);
-                }
+                Utils.removeElement(indicator);
             }, 500);
         } else {
             // Remove immediately
-            if (indicator.parentNode) {
-                indicator.parentNode.removeChild(indicator);
-            }
+            Utils.removeElement(indicator);
         }
     }
 
@@ -2095,15 +2059,11 @@ var BattleUI = (function() {
 
             // Remove after animation
             setTimeout(function() {
-                if (container.parentNode) {
-                    container.parentNode.removeChild(container);
-                }
+                Utils.removeElement(container);
             }, 600);
         } else {
             // Remove immediately
-            if (container.parentNode) {
-                container.parentNode.removeChild(container);
-            }
+            Utils.removeElement(container);
         }
     }
 
@@ -2145,9 +2105,7 @@ var BattleUI = (function() {
     function clearAllSummons() {
         var containers = document.querySelectorAll('.summon-container');
         containers.forEach(function(container) {
-            if (container.parentNode) {
-                container.parentNode.removeChild(container);
-            }
+            Utils.removeElement(container);
         });
     }
 

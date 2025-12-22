@@ -893,8 +893,7 @@ var BattleEngine = (function() {
         // Remove any battle overlays
         var overlays = ['battle-intro-overlay', 'battle-intro-flash', 'battle-outro-overlay'];
         overlays.forEach(function(id) {
-            var el = document.getElementById(id);
-            if (el && el.parentNode) el.parentNode.removeChild(el);
+            Utils.removeElement(document.getElementById(id));
         });
 
         // Remove sprite animation classes
@@ -2523,11 +2522,11 @@ var BattleEngine = (function() {
     function finishEnemyAction(result, messages, callback) {
         var state = BattleCore.getState();
 
-        // If enemy has an attack roll, show quick result text (no dice animation)
+        // If enemy has an attack roll, show animated dice roll (same as player)
         if (result.attackResult && result.attackResult.roll !== undefined) {
             var enemyName = state.enemy.name || 'Enemy';
 
-            showEnemyAttackQuick(enemyName, result.attackResult, function() {
+            showAttackRoll(enemyName, result.attackResult, false, function() {
                 // Continue after brief display
                 finishEnemyActionAfterRoll(result, messages, callback, { effectsApplied: true });
             }, {

@@ -366,9 +366,7 @@ var InventoryManager = (function() {
         setTimeout(function() {
             notification.classList.add('fade-out');
             setTimeout(function() {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
+                Utils.removeElement(notification);
             }, 500);
         }, 2000);
     }

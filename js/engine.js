@@ -59,6 +59,9 @@ var VNEngine = (function() {
         sfxDuckVolume: typeof TUNING !== 'undefined' ? TUNING.audio.duckVolume : 0.2,
         // Text block splitting from TUNING
         maxBlockLength: typeof TUNING !== 'undefined' ? TUNING.text.maxBlockLength : 350,
+        // Text display mode from TUNING ('expanding' or 'fixed')
+        textDisplayMode: typeof TUNING !== 'undefined' && TUNING.text.displayMode ? TUNING.text.displayMode : 'expanding',
+        fixedLines: typeof TUNING !== 'undefined' && TUNING.text.fixedLines ? TUNING.text.fixedLines : 3,
         // UI timing from TUNING
         timing: {
             errorFlash: typeof TUNING !== 'undefined' && TUNING.ui ? TUNING.ui.errorFlash : 300,
@@ -105,6 +108,13 @@ var VNEngine = (function() {
         history: [],
         readBlocks: {}, // tracks which scene+block combos have been read
         wonBattles: {}, // tracks which battles have been won (by sceneId)
+        // Pagination state for fixed-height text mode
+        pagination: {
+            active: false,       // true when current block has multiple pages
+            pages: [],           // array of text chunks for current block
+            currentPage: 0,      // index of currently displayed page
+            fullText: ''         // complete text of current block (before pagination)
+        },
         typewriter: {
             isTyping: false,
             timeoutId: null,
@@ -1208,9 +1218,7 @@ var VNEngine = (function() {
         container.appendChild(damageNum);
 
         setTimeout(function() {
-            if (damageNum.parentNode) {
-                damageNum.parentNode.removeChild(damageNum);
-            }
+            Utils.removeElement(damageNum);
         }, config.timing.damageNumber);
     }
 
@@ -1241,16 +1249,10 @@ var VNEngine = (function() {
             var scene = story[state.currentSceneId];
             if (scene && BattleEngine.isActive()) {
                 // Remove any skill submenu that might be open
-                var existingSubmenu = document.getElementById('skill-submenu');
-                if (existingSubmenu) {
-                    existingSubmenu.parentNode.removeChild(existingSubmenu);
-                }
+                Utils.removeElement(document.getElementById('skill-submenu'));
 
                 // Remove any item submenu that might be open
-                var existingItemMenu = document.getElementById('item-submenu');
-                if (existingItemMenu) {
-                    existingItemMenu.parentNode.removeChild(existingItemMenu);
-                }
+                Utils.removeElement(document.getElementById('item-submenu'));
 
                 // Restore choices container and battle log content display
                 var battleChoicesContainer = document.getElementById('battle-choices');
@@ -1294,10 +1296,7 @@ var VNEngine = (function() {
         battleChoicesContainer.innerHTML = '';
 
         // Remove any existing skill submenu
-        var existingSubmenu = document.getElementById('skill-submenu');
-        if (existingSubmenu && existingSubmenu.parentNode) {
-            existingSubmenu.parentNode.removeChild(existingSubmenu);
-        }
+        Utils.removeElement(document.getElementById('skill-submenu'));
 
         if (!choices) return;
 
@@ -1497,8 +1496,7 @@ var VNEngine = (function() {
                         }
 
                         // Remove submenu and restore battle log content
-                        var menu = document.getElementById('skill-submenu');
-                        if (menu) menu.parentNode.removeChild(menu);
+                        Utils.removeElement(document.getElementById('skill-submenu'));
                         // Show battle choices and log content again
                         var battleChoices = document.getElementById('battle-choices');
                         var battleLogContent = document.getElementById('battle-log-content');
@@ -1556,8 +1554,7 @@ var VNEngine = (function() {
         backBtn.className = 'skill-back-btn';
         backBtn.textContent = '← Back';
         backBtn.onclick = function() {
-            var menu = document.getElementById('skill-submenu');
-            if (menu) menu.parentNode.removeChild(menu);
+            Utils.removeElement(document.getElementById('skill-submenu'));
             // Show battle choices and log content again
             var battleChoices = document.getElementById('battle-choices');
             var battleLogContent = document.getElementById('battle-log-content');
@@ -1609,7 +1606,7 @@ var VNEngine = (function() {
         // Remove any existing item submenu
         var existingMenu = document.getElementById('item-submenu');
         if (existingMenu) {
-            existingMenu.parentNode.removeChild(existingMenu);
+            Utils.removeElement(existingMenu);
             // If clicking Item again while menu open, just close it
             return;
         }
@@ -1656,8 +1653,7 @@ var VNEngine = (function() {
 
             itemRow.onclick = function() {
                 // Remove submenu
-                var menu = document.getElementById('item-submenu');
-                if (menu) menu.parentNode.removeChild(menu);
+                Utils.removeElement(document.getElementById('item-submenu'));
                 // Show battle choices and log content again
                 var battleChoices = document.getElementById('battle-choices');
                 var battleLogContent = document.getElementById('battle-log-content');
@@ -1698,8 +1694,7 @@ var VNEngine = (function() {
         backBtn.className = 'skill-back-btn';
         backBtn.innerHTML = '← Back';
         backBtn.onclick = function() {
-            var menu = document.getElementById('item-submenu');
-            if (menu) menu.parentNode.removeChild(menu);
+            Utils.removeElement(document.getElementById('item-submenu'));
             // Show battle choices and log content again
             var battleChoices = document.getElementById('battle-choices');
             var battleLogContent = document.getElementById('battle-log-content');
@@ -1750,6 +1745,7 @@ var VNEngine = (function() {
     // === Initialization ===
     function init() {
         cacheElements();
+        setupTextDisplayMode();  // Set fixed or expanding text mode
         setupClickToSkip();
         setupSpeedControls();
         setupContinueButton();
@@ -2186,10 +2182,7 @@ var VNEngine = (function() {
     }
 
     function removeUndoButton() {
-        var undoBtn = document.getElementById('dev-undo-btn');
-        if (undoBtn) {
-            undoBtn.parentNode.removeChild(undoBtn);
-        }
+        Utils.removeElement(document.getElementById('dev-undo-btn'));
     }
 
     function createThemeSelector() {
@@ -3241,14 +3234,34 @@ var VNEngine = (function() {
 
         _log.debug('Engine', 'renderCurrentBlock:', { sceneId: state.currentSceneId, blockIndex: state.currentBlockIndex, isLastBlock: isLastBlock, hasActions: !!(scene.actions && scene.actions.length > 0) });
 
+        // Reset pagination for new block and paginate text in fixed mode
+        resetPagination();
+        if (config.textDisplayMode === 'fixed') {
+            var pages = paginateText(currentText, config.fixedLines);
+            if (pages.length > 1) {
+                state.pagination.active = true;
+                state.pagination.pages = pages;
+                state.pagination.currentPage = 0;
+                state.pagination.fullText = currentText;
+                _log.debug('Engine', 'Paginated text into ' + pages.length + ' pages');
+            }
+        }
+
         // Hide continue button and choices while typing
         hideContinueButton();
         elements.choicesContainer.innerHTML = '';
 
+        // Render current page (or full text if not paginated)
+        var textToRender = state.pagination.active
+            ? state.pagination.pages[state.pagination.currentPage]
+            : currentText;
+
         // Render text with callback
-        renderText(currentText, prependContent, function() {
-            _log.debug('Engine', 'Text render complete, isLastBlock:', isLastBlock, 'hasActions:', !!(scene.actions && scene.actions.length > 0));
-            if (isLastBlock) {
+        renderText(textToRender, prependContent, function() {
+            var isLastPage = !state.pagination.active || state.pagination.currentPage >= state.pagination.pages.length - 1;
+            _log.debug('Engine', 'Text render complete, isLastBlock:', isLastBlock, 'isLastPage:', isLastPage, 'hasActions:', !!(scene.actions && scene.actions.length > 0));
+
+            if (isLastBlock && isLastPage) {
                 // Check for actions
                 if (scene.actions && scene.actions.length > 0) {
                     // Show the roll choice if there's a _roll target in choices
@@ -3268,7 +3281,7 @@ var VNEngine = (function() {
                     renderChoices(scene.choices);
                 }
             } else {
-                // Show continue button
+                // Show continue button (for next page or next block)
                 showContinueButton();
 
                 // Auto mode: auto-advance after delay
@@ -3307,6 +3320,57 @@ var VNEngine = (function() {
             state.typewriter.autoAdvanceId = null;
         }
 
+        // In fixed mode: first advance through pages before advancing blocks
+        if (hasMorePages()) {
+            advancePaginationPage();
+            _log.debug('Engine', 'Advanced to page ' + (state.pagination.currentPage + 1) + ' of ' + state.pagination.pages.length);
+
+            // Render the next page
+            hideContinueButton();
+            elements.choicesContainer.innerHTML = '';
+
+            var textToRender = state.pagination.pages[state.pagination.currentPage];
+            renderText(textToRender, '', function() {
+                var scene = story[state.currentSceneId];
+                var textBlocks = state.processedTextBlocks || scene.textBlocks || [];
+                var isLastBlock = state.currentBlockIndex >= textBlocks.length - 1;
+                var isLastPage = state.pagination.currentPage >= state.pagination.pages.length - 1;
+
+                if (isLastBlock && isLastPage) {
+                    // Last page of last block - show choices/actions
+                    if (scene.actions && scene.actions.length > 0) {
+                        var hasRollChoice = scene.choices && scene.choices.some(function(c) {
+                            return c.target === '_roll';
+                        });
+                        if (hasRollChoice) {
+                            renderChoices(scene.choices);
+                        } else {
+                            executeActions();
+                        }
+                    } else {
+                        renderChoices(scene.choices);
+                    }
+                } else {
+                    // More pages or blocks to go
+                    showContinueButton();
+
+                    // Auto/skip mode handling
+                    if (config.currentSpeed === 'auto') {
+                        state.typewriter.autoAdvanceId = typeof TimerManager !== 'undefined'
+                            ? TimerManager.setTimeout(advanceTextBlock, config.autoDelay, 'auto-advance')
+                            : setTimeout(advanceTextBlock, config.autoDelay);
+                    }
+                    if (config.currentSpeed === 'skip') {
+                        state.typewriter.autoAdvanceId = typeof TimerManager !== 'undefined'
+                            ? TimerManager.setTimeout(advanceTextBlock, config.skipModeDelay, 'auto-advance')
+                            : setTimeout(advanceTextBlock, config.skipModeDelay);
+                    }
+                }
+            });
+            return;
+        }
+
+        // No more pages - advance to next block
         var scene = story[state.currentSceneId];
         if (!scene) return;
 
@@ -3559,6 +3623,133 @@ var VNEngine = (function() {
         if (state.typewriter.onComplete) {
             state.typewriter.onComplete();
         }
+    }
+
+    // === Text Display Mode (Fixed vs Expanding) ===
+
+    /**
+     * Set up the text display mode based on config.
+     * Call once during init.
+     */
+    function setupTextDisplayMode() {
+        var storyOutput = elements.storyOutput;
+        var textBox = document.getElementById('text-box');
+
+        if (config.textDisplayMode === 'fixed') {
+            // Set CSS variable for fixed lines
+            document.documentElement.style.setProperty('--story-fixed-lines', config.fixedLines);
+            // Add fixed-height class
+            if (storyOutput) {
+                storyOutput.classList.add('fixed-height');
+            }
+            if (textBox) {
+                textBox.classList.add('fixed-text-mode');
+            }
+            _log.debug('Engine', 'Text display mode: fixed (' + config.fixedLines + ' lines)');
+        } else {
+            // Remove fixed-height class (expanding mode)
+            if (storyOutput) {
+                storyOutput.classList.remove('fixed-height');
+            }
+            if (textBox) {
+                textBox.classList.remove('fixed-text-mode');
+            }
+            _log.debug('Engine', 'Text display mode: expanding');
+        }
+    }
+
+    /**
+     * Reset pagination state for a new text block.
+     */
+    function resetPagination() {
+        state.pagination = {
+            active: false,
+            pages: [],
+            currentPage: 0,
+            fullText: ''
+        };
+    }
+
+    /**
+     * Paginate text to fit within fixedLines.
+     * Uses a measurement element to calculate how many lines text takes.
+     * Returns array of text chunks (pages).
+     */
+    function paginateText(text, maxLines) {
+        // If expanding mode or text is short, no pagination needed
+        if (config.textDisplayMode !== 'fixed') {
+            return [text];
+        }
+
+        // Create a hidden measurement element with same styles as story output
+        var measureEl = document.createElement('div');
+        measureEl.style.cssText = window.getComputedStyle(elements.storyOutput).cssText;
+        measureEl.style.position = 'absolute';
+        measureEl.style.visibility = 'hidden';
+        measureEl.style.width = elements.storyOutput.offsetWidth + 'px';
+        measureEl.style.height = 'auto';
+        measureEl.style.maxHeight = 'none';
+        measureEl.style.overflow = 'visible';
+        document.body.appendChild(measureEl);
+
+        // Get line height
+        var computedStyle = window.getComputedStyle(elements.storyOutput);
+        var lineHeight = parseFloat(computedStyle.lineHeight);
+        if (isNaN(lineHeight)) {
+            // fallback: use font-size * 1.6
+            lineHeight = parseFloat(computedStyle.fontSize) * 1.6;
+        }
+        var maxHeight = lineHeight * maxLines;
+
+        // Split text into words
+        var words = text.split(/(\s+)/);  // Keep whitespace
+        var pages = [];
+        var currentPage = '';
+
+        for (var i = 0; i < words.length; i++) {
+            var testText = currentPage + words[i];
+            // Convert markdown bold for measurement
+            var formattedTest = testText.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+            measureEl.innerHTML = '<p class="typewriter-text">' + formattedTest + '</p>';
+
+            if (measureEl.offsetHeight > maxHeight && currentPage.trim() !== '') {
+                // Current page is full, start new page
+                pages.push(currentPage.trim());
+                currentPage = words[i];
+            } else {
+                currentPage = testText;
+            }
+        }
+
+        // Add remaining text as last page
+        if (currentPage.trim() !== '') {
+            pages.push(currentPage.trim());
+        }
+
+        // Cleanup
+        document.body.removeChild(measureEl);
+
+        return pages.length > 0 ? pages : [text];
+    }
+
+    /**
+     * Check if there are more pages in current pagination.
+     */
+    function hasMorePages() {
+        return state.pagination.active &&
+               state.pagination.currentPage < state.pagination.pages.length - 1;
+    }
+
+    /**
+     * Advance to next pagination page.
+     * Returns true if advanced, false if no more pages.
+     */
+    function advancePaginationPage() {
+        if (!hasMorePages()) {
+            return false;
+        }
+        state.pagination.currentPage++;
+        return true;
     }
 
     function renderChoices(choices) {
@@ -3894,10 +4085,7 @@ var VNEngine = (function() {
      */
     function showErrorScreen(options) {
         // Remove any existing error overlay
-        var existing = document.getElementById('error-overlay');
-        if (existing) {
-            existing.parentNode.removeChild(existing);
-        }
+        Utils.removeElement(document.getElementById('error-overlay'));
 
         var overlay = document.createElement('div');
         overlay.id = 'error-overlay';
@@ -3945,10 +4133,7 @@ var VNEngine = (function() {
      * Hide the error screen overlay
      */
     function hideErrorScreen() {
-        var overlay = document.getElementById('error-overlay');
-        if (overlay && overlay.parentNode) {
-            overlay.parentNode.removeChild(overlay);
-        }
+        Utils.removeElement(document.getElementById('error-overlay'));
     }
 
     // === Audio Management ===
@@ -4493,9 +4678,7 @@ var VNEngine = (function() {
         setTimeout(function() {
             notification.classList.add('fade-out');
             setTimeout(function() {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
+                Utils.removeElement(notification);
             }, 500);
         }, 2000);
     }
@@ -4510,79 +4693,21 @@ var VNEngine = (function() {
 
     /**
      * Update the inventory display in the UI
+     * NOTE: Floating inventory panel has been replaced by full-screen GameMenu.
+     * This function now just hides the container. Inventory is accessed via MENU button.
      */
     function updateInventoryDisplay() {
         var inventoryContainer = document.getElementById('inventory-display');
         if (!inventoryContainer) return;
 
-        var hasSkills = state.inventory.skills.length > 0;
-        var hasKeyItems = state.inventory.keyItems.length > 0;
-        var hasConsumables = Object.keys(state.inventory.consumables).length > 0;
-        var hasAnyContent = hasSkills || hasKeyItems || hasConsumables;
+        // Hide the floating inventory panel - use GameMenu instead
+        inventoryContainer.style.display = 'none';
+        inventoryContainer.innerHTML = '';
 
-        // Always show inventory container (even when empty) so players know to collect items
-        inventoryContainer.style.display = 'block';
-
-        // Build the inventory HTML
-        var html = '';
-
-        // Header with toggle button
-        html += '<div class="inventory-header" onclick="VNEngine.toggleInventory()">';
-        html += '<span class="inventory-toggle">' + (state.inventoryExpanded ? '▼' : '▶') + '</span>';
-        html += '<span class="inventory-label">Inventory</span>';
-
-        // Total count badge (skills + key items + consumables only - flags are internal state)
-        var totalItems = state.inventory.skills.length + state.inventory.keyItems.length +
-                         Object.keys(state.inventory.consumables).length;
-        html += '<span class="inventory-count">' + totalItems + '</span>';
-        html += '</div>';
-
-        // Expanded content
-        if (state.inventoryExpanded) {
-            html += '<div class="inventory-content">';
-
-            if (!hasAnyContent) {
-                // Show empty state message
-                html += '<div class="inventory-empty">No items yet...</div>';
-            } else {
-                // Skills section (shown first as they persist)
-                if (hasSkills) {
-                    html += '<div class="inventory-section">';
-                    html += '<div class="inventory-section-label">✨ Skills</div>';
-                    state.inventory.skills.forEach(function(skill) {
-                        html += '<div class="inventory-item inventory-item-skill">' + skill + '</div>';
-                    });
-                    html += '</div>';
-                }
-
-                // Key Items section (persist across Play Again)
-                if (hasKeyItems) {
-                    html += '<div class="inventory-section">';
-                    html += '<div class="inventory-section-label">🔑 Key Items</div>';
-                    state.inventory.keyItems.forEach(function(item) {
-                        html += '<div class="inventory-item inventory-item-key">' + item + '</div>';
-                    });
-                    html += '</div>';
-                }
-
-                // Consumables section (cleared on Play Again)
-                if (hasConsumables) {
-                    html += '<div class="inventory-section">';
-                    html += '<div class="inventory-section-label">📦 Consumables</div>';
-                    Object.keys(state.inventory.consumables).forEach(function(item) {
-                        var count = state.inventory.consumables[item];
-                        html += '<div class="inventory-item inventory-item-consumable">';
-                        html += item + ' <span class="item-count">x' + count + '</span>';
-                        html += '</div>';
-                    });
-                    html += '</div>';
-                }
-            }
-
-            html += '</div>';
+        // Refresh GameMenu if it's open
+        if (typeof GameMenu !== 'undefined' && GameMenu.isOpen && GameMenu.isOpen()) {
+            GameMenu.refresh();
         }
-
-        inventoryContainer.innerHTML = html;
     }
 
     // === HP Management ===
@@ -4667,9 +4792,7 @@ var VNEngine = (function() {
 
         // Remove after animation
         setTimeout(function() {
-            if (damageNum.parentNode) {
-                damageNum.parentNode.removeChild(damageNum);
-            }
+            Utils.removeElement(damageNum);
         }, 1500);
     }
 
@@ -5027,13 +5150,9 @@ var VNEngine = (function() {
      * Completely remove battle UI elements from DOM
      */
     function destroyBattleUI() {
-        var playerHP = document.getElementById('player-hp-container');
-        var enemyHP = document.getElementById('enemy-hp-container');
-        var playerMana = document.getElementById('player-mana-container');
-
-        if (playerHP && playerHP.parentNode) playerHP.parentNode.removeChild(playerHP);
-        if (enemyHP && enemyHP.parentNode) enemyHP.parentNode.removeChild(enemyHP);
-        if (playerMana && playerMana.parentNode) playerMana.parentNode.removeChild(playerMana);
+        Utils.removeElement(document.getElementById('player-hp-container'));
+        Utils.removeElement(document.getElementById('enemy-hp-container'));
+        Utils.removeElement(document.getElementById('player-mana-container'));
     }
 
     function reset() {
@@ -5111,7 +5230,24 @@ var VNEngine = (function() {
         markBattleWon: markBattleWon,
         hasBattleBeenWon: hasBattleBeenWon,
         // Dev mode
-        showDevModeIndicator: showDevModeIndicator
+        showDevModeIndicator: showDevModeIndicator,
+        // Text display mode ('fixed' or 'expanding')
+        getTextDisplayMode: function() { return config.textDisplayMode; },
+        setTextDisplayMode: function(mode) {
+            if (mode === 'fixed' || mode === 'expanding') {
+                config.textDisplayMode = mode;
+                setupTextDisplayMode();
+                _log.debug('Engine', 'Text display mode changed to: ' + mode);
+            }
+        },
+        getFixedLines: function() { return config.fixedLines; },
+        setFixedLines: function(lines) {
+            if (typeof lines === 'number' && lines >= 1 && lines <= 10) {
+                config.fixedLines = lines;
+                setupTextDisplayMode();
+                _log.debug('Engine', 'Fixed lines changed to: ' + lines);
+            }
+        }
     };
 
 })();
