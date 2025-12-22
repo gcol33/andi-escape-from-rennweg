@@ -135,8 +135,9 @@
     --battle-log-height: 13.4rem;
 
     /* Button area reserved height (prevents layout shift) */
-    --button-area-min-height: 3.75em;          /* Landscape: single row */
-    --button-area-min-height-portrait: 6.75em; /* Portrait: 2 stacked buttons */
+    /* Sized for 2-line button text to prevent jumping */
+    --button-area-min-height: 5em;             /* Landscape: single row, 2-line text */
+    --button-area-min-height-portrait: 8em;    /* Portrait: 2 stacked buttons, 2-line text */
 }
 
 /* === Battle Panel Colors === */
