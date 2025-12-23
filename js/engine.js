@@ -2958,6 +2958,18 @@ var VNEngine = (function() {
         // Clean up resources from previous scene
         cleanupSceneResources();
 
+        // Hide ending overlay if visible
+        var endingOverlay = document.getElementById('ending-overlay');
+        if (endingOverlay) {
+            endingOverlay.classList.remove('visible');
+            endingOverlay.innerHTML = '';
+        }
+
+        // Remove ending-scene class from text-box
+        if (elements.textBox) {
+            elements.textBox.classList.remove('ending-scene');
+        }
+
         // Emit scene transition event
         if (typeof EventEmitter !== 'undefined') {
             EventEmitter.emit('scene:transition', { from: state.currentSceneId, to: sceneId });
@@ -3924,23 +3936,33 @@ var VNEngine = (function() {
                 elements.choicesContainer.appendChild(button);
             });
         } else {
-            // Game over state - add completion message and restart button
-            var completionMsg = document.createElement('p');
-            completionMsg.className = 'game-over';
-            // Use ending title from frontmatter if available, otherwise default
-            completionMsg.textContent = state.endingTitle || 'The adventure is complete!';
-            elements.choicesContainer.appendChild(completionMsg);
-            // Fallback for browsers without :has() support
-            elements.choicesContainer.classList.add('has-game-over');
+            // Game over state - show ending overlay with restart button
+            var endingOverlay = document.getElementById('ending-overlay');
+            if (endingOverlay) {
+                // Add completion message
+                var completionMsg = document.createElement('p');
+                completionMsg.className = 'game-over';
+                completionMsg.textContent = state.endingTitle || 'The adventure is complete!';
+                endingOverlay.appendChild(completionMsg);
 
-            var restartButton = document.createElement('button');
-            restartButton.className = 'restart-button';
-            restartButton.textContent = 'Play Again';
-            restartButton.onclick = function() {
-                // Go to wake_up scene - reset happens there via action
-                loadScene('wake_up');
-            };
-            elements.choicesContainer.appendChild(restartButton);
+                // Add restart button
+                var restartButton = document.createElement('button');
+                restartButton.className = 'restart-button';
+                restartButton.textContent = 'Play Again';
+                restartButton.onclick = function() {
+                    // Go to wake_up scene - reset happens there via action
+                    loadScene('wake_up');
+                };
+                endingOverlay.appendChild(restartButton);
+
+                // Show the overlay (darkens scene 40%)
+                endingOverlay.classList.add('visible');
+
+                // Add class to text-box for ending-specific styling
+                if (elements.textBox) {
+                    elements.textBox.classList.add('ending-scene');
+                }
+            }
         }
     }
 

@@ -144,6 +144,43 @@
     opacity: 1;
 }
 
+/* === Ending Overlay ===
+ * Darkens scene and centers Play Again button outside the text-box.
+ * Used for game over / ending screens.
+ */
+#ending-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);  /* 40% darken */
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 15;  /* Above sprites (2), below text-box (20) */
+    pointer-events: none;
+}
+
+#ending-overlay.visible {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    pointer-events: auto;
+}
+
+/* Ending overlay message - inherits from .game-over, centered here */
+#ending-overlay .game-over {
+    text-align: center;
+    margin: 0;
+    padding: 0 1rem;
+}
+
+/* Restart button in overlay - centered, accessible */
+#ending-overlay .restart-button {
+    pointer-events: auto;
+}
+
 /* === Animated Background Video ===
  * Video element for WebM/MP4 animated backgrounds.
  * Hidden by default, shown when video background is active.
@@ -343,9 +380,9 @@
     justify-content: center;
     flex-shrink: 0;
     margin-top: var(--text-button-gap, 0.25rem) !important;  /* Minimal gap to text */
-    padding: 0 0.625em 0.625em 0.625em;  /* No top padding - margin-top handles gap */
-    gap: 8px;
-    min-height: var(--button-area-min-height, 3.75em);
+    padding: 0 0.5em 0.4em 0.5em;  /* Reduced padding for smaller buttons */
+    gap: 6px;
+    min-height: var(--button-area-min-height, 3.5em);
 }
 
 /* Choices container: horizontal row, centered, equal height buttons */
@@ -363,13 +400,13 @@
     text-align: center;
 }
 
-/* Single choice button: match continue button styling */
+/* Single choice button: don't stretch, but keep same padding as multiple choices */
 #choices-container .choice-button:only-child {
     flex: 0 0 auto;
     width: auto;
     min-width: 180px;
     max-width: 90%;
-    padding: 8px 24px;
+    /* Inherits padding from .choice-button for consistency */
 }
 
 /* Responsive: ensure max-height is consistent */
