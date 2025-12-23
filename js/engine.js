@@ -1917,13 +1917,20 @@ var VNEngine = (function() {
     }
 
     function setupClickToSkip() {
-        // Click/tap on story output to skip typewriter
-        elements.storyOutput.addEventListener('click', function() {
+        // Click/tap anywhere on VN container to skip typewriter
+        var vnContainer = document.getElementById('vn-container');
+        var clickTarget = vnContainer || document.getElementById('text-box') || elements.storyOutput;
+
+        clickTarget.addEventListener('click', function(e) {
+            // Don't skip if clicking on a button or input
+            if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
             skipTypewriter();
         });
 
         // Touch event for better mobile response (fires before click)
-        elements.storyOutput.addEventListener('touchend', function(e) {
+        clickTarget.addEventListener('touchend', function(e) {
+            // Don't skip if touching a button or input
+            if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
             // Prevent double-firing with click event
             if (skipTypewriter()) {
                 e.preventDefault();

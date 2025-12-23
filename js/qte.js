@@ -1339,24 +1339,28 @@ var QTEEngine = (function() {
             }
         };
 
-        // Click handler
+        // Click handler - accepts clicks anywhere on VN container
         var clickHandler = function(e) {
             if (!state.active || state.phase !== 'running') return;
 
-            // Check if click is on QTE area
-            var qteContainer = document.getElementById('qte-container');
-            if (qteContainer && qteContainer.contains(e.target)) {
+            // Accept clicks anywhere on VN container (not just QTE area)
+            var vnContainer = document.getElementById('vn-container');
+            if (vnContainer && vnContainer.contains(e.target)) {
+                // Don't trigger on button clicks
+                if (e.target.tagName === 'BUTTON') return;
                 e.preventDefault();
                 handleInput();
             }
         };
 
-        // Touch handler
+        // Touch handler - accepts touches anywhere on VN container
         var touchHandler = function(e) {
             if (!state.active || state.phase !== 'running') return;
 
-            var qteContainer = document.getElementById('qte-container');
-            if (qteContainer && qteContainer.contains(e.target)) {
+            var vnContainer = document.getElementById('vn-container');
+            if (vnContainer && vnContainer.contains(e.target)) {
+                // Don't trigger on button touches
+                if (e.target.tagName === 'BUTTON') return;
                 e.preventDefault();
                 handleInput();
             }
