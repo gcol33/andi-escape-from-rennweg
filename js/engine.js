@@ -3587,8 +3587,8 @@ var VNEngine = (function() {
 
         if (!tw.isTyping || !tw.segments) return false;
 
-        // Only allow skip if this block was already read (or dev mode)
-        if (!tw.canSkip && !state.devMode) return false;
+        // Always allow clicking to complete current text (standard VN behavior)
+        // Playtester feedback: restricting skip on new text was frustrating
 
         // Build complete HTML
         var fullHTML = tw.renderedHTML || '';
