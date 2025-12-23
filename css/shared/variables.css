@@ -27,14 +27,26 @@
     --base-font-size: clamp(1.2rem, 1.7vw, 1.8rem);  /* 19px-29px */
 
     /* Story text sizing - scales with viewport for consistent line wrapping */
-    /* Reduced ~15% from original to accommodate 2-line button text */
+    /* Pure vw for smooth continuous scaling across all resolutions */
     --story-font-size-fallback: 1.1rem;  /* Fallback for older browsers */
-    --story-font-size: clamp(0.85rem, 1.9vw, 1.2rem);  /* 14px min, scales, 19px max */
+    --story-font-size: 1.9vw;  /* Scales smoothly: ~15px at 800px, ~19px at 1000px */
     --story-line-height: 1.6;
 
-    /* Fixed-height text box mode (set via JS from TUNING.text.fixedLines) */
+    /* Fixed-height text box mode
+     * --story-fixed-height is set by JS at runtime via measureTextHeight()
+     * JS measures actual rendered line height and sets pixel value
+     * This CSS calc is a fallback if JS hasn't run yet
+     */
     --story-fixed-lines: 3;
-    --story-fixed-height: calc(var(--story-font-size) * var(--story-line-height) * var(--story-fixed-lines));
+    --story-line-em: calc(var(--story-line-height) * 1em);
+    --story-fixed-height: calc(var(--story-line-em) * var(--story-fixed-lines));  /* Fallback only */
+
+    /* === Consistent Spacing Convention ===
+     * Text area: always reserves space for 3 lines (any resolution)
+     * Button area: sized for 2-line button text
+     * Gap between text and buttons: minimal (4px)
+     */
+    --text-button-gap: 0.25rem;  /* 4px - minimal separation */
 
     /* UI element sizing - reduced ~15% for better 2-line button fit */
     --button-font-size: 0.76rem;

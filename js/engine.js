@@ -3637,6 +3637,64 @@ var VNEngine = (function() {
     // === Text Display Mode (Fixed vs Expanding) ===
 
     /**
+     * Measure actual text line height and set CSS variable for fixed-height mode.
+     * Creates a hidden measurement element with same styling as story-output,
+     * measures the height of N lines, and sets --story-fixed-height accordingly.
+     * Must be called after DOM is ready and on window resize (font uses vw units).
+     */
+    function measureTextHeight() {
+        var storyOutput = elements.storyOutput;
+        if (!storyOutput) return;
+
+        // Create hidden measurement element
+        var measureEl = document.createElement('div');
+        var computedStyle = window.getComputedStyle(storyOutput);
+
+        // Copy ALL relevant styles from story-output for accurate measurement
+        measureEl.style.position = 'absolute';
+        measureEl.style.visibility = 'hidden';
+        measureEl.style.pointerEvents = 'none';
+        measureEl.style.width = storyOutput.clientWidth + 'px';  // Use clientWidth (content area)
+        measureEl.style.height = 'auto';
+        measureEl.style.maxHeight = 'none';
+        measureEl.style.overflow = 'visible';
+        measureEl.style.fontSize = computedStyle.fontSize;
+        measureEl.style.fontFamily = computedStyle.fontFamily;
+        measureEl.style.lineHeight = computedStyle.lineHeight;
+        measureEl.style.letterSpacing = computedStyle.letterSpacing;
+        measureEl.style.wordSpacing = computedStyle.wordSpacing;
+        measureEl.style.padding = '0';
+        measureEl.style.margin = '0';
+        measureEl.style.boxSizing = 'content-box';
+
+        // Add reference text for N lines (using "Mgy" for full ascender/descender/baseline)
+        var lines = [];
+        for (var i = 0; i < config.fixedLines; i++) {
+            lines.push('Mgy');
+        }
+        measureEl.innerHTML = '<p class="typewriter-text" style="margin:0;padding:0;display:block;">' + lines.join('<br>') + '</p>';
+
+        document.body.appendChild(measureEl);
+        var measuredHeight = measureEl.offsetHeight;
+        document.body.removeChild(measureEl);
+
+        // Set the CSS variable with exact measured height (no buffer - padding handled by CSS)
+        document.documentElement.style.setProperty('--story-fixed-height', measuredHeight + 'px');
+        _log.debug('Engine', 'Measured text height for ' + config.fixedLines + ' lines: ' + measuredHeight + 'px');
+    }
+
+    // Debounced resize handler for text height measurement
+    var resizeTimeout = null;
+    function handleResizeForTextHeight() {
+        if (resizeTimeout) clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function() {
+            if (config.textDisplayMode === 'fixed') {
+                measureTextHeight();
+            }
+        }, 100);
+    }
+
+    /**
      * Set up the text display mode based on config.
      * Call once during init.
      */
@@ -3647,6 +3705,11 @@ var VNEngine = (function() {
         if (config.textDisplayMode === 'fixed') {
             // Set CSS variable for fixed lines
             document.documentElement.style.setProperty('--story-fixed-lines', config.fixedLines);
+            // Measure actual line height and set --story-fixed-height
+            measureTextHeight();
+            // Add resize listener for vw-based font recalculation
+            window.removeEventListener('resize', handleResizeForTextHeight);
+            window.addEventListener('resize', handleResizeForTextHeight);
             // Add fixed-height class
             if (storyOutput) {
                 storyOutput.classList.add('fixed-height');
@@ -3657,6 +3720,7 @@ var VNEngine = (function() {
             _log.debug('Engine', 'Text display mode: fixed (' + config.fixedLines + ' lines)');
         } else {
             // Remove fixed-height class (expanding mode)
+            window.removeEventListener('resize', handleResizeForTextHeight);
             if (storyOutput) {
                 storyOutput.classList.remove('fixed-height');
             }

@@ -288,17 +288,40 @@
     overflow-x: hidden !important;
 }
 
+/* === Story Output Font Scaling ===
+ * MUST use viewport units for consistent scaling across resolutions.
+ * Theme overrides are blocked with !important.
+ */
+#story-output {
+    font-size: var(--story-font-size-fallback, 1.1rem) !important;  /* Fallback */
+    font-size: var(--story-font-size) !important;  /* vw-based scaling */
+    line-height: var(--story-line-height, 1.6) !important;
+}
+
 /* === Fixed-Height Text Mode ===
  * When .fixed-height class is added:
- * - Story output has fixed height based on --story-fixed-lines
- * - No scrolling - text is paginated instead
- * - Provides stable, non-jumping UI
+ * - Story output PRE-RESERVES space for exactly 3 lines
+ * - Height is JS-measured for exact line height
+ * - Symmetric vertical padding (0.5em top and bottom)
+ * - Extra text is cut with ellipsis and paginated via Continue button
  */
 #story-output.fixed-height {
     flex: 0 0 auto !important;
+    overflow: hidden !important;
+    /* Use content-box so height = content only, padding adds on top */
+    box-sizing: content-box !important;
     height: var(--story-fixed-height) !important;
     min-height: var(--story-fixed-height) !important;
-    max-height: var(--story-fixed-height) !important;
+    /* Symmetric vertical padding - override theme padding */
+    padding-top: 0.5em !important;
+    padding-bottom: 0.5em !important;
+}
+
+#story-output.fixed-height .typewriter-text {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: var(--story-fixed-lines, 3) !important;
+    line-clamp: var(--story-fixed-lines, 3) !important;
     overflow: hidden !important;
 }
 
@@ -311,6 +334,7 @@
 /* Button area: never shrink, never cut, always centered
  * min-height reserves space to prevent layout shift when buttons appear/disappear
  * Uses CSS variable so themes can override if needed
+ * Gap between text and buttons uses --text-button-gap (minimal 4px)
  */
 #button-area {
     display: flex;
@@ -318,7 +342,8 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    padding: 0.625em;
+    margin-top: var(--text-button-gap, 0.25rem) !important;  /* Minimal gap to text */
+    padding: 0 0.625em 0.625em 0.625em;  /* No top padding - margin-top handles gap */
     gap: 8px;
     min-height: var(--button-area-min-height, 3.75em);
 }
