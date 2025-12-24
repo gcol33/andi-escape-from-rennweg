@@ -18,7 +18,7 @@
 .battle-log-panel {
     /* Positioning via .anchor.anchor--bottom-flush */
     /* Height set via --battle-log-height CSS variable */
-    height: var(--battle-log-height, 13.4rem);
+    height: var(--battle-log-height, 12rem);
     background: rgba(0, 0, 0, 0.85);
     border-top: 0.1875rem solid rgba(255, 255, 255, 0.3);
     padding: var(--spacing-sm, 0.5rem) var(--spacing-md, 0.75rem);
@@ -50,6 +50,23 @@
 
 .battle-log-content::-webkit-scrollbar {
     display: none;
+}
+
+/* === Row Containers === */
+.battle-log-row {
+    display: block;
+    min-height: 1.6em;  /* Match line-height for consistent height */
+    line-height: 1.6;
+}
+
+/* Previous line (row1) - slightly dimmed */
+#battle-log-row-1 {
+    opacity: 0.7;
+}
+
+/* Current line (row2) - full brightness */
+#battle-log-row-2 {
+    opacity: 1;
 }
 
 /* === Messages Wrapper === */

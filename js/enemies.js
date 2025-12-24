@@ -8,6 +8,138 @@
  */
 
 const enemies = {
+  "dnd_group": {
+    "id": "dnd_group",
+    "name": "D&D Group",
+    "sprite": "dnd_group.svg",
+    "hp": 30,
+    "ac": 13,
+    "attack_bonus": 4,
+    "damage": "d8",
+    "type": "physical",
+    "stagger_threshold": 70,
+    "ai": "default",
+    "dialogue": {
+      "battle_start": [
+        "Roll for initiative!",
+        "You dare challenge our party?"
+      ],
+      "attack_default": [
+        "Natural 20!",
+        "The dice gods favor us!",
+        "Critical hit incoming!"
+      ],
+      "victory": [
+        "TPK! Total Party Kill!"
+      ],
+      "defeat": [
+        "We... need a long rest..."
+      ]
+    },
+    "moves": [
+      {
+        "name": "Fireball",
+        "damage": "2d6",
+        "type": "fire",
+        "description": "The wizard casts fireball!"
+      },
+      {
+        "name": "Sneak Attack",
+        "damage": "2d4",
+        "type": "physical",
+        "description": "The rogue strikes from the shadows!"
+      },
+      {
+        "name": "Smite",
+        "damage": "d10",
+        "type": "holy",
+        "description": "The paladin channels divine energy!"
+      }
+    ],
+    "description": "The D&D group. A formidable party of nerds."
+  },
+  "anna": {
+    "id": "anna",
+    "name": "Anna",
+    "sprite": "anna_neutral.svg",
+    "hp": 24,
+    "ac": 12,
+    "attack_bonus": 3,
+    "damage": "d6",
+    "type": "physical",
+    "stagger_threshold": 55,
+    "ai": "default",
+    "dialogue": {
+      "battle_start": [
+        "Let's see what you've got!"
+      ],
+      "attack_default": [
+        "Here I come!",
+        "Take this!"
+      ],
+      "victory": [
+        "Better luck next time!"
+      ],
+      "defeat": [
+        "Well played..."
+      ]
+    },
+    "moves": [
+      {
+        "name": "Attack",
+        "damage": "d6",
+        "type": "physical",
+        "description": "A swift strike!"
+      },
+      {
+        "name": "Focus Strike",
+        "damage": "2d4",
+        "type": "physical"
+      }
+    ],
+    "description": "Anna. A placeholder enemy."
+  },
+  "stefan": {
+    "id": "stefan",
+    "name": "Stefan",
+    "sprite": "stefan_neutral.svg",
+    "hp": 25,
+    "ac": 12,
+    "attack_bonus": 3,
+    "damage": "d6",
+    "type": "physical",
+    "stagger_threshold": 60,
+    "ai": "default",
+    "dialogue": {
+      "battle_start": [
+        "You want to pass? Fight me first!"
+      ],
+      "attack_default": [
+        "Take this!",
+        "Here I come!"
+      ],
+      "victory": [
+        "Better luck next time!"
+      ],
+      "defeat": [
+        "Impossible..."
+      ]
+    },
+    "moves": [
+      {
+        "name": "Attack",
+        "damage": "d6",
+        "type": "physical",
+        "description": "A standard attack!"
+      },
+      {
+        "name": "Heavy Strike",
+        "damage": "2d4",
+        "type": "physical"
+      }
+    ],
+    "description": "Stefan. A placeholder enemy."
+  },
   "agnes_hr": {
     "id": "agnes_hr",
     "name": "Agnes (HR)",
@@ -184,97 +316,6 @@ const enemies = {
     ],
     "description": "Agnes from HR. The final boss of every office worker's nightmare. Her weapon? Paperwork. Her armor? Policy. Her weakness? Actual human connection (which she lacks)."
   },
-  "anna": {
-    "id": "anna",
-    "name": "Anna",
-    "sprite": "anna_neutral.svg",
-    "hp": 24,
-    "ac": 12,
-    "attack_bonus": 3,
-    "damage": "d6",
-    "type": "physical",
-    "stagger_threshold": 55,
-    "ai": "default",
-    "dialogue": {
-      "battle_start": [
-        "Let's see what you've got!"
-      ],
-      "attack_default": [
-        "Here I come!",
-        "Take this!"
-      ],
-      "victory": [
-        "Better luck next time!"
-      ],
-      "defeat": [
-        "Well played..."
-      ]
-    },
-    "moves": [
-      {
-        "name": "Attack",
-        "damage": "d6",
-        "type": "physical",
-        "description": "A swift strike!"
-      },
-      {
-        "name": "Focus Strike",
-        "damage": "2d4",
-        "type": "physical"
-      }
-    ],
-    "description": "Anna. A placeholder enemy."
-  },
-  "dnd_group": {
-    "id": "dnd_group",
-    "name": "D&D Group",
-    "sprite": "dnd_group.svg",
-    "hp": 30,
-    "ac": 13,
-    "attack_bonus": 4,
-    "damage": "d8",
-    "type": "physical",
-    "stagger_threshold": 70,
-    "ai": "default",
-    "dialogue": {
-      "battle_start": [
-        "Roll for initiative!",
-        "You dare challenge our party?"
-      ],
-      "attack_default": [
-        "Natural 20!",
-        "The dice gods favor us!",
-        "Critical hit incoming!"
-      ],
-      "victory": [
-        "TPK! Total Party Kill!"
-      ],
-      "defeat": [
-        "We... need a long rest..."
-      ]
-    },
-    "moves": [
-      {
-        "name": "Fireball",
-        "damage": "2d6",
-        "type": "fire",
-        "description": "The wizard casts fireball!"
-      },
-      {
-        "name": "Sneak Attack",
-        "damage": "2d4",
-        "type": "physical",
-        "description": "The rogue strikes from the shadows!"
-      },
-      {
-        "name": "Smite",
-        "damage": "d10",
-        "type": "holy",
-        "description": "The paladin channels divine energy!"
-      }
-    ],
-    "description": "The D&D group. A formidable party of nerds."
-  },
   "michi": {
     "id": "michi",
     "name": "Michi",
@@ -325,47 +366,6 @@ const enemies = {
       }
     ],
     "description": "Michi. The whiteboard master."
-  },
-  "stefan": {
-    "id": "stefan",
-    "name": "Stefan",
-    "sprite": "stefan_neutral.svg",
-    "hp": 25,
-    "ac": 12,
-    "attack_bonus": 3,
-    "damage": "d6",
-    "type": "physical",
-    "stagger_threshold": 60,
-    "ai": "default",
-    "dialogue": {
-      "battle_start": [
-        "You want to pass? Fight me first!"
-      ],
-      "attack_default": [
-        "Take this!",
-        "Here I come!"
-      ],
-      "victory": [
-        "Better luck next time!"
-      ],
-      "defeat": [
-        "Impossible..."
-      ]
-    },
-    "moves": [
-      {
-        "name": "Attack",
-        "damage": "d6",
-        "type": "physical",
-        "description": "A standard attack!"
-      },
-      {
-        "name": "Heavy Strike",
-        "damage": "2d4",
-        "type": "physical"
-      }
-    ],
-    "description": "Stefan. A placeholder enemy."
   }
 };
 

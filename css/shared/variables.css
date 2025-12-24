@@ -28,8 +28,8 @@
 
     /* Story text sizing - scales with viewport for consistent line wrapping */
     /* Pure vw for smooth continuous scaling across all resolutions */
-    --story-font-size-fallback: 1.1rem;  /* Fallback for older browsers */
-    --story-font-size: 1.9vw;  /* Scales smoothly: ~15px at 800px, ~19px at 1000px */
+    --story-font-size-fallback: 0.825rem;  /* Fallback for older browsers */
+    --story-font-size: 1.425vw;  /* 25% smaller: ~11px at 800px, ~14px at 1000px */
     --story-line-height: 1.6;
 
     /* Fixed-height text box mode
@@ -48,10 +48,14 @@
      */
     --text-button-gap: 0.25rem;  /* 4px - minimal separation */
 
-    /* UI element sizing - reduced ~15% for better 2-line button fit */
+    /* UI element sizing - controls stay readable */
     --button-font-size: 0.76rem;
-    --small-font-size: 0.65rem;
+    --small-font-size: 0.75rem;
     --label-font-size: 0.72rem;
+
+    /* Choice/continue button sizing (25% smaller than original) */
+    --choice-font-size: 0.675rem;      /* was 0.9rem */
+    --continue-font-size: 0.75rem;     /* was 1rem */
 
     /* Spacing - using rem for scalability (1rem = 16px at default) */
     --spacing-xs: 0.25rem;   /* 4px */
@@ -144,12 +148,12 @@
     --stats-panel-width-mobile: 8.75rem;
 
     /* Battle log height (used for bottom positioning) */
-    --battle-log-height: 13.4rem;
+    --battle-log-height: 12rem;  /* Reduced from 13.4rem for better viewport fit */
 
     /* Button area reserved height (prevents layout shift) */
-    /* Sized for 2-line button text to prevent jumping */
-    --button-area-min-height: 5em;             /* Landscape: single row, 2-line text */
-    --button-area-min-height-portrait: 8em;    /* Portrait: 2 stacked buttons, 2-line text */
+    /* Sized for 2-line button text (25% smaller) to prevent jumping */
+    --button-area-min-height: 3.5em;           /* Landscape: single row, 2-line text */
+    --button-area-min-height-portrait: 5.5em;  /* Portrait: 2 stacked buttons, 2-line text */
 }
 
 /* === Battle Panel Colors === */

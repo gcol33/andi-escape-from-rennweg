@@ -532,6 +532,7 @@ def parse_scene_file(filepath):
         'actions': frontmatter.get('actions', []),
         'ending_title': frontmatter.get('ending_title', None),
         'random_flavor': frontmatter.get('random_flavor', []),
+        'recap': frontmatter.get('recap', None),
         'textBlocks': text_blocks,
         'choices': choices
     }
@@ -561,6 +562,8 @@ def parse_scene_file(filepath):
         del scene['ending_title']
     if not scene['random_flavor']:
         del scene['random_flavor']
+    if scene['recap'] is None:
+        del scene['recap']
 
     return scene
 

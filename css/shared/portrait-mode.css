@@ -87,7 +87,7 @@
     :root {
         --base-font-size-fallback: 1.5rem;
         --base-font-size: clamp(1.25rem, 4vw, 1.75rem);
-        --story-font-size: clamp(0.85rem, 3vw, 1.25rem);  /* Portrait: scales, reduced 15% */
+        --story-font-size: 3.5vw;  /* Portrait: smooth scaling for narrower viewport */
         --ui-edge-margin: var(--ui-edge-margin-small);
     }
 
@@ -98,7 +98,9 @@
         max-width: 100% !important;
         aspect-ratio: 9 / 16 !important;
         max-height: 80vh !important;
+        max-height: 80dvh !important;  /* Dynamic viewport - accounts for keyboard */
         margin-bottom: 10vh !important;
+        margin-bottom: 10dvh !important;
     }
 
     /* --- Text Box & Header --- */
@@ -111,30 +113,32 @@
         max-height: 90% !important;
     }
 
-    /* Switch header to single-column stacked layout */
+    /* Header: 3-column layout with title centered, menu left, controls right */
     #text-box-header {
-        grid-template-columns: 1fr !important;
-        grid-template-rows: auto auto !important;
+        grid-template-columns: auto 1fr auto !important;
+        grid-template-rows: auto !important;
         justify-items: center !important;
         padding: 4px 8px !important;
         gap: 4px !important;
     }
 
-    #text-box-title {
+    #header-spacer {
         grid-column: 1 !important;
+        grid-row: 1 !important;
+        justify-self: start !important;
+    }
+
+    #text-box-title {
+        grid-column: 2 !important;
         grid-row: 1 !important;
         justify-self: center !important;
         max-width: 100% !important;
     }
 
-    #header-spacer {
-        display: none !important;
-    }
-
     #text-controls {
-        grid-column: 1 !important;
-        grid-row: 2 !important;
-        justify-self: center !important;
+        grid-column: 3 !important;
+        grid-row: 1 !important;
+        justify-self: end !important;
         flex-wrap: wrap;
         gap: 0.25rem;
     }

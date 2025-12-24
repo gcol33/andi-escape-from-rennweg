@@ -116,7 +116,20 @@ const TUNING = {
             skipModeDelay: 150,         // ms delay between blocks in skip mode
 
             // Text block limits
-            maxBlockLength: 350         // Characters before auto-splitting
+            maxBlockLength: 350,        // Characters before auto-splitting
+
+            // Display mode: 'expanding' or 'fixed'
+            // - expanding: text box grows with content (original behavior)
+            // - fixed: text box has fixed height, long text auto-paginates
+            displayMode: 'fixed',
+
+            // Fixed mode settings
+            fixedLines: 3,              // Number of visible lines in fixed mode
+
+            // Page balancing: redistribute text when last page is too short
+            // Set to 0 to disable (greedy fill), 1.0 for perfectly even distribution
+            // 0.5 means: if last page < 50% full, redistribute for balance
+            pageBalanceThreshold: 0.5
         },
 
         // =====================================================================
@@ -454,24 +467,24 @@ const TUNING = {
             // Flavored text for dodge/parry outcomes (shown after enemy roll)
             defendFlavorText: {
                 dodge: [
-                    "Sidestepped like a pro!",
-                    "Not even close!",
-                    "Too slow!",
-                    "Whiffed!",
-                    "Nice try!",
-                    "Nope!",
-                    "Can't touch this!",
-                    "Swing and a miss!"
+                    "With the grace of a ballet dancer and the reflexes of a caffeinated squirrel, Andi sidestepped the attack like it was moving in slow motion! The enemy looks absolutely bewildered!",
+                    "WHOOSH! That attack missed by a mile! Andi is basically Neo from The Matrix at this point, dodging attacks like they're nothing but pixels in a video game!",
+                    "Too slow! Way too slow! Andi practically yawns while casually stepping aside, checking their nails with an air of supreme confidence!",
+                    "The attack sails harmlessly past as Andi executes a perfect sidestep maneuver that would make any martial arts master weep with pride!",
+                    "Nice try, but Andi's spider-sense was tingling! That dodge was so smooth it should be illegal in at least three countries!",
+                    "Nope! Not today! Not ever! Andi dances out of the way with such flair that the air itself seems to applaud!",
+                    "Can't touch this! Andi moves like water flowing around a stone, effortless and graceful beyond measure!",
+                    "Swing and a miss! The enemy's attack hits nothing but empty air while Andi has already relocated to safety with style!"
                 ],
                 parry: [
-                    "Right back at you!",
-                    "Counter!",
-                    "Deflected!",
-                    "Redirected with style!",
-                    "Taste your own medicine!",
-                    "No u!",
-                    "Reflected!",
-                    "Uno reverse card!"
+                    "Right back at you! Andi's counterattack is so perfectly timed it's like they rehearsed this moment a thousand times in their dreams!",
+                    "Counter strike! With impeccable form and devastating precision, Andi redirects the enemy's own force against them!",
+                    "Deflected with such masterful technique that nearby spectators (if there were any) would surely give a standing ovation!",
+                    "Redirected with style! The enemy's attack becomes their own downfall as Andi channels their inner aikido master!",
+                    "Taste your own medicine! Andi's parry is textbook perfect - no, better than textbook - this is legendary tier defensive technique!",
+                    "No u! In a move that defies all expectations, Andi turns the tables completely with a devastating counter!",
+                    "Reflected! Like a mirror made of pure skill, Andi sends that attack right back where it came from!",
+                    "Uno reverse card activated! The enemy's attack is returned to sender with interest and a hefty dose of karmic justice!"
                 ],
                 // When enemy can't attack (stunned/frozen/confused) during defensive stance
                 enemyDisabled: [

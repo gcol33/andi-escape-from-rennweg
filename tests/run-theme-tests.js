@@ -118,19 +118,40 @@ themes.forEach(function(theme) {
     TestRunner.assert(exists, 'Theme file exists: ' + theme + '.css');
 });
 
-// Test 2: Shared CSS exists
+// Test 2: Shared CSS folder exists
 console.log('\n--- Testing Shared CSS ---');
-var sharedPath = path.join(__dirname, '..', 'css', 'shared.css');
-var sharedExists = fs.existsSync(sharedPath);
-TestRunner.assert(sharedExists, 'Shared CSS file exists');
+var sharedFolder = path.join(__dirname, '..', 'css', 'shared');
+var sharedFolderExists = fs.existsSync(sharedFolder);
+TestRunner.assert(sharedFolderExists, 'Shared CSS folder exists');
 
 // Test 3: Shared CSS contains all required battle selectors
-if (sharedExists) {
-    var sharedCSS = readFile(sharedPath);
-    console.log('\n--- Testing Battle Selectors in shared.css ---');
+// Read all shared CSS files and components to check for battle selectors
+if (sharedFolderExists) {
+    var sharedFiles = ['battle-panels.css', 'battle-ui.css', 'damage-numbers.css', 'variables.css', 'game-menu.css'];
+    var componentFiles = ['stat-bar.css', 'battle-log.css'];
+    var sharedCSS = '';
+
+    // Read shared folder files
+    sharedFiles.forEach(function(file) {
+        var filePath = path.join(sharedFolder, file);
+        if (fs.existsSync(filePath)) {
+            sharedCSS += readFile(filePath) + '\n';
+        }
+    });
+
+    // Read components folder files
+    var componentsFolder = path.join(__dirname, '..', 'css', 'components');
+    componentFiles.forEach(function(file) {
+        var filePath = path.join(componentsFolder, file);
+        if (fs.existsSync(filePath)) {
+            sharedCSS += readFile(filePath) + '\n';
+        }
+    });
+
+    console.log('\n--- Testing Battle Selectors in shared CSS files ---');
     requiredBattleSelectors.forEach(function(selector) {
         var found = containsSelector(sharedCSS, selector);
-        TestRunner.assert(found, 'shared.css contains selector: ' + selector);
+        TestRunner.assert(found, 'shared CSS contains selector: ' + selector);
     });
 }
 
