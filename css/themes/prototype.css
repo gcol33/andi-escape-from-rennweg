@@ -6,6 +6,47 @@
     /* Theme font - damage numbers use same font as body text */
     --theme-font: 'Arial', sans-serif;
     --damage-font: var(--theme-font);
+
+    /* Battle action button colors - Warm VN style */
+    --battle-action-attack: #b08b5a;
+    --battle-action-attack-dark: #8f6f46;
+    --battle-action-attack-border: #705535;
+    --battle-action-skill: #7a5a8a;
+    --battle-action-skill-dark: #5a3a6a;
+    --battle-action-skill-border: #4a2a5a;
+    --battle-action-defend: #5a7a9a;
+    --battle-action-defend-dark: #3a5a7a;
+    --battle-action-defend-border: #2a4a6a;
+    --battle-action-item: #6a8a5a;
+    --battle-action-item-dark: #4a6a3a;
+    --battle-action-item-border: #3a5a2a;
+
+    /* Roll colors - VN warm palette */
+    --roll-color-hit: #b08b5a;
+    --roll-color-damage: #aa4444;
+    --roll-color-heal: #4caf50;
+    --roll-color-status: #7a5a8a;
+    --roll-color-neutral: #4b3e2a;
+
+    /* Emphasis glows - subtle */
+    --roll-emphasis-glow: 0 0 5px rgba(176, 139, 90, 0.5);
+    --roll-emphasis-glow-strong: 0 0 10px rgba(176, 139, 90, 0.7);
+
+    /* Battle panel - cream/parchment */
+    --battle-panel-bg: rgba(250, 241, 224, 0.95);
+    --battle-panel-border: #d3c2a8;
+    --battle-text: #4b3e2a;
+    --battle-text-color: #4b3e2a;
+    --battle-text-dim: #8a7a6a;
+
+    /* HP bar colors - warm tones */
+    --battle-hp-high: #4caf50;
+    --battle-hp-medium: #b08b5a;
+    --battle-hp-low: #aa4444;
+
+    /* Mana and limit bars */
+    --battle-mana: #5a7a9a;
+    --battle-limit: #b08b5a;
 }
 
 /* === Password Overlay (styled like a VN scene) === */

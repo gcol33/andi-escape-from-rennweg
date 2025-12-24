@@ -21,6 +21,42 @@
     /* Theme font - damage numbers use same font as body text */
     --theme-font: 'Segoe UI', 'Arial', sans-serif;
     --damage-font: var(--theme-font);
+
+    /* Battle action button colors - Dragon Ball Z energy style */
+    --battle-action-attack: var(--db-orange);
+    --battle-action-attack-dark: #cc5500;
+    --battle-action-attack-border: #994400;
+    --battle-action-skill: var(--db-ki);
+    --battle-action-skill-dark: #cccc44;
+    --battle-action-skill-border: #999933;
+    --battle-action-defend: var(--db-blue);
+    --battle-action-defend-dark: #0055cc;
+    --battle-action-defend-border: #004499;
+    --battle-action-item: var(--db-gold);
+    --battle-action-item-dark: #ccac00;
+    --battle-action-item-border: #998100;
+
+    /* Roll colors - DBZ energy palette */
+    --roll-color-hit: var(--db-yellow);
+    --roll-color-damage: var(--db-orange);
+    --roll-color-heal: #44ff44;
+    --roll-color-status: var(--db-light-blue);
+    --emphasis-crit-glow: var(--db-gold);
+
+    /* Battle panel - DBZ dark style */
+    --battle-panel-bg: rgba(26, 26, 46, 0.95);
+    --battle-panel-border: var(--db-orange);
+    --battle-text: var(--db-white);
+    --battle-text-color: var(--db-white);
+    --battle-text-dim: rgba(255, 255, 255, 0.7);
+
+    /* HP bars - power level colors */
+    --battle-hp-high: #44ff44;
+    --battle-hp-medium: var(--db-yellow);
+    --battle-hp-low: var(--db-red);
+    --battle-mana: var(--db-blue);
+    --battle-limit: var(--db-ki);
+    --battle-limit-ready: var(--db-gold);
 }
 
 /* === Password Overlay (Power-up style) === */

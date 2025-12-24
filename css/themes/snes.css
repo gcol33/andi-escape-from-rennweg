@@ -26,6 +26,47 @@
     /* Theme font - damage numbers use same font as body text */
     --theme-font: 'SNES', 'Press Start 2P', 'Courier New', monospace;
     --damage-font: var(--theme-font);
+
+    /* Battle action button colors - SNES 16-bit style */
+    --battle-action-attack: var(--snes-red);
+    --battle-action-attack-dark: #b01018;
+    --battle-action-attack-border: #880810;
+    --battle-action-skill: var(--snes-purple);
+    --battle-action-skill-dark: #684088;
+    --battle-action-skill-border: #482868;
+    --battle-action-defend: var(--snes-blue);
+    --battle-action-defend-dark: #1028a0;
+    --battle-action-defend-border: #081878;
+    --battle-action-item: var(--snes-green);
+    --battle-action-item-dark: #288818;
+    --battle-action-item-border: #186810;
+
+    /* Roll colors - SNES vibrant palette */
+    --roll-color-hit: var(--snes-yellow);
+    --roll-color-damage: var(--snes-orange);
+    --roll-color-heal: var(--snes-green);
+    --roll-color-status: var(--snes-cyan);
+    --roll-color-neutral: var(--snes-white);
+
+    /* Emphasis glows - 16-bit style */
+    --roll-emphasis-glow: 0 0 8px var(--snes-yellow);
+    --roll-emphasis-glow-strong: 0 0 15px var(--snes-yellow), 0 0 25px var(--snes-white);
+
+    /* Battle panel - SNES menu blue */
+    --battle-panel-bg: linear-gradient(180deg, rgba(24, 24, 72, 0.95), rgba(8, 8, 48, 0.98));
+    --battle-panel-border: var(--snes-light-blue);
+    --battle-text: var(--snes-white);
+    --battle-text-color: var(--snes-white);
+    --battle-text-dim: var(--snes-gray);
+
+    /* HP bar colors - SNES style */
+    --battle-hp-high: var(--snes-green);
+    --battle-hp-medium: var(--snes-yellow);
+    --battle-hp-low: var(--snes-red);
+
+    /* Mana and limit bars */
+    --battle-mana: var(--snes-cyan);
+    --battle-limit: var(--snes-orange);
 }
 
 /* === Font Face === */

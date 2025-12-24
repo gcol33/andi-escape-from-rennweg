@@ -21,12 +21,14 @@
     height: var(--battle-log-height, 12rem);
     background: rgba(0, 0, 0, 0.85);
     border-top: 0.1875rem solid rgba(255, 255, 255, 0.3);
-    padding: var(--spacing-sm, 0.5rem) var(--spacing-md, 0.75rem);
+    padding: var(--spacing-sm, 0.5rem) var(--spacing-md, 0.75rem) 0.25rem;
     box-sizing: border-box;
     /* Flex layout for content + choices */
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    /* Inherit theme font */
+    font-family: inherit;
 }
 
 /* === Log Content Area === */

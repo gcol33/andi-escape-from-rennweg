@@ -14,6 +14,43 @@
     /* Theme font - damage numbers use same font as body text */
     --theme-font: 'Press Start 2P', 'Courier New', monospace;
     --damage-font: var(--theme-font);
+
+    /* Battle action button colors - Game Boy 4-color palette */
+    --battle-action-attack: var(--gb-darkest);
+    --battle-action-attack-dark: var(--gb-darkest);
+    --battle-action-attack-border: var(--gb-dark);
+    --battle-action-skill: var(--gb-dark);
+    --battle-action-skill-dark: var(--gb-darkest);
+    --battle-action-skill-border: var(--gb-darkest);
+    --battle-action-defend: var(--gb-light);
+    --battle-action-defend-dark: var(--gb-dark);
+    --battle-action-defend-border: var(--gb-darkest);
+    --battle-action-item: var(--gb-lightest);
+    --battle-action-item-dark: var(--gb-light);
+    --battle-action-item-border: var(--gb-dark);
+
+    /* Roll colors - Game Boy monochrome */
+    --roll-color-hit: var(--gb-lightest);
+    --roll-color-damage: var(--gb-lightest);
+    --roll-color-heal: var(--gb-lightest);
+    --roll-color-status: var(--gb-light);
+    --roll-color-neutral: var(--gb-dark);
+    --emphasis-crit-glow: var(--gb-lightest);
+
+    /* Battle panel - Game Boy screen */
+    --battle-panel-bg: var(--gb-dark);
+    --battle-panel-border: var(--gb-darkest);
+    --battle-text: var(--gb-lightest);
+    --battle-text-color: var(--gb-lightest);
+    --battle-text-dim: var(--gb-light);
+
+    /* HP bars - Game Boy shades */
+    --battle-hp-high: var(--gb-lightest);
+    --battle-hp-medium: var(--gb-light);
+    --battle-hp-low: var(--gb-dark);
+    --battle-mana: var(--gb-light);
+    --battle-limit: var(--gb-dark);
+    --battle-limit-ready: var(--gb-lightest);
 }
 
 /* === Font Face === */

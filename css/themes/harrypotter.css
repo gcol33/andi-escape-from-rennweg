@@ -18,6 +18,42 @@
     /* Theme font - damage numbers use same font as body text */
     --theme-font: 'Cinzel', 'Times New Roman', serif;
     --damage-font: var(--theme-font);
+
+    /* Battle action button colors - Wizarding World */
+    --battle-action-attack: var(--gryffindor-red);
+    --battle-action-attack-dark: #5a0001;
+    --battle-action-attack-border: #400001;
+    --battle-action-skill: var(--magic-purple);
+    --battle-action-skill-dark: #380060;
+    --battle-action-skill-border: #280044;
+    --battle-action-defend: var(--midnight-blue);
+    --battle-action-defend-dark: #0f1830;
+    --battle-action-defend-border: #0a1020;
+    --battle-action-item: var(--gryffindor-gold);
+    --battle-action-item-dark: #a88820;
+    --battle-action-item-border: #8a7018;
+
+    /* Roll colors - magical palette */
+    --roll-color-hit: var(--gryffindor-gold);
+    --roll-color-damage: var(--gryffindor-red);
+    --roll-color-heal: #44cc44;
+    --roll-color-status: var(--spell-glow);
+    --emphasis-crit-glow: var(--gold-light);
+
+    /* Battle panel - parchment style */
+    --battle-panel-bg: rgba(245, 230, 200, 0.95);
+    --battle-panel-border: var(--gryffindor-gold);
+    --battle-text: var(--ink-black);
+    --battle-text-color: var(--ink-black);
+    --battle-text-dim: rgba(26, 26, 46, 0.7);
+
+    /* HP bars - wizarding colors */
+    --battle-hp-high: #44cc44;
+    --battle-hp-medium: var(--gryffindor-gold);
+    --battle-hp-low: var(--gryffindor-red);
+    --battle-mana: var(--spell-glow);
+    --battle-limit: var(--magic-purple);
+    --battle-limit-ready: var(--gryffindor-gold);
 }
 
 /* === Font Face === */

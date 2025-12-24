@@ -18,6 +18,44 @@
     /* Theme font - damage numbers use same font as body text */
     --theme-font: 'VT323', 'Courier New', monospace;
     --damage-font: var(--theme-font);
+
+    /* Battle action button colors - vaporwave theme */
+    --battle-action-attack: var(--vapor-pink);
+    --battle-action-attack-dark: #e65bb8;
+    --battle-action-attack-border: #cc44a2;
+    --battle-action-skill: var(--vapor-purple);
+    --battle-action-skill-dark: #a050e6;
+    --battle-action-skill-border: #8a40cc;
+    --battle-action-defend: var(--vapor-cyan);
+    --battle-action-defend-dark: #01b8e6;
+    --battle-action-defend-border: #01a3cc;
+    --battle-action-item: var(--vapor-yellow);
+    --battle-action-item-dark: #e6e288;
+    --battle-action-item-border: #ccc97a;
+
+    /* Roll colors - vaporwave palette */
+    --roll-color-hit: var(--vapor-yellow);
+    --roll-color-damage: var(--vapor-pink);
+    --roll-color-heal: var(--vapor-blue);
+    --roll-color-status: var(--vapor-cyan);
+    --roll-color-neutral: var(--text-color);
+    --emphasis-crit-glow: var(--vapor-yellow);
+    --emphasis-fail-glow: var(--vapor-pink);
+
+    /* Battle panel - vaporwave aesthetic */
+    --battle-panel-bg: linear-gradient(180deg, rgba(26, 10, 46, 0.95), rgba(22, 33, 62, 0.95));
+    --battle-panel-border: var(--vapor-pink);
+    --battle-text: var(--text-color);
+    --battle-text-color: var(--text-color);
+    --battle-text-dim: rgba(255, 255, 255, 0.7);
+
+    /* HP bars - vaporwave colors */
+    --battle-hp-high: var(--vapor-blue);
+    --battle-hp-medium: var(--vapor-yellow);
+    --battle-hp-low: var(--vapor-pink);
+    --battle-mana: var(--vapor-cyan);
+    --battle-limit: var(--vapor-purple);
+    --battle-limit-ready: var(--vapor-yellow);
 }
 
 /* === Font Face === */

@@ -18,6 +18,47 @@
     /* Theme font - damage numbers use same font as body text */
     --theme-font: 'Press Start 2P', monospace;
     --damage-font: var(--theme-font);
+
+    /* Battle action button colors - Zelda adventure */
+    --battle-action-attack: var(--rupee-red);
+    --battle-action-attack-dark: #cc2222;
+    --battle-action-attack-border: #aa1111;
+    --battle-action-skill: var(--hyrule-blue);
+    --battle-action-skill-dark: #3070b0;
+    --battle-action-skill-border: #205090;
+    --battle-action-defend: var(--hyrule-green);
+    --battle-action-defend-dark: #1d4a1d;
+    --battle-action-defend-border: #0d3a0d;
+    --battle-action-item: var(--triforce-gold);
+    --battle-action-item-dark: #ccaa00;
+    --battle-action-item-border: #aa8800;
+
+    /* Roll colors - Hyrule palette */
+    --roll-color-hit: var(--triforce-gold);
+    --roll-color-damage: var(--rupee-red);
+    --roll-color-heal: var(--fairy-pink);
+    --roll-color-status: var(--hyrule-blue);
+    --roll-color-neutral: var(--parchment);
+
+    /* Emphasis glows - Triforce golden */
+    --roll-emphasis-glow: 0 0 8px var(--triforce-gold);
+    --roll-emphasis-glow-strong: 0 0 15px var(--triforce-gold), 0 0 25px var(--triforce-gold);
+
+    /* Battle panel - Hyrule style */
+    --battle-panel-bg: rgba(10, 26, 10, 0.95);
+    --battle-panel-border: var(--triforce-gold);
+    --battle-text: #ffffff;
+    --battle-text-color: #ffffff;
+    --battle-text-dim: var(--stone-gray);
+
+    /* HP bar colors - Zelda hearts */
+    --battle-hp-high: var(--hyrule-green);
+    --battle-hp-medium: var(--triforce-gold);
+    --battle-hp-low: var(--rupee-red);
+
+    /* Mana and limit bars */
+    --battle-mana: var(--hyrule-blue);
+    --battle-limit: var(--fairy-pink);
 }
 
 /* === Font Face === */

@@ -192,18 +192,24 @@
         -1px -1px 0 #000;
 }
 
-/* Limit break - purple (special resource, kept distinct) */
+/* Limit break - purple (special resource, uses theme variable) */
 .damage-number.limit-change {
-    color: #9b59b6;
+    color: var(--battle-limit);
     text-shadow:
         2px 2px 0 #000,
         -1px -1px 0 #000;
 }
 
-/* AC changes - uses dark green (defensive stat) */
-.damage-number.ac-boost,
+/* AC changes - uses stat boost/reduce theme colors */
+.damage-number.ac-boost {
+    color: var(--stat-boost-color);
+    text-shadow:
+        2px 2px 0 #000,
+        -1px -1px 0 #000;
+}
+
 .damage-number.ac-reduce {
-    color: #2e7d32;
+    color: var(--stat-reduce-color);
     text-shadow:
         2px 2px 0 #000,
         -1px -1px 0 #000;
@@ -336,25 +342,25 @@
 }
 
 .combat-announcement.critical {
-    color: #ffd700;
+    color: var(--roll-color-hit);
     text-shadow:
         4px 4px 0 #000,
         -2px -2px 0 #000,
         2px -2px 0 #000,
         -2px 2px 0 #000,
-        0 0 30px rgba(255, 215, 0, 0.8),
+        0 0 30px var(--emphasis-crit-glow),
         0 0 60px rgba(255, 150, 0, 0.6);
     animation: announcement-critical 1.5s ease-out forwards;
 }
 
 .combat-announcement.fumble {
-    color: #ff3333;
+    color: var(--roll-color-damage);
     text-shadow:
         4px 4px 0 #000,
         -2px -2px 0 #000,
         2px -2px 0 #000,
         -2px 2px 0 #000,
-        0 0 20px rgba(255, 0, 0, 0.6);
+        0 0 20px var(--emphasis-fail-glow);
     animation: announcement-fumble 1.5s ease-out forwards;
 }
 

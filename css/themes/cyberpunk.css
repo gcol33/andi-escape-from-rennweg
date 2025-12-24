@@ -17,6 +17,44 @@
     /* Theme font - damage numbers use same font as body text */
     --theme-font: 'Share Tech Mono', 'Courier New', monospace;
     --damage-font: var(--theme-font);
+
+    /* Battle action button colors - cyberpunk theme */
+    --battle-action-attack: var(--cyber-red);
+    --battle-action-attack-dark: #cc0030;
+    --battle-action-attack-border: #990024;
+    --battle-action-skill: var(--cyber-magenta);
+    --battle-action-skill-dark: #cc00cc;
+    --battle-action-skill-border: #990099;
+    --battle-action-defend: var(--cyber-cyan);
+    --battle-action-defend-dark: #00ccc7;
+    --battle-action-defend-border: #009995;
+    --battle-action-item: var(--cyber-yellow);
+    --battle-action-item-dark: #cabe08;
+    --battle-action-item-border: #988e06;
+
+    /* Roll colors - cyberpunk neon */
+    --roll-color-hit: var(--cyber-yellow);
+    --roll-color-damage: var(--cyber-red);
+    --roll-color-heal: #00ff88;
+    --roll-color-status: var(--cyber-cyan);
+    --roll-color-neutral: var(--text-color);
+    --emphasis-crit-glow: var(--cyber-yellow);
+    --emphasis-fail-glow: var(--cyber-red);
+
+    /* Battle panel - cyberpunk dark */
+    --battle-panel-bg: rgba(10, 10, 15, 0.95);
+    --battle-panel-border: var(--cyber-cyan);
+    --battle-text: var(--text-color);
+    --battle-text-color: var(--text-color);
+    --battle-text-dim: rgba(224, 224, 224, 0.7);
+
+    /* HP bars - neon colors */
+    --battle-hp-high: #00ff88;
+    --battle-hp-medium: var(--cyber-yellow);
+    --battle-hp-low: var(--cyber-red);
+    --battle-mana: var(--cyber-cyan);
+    --battle-limit: var(--cyber-magenta);
+    --battle-limit-ready: var(--cyber-yellow);
 }
 
 /* === Font Face === */

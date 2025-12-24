@@ -15,6 +15,44 @@
     /* Theme font - damage numbers use same font as body text */
     --theme-font: 'VT323', 'Courier New', monospace;
     --damage-font: var(--theme-font);
+
+    /* Battle action button colors - DOS terminal style */
+    --battle-action-attack: var(--dos-amber);
+    --battle-action-attack-dark: #cc8c00;
+    --battle-action-attack-border: #996600;
+    --battle-action-skill: var(--dos-green);
+    --battle-action-skill-dark: #00cc00;
+    --battle-action-skill-border: #009900;
+    --battle-action-defend: #00aaaa;
+    --battle-action-defend-dark: #008888;
+    --battle-action-defend-border: #006666;
+    --battle-action-item: #aaaaaa;
+    --battle-action-item-dark: #888888;
+    --battle-action-item-border: #666666;
+
+    /* Roll colors - DOS terminal colors */
+    --roll-color-hit: var(--dos-green);
+    --roll-color-damage: var(--dos-amber);
+    --roll-color-heal: var(--dos-green);
+    --roll-color-status: #00aaaa;
+    --roll-color-neutral: var(--dos-gray);
+    --emphasis-crit-glow: var(--dos-green);
+    --emphasis-fail-glow: var(--dos-amber);
+
+    /* Battle panel - terminal look */
+    --battle-panel-bg: var(--dos-black);
+    --battle-panel-border: var(--dos-green);
+    --battle-text: var(--dos-green);
+    --battle-text-color: var(--dos-green);
+    --battle-text-dim: rgba(0, 255, 0, 0.6);
+
+    /* HP bars - terminal green */
+    --battle-hp-high: var(--dos-green);
+    --battle-hp-medium: var(--dos-amber);
+    --battle-hp-low: #ff5555;
+    --battle-mana: #5555ff;
+    --battle-limit: var(--dos-amber);
+    --battle-limit-ready: var(--dos-green);
 }
 
 /* === Font Face === */

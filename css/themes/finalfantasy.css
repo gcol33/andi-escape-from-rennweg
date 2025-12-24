@@ -19,6 +19,42 @@
     /* Theme font - damage numbers use same font as body text */
     --theme-font: 'Press Start 2P', monospace;
     --damage-font: var(--theme-font);
+
+    /* Battle action button colors - Final Fantasy menu style */
+    --battle-action-attack: var(--ff-red);
+    --battle-action-attack-dark: #cc0000;
+    --battle-action-attack-border: #990000;
+    --battle-action-skill: var(--crystal-purple);
+    --battle-action-skill-dark: #aa55cc;
+    --battle-action-skill-border: #8844aa;
+    --battle-action-defend: var(--ff-blue-light);
+    --battle-action-defend-dark: #000088;
+    --battle-action-defend-border: #000066;
+    --battle-action-item: var(--ff-gold);
+    --battle-action-item-dark: #ccaa00;
+    --battle-action-item-border: #998800;
+
+    /* Roll colors - FF classic palette */
+    --roll-color-hit: var(--ff-gold);
+    --roll-color-damage: var(--ff-red);
+    --roll-color-heal: var(--ff-green);
+    --roll-color-status: var(--ff-cyan);
+    --emphasis-crit-glow: var(--ff-gold);
+
+    /* Battle panel - FF menu gradient */
+    --battle-panel-bg: linear-gradient(180deg, var(--ff-blue-mid), var(--ff-blue-dark));
+    --battle-panel-border: var(--ff-white);
+    --battle-text: var(--ff-white);
+    --battle-text-color: var(--ff-white);
+    --battle-text-dim: rgba(255, 255, 255, 0.7);
+
+    /* HP bars - FF classic */
+    --battle-hp-high: var(--ff-green);
+    --battle-hp-medium: var(--ff-gold);
+    --battle-hp-low: var(--ff-red);
+    --battle-mana: var(--ff-cyan);
+    --battle-limit: var(--crystal-purple);
+    --battle-limit-ready: var(--ff-gold);
 }
 
 /* === Font Face === */

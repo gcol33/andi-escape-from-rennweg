@@ -19,6 +19,47 @@
     /* Theme font - damage numbers use same font as body text */
     --theme-font: 'Orbitron', 'Arial', sans-serif;
     --damage-font: var(--theme-font);
+
+    /* Battle action button colors - Epic sci-fi */
+    --battle-action-attack: var(--engine-orange);
+    --battle-action-attack-dark: #cc5500;
+    --battle-action-attack-border: #aa4400;
+    --battle-action-skill: var(--nebula-purple);
+    --battle-action-skill-dark: #3a0066;
+    --battle-action-skill-border: #2a004a;
+    --battle-action-defend: var(--hologram-cyan);
+    --battle-action-defend-dark: #00cccc;
+    --battle-action-defend-border: #009999;
+    --battle-action-item: var(--engine-yellow);
+    --battle-action-item-dark: #cc8800;
+    --battle-action-item-border: #aa6600;
+
+    /* Roll colors - space opera palette */
+    --roll-color-hit: var(--engine-yellow);
+    --roll-color-damage: var(--engine-orange);
+    --roll-color-heal: #00ff88;
+    --roll-color-status: var(--hologram-cyan);
+    --roll-color-neutral: var(--star-white);
+
+    /* Emphasis glows - sci-fi hologram */
+    --roll-emphasis-glow: 0 0 10px var(--hologram-cyan);
+    --roll-emphasis-glow-strong: 0 0 20px var(--hologram-cyan), 0 0 30px var(--engine-orange);
+
+    /* Battle panel - spaceship console */
+    --battle-panel-bg: linear-gradient(180deg, rgba(10, 10, 18, 0.92), rgba(30, 58, 95, 0.95));
+    --battle-panel-border: var(--hologram-cyan);
+    --battle-text: var(--star-white);
+    --battle-text-color: var(--star-white);
+    --battle-text-dim: var(--star-blue);
+
+    /* HP bar colors - energy style */
+    --battle-hp-high: #00ff88;
+    --battle-hp-medium: var(--engine-yellow);
+    --battle-hp-low: var(--alert-red);
+
+    /* Mana and limit bars */
+    --battle-mana: var(--hologram-cyan);
+    --battle-limit: var(--engine-orange);
 }
 
 /* === Font Face === */

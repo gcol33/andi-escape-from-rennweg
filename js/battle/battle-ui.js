@@ -744,8 +744,8 @@ var BattleUI = (function() {
         // Clear previous animation state
         clearAnimationState();
 
-        // Clear both rows for fresh message
-        BattleUtils.clearBattleLogRows(rows);
+        // Shift rows - move previous message to row1, prepare row2 for new message
+        BattleUtils.shiftBattleLogRows(rows);
 
         // Store onTextComplete callback for completeAnimation to call
         animationState.onTextComplete = options && options.onTextComplete ? options.onTextComplete : null;

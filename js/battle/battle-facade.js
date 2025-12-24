@@ -1371,9 +1371,11 @@ var BattleEngine = (function() {
         messages = messages.concat(statusResult.messages);
 
         if (statusResult.damage > 0) {
+            enemy.hp -= statusResult.damage;  // Apply DOT damage (bleed, poison, burn)
             showDamageNumber(statusResult.damage, 'enemy', 'dot');
         }
         if (statusResult.heal > 0) {
+            enemy.hp = Math.min(enemy.hp + statusResult.heal, enemy.maxHp);  // Apply regen
             showDamageNumber(statusResult.heal, 'enemy', 'heal');
         }
 
@@ -2636,9 +2638,11 @@ var BattleEngine = (function() {
 
         // Apply status damage/healing/mana
         if (statusResult.damage > 0) {
+            state.player.hp -= statusResult.damage;  // Apply DOT damage (bleed, poison, burn)
             showDamageNumber(statusResult.damage, 'player', 'dot');
         }
         if (statusResult.heal > 0) {
+            state.player.hp = Math.min(state.player.hp + statusResult.heal, state.player.maxHp);  // Apply regen
             showDamageNumber(statusResult.heal, 'player', 'heal');
         }
         if (statusResult.mana > 0) {

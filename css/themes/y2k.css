@@ -21,6 +21,47 @@
     /* Theme font - damage numbers use same font as body text */
     --theme-font: 'Audiowide', 'Arial', sans-serif;
     --damage-font: var(--theme-font);
+
+    /* Battle action button colors - Y2K iridescent */
+    --battle-action-attack: var(--y2k-pink);
+    --battle-action-attack-dark: #cc44aa;
+    --battle-action-attack-border: #aa2288;
+    --battle-action-skill: var(--y2k-purple);
+    --battle-action-skill-dark: #7722cc;
+    --battle-action-skill-border: #5511aa;
+    --battle-action-defend: var(--y2k-cyan);
+    --battle-action-defend-dark: #00aacc;
+    --battle-action-defend-border: #0088aa;
+    --battle-action-item: var(--y2k-lime);
+    --battle-action-item-dark: #44cc00;
+    --battle-action-item-border: #229900;
+
+    /* Roll colors - Y2K palette */
+    --roll-color-hit: var(--y2k-cyan);
+    --roll-color-damage: var(--y2k-pink);
+    --roll-color-heal: var(--y2k-lime);
+    --roll-color-status: var(--y2k-purple);
+    --roll-color-neutral: var(--chrome-silver);
+
+    /* Emphasis glows - iridescent */
+    --roll-emphasis-glow: 0 0 10px var(--y2k-cyan);
+    --roll-emphasis-glow-strong: 0 0 20px var(--y2k-cyan), 0 0 30px var(--y2k-purple);
+
+    /* Battle panel - chrome/glass */
+    --battle-panel-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(220, 220, 240, 0.9));
+    --battle-panel-border: var(--chrome-silver);
+    --battle-text: var(--dark-bg);
+    --battle-text-color: var(--dark-bg);
+    --battle-text-dim: var(--chrome-dark);
+
+    /* HP bar colors - Y2K gradient style */
+    --battle-hp-high: var(--y2k-lime);
+    --battle-hp-medium: var(--y2k-cyan);
+    --battle-hp-low: var(--y2k-pink);
+
+    /* Mana and limit bars */
+    --battle-mana: var(--y2k-blue);
+    --battle-limit: var(--y2k-purple);
 }
 
 /* === Font Face === */

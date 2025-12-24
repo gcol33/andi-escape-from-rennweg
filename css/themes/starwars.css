@@ -23,6 +23,47 @@
     /* Theme font - damage numbers use same font as body text */
     --theme-font: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
     --damage-font: var(--theme-font);
+
+    /* Battle action button colors - Lightsaber themed */
+    --battle-action-attack: var(--sw-red-saber);
+    --battle-action-attack-dark: #cc0000;
+    --battle-action-attack-border: #990000;
+    --battle-action-skill: var(--sw-purple-saber);
+    --battle-action-skill-dark: #7700cc;
+    --battle-action-skill-border: #550099;
+    --battle-action-defend: var(--sw-blue-saber);
+    --battle-action-defend-dark: #0055cc;
+    --battle-action-defend-border: #003399;
+    --battle-action-item: var(--sw-green-saber);
+    --battle-action-item-dark: #00cc00;
+    --battle-action-item-border: #009900;
+
+    /* Roll colors - Star Wars palette */
+    --roll-color-hit: var(--sw-yellow);
+    --roll-color-damage: var(--sw-red-saber);
+    --roll-color-heal: var(--sw-green-saber);
+    --roll-color-status: var(--sw-blue-saber);
+    --roll-color-neutral: var(--sw-white);
+
+    /* Emphasis glows - lightsaber glow */
+    --roll-emphasis-glow: 0 0 10px var(--sw-yellow);
+    --roll-emphasis-glow-strong: 0 0 20px var(--sw-yellow), 0 0 30px var(--sw-gold);
+
+    /* Battle panel - datapad style */
+    --battle-panel-bg: linear-gradient(180deg, rgba(13, 27, 42, 0.95), rgba(0, 0, 0, 0.98));
+    --battle-panel-border: var(--sw-yellow);
+    --battle-text: var(--sw-yellow);
+    --battle-text-color: var(--sw-yellow);
+    --battle-text-dim: var(--sw-light-gray);
+
+    /* HP bar colors */
+    --battle-hp-high: var(--sw-green-saber);
+    --battle-hp-medium: var(--sw-yellow);
+    --battle-hp-low: var(--sw-red-saber);
+
+    /* Mana and limit bars */
+    --battle-mana: var(--sw-blue-saber);
+    --battle-limit: var(--sw-purple-saber);
 }
 
 /* === Password Overlay (Space style) === */

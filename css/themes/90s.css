@@ -31,7 +31,30 @@
     --battle-panel-bg: var(--win-bg);
     --battle-panel-border: var(--win-dark);
     --battle-text: var(--text-color);
+    --battle-text-color: var(--text-color);
     --battle-text-dim: #404040;
+
+    /* Battle action button colors - Windows 3.1 style */
+    --battle-action-attack: #aa0000;
+    --battle-action-attack-dark: #880000;
+    --battle-action-attack-border: #660000;
+    --battle-action-skill: #aa00aa;
+    --battle-action-skill-dark: #880088;
+    --battle-action-skill-border: #660066;
+    --battle-action-defend: var(--win-blue);
+    --battle-action-defend-dark: #000066;
+    --battle-action-defend-border: #000044;
+    --battle-action-item: #aa8800;
+    --battle-action-item-dark: #886600;
+    --battle-action-item-border: #664400;
+
+    /* Roll colors - Windows 3.1 palette */
+    --roll-color-hit: #ffff00;
+    --roll-color-damage: #aa0000;
+    --roll-color-heal: #00aa00;
+    --roll-color-status: #0000aa;
+    --roll-color-neutral: var(--win-dark);
+    --emphasis-crit-glow: #ffaa00;
 
     /* Theme fonts */
     --theme-font: 'MS Sans Serif', 'Segoe UI', Tahoma, sans-serif;

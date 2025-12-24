@@ -18,6 +18,47 @@
     /* Theme font - damage numbers use same font as body text */
     --theme-font: 'Cinzel', 'Times New Roman', serif;
     --damage-font: var(--theme-font);
+
+    /* Battle action button colors - Middle-earth adventure */
+    --battle-action-attack: var(--ring-glow);
+    --battle-action-attack-dark: #cc5500;
+    --battle-action-attack-border: #aa4400;
+    --battle-action-skill: var(--forest-green);
+    --battle-action-skill-dark: #1d3a1d;
+    --battle-action-skill-border: #152a15;
+    --battle-action-defend: var(--elvish-silver);
+    --battle-action-defend-dark: #9aabab;
+    --battle-action-defend-border: #7a8b8b;
+    --battle-action-item: var(--gold);
+    --battle-action-item-dark: #a88920;
+    --battle-action-item-border: #8a7018;
+
+    /* Roll colors - parchment and earth tones */
+    --roll-color-hit: var(--gold);
+    --roll-color-damage: var(--ring-glow);
+    --roll-color-heal: var(--forest-green);
+    --roll-color-status: var(--elvish-silver);
+    --roll-color-neutral: var(--ink-brown);
+
+    /* Emphasis glows - golden magic */
+    --roll-emphasis-glow: 0 0 8px var(--gold);
+    --roll-emphasis-glow-strong: 0 0 15px var(--gold), 0 0 25px var(--gold-light);
+
+    /* Battle panel - parchment style */
+    --battle-panel-bg: rgba(244, 228, 193, 0.95);
+    --battle-panel-border: var(--ink-brown);
+    --battle-text: var(--ink-brown);
+    --battle-text-color: var(--ink-brown);
+    --battle-text-dim: #5d4a32;
+
+    /* HP bar colors - earth tones */
+    --battle-hp-high: var(--forest-green);
+    --battle-hp-medium: var(--gold);
+    --battle-hp-low: var(--ring-glow);
+
+    /* Mana and limit bars - elvish silver/blue */
+    --battle-mana: var(--elvish-silver);
+    --battle-limit: var(--gold-light);
 }
 
 /* === Font Face === */

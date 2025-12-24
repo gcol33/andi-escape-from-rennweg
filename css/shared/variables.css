@@ -84,6 +84,11 @@
 
     /* Special battle text - NOW UNIFIED with battle-text-size */
     --battle-special-size: var(--battle-text-size);
+
+    /* === Battle Panel Sizing === */
+    /* Themes can override for pixel fonts that need more/less space */
+    --battle-panel-width: 12rem;
+    --battle-panel-font-size: 0.55rem;
 }
 
 /* === Roll Color System ===
@@ -148,7 +153,7 @@
     --stats-panel-width-mobile: 8.75rem;
 
     /* Battle log height (used for bottom positioning) */
-    --battle-log-height: 12rem;  /* Reduced from 13.4rem for better viewport fit */
+    --battle-log-height: 9rem;  /* Compact button layout */
 
     /* Button area reserved height (prevents layout shift) */
     /* Sized for 2-line button text (25% smaller) to prevent jumping */
@@ -160,10 +165,10 @@
 :root {
     /* Battle log panel height - dynamically calculated in JS based on:
        - battleLogMaxLines * battleLogLineHeight (log content)
-       - 7.5rem (battle choices - 2 rows of 3rem buttons + gap)
-       - 1.5rem (panel padding)
-       Default: 2 lines * 2.2rem = 4.4rem + 7.5rem + 1.5rem = 13.4rem */
-    --battle-log-height: 13.4rem;
+       - ~4.5rem (battle choices - 2 rows of compact buttons + gap)
+       - 1rem (panel padding)
+       Default: 2 lines * 2.2rem = 4.4rem + 4.5rem + 1rem = 9.9rem */
+    --battle-log-height: 10rem;
 
     --battle-hp-high: #4caf50;
     --battle-hp-medium: #ff9800;
@@ -175,6 +180,28 @@
     --battle-panel-border: rgba(255, 255, 255, 0.3);
     --battle-text: #fff;
     --battle-text-dim: rgba(255, 255, 255, 0.7);
+
+    /* Battle action button colors - themes can override */
+    --battle-action-attack: #e74c3c;
+    --battle-action-attack-dark: #c0392b;
+    --battle-action-attack-border: #a93226;
+    --battle-action-skill: #9b59b6;
+    --battle-action-skill-dark: #8e44ad;
+    --battle-action-skill-border: #7d3c98;
+    --battle-action-defend: #3498db;
+    --battle-action-defend-dark: #2980b9;
+    --battle-action-defend-border: #2471a3;
+    --battle-action-item: #f39c12;
+    --battle-action-item-dark: #d68910;
+    --battle-action-item-border: #b9770e;
+
+    /* Menu accent colors */
+    --battle-menu-skill-title: var(--roll-color-hit);
+    --battle-menu-item-title: var(--battle-action-item);
+
+    /* Stat boost/reduce colors */
+    --stat-boost-color: var(--roll-color-heal);
+    --stat-reduce-color: var(--roll-color-damage);
 }
 
 /* === Theme-Specific Overrides === */

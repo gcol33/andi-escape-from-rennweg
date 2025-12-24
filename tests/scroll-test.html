@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battle Log Scroll Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #1a1a2e;
+            color: #fff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #ffd700;
+        }
+
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Simulated battle log panel */
+        .battle-log-panel {
+            background: rgba(0, 0, 0, 0.85);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+        }
+
+        .battle-log-content {
+            height: 4.8rem;
+            overflow: hidden;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .battle-log-row {
+            display: block;
+            min-height: 1.6em;
+            line-height: 1.6;
+        }
+
+        #battle-log-row-1 {
+            opacity: 0.7;
+        }
+
+        #battle-log-row-2 {
+            opacity: 1;
+        }
+
+        /* Roll result styling */
+        .roll-damage-normal {
+            color: #ff4444;
+            font-weight: bold;
+        }
+
+        .roll-hit {
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .dice-number {
+            color: #888;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: bold;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-attack { background: #f44336; color: white; }
+        .btn-defend { background: #2196f3; color: white; }
+        .btn-skill { background: #9c27b0; color: white; }
+        .btn-enemy { background: #ff9800; color: black; }
+        .btn-clear { background: #607d8b; color: white; }
+        .btn-sequence { background: #4caf50; color: white; }
+
+        /* Debug info */
+        .debug {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+
+        .debug h3 {
+            color: #ffd700;
+            margin-bottom: 8px;
+        }
+
+        .debug-row {
+            margin: 4px 0;
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+        }
+
+        .debug-row.row1 { border-left: 3px solid #888; }
+        .debug-row.row2 { border-left: 3px solid #ffd700; }
+
+        .info {
+            background: rgba(33, 150, 243, 0.2);
+            border: 1px solid #2196f3;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .info code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 2px;
+        }
+
+        .status {
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .status.pass { background: rgba(76, 175, 80, 0.3); border: 1px solid #4caf50; }
+        .status.fail { background: rgba(244, 67, 54, 0.3); border: 1px solid #f44336; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Battle Log Scroll/Shift Test</h1>
+
+        <div class="info">
+            <strong>Expected behavior:</strong> When a new message is added, the previous message
+            should shift from <code>row-2</code> to <code>row-1</code> (dimmed), and the new message
+            appears in <code>row-2</code>. This maintains a 2-line visible history.
+        </div>
+
+        <div class="controls">
+            <button class="btn-attack" onclick="addMessage('attack')">Player Attack</button>
+            <button class="btn-defend" onclick="addMessage('defend')">Player Defend</button>
+            <button class="btn-skill" onclick="addMessage('skill')">Player Skill</button>
+            <button class="btn-enemy" onclick="addMessage('enemy')">Enemy Attack</button>
+            <button class="btn-sequence" onclick="runDefendSequence()">Run Defend Sequence</button>
+            <button class="btn-clear" onclick="clearLog()">Clear Log</button>
+        </div>
+
+        <div class="battle-log-panel">
+            <div class="battle-log-content">
+                <div id="battle-log-row-1" class="battle-log-row"></div>
+                <div id="battle-log-row-2" class="battle-log-row"></div>
+            </div>
+        </div>
+
+        <div class="debug">
+            <h3>Row Contents (Debug)</h3>
+            <div id="debug-row1" class="debug-row row1">Row 1: (empty)</div>
+            <div id="debug-row2" class="debug-row row2">Row 2: (empty)</div>
+            <div id="test-status" class="status" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        // Simulated BattleUtils functions
+        const BattleUtils = {
+            getBattleLogRows: function() {
+                const row1 = document.getElementById('battle-log-row-1');
+                const row2 = document.getElementById('battle-log-row-2');
+                if (!row1 || !row2) return null;
+                return { row1, row2 };
+            },
+
+            shiftBattleLogRows: function(rows) {
+                if (!rows) return;
+                console.log('[SHIFT] Moving row2 to row1');
+                console.log('  Before: row1="' + rows.row1.innerHTML.substring(0, 50) + '..."');
+                console.log('  Before: row2="' + rows.row2.innerHTML.substring(0, 50) + '..."');
+                rows.row1.innerHTML = rows.row2.innerHTML;
+                rows.row2.innerHTML = '';
+                console.log('  After: row1="' + rows.row1.innerHTML.substring(0, 50) + '..."');
+                console.log('  After: row2="(empty)"');
+            },
+
+            clearBattleLogRows: function(rows) {
+                if (!rows) return;
+                console.log('[CLEAR] Clearing both rows');
+                rows.row1.innerHTML = '';
+                rows.row2.innerHTML = '';
+            }
+        };
+
+        // Message templates
+        const messages = {
+            attack: [
+                'Andy attacks! <span class="roll-hit">Roll: 18</span> HIT! <span class="roll-damage-normal">12 DAMAGE</span>!',
+                'Andy swings his sword! <span class="roll-hit">Roll: 15</span> HIT! <span class="roll-damage-normal">8 DAMAGE</span>!',
+                'Andy strikes! <span class="roll-hit">CRITICAL HIT!</span> <span class="roll-damage-normal">24 DAMAGE</span>!'
+            ],
+            defend: [
+                'Andy defends! Recovered <span class="roll-hit">+3 MP</span>! (Cooldown: 2)',
+                'Andy takes a defensive stance! Recovered <span class="roll-hit">+5 MP</span>! (Cooldown: 2)'
+            ],
+            skill: [
+                'Andy uses Fire Bolt! <span class="roll-hit">Roll: 16</span> HIT! <span class="roll-damage-normal">15 DAMAGE</span>!',
+                'Andy casts Healing Light! Recovered <span style="color:#4caf50;font-weight:bold">12 HP</span>!'
+            ],
+            enemy: [
+                'Coffee Machine attacks! <span class="roll-hit">Roll: 14</span> HIT! Andy takes <span class="roll-damage-normal">6 DAMAGE</span>!',
+                'Coffee Machine uses Steam Blast! <span class="roll-hit">Roll: 19</span> HIT! Andy takes <span class="roll-damage-normal">10 DAMAGE</span>!'
+            ],
+            defendQTE: [
+                'Coffee Machine uses Attack!<br>Andy braces himself!',
+                'PARRY! Andy reflects <span class="roll-damage-normal">4 DAMAGE</span>!',
+                'DODGE! Andy avoids the attack!'
+            ]
+        };
+
+        let messageIndex = {};
+
+        function getRandomMessage(type) {
+            const arr = messages[type];
+            if (!messageIndex[type]) messageIndex[type] = 0;
+            const msg = arr[messageIndex[type] % arr.length];
+            messageIndex[type]++;
+            return msg;
+        }
+
+        // Simulated updateBattleLog - THIS IS THE FUNCTION WE'RE TESTING
+        function updateBattleLog(html) {
+            console.log('[updateBattleLog] Called with:', html.substring(0, 40) + '...');
+
+            const rows = BattleUtils.getBattleLogRows();
+            if (!rows) {
+                console.error('[updateBattleLog] ERROR: rows is null!');
+                return;
+            }
+
+            console.log('[updateBattleLog] Before shift - row1:', rows.row1.innerHTML.substring(0, 30) || '(empty)');
+            console.log('[updateBattleLog] Before shift - row2:', rows.row2.innerHTML.substring(0, 30) || '(empty)');
+
+            // THIS IS THE FIX: shift instead of clear
+            BattleUtils.shiftBattleLogRows(rows);
+
+            console.log('[updateBattleLog] After shift - row1:', rows.row1.innerHTML.substring(0, 30) || '(empty)');
+            console.log('[updateBattleLog] After shift - row2:', rows.row2.innerHTML.substring(0, 30) || '(empty)');
+
+            // Write new content to row2
+            rows.row2.innerHTML = html;
+
+            console.log('[updateBattleLog] After write - row2:', rows.row2.innerHTML.substring(0, 30) || '(empty)');
+
+            updateDebug();
+        }
+
+        // OLD BROKEN VERSION (for comparison)
+        function updateBattleLogBroken(html) {
+            const rows = BattleUtils.getBattleLogRows();
+            if (!rows) return;
+
+            // BUG: This clears both rows instead of shifting
+            BattleUtils.clearBattleLogRows(rows);
+
+            rows.row2.innerHTML = html;
+
+            updateDebug();
+        }
+
+        function addMessage(type) {
+            const msg = getRandomMessage(type);
+            console.log('[ADD MESSAGE] Type:', type, 'Content:', msg.substring(0, 50) + '...');
+            updateBattleLog(msg);
+        }
+
+        function clearLog() {
+            const rows = BattleUtils.getBattleLogRows();
+            if (rows) {
+                BattleUtils.clearBattleLogRows(rows);
+            }
+            updateDebug();
+        }
+
+        function updateDebug() {
+            const rows = BattleUtils.getBattleLogRows();
+            const debugRow1 = document.getElementById('debug-row1');
+            const debugRow2 = document.getElementById('debug-row2');
+
+            debugRow1.textContent = 'Row 1: ' + (rows.row1.innerHTML || '(empty)');
+            debugRow2.textContent = 'Row 2: ' + (rows.row2.innerHTML || '(empty)');
+        }
+
+        // Guard to prevent concurrent runs
+        let sequenceRunning = false;
+
+        // Simulate the defend sequence that was broken
+        async function runDefendSequence() {
+            // Prevent concurrent runs
+            if (sequenceRunning) {
+                console.log('Sequence already running, ignoring click');
+                return;
+            }
+            sequenceRunning = true;
+
+            const status = document.getElementById('test-status');
+            status.style.display = 'block';
+            status.className = 'status';
+            status.textContent = 'Running defend sequence...';
+
+            // First, clear log
+            clearLog();
+            await sleep(100);
+
+            console.log('=== DEFEND SEQUENCE START ===');
+
+            // Step 1: Player defends
+            console.log('Step 1: Player defends');
+            updateBattleLog('Andy defends! Recovered <span class="roll-hit">+3 MP</span>! (Cooldown: 2)');
+            await sleep(1500);
+
+            // Check: row2 should have defend message
+            let rows = BattleUtils.getBattleLogRows();
+            const afterDefend = rows.row2.innerHTML;
+            console.log('CHECK 1 - afterDefend:', afterDefend);
+            console.log('CHECK 1 - includes "defends"?', afterDefend.includes('defends'));
+
+            // Step 2: Enemy attack announcement (pre-QTE)
+            console.log('Step 2: Enemy attack (should shift defend to row1)');
+            updateBattleLog('Coffee Machine uses Attack!<br>Andy braces himself!');
+            await sleep(1500);
+
+            // Check: row1 should now have the defend message, row2 has enemy attack
+            rows = BattleUtils.getBattleLogRows();
+            const row1AfterEnemy = rows.row1.innerHTML;
+            const row2AfterEnemy = rows.row2.innerHTML;
+            console.log('CHECK 2 - row1AfterEnemy:', row1AfterEnemy);
+            console.log('CHECK 2 - row2AfterEnemy:', row2AfterEnemy);
+            console.log('CHECK 2 - row1 includes "defends"?', row1AfterEnemy.includes('defends'));
+            console.log('CHECK 2 - row2 includes "Coffee Machine"?', row2AfterEnemy.includes('Coffee Machine'));
+
+            // Step 3: QTE result
+            console.log('Step 3: QTE result (should shift enemy attack to row1)');
+            updateBattleLog('PARRY! Andy reflects <span class="roll-damage-normal">4 DAMAGE</span>!');
+            await sleep(1000);
+
+            // Verify the sequence worked
+            rows = BattleUtils.getBattleLogRows();
+            const row1Final = rows.row1.innerHTML;
+            const row2Final = rows.row2.innerHTML;
+            console.log('CHECK 3 - row1Final:', row1Final);
+            console.log('CHECK 3 - row2Final:', row2Final);
+
+            console.log('=== DEFEND SEQUENCE END ===');
+            console.log('Final row1:', row1Final);
+            console.log('Final row2:', row2Final);
+
+            // Test assertions
+            const tests = [
+                {
+                    name: 'After defend, row2 has defend message',
+                    pass: afterDefend.includes('defends')
+                },
+                {
+                    name: 'After enemy attack, row1 has previous (defend) message',
+                    pass: row1AfterEnemy.includes('defends')
+                },
+                {
+                    name: 'After enemy attack, row2 has enemy attack message',
+                    pass: row2AfterEnemy.includes('Coffee Machine')
+                },
+                {
+                    name: 'After QTE result, row1 has enemy attack (shifted)',
+                    pass: row1Final.includes('Coffee Machine') || row1Final.includes('braces')
+                },
+                {
+                    name: 'After QTE result, row2 has PARRY message',
+                    pass: row2Final.includes('PARRY')
+                }
+            ];
+
+            const allPassed = tests.every(t => t.pass);
+            const failedTests = tests.filter(t => !t.pass);
+
+            if (allPassed) {
+                status.className = 'status pass';
+                status.textContent = 'All tests passed! Row shifting works correctly.';
+            } else {
+                status.className = 'status fail';
+                status.innerHTML = 'FAILED:<br>' + failedTests.map(t => '- ' + t.name).join('<br>');
+            }
+
+            // Log all test results
+            console.log('Test Results:');
+            tests.forEach(t => {
+                console.log((t.pass ? 'PASS' : 'FAIL') + ': ' + t.name);
+            });
+
+            // Reset guard
+            sequenceRunning = false;
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Initialize
+        updateDebug();
+    </script>
+</body>
+</html>

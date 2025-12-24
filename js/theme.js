@@ -8,7 +8,7 @@
  */
 
 const themeConfig = {
-  "selected": "90s",
+  "selected": "prototype",
   "available": [
     "prototype",
     "70s",

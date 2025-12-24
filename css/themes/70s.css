@@ -19,6 +19,42 @@
     /* Theme font - damage numbers use same font as body text */
     --theme-font: 'Cooper Black', 'Georgia', serif;
     --damage-font: var(--theme-font);
+
+    /* Battle action button colors - 70s disco/earth tones */
+    --battle-action-attack: var(--disco-rust);
+    --battle-action-attack-dark: #8b3a0a;
+    --battle-action-attack-border: #6b2a08;
+    --battle-action-skill: var(--disco-brown);
+    --battle-action-skill-dark: #6b350f;
+    --battle-action-skill-border: #4b250a;
+    --battle-action-defend: var(--disco-avocado);
+    --battle-action-defend-dark: #456802;
+    --battle-action-defend-border: #354f02;
+    --battle-action-item: var(--disco-gold);
+    --battle-action-item-dark: #d5a83c;
+    --battle-action-item-border: #b08830;
+
+    /* Roll colors - warm disco palette */
+    --roll-color-hit: var(--disco-gold);
+    --roll-color-damage: var(--disco-rust);
+    --roll-color-heal: var(--disco-avocado);
+    --roll-color-status: var(--disco-tan);
+    --emphasis-crit-glow: var(--disco-orange);
+
+    /* Battle panel - earthy 70s look */
+    --battle-panel-bg: rgba(45, 24, 16, 0.9);
+    --battle-panel-border: var(--disco-tan);
+    --battle-text: var(--disco-cream);
+    --battle-text-color: var(--disco-cream);
+    --battle-text-dim: rgba(250, 240, 220, 0.7);
+
+    /* HP bars - earth tones */
+    --battle-hp-high: var(--disco-avocado);
+    --battle-hp-medium: var(--disco-orange);
+    --battle-hp-low: var(--disco-rust);
+    --battle-mana: var(--disco-tan);
+    --battle-limit: var(--disco-brown);
+    --battle-limit-ready: var(--disco-gold);
 }
 
 /* === Password Overlay === */

@@ -20,6 +20,43 @@
     /* Theme font - damage numbers use same font as body text */
     --theme-font: 'Orbitron', 'Arial Black', sans-serif;
     --damage-font: var(--theme-font);
+
+    /* Battle action button colors - 80s neon synthwave */
+    --battle-action-attack: var(--neon-pink);
+    --battle-action-attack-dark: #cc1076;
+    --battle-action-attack-border: #990c59;
+    --battle-action-skill: var(--neon-purple);
+    --battle-action-skill-dark: #7a00cc;
+    --battle-action-skill-border: #5c0099;
+    --battle-action-defend: var(--neon-blue);
+    --battle-action-defend-dark: #00aacc;
+    --battle-action-defend-border: #008099;
+    --battle-action-item: var(--neon-yellow);
+    --battle-action-item-dark: #cccc00;
+    --battle-action-item-border: #999900;
+
+    /* Roll colors - neon palette */
+    --roll-color-hit: var(--neon-yellow);
+    --roll-color-damage: var(--neon-pink);
+    --roll-color-heal: #00ff88;
+    --roll-color-status: var(--neon-blue);
+    --emphasis-crit-glow: var(--neon-yellow);
+    --emphasis-fail-glow: var(--neon-pink);
+
+    /* Battle panel - dark synthwave */
+    --battle-panel-bg: rgba(13, 2, 33, 0.95);
+    --battle-panel-border: var(--neon-purple);
+    --battle-text: #ffffff;
+    --battle-text-color: #ffffff;
+    --battle-text-dim: rgba(255, 255, 255, 0.7);
+
+    /* HP bars - neon colors */
+    --battle-hp-high: #00ff88;
+    --battle-hp-medium: var(--neon-yellow);
+    --battle-hp-low: var(--neon-pink);
+    --battle-mana: var(--neon-blue);
+    --battle-limit: var(--neon-purple);
+    --battle-limit-ready: var(--neon-pink);
 }
 
 /* === Password Overlay === */

@@ -1,0 +1,22 @@
+# Theme Selection
+# Mark a theme with [x] to select it
+
+prototype [x]
+70s [ ]
+80s [ ]
+90s [ ]
+cyberpunk [ ]
+dos [ ]
+dragonball [ ]
+finalfantasy [ ]
+gameboy [ ]
+harrypotter [ ]
+lotr [ ]
+manga [ ]
+nes [ ]
+snes [ ]
+spaceopera [ ]
+starwars [ ]
+vaporwave [ ]
+y2k [ ]
+zelda [ ]

@@ -23,6 +23,47 @@
     /* Theme font - damage numbers use same font as body text */
     --theme-font: 'Press Start 2P', 'Courier New', monospace;
     --damage-font: var(--theme-font);
+
+    /* Battle action button colors - NES 8-bit palette */
+    --battle-action-attack: var(--nes-red);
+    --battle-action-attack-dark: #880800;
+    --battle-action-attack-border: #600400;
+    --battle-action-skill: var(--nes-purple);
+    --battle-action-skill-dark: #4824bc;
+    --battle-action-skill-border: #2808a0;
+    --battle-action-defend: var(--nes-blue);
+    --battle-action-defend-dark: #0038c0;
+    --battle-action-defend-border: #002890;
+    --battle-action-item: var(--nes-green);
+    --battle-action-item-dark: #008800;
+    --battle-action-item-border: #006600;
+
+    /* Roll colors - NES palette */
+    --roll-color-hit: var(--nes-yellow);
+    --roll-color-damage: var(--nes-orange);
+    --roll-color-heal: var(--nes-green);
+    --roll-color-status: var(--nes-cyan);
+    --roll-color-neutral: var(--nes-white);
+
+    /* Emphasis glows - minimal for NES style */
+    --roll-emphasis-glow: none;
+    --roll-emphasis-glow-strong: 0 0 5px var(--nes-white);
+
+    /* Battle panel - NES black background */
+    --battle-panel-bg: var(--nes-black);
+    --battle-panel-border: var(--nes-white);
+    --battle-text: var(--nes-white);
+    --battle-text-color: var(--nes-white);
+    --battle-text-dim: var(--nes-gray);
+
+    /* HP bar colors - NES palette */
+    --battle-hp-high: var(--nes-green);
+    --battle-hp-medium: var(--nes-yellow);
+    --battle-hp-low: var(--nes-red);
+
+    /* Mana and limit bars */
+    --battle-mana: var(--nes-cyan);
+    --battle-limit: var(--nes-orange);
 }
 
 /* === Font Face === */
