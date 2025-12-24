@@ -2970,9 +2970,12 @@ var VNEngine = (function() {
             elements.textBox.classList.remove('ending-scene');
         }
 
+        // Re-measure text height to ensure consistent sizing after class changes
+        ensureTextBoxSizing();
+
         // Emit scene transition event
-        if (typeof EventEmitter !== 'undefined') {
-            EventEmitter.emit('scene:transition', { from: state.currentSceneId, to: sceneId });
+        if (typeof eventBus !== 'undefined') {
+            eventBus.emit('scene:transition', { from: state.currentSceneId, to: sceneId });
         }
 
         // Check for special roll trigger
@@ -3657,10 +3660,23 @@ var VNEngine = (function() {
     // === Text Display Mode (Fixed vs Expanding) ===
 
     /**
+     * Ensure text box sizing is correct for current display mode.
+     * Single entry point for all text box sizing - call this whenever:
+     * - Display mode changes
+     * - Window resizes
+     * - Scene transitions (class changes may affect sizing)
+     */
+    function ensureTextBoxSizing() {
+        if (config.textDisplayMode !== 'fixed') return;
+        measureTextHeight();
+    }
+
+    /**
      * Measure actual text line height and set CSS variable for fixed-height mode.
      * Creates a hidden measurement element with same styling as story-output,
      * measures the height of N lines, and sets --story-fixed-height accordingly.
      * Must be called after DOM is ready and on window resize (font uses vw units).
+     * NOTE: Prefer calling ensureTextBoxSizing() instead of this directly.
      */
     function measureTextHeight() {
         var storyOutput = elements.storyOutput;
@@ -3708,9 +3724,10 @@ var VNEngine = (function() {
     function handleResizeForTextHeight() {
         if (resizeTimeout) clearTimeout(resizeTimeout);
         resizeTimeout = setTimeout(function() {
+            // Re-measure text box sizing (handles mode check internally)
+            ensureTextBoxSizing();
+            // Re-paginate current text if we have stored text
             if (config.textDisplayMode === 'fixed') {
-                measureTextHeight();
-                // Re-paginate current text if we have stored text
                 if (state.pagination.fullText) {
                     var currentCharIndex = 0;
                     // Calculate approximate character position we were at
@@ -3768,8 +3785,8 @@ var VNEngine = (function() {
         if (config.textDisplayMode === 'fixed') {
             // Set CSS variable for fixed lines
             document.documentElement.style.setProperty('--story-fixed-lines', config.fixedLines);
-            // Measure actual line height and set --story-fixed-height
-            measureTextHeight();
+            // Measure and set text box sizing
+            ensureTextBoxSizing();
             // Add resize listener for vw-based font recalculation
             window.removeEventListener('resize', handleResizeForTextHeight);
             window.addEventListener('resize', handleResizeForTextHeight);
@@ -3854,27 +3871,71 @@ var VNEngine = (function() {
 
         // Split text into words
         var words = text.split(/(\s+)/);  // Keep whitespace
-        var pages = [];
-        var currentPage = '';
 
-        for (var i = 0; i < words.length; i++) {
-            var testText = currentPage + words[i];
-            // Convert markdown bold for measurement
-            var formattedTest = testText.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-            measureEl.innerHTML = '<p class="typewriter-text" style="margin:0;padding:0;display:block;">' + formattedTest + '</p>';
+        // Helper function to paginate with a given target height
+        function doPaginate(targetHeight) {
+            var result = [];
+            var currentPage = '';
 
-            if (measureEl.offsetHeight > maxHeight && currentPage.trim() !== '') {
-                // Current page is full, start new page
-                pages.push(currentPage.trim());
-                currentPage = words[i];
-            } else {
-                currentPage = testText;
+            for (var i = 0; i < words.length; i++) {
+                var testText = currentPage + words[i];
+                // Convert markdown bold for measurement
+                var formattedTest = testText.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+                measureEl.innerHTML = '<p class="typewriter-text" style="margin:0;padding:0;display:block;">' + formattedTest + '</p>';
+
+                if (measureEl.offsetHeight > targetHeight && currentPage.trim() !== '') {
+                    // Current page is full, start new page
+                    result.push(currentPage.trim());
+                    currentPage = words[i];
+                } else {
+                    currentPage = testText;
+                }
             }
+
+            // Add remaining text as last page
+            if (currentPage.trim() !== '') {
+                result.push(currentPage.trim());
+            }
+
+            return result;
         }
 
-        // Add remaining text as last page
-        if (currentPage.trim() !== '') {
-            pages.push(currentPage.trim());
+        // Helper to measure height of a text chunk
+        function measureHeight(chunk) {
+            var formatted = chunk.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+            measureEl.innerHTML = '<p class="typewriter-text" style="margin:0;padding:0;display:block;">' + formatted + '</p>';
+            return measureEl.offsetHeight;
+        }
+
+        // Initial greedy pagination
+        var pages = doPaginate(maxHeight);
+
+        // Page balancing: if last page is too short, redistribute
+        var threshold = TUNING.text.pageBalanceThreshold || 0;
+        if (threshold > 0 && pages.length > 1) {
+            var lastPageHeight = measureHeight(pages[pages.length - 1]);
+            var fillRatio = lastPageHeight / maxHeight;
+
+            if (fillRatio < threshold) {
+                // Calculate balanced target height
+                // We want to spread content more evenly across pages
+                // Reduce target height so pages fill more evenly
+                var totalHeight = 0;
+                for (var p = 0; p < pages.length; p++) {
+                    totalHeight += measureHeight(pages[p]);
+                }
+                var avgHeight = totalHeight / pages.length;
+                // Use average as the new target, but don't exceed maxHeight
+                var balancedTarget = Math.min(avgHeight * 1.1, maxHeight);  // 10% buffer
+
+                var balancedPages = doPaginate(balancedTarget);
+
+                // Only use balanced result if it doesn't create more pages
+                if (balancedPages.length <= pages.length) {
+                    pages = balancedPages;
+                    _log.debug('Engine', 'Rebalanced pages: ' + pages.length + ' pages with balanced fill');
+                }
+            }
         }
 
         // Cleanup
@@ -4120,11 +4181,11 @@ var VNEngine = (function() {
     }
 
     /**
-     * Emit asset load error event (if EventEmitter exists)
+     * Emit asset load error event (if eventBus exists)
      */
     function emitAssetError(type, filename) {
-        if (typeof EventEmitter !== 'undefined') {
-            EventEmitter.emit('asset:load-error', { type: type, filename: filename });
+        if (typeof eventBus !== 'undefined') {
+            eventBus.emit('asset:load-error', { type: type, filename: filename });
         }
     }
 

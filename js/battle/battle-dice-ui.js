@@ -51,144 +51,77 @@ var BattleDiceUI = (function() {
     // STATE
     // =========================================================================
 
-    var playSfxCallback = null;
-
     // Track active animations for click-to-skip
     var activeAnimations = [];
 
-    // Pause state
-    var _isPaused = false;
-    var _pausedTimeouts = [];  // {callback, delay, remaining, startTime}
-    var _activeTimeouts = [];
-    var _nextTimeoutId = 1;
+    // Pausable timer instance (uses shared PausableTimer module)
+    var _timer = null;
 
+    function getTimer() {
+        if (!_timer && typeof PausableTimer !== 'undefined') {
+            _timer = PausableTimer.create({
+                name: 'BattleDiceUI',
+                onPause: function() {
+                    // Add paused class to freeze CSS animations
+                    var container = document.getElementById('vn-container');
+                    if (container) container.classList.add('battle-paused');
+                },
+                onUnpause: function() {
+                    // Remove paused class to resume CSS animations
+                    var container = document.getElementById('vn-container');
+                    if (container) container.classList.remove('battle-paused');
+                }
+            });
+        }
+        return _timer;
+    }
+
+    // SFX delegated to shared BattleUtils
     function setSfxCallback(callback) {
-        playSfxCallback = callback;
+        if (typeof BattleUtils !== 'undefined') BattleUtils.setSfxCallback(callback);
     }
 
     /**
      * Check if dice UI is paused
      */
     function isDicePaused() {
-        return _isPaused;
+        var timer = getTimer();
+        return timer ? timer.isPaused() : false;
     }
 
     /**
      * Pausable setTimeout for dice animations
+     * Delegates to shared PausableTimer module
      */
     function diceTimeout(callback, delay) {
-        if (_isPaused) {
-            var info = {
-                id: _nextTimeoutId++,
-                callback: callback,
-                remaining: delay,
-                startTime: null,
-                timeoutId: null
-            };
-            _pausedTimeouts.push(info);
-            return info.id;
+        var timer = getTimer();
+        if (timer) {
+            return timer.schedule(callback, delay);
         }
-
-        var info = {
-            id: _nextTimeoutId++,
-            callback: callback,
-            remaining: delay,
-            startTime: Date.now(),
-            timeoutId: null
-        };
-
-        info.timeoutId = setTimeout(function() {
-            // Remove from active list
-            for (var i = _activeTimeouts.length - 1; i >= 0; i--) {
-                if (_activeTimeouts[i].id === info.id) {
-                    _activeTimeouts.splice(i, 1);
-                    break;
-                }
-            }
-            // Defensive: check callback exists and wrap in try-catch to prevent silent failures
-            if (typeof callback === 'function') {
-                try {
-                    callback();
-                } catch (e) {
-                    console.error('[BattleDiceUI] diceTimeout callback error:', e);
-                }
-            } else if (callback !== undefined && callback !== null) {
-                console.warn('[BattleDiceUI] diceTimeout called with non-function callback:', typeof callback);
-            }
-        }, delay);
-
-        _activeTimeouts.push(info);
-        return info.id;
+        // Fallback if PausableTimer not available
+        return setTimeout(callback, delay);
     }
 
     /**
      * Pause all dice animations - freezes everything
+     * Delegates to shared PausableTimer module (CSS class handled by onPause hook)
      */
     function pauseDice() {
-        if (_isPaused) return;
-        _isPaused = true;
-
-        // Pause all active timeouts - calculate remaining time
-        var now = Date.now();
-        for (var i = 0; i < _activeTimeouts.length; i++) {
-            var info = _activeTimeouts[i];
-            clearTimeout(info.timeoutId);
-            info.remaining = Math.max(0, info.remaining - (now - info.startTime));
-            _pausedTimeouts.push(info);
-        }
-        _activeTimeouts = [];
-
-        // Add paused class to freeze CSS animations
-        var container = document.getElementById('vn-container');
-        if (container) {
-            container.classList.add('battle-paused');
-        }
+        var timer = getTimer();
+        if (timer) timer.pause();
     }
 
     /**
      * Unpause all dice animations - resumes everything
+     * Delegates to shared PausableTimer module (CSS class handled by onUnpause hook)
      */
     function unpauseDice() {
-        if (!_isPaused) return;
-        _isPaused = false;
-
-        // Remove paused class to resume CSS animations
-        var container = document.getElementById('vn-container');
-        if (container) {
-            container.classList.remove('battle-paused');
-        }
-
-        // Resume all paused timeouts with their remaining time
-        var now = Date.now();
-        for (var i = 0; i < _pausedTimeouts.length; i++) {
-            var info = _pausedTimeouts[i];
-            info.startTime = now;
-            (function(capturedInfo) {
-                capturedInfo.timeoutId = setTimeout(function() {
-                    // Remove from active list
-                    for (var j = _activeTimeouts.length - 1; j >= 0; j--) {
-                        if (_activeTimeouts[j].id === capturedInfo.id) {
-                            _activeTimeouts.splice(j, 1);
-                            break;
-                        }
-                    }
-                    // Defensive: check callback exists and wrap in try-catch
-                    if (typeof capturedInfo.callback === 'function') {
-                        try {
-                            capturedInfo.callback();
-                        } catch (e) {
-                            console.error('[BattleDiceUI] resumed callback error:', e);
-                        }
-                    }
-                }, capturedInfo.remaining);
-            })(info);
-            _activeTimeouts.push(info);
-        }
-        _pausedTimeouts = [];
+        var timer = getTimer();
+        if (timer) timer.unpause();
     }
 
     function playSfx(filename) {
-        if (playSfxCallback) playSfxCallback(filename);
+        if (typeof BattleUtils !== 'undefined') BattleUtils.playSfx(filename);
     }
 
     /**
@@ -240,12 +173,8 @@ var BattleDiceUI = (function() {
         // Clear any active animations
         activeAnimations = [];
         // Clear paused timeouts
-        for (var i = 0; i < _activeTimeouts.length; i++) {
-            clearTimeout(_activeTimeouts[i].timeoutId);
-        }
-        _activeTimeouts = [];
-        _pausedTimeouts = [];
-        _isPaused = false;
+        var timer = getTimer();
+        if (timer) timer.clearAll();
     }
 
     // =========================================================================
@@ -351,7 +280,7 @@ var BattleDiceUI = (function() {
             if (finished) return;
 
             // If paused, reschedule to check again shortly (don't abandon the animation)
-            if (_isPaused) {
+            if (isDicePaused()) {
                 diceTimeout(spin, 50);
                 return;
             }
@@ -552,7 +481,7 @@ var BattleDiceUI = (function() {
             if (finished) return;
 
             // If paused, reschedule to check again shortly (don't abandon the animation)
-            if (_isPaused) {
+            if (isDicePaused()) {
                 diceTimeout(spin, 50);
                 return;
             }
@@ -736,6 +665,12 @@ var BattleDiceUI = (function() {
 
             element.appendChild(document.createTextNode(char));
             index++;
+
+            // Check for overflow in parent row and shift if needed
+            if (typeof BattleUtils !== 'undefined' && BattleUtils.handleBattleLogOverflow) {
+                BattleUtils.handleBattleLogOverflow();
+            }
+
             diceTimeout(type, speed);
         }
 
@@ -1565,15 +1500,18 @@ var BattleDiceUI = (function() {
         var onACComplete = options.onACComplete || null;  // Callback when AC text finishes
 
         // Determine roll type and color class based on result
-        var rollType = 'status';  // Default blue
+        // Always use 'status' type - the result category (max/min/normal) handles the styling
+        var rollType = 'status';
         var manaColorClass = getRollClass('status', 'normal');
 
         if (isMinMana) {
-            rollType = 'fumble';  // Grey for both roll and MP when 0
-            manaColorClass = getRollClass('status', 'fumble');
+            // Set rollResult flags for animateRoll to pick up
+            rollResult.isMin = true;
+            manaColorClass = getRollClass('status', 'min');
         } else if (isMaxMana && overmana === 0) {
-            rollType = 'crit';    // Special styling for max roll (only if no overmana)
-            manaColorClass = getRollClass('status', 'crit');
+            // Set rollResult flags for animateRoll to pick up
+            rollResult.isMax = true;
+            manaColorClass = getRollClass('status', 'max');
         }
 
         // Single line for defend display (matches attack roll structure)

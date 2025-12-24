@@ -38,13 +38,13 @@ var BattleCore = (function() {
     }
 
     /**
-     * Helper to emit events if EventEmitter is available
+     * Helper to emit events if eventBus is available
      * @param {string} eventName - Event name
      * @param {*} data - Optional event data
      */
     function emitEvent(eventName, data) {
-        if (typeof EventEmitter !== 'undefined') {
-            EventEmitter.emit(eventName, data);
+        if (typeof eventBus !== 'undefined') {
+            eventBus.emit(eventName, data);
         }
     }
 

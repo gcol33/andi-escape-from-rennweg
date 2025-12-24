@@ -19,6 +19,31 @@ var BattleUtils = (function() {
     'use strict';
 
     // =========================================================================
+    // SHARED SFX CALLBACK
+    // =========================================================================
+    // Consolidated from battle-ui.js and battle-dice-ui.js to avoid duplication
+
+    var _sfxCallback = null;
+
+    /**
+     * Set the sound effect callback function
+     * @param {function} callback - Function to call with SFX filename
+     */
+    function setSfxCallback(callback) {
+        _sfxCallback = callback;
+    }
+
+    /**
+     * Play a sound effect via callback
+     * @param {string} filename - SFX filename to play
+     */
+    function playSfx(filename) {
+        if (_sfxCallback) {
+            _sfxCallback(filename);
+        }
+    }
+
+    // =========================================================================
     // MODULE DEPENDENCY CACHE
     // =========================================================================
 
@@ -501,7 +526,11 @@ var BattleUtils = (function() {
         measure.style.letterSpacing = style.letterSpacing;
         document.body.appendChild(measure);
 
+        // Use parent's clientWidth if container has no width (rows inherit from content)
         var containerWidth = container.clientWidth;
+        if (containerWidth === 0 && container.parentElement) {
+            containerWidth = container.parentElement.clientWidth;
+        }
         var lines = [];
         var currentLine = '';
 
@@ -565,11 +594,70 @@ var BattleUtils = (function() {
         rows.row2.innerHTML = '';
     }
 
+    /**
+     * Check if row2 has wrapped to multiple visual lines.
+     * If so, move all but the last line to row1, keep only last line in row2.
+     * @param {Object} rows - { row1, row2 } from getBattleLogRows (optional, will fetch if not provided)
+     * @returns {boolean} - true if a shift occurred
+     */
+    function handleBattleLogOverflow(rows) {
+        rows = rows || getBattleLogRows();
+        if (!rows || !rows.row2) {
+            console.warn('[Scroll] No rows found!');
+            return false;
+        }
+
+        // Check if row2 has nested elements (dice UI case)
+        var hasNestedElements = rows.row2.querySelector('div, span.roll-result');
+
+        if (hasNestedElements) {
+            // For nested elements (dice UI), use scroll approach
+            // Just scroll to bottom so newest content is visible
+            var content = rows.row2.parentElement; // battle-log-content
+            if (content && content.scrollHeight > content.clientHeight) {
+                content.scrollTop = content.scrollHeight;
+            }
+            return false;
+        }
+
+        // Simple text case - use split and redistribute
+        var text = rows.row2.textContent;
+        // Only check once we have enough text to potentially wrap (~30+ chars)
+        if (!text || text.length < 30) return false;
+
+        // Get actual width being used
+        var width = rows.row2.clientWidth || (rows.row2.parentElement ? rows.row2.parentElement.clientWidth : 0);
+
+        // Measure if text needs multiple lines
+        var lines = measureTextLines(text, rows.row2);
+
+        // Debug: log on first check and every 30 chars after
+        if (text.length === 30 || text.length % 30 === 0) {
+            console.log('[Scroll] len=' + text.length + ', lines=' + lines.length + ', width=' + width);
+        }
+
+        if (lines.length > 1) {
+            console.log('[Scroll] SHIFT! ' + lines.length + ' lines detected, width=' + width);
+            // Move all but last line to row1, keep only last line in row2
+            var toRow1 = lines.slice(0, -1).join(' ');
+            var toRow2 = lines[lines.length - 1];
+
+            rows.row1.textContent = toRow1;
+            rows.row2.textContent = toRow2;
+            return true;
+        }
+        return false;
+    }
+
     // =========================================================================
     // PUBLIC API
     // =========================================================================
 
     return {
+        // Shared SFX callback
+        setSfxCallback: setSfxCallback,
+        playSfx: playSfx,
+
         // Module dependency checks
         hasModule: hasModule,
         hasBattleData: hasBattleData,
@@ -617,6 +705,7 @@ var BattleUtils = (function() {
         measureTextLines: measureTextLines,
         getBattleLogRows: getBattleLogRows,
         shiftBattleLogRows: shiftBattleLogRows,
-        clearBattleLogRows: clearBattleLogRows
+        clearBattleLogRows: clearBattleLogRows,
+        handleBattleLogOverflow: handleBattleLogOverflow
     };
 })();

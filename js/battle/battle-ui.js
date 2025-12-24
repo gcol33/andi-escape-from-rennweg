@@ -108,9 +108,6 @@ var BattleUI = (function() {
         onComplete: null
     };
 
-    // Sound callback (set by BattleEngine)
-    var playSfxCallback = null;
-
     // === Initialization ===
 
     /**
@@ -123,21 +120,12 @@ var BattleUI = (function() {
         elements.textBox = textBoxEl || document.getElementById('text-box');
     }
 
-    /**
-     * Set the sound effect callback function
-     * @param {function} callback - Function to call with SFX filename
-     */
+    // SFX delegated to shared BattleUtils
     function setSfxCallback(callback) {
-        playSfxCallback = callback;
+        if (typeof BattleUtils !== 'undefined') BattleUtils.setSfxCallback(callback);
     }
-
-    /**
-     * Play a sound effect via callback
-     */
     function playSfx(filename) {
-        if (playSfxCallback) {
-            playSfxCallback(filename);
-        }
+        if (typeof BattleUtils !== 'undefined') BattleUtils.playSfx(filename);
     }
 
     // === Text Box Management ===
@@ -430,9 +418,6 @@ var BattleUI = (function() {
 
         // Clear all summon sprites
         clearAllSummons();
-
-        // Reset sfx callback
-        playSfxCallback = null;
 
         _log.debug('BattleUI', 'Cleanup complete');
     }
@@ -988,80 +973,75 @@ var BattleUI = (function() {
      * Row shifting now happens via prepareLogForNewMessage() before each message
      */
     function scrollToBottomIfNeeded(container) {
-        // No-op: row shifting is now handled by pre-measurement in typewriterEffect
+        // No-op: row shifting is handled by real-time overflow detection in typewriterEffect
     }
 
     /**
-     * Typewriter effect with pre-measured line breaks.
-     * Measures text first, then renders line by line with proper row shifting.
-     * Uses BattleUtils for text measurement and row management.
+     * Typewriter effect with real-time overflow detection.
+     * ALWAYS types into row2. When overflow detected, shifts (row2→row1) and continues.
      */
     function typewriterEffect(container, text, callback) {
         var speed = config.dice.typewriterSpeed;
 
-        // Note: rows are cleared by updateBattleLog before calling typewriter
         // Get the row containers using shared utility
         var rows = BattleUtils.getBattleLogRows();
 
         // If no row system, fall back to simple typing
         if (!rows) {
+            console.warn('[Typewriter] No rows found! Falling back to simple typing.');
             typewriterEffectSimple(container, text, callback);
             return;
         }
+        console.log('[Typewriter] Using row system, text length:', text.length);
 
-        var row1 = rows.row1;
-        var row2 = rows.row2;
+        // Convert <br> tags to newlines before stripping other HTML
+        var textWithNewlines = text.replace(/<br\s*\/?>/gi, '\n');
+        // Strip remaining HTML
+        var plainText = textWithNewlines.replace(/<[^>]*>/g, '');
 
-        // Strip HTML for measurement
-        var plainText = text.replace(/<[^>]*>/g, '');
-
-        // Measure and split into lines using shared utility (use row1 for measurement)
-        var lines = BattleUtils.measureTextLines(plainText, row1);
-
-        var currentLineIndex = 0;
+        // Split by newlines to get segments
+        var segments = plainText.split('\n').filter(function(s) { return s.trim(); });
+        var segmentIndex = 0;
         var charIndex = 0;
 
-        // Determine which row to type into: row1 for first line, row2 for second
-        function getActiveRow() {
-            return currentLineIndex === 0 ? row1 : row2;
-        }
-
         function renderNextChar() {
-            if (currentLineIndex >= lines.length) {
+            if (segmentIndex >= segments.length) {
                 if (callback) callback();
                 return;
             }
 
-            var currentLine = lines[currentLineIndex];
+            var currentSegment = segments[segmentIndex];
 
-            if (charIndex >= currentLine.length) {
-                currentLineIndex++;
+            // End of segment - move to next
+            if (charIndex >= currentSegment.length) {
+                segmentIndex++;
                 charIndex = 0;
-
-                // If there's a third+ line, shift: row2 -> row1, clear row2
-                if (currentLineIndex >= 2 && currentLineIndex < lines.length) {
+                // Force a shift for new segment (acts like line break)
+                if (segmentIndex < segments.length) {
                     BattleUtils.shiftBattleLogRows(rows);
                 }
-
                 renderNextChar();
                 return;
             }
 
-            var char = currentLine[charIndex];
+            var char = currentSegment[charIndex];
 
-            // Handle surrogate pairs
+            // Handle surrogate pairs (emoji, etc.)
             if (char.charCodeAt(0) >= 0xD800 && char.charCodeAt(0) <= 0xDBFF &&
-                charIndex + 1 < currentLine.length) {
-                var nextChar = currentLine[charIndex + 1];
+                charIndex + 1 < currentSegment.length) {
+                var nextChar = currentSegment[charIndex + 1];
                 if (nextChar.charCodeAt(0) >= 0xDC00 && nextChar.charCodeAt(0) <= 0xDFFF) {
                     char = char + nextChar;
                     charIndex++;
                 }
             }
 
-            // Append character to active row (row1 for first line, row2 for subsequent)
-            getActiveRow().appendChild(document.createTextNode(char));
+            // ALWAYS type into row2 (row1 is only for shifted content)
+            rows.row2.appendChild(document.createTextNode(char));
             charIndex++;
+
+            // Check for visual overflow and shift if needed
+            BattleUtils.handleBattleLogOverflow(rows);
 
             var t = setTimeout(renderNextChar, 1000 / speed);
             animationState.timeouts.push(t);
@@ -2124,8 +2104,12 @@ var BattleUI = (function() {
 
         // Clear battle log when player turn starts
         // Prevents "Stun wore off!" from showing alongside active buttons
-        if (playerTurn && elements.battleLog) {
-            elements.battleLog.innerHTML = '';
+        if (playerTurn) {
+            // Must clear both rows - elements.battleLog only points to row2
+            var rows = BattleUtils.getBattleLogRows();
+            if (rows) {
+                BattleUtils.clearBattleLogRows(rows);
+            }
         }
 
         // Update container class for styling

@@ -546,7 +546,7 @@ var BattleStyleExp33 = (function() {
         // Regen extra AP when guarding
         battleState.playerAP = Math.min(config.maxAP, battleState.playerAP + 1);
 
-        BattleCore.playSfx('defend');
+        // Note: Defend SFX plays after parry/dodge QTE in processDefendQTEResult
 
         return {
             success: true,
@@ -754,7 +754,7 @@ var BattleStyleExp33 = (function() {
             resetGuard(false);
             battleState.enemyAP = Math.min(config.maxAP, battleState.enemyAP + 2);
             messages.push(enemy.name + ' takes a defensive stance!');
-            BattleCore.playSfx('defend');
+            // Note: Enemy defend could play SFX here, but keeping consistent with player
             return { success: true, defended: true, messages: messages };
         }
 

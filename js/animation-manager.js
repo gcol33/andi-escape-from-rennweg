@@ -138,8 +138,8 @@ var AnimationManager = (function() {
         intervals = {};
 
         // Emit event for any listeners
-        if (typeof EventEmitter !== 'undefined') {
-            EventEmitter.emit('animations:cancelled');
+        if (typeof eventBus !== 'undefined') {
+            eventBus.emit('animations:cancelled');
         }
     }
 

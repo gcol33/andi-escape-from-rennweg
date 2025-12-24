@@ -419,7 +419,7 @@ var BattleStylePokemon = (function() {
         var healAmount = Math.floor(player.maxHP * 0.1);
         var healResult = BattleCore.healPlayer(healAmount, 'defend');
 
-        BattleCore.playSfx('defend');
+        // Note: Defend SFX plays after parry/dodge QTE in processDefendQTEResult
 
         return {
             success: true,

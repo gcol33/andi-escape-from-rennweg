@@ -773,7 +773,7 @@ var BattleStyleDnD = (function() {
         // Reduce stagger
         BattleCore.decayStagger(player, config.defendStaggerReduction || 15);
 
-        BattleCore.playSfx('defend');
+        // Note: Defend SFX plays after parry/dodge QTE in processDefendQTEResult
 
         return {
             success: true,

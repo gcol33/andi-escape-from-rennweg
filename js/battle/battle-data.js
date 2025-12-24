@@ -960,12 +960,22 @@ var BattleData = (function() {
     var soundCues = {
         battle_start: 'alert.ogg',
         attack_hit: 'thud.ogg',
-        attack_miss: 'negative.ogg',
+        attack_miss: 'attack_miss.ogg',
         attack_crit: 'success.ogg',
+        attack_physical: 'attack_physical.ogg',
+        attack_fire: 'attack_physical.ogg',
+        attack_ice: 'attack_physical.ogg',
+        attack_lightning: 'attack_physical.ogg',
+        attack_poison: 'attack_physical.ogg',
+        attack_psychic: 'attack_physical.ogg',
+        attack_holy: 'attack_physical.ogg',
+        attack_dark: 'attack_physical.ogg',
+        defend: 'defend.ogg',
         player_hurt: 'negative.ogg',
         enemy_hurt: 'thud.ogg',
         heal: 'success.ogg',
         buff: 'click.ogg',
+        buff_apply: 'click.ogg',
         status_apply: 'negative.ogg',
         status_tick: 'negative.ogg',
         victory: 'success.ogg',
@@ -975,7 +985,10 @@ var BattleData = (function() {
         item_use: 'click.ogg',
         skill_use: 'click.ogg',
         limit_break: 'success.ogg',
-        dice_roll: 'dice_roll.ogg'
+        limit_activate: 'success.ogg',
+        dice_roll: 'dice_roll.ogg',
+        barrier_hit: 'thud.ogg',
+        summon: 'success.ogg'
     };
 
     // =========================================================================

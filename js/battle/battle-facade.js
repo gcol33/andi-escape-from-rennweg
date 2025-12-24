@@ -72,182 +72,98 @@ var BattleEngine = (function() {
     };
 
     // =========================================================================
-    // PAUSE SYSTEM
+    // PAUSE SYSTEM (uses shared PausableTimer module)
     // =========================================================================
 
-    var _isPaused = false;
     var _pauseKeyListenerAdded = false;
-    var _pausedTimeouts = [];  // Track paused timeouts with remaining time
-    var _activeTimeouts = [];  // Track active timeout IDs and their info
-    var _nextTimeoutId = 1;
+    var _timer = null;
+
+    /**
+     * Get or create the pausable timer instance
+     */
+    function getTimer() {
+        if (!_timer && typeof PausableTimer !== 'undefined') {
+            _timer = PausableTimer.create({
+                name: 'BattleFacade',
+                isActiveCheck: function() {
+                    return BattleCore.isActive();
+                },
+                onPause: function() {
+                    // Show pause overlay via BattleUI
+                    if (_hasBattleUI && BattleUI.showPauseOverlay) {
+                        BattleUI.showPauseOverlay();
+                    }
+                    // Pause dice animations
+                    if (typeof BattleDiceUI !== 'undefined' && BattleDiceUI.pause) {
+                        BattleDiceUI.pause();
+                    }
+                },
+                onUnpause: function() {
+                    // Hide pause overlay via BattleUI
+                    if (_hasBattleUI && BattleUI.hidePauseOverlay) {
+                        BattleUI.hidePauseOverlay();
+                    }
+                    // Resume dice animations
+                    if (typeof BattleDiceUI !== 'undefined' && BattleDiceUI.unpause) {
+                        BattleDiceUI.unpause();
+                    }
+                }
+            });
+        }
+        return _timer;
+    }
 
     /**
      * Pausable setTimeout - use this instead of setTimeout in battle code
-     * Returns an ID that can be used to cancel
+     * Delegates to shared PausableTimer module
      */
     function scheduleTimeout(callback, delay) {
-        if (_isPaused) {
-            // If paused, queue it for when we unpause
-            var timeoutInfo = {
-                id: _nextTimeoutId++,
-                callback: callback,
-                remaining: delay,
-                startTime: null,
-                timeoutId: null
-            };
-            _pausedTimeouts.push(timeoutInfo);
-            return timeoutInfo.id;
+        var timer = getTimer();
+        if (timer) {
+            return timer.schedule(callback, delay);
         }
-
-        var timeoutInfo = {
-            id: _nextTimeoutId++,
-            callback: callback,
-            remaining: delay,
-            startTime: Date.now(),
-            timeoutId: null
-        };
-
-        timeoutInfo.timeoutId = setTimeout(function() {
-            // Remove from active list
-            for (var i = _activeTimeouts.length - 1; i >= 0; i--) {
-                if (_activeTimeouts[i].id === timeoutInfo.id) {
-                    _activeTimeouts.splice(i, 1);
-                    break;
-                }
-            }
-            // Only execute if battle is still active
-            if (BattleCore.isActive() && typeof callback === 'function') {
-                try {
-                    callback();
-                } catch (e) {
-                    console.error('[BattleFacade] scheduleTimeout callback error:', e);
-                }
-            }
-        }, delay);
-
-        _activeTimeouts.push(timeoutInfo);
-        return timeoutInfo.id;
+        // Fallback if PausableTimer not available
+        return setTimeout(callback, delay);
     }
 
     /**
      * Cancel a scheduled timeout
      */
     function cancelScheduledTimeout(id) {
-        // Check active timeouts
-        for (var i = _activeTimeouts.length - 1; i >= 0; i--) {
-            if (_activeTimeouts[i].id === id) {
-                clearTimeout(_activeTimeouts[i].timeoutId);
-                _activeTimeouts.splice(i, 1);
-                return;
-            }
-        }
-        // Check paused timeouts
-        for (var j = _pausedTimeouts.length - 1; j >= 0; j--) {
-            if (_pausedTimeouts[j].id === id) {
-                _pausedTimeouts.splice(j, 1);
-                return;
-            }
-        }
+        var timer = getTimer();
+        if (timer) timer.cancel(id);
     }
 
     /**
      * Toggle pause state
      */
     function togglePause() {
-        if (_isPaused) {
-            unpause();
-        } else {
-            pause();
-        }
+        var timer = getTimer();
+        if (timer) timer.togglePause();
     }
 
     /**
      * Pause the battle - freezes all scheduled timeouts
      */
     function pause() {
-        if (_isPaused) return;
-        _isPaused = true;
-
-        // Pause all active timeouts - calculate remaining time
-        var now = Date.now();
-        for (var i = 0; i < _activeTimeouts.length; i++) {
-            var info = _activeTimeouts[i];
-            clearTimeout(info.timeoutId);
-            info.remaining = Math.max(0, info.remaining - (now - info.startTime));
-            _pausedTimeouts.push(info);
-        }
-        _activeTimeouts = [];
-
-        // Show pause overlay via BattleUI (logic/UI separation)
-        if (_hasBattleUI && BattleUI.showPauseOverlay) {
-            BattleUI.showPauseOverlay();
-        }
-
-        // Pause dice animations
-        if (typeof BattleDiceUI !== 'undefined' && BattleDiceUI.pause) {
-            BattleDiceUI.pause();
-        }
-
-        _log.debug('BattleEngine', 'Paused -', _pausedTimeouts.length, 'timeouts frozen');
+        var timer = getTimer();
+        if (timer) timer.pause();
     }
 
     /**
      * Unpause the battle - resumes all paused timeouts
      */
     function unpause() {
-        if (!_isPaused) return;
-        _isPaused = false;
-
-        // Hide pause overlay via BattleUI (logic/UI separation)
-        if (_hasBattleUI && BattleUI.hidePauseOverlay) {
-            BattleUI.hidePauseOverlay();
-        }
-
-        // Resume dice animations
-        if (typeof BattleDiceUI !== 'undefined' && BattleDiceUI.unpause) {
-            BattleDiceUI.unpause();
-        }
-
-        // Resume all paused timeouts with their remaining time
-        var now = Date.now();
-        for (var i = 0; i < _pausedTimeouts.length; i++) {
-            resumeTimeout(_pausedTimeouts[i], now);
-        }
-
-        _log.debug('BattleEngine', 'Unpaused -', _pausedTimeouts.length, 'timeouts resumed');
-        _pausedTimeouts = [];
+        var timer = getTimer();
+        if (timer) timer.unpause();
     }
 
     /**
-     * Resume a single paused timeout
-     * Extracted from unpause() to reduce nesting depth
+     * Check if battle is paused
      */
-    function resumeTimeout(info, startTime) {
-        info.startTime = startTime;
-        info.timeoutId = setTimeout(function() {
-            removeFromActiveTimeouts(info.id);
-            // Defensive: check callback exists and wrap in try-catch
-            if (typeof info.callback === 'function') {
-                try {
-                    info.callback();
-                } catch (e) {
-                    console.error('[BattleFacade] resumeTimeout callback error:', e);
-                }
-            }
-        }, info.remaining);
-        _activeTimeouts.push(info);
-    }
-
-    /**
-     * Remove timeout from active list by ID
-     */
-    function removeFromActiveTimeouts(id) {
-        for (var i = _activeTimeouts.length - 1; i >= 0; i--) {
-            if (_activeTimeouts[i].id === id) {
-                _activeTimeouts.splice(i, 1);
-                return;
-            }
-        }
+    function isPaused() {
+        var timer = getTimer();
+        return timer ? timer.isPaused() : false;
     }
 
     // =========================================================================
@@ -274,13 +190,6 @@ var BattleEngine = (function() {
         if (_hasBattleUI && BattleUI.clearLog) {
             BattleUI.clearLog();
         }
-    }
-
-    /**
-     * Check if battle is paused
-     */
-    function isPaused() {
-        return _isPaused;
     }
 
     /**
@@ -316,11 +225,8 @@ var BattleEngine = (function() {
      * Clear all scheduled timeouts (called on battle end/reset)
      */
     function clearAllScheduledTimeouts() {
-        for (var i = 0; i < _activeTimeouts.length; i++) {
-            clearTimeout(_activeTimeouts[i].timeoutId);
-        }
-        _activeTimeouts = [];
-        _pausedTimeouts = [];
+        var timer = getTimer();
+        if (timer) timer.clearAll();
     }
 
     // =========================================================================
@@ -429,12 +335,11 @@ var BattleEngine = (function() {
         // Initialize BattleUI module
         if (typeof BattleUI !== 'undefined') {
             BattleUI.init(elements.container, elements.textBox);
-            BattleUI.setSfxCallback(playSfx);
         }
 
-        // Initialize BattleDiceUI module
-        if (typeof BattleDiceUI !== 'undefined') {
-            BattleDiceUI.setSfxCallback(playSfx);
+        // Set shared SFX callback (used by BattleUI and BattleDiceUI via BattleUtils)
+        if (typeof BattleUtils !== 'undefined') {
+            BattleUtils.setSfxCallback(playSfx);
         }
 
         // Initialize QTE system
@@ -685,7 +590,7 @@ var BattleEngine = (function() {
         ensurePauseKeyListener();
 
         // Make sure we're not paused from a previous battle
-        _isPaused = false;
+        unpause();
 
         // Determine style from config
         var styleName = battleConfig.style || 'dnd';
@@ -860,11 +765,12 @@ var BattleEngine = (function() {
         // Clear action lock
         _actionInProgress = false;
 
-        // Make sure we're not paused
-        _isPaused = false;
-        if (_hasBattleUI && BattleUI.hidePauseOverlay) {
-            BattleUI.hidePauseOverlay();
-        }
+        // Make sure we're not paused (unpause handles hiding overlay)
+        unpause();
+
+        // Clear any pending timeouts from the timer
+        var timer = getTimer();
+        if (timer) timer.clearAll();
 
         // Reset intent system
         if (_hasBattleIntent) {
@@ -2412,6 +2318,8 @@ var BattleEngine = (function() {
             if (parryFlavor) {
                 defendMessages.push('<em>' + parryFlavor + '</em>');
             }
+            // Play parry SFX
+            BattleCore.playSfx('defend');
             // Don't apply pending damage - parry blocks it
         } else if (mods.result === 'dodge') {
             // DODGE: No damage taken
@@ -2422,6 +2330,8 @@ var BattleEngine = (function() {
                 defendMessages.push('<em>' + dodgeFlavor + '</em>');
             }
             showDamageNumber(0, 'player', 'miss');
+            // Play dodge SFX (same as defend for now)
+            BattleCore.playSfx('defend');
             // Don't apply pending damage - dodge avoids it
         } else {
             // CONFUSE or FUMBLE: Take full damage - apply pending damage now
