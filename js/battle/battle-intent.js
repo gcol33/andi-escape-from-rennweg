@@ -369,11 +369,11 @@ var BattleIntent = (function() {
          */
         tick: function() {
             if (!currentIntent || !currentIntent.isTelegraphed) {
-                _log.debug('BattleIntent', tick() - no telegraphed intent');
+                _log.debug('BattleIntent', 'tick() - no telegraphed intent');
                 return false;
             }
             currentIntent.turnsRemaining--;
-            _log.debug('BattleIntent', tick() - turnsRemaining now:', currentIntent.turnsRemaining);
+            _log.debug('BattleIntent', 'tick() - turnsRemaining now:', currentIntent.turnsRemaining);
             return currentIntent.turnsRemaining <= 0;
         },
 

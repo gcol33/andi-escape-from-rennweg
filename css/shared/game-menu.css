@@ -1,0 +1,442 @@
+/* ==========================================================================
+   GAME MENU - Full-Screen RPG Menu System
+
+   A tabbed menu overlay with sections for:
+   - Items (key items + consumables)
+   - Skills (learned abilities)
+   - Stats (HP/MP/combat stats)
+   - Journal (visited scenes)
+   - Save/Load (multiple save slots)
+
+   Uses CSS variables for theme customization.
+   ========================================================================== */
+
+/* --- Menu Button in Header --- */
+#header-spacer {
+    justify-self: start;
+}
+
+/* Menu button inherits from theme's choice-button styling via theme CSS.
+   This provides minimal base styling - themes should override. */
+.menu-btn {
+    font-size: var(--small-font-size, 0.75rem);
+    padding: 0.2em 0.5em;
+    cursor: pointer;
+    font-family: inherit;
+    /* Fallback styling - themes should override */
+    background: inherit;
+    color: inherit;
+    border: 1px solid currentColor;
+}
+
+/* --- Menu Overlay (covers game container) --- */
+#game-menu-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--menu-overlay-bg, rgba(0, 0, 0, 0.85));
+    z-index: var(--z-modal, 1000);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 1;
+    transition: opacity 0.2s ease-out;
+}
+
+#game-menu-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* --- Menu Container (main panel) --- */
+#game-menu-container {
+    width: 100%;
+    height: 100%;
+    background: var(--menu-bg, rgba(30, 30, 40, 0.95));
+    border: none;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* --- Menu Header --- */
+.menu-header {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.4rem 0.75rem;
+    background: var(--menu-header-bg, rgba(0, 0, 0, 0.3));
+    border-bottom: var(--menu-header-border, 1px solid rgba(255, 255, 255, 0.2));
+}
+
+.menu-title {
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--menu-title-color, #fff);
+    letter-spacing: 0.1em;
+}
+
+.menu-close-btn {
+    width: 1.5rem;
+    height: 1.5rem;
+    background: var(--btn-bg, rgba(100, 100, 100, 0.5));
+    color: var(--btn-color, #fff);
+    border: var(--btn-border, 1px solid rgba(255, 255, 255, 0.3));
+    border-radius: 50%;
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.menu-close-btn:hover {
+    background: var(--btn-bg-hover, rgba(120, 120, 120, 0.7));
+}
+
+.menu-close-btn:active {
+    transform: scale(0.9);
+}
+
+/* --- Tab Navigation --- */
+.menu-tabs {
+    display: flex;
+    gap: 0;
+    padding: 0;
+    background: var(--menu-tabs-bg, rgba(0, 0, 0, 0.2));
+    border-bottom: var(--menu-tabs-border, 1px solid rgba(255, 255, 255, 0.1));
+    overflow-x: auto;
+    flex-shrink: 0;
+}
+
+.menu-tab {
+    flex: 1;
+    padding: 0.5rem 0.5rem;
+    background: var(--tab-bg, transparent);
+    color: var(--tab-color, rgba(255, 255, 255, 0.6));
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-size: var(--small-font-size, 0.75rem);
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.menu-tab:hover {
+    color: var(--tab-hover-color, rgba(255, 255, 255, 0.9));
+    background: var(--tab-hover-bg, rgba(255, 255, 255, 0.05));
+}
+
+.menu-tab.active {
+    color: var(--tab-active-color, #fff);
+    background: var(--tab-active-bg, rgba(255, 255, 255, 0.1));
+    border-bottom-color: var(--tab-active-border, #fff);
+}
+
+/* --- Tab Content Area --- */
+.menu-content {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.tab-panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 1rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: none;
+    color: var(--menu-text-color, #fff);
+}
+
+.tab-panel.active {
+    display: block;
+}
+
+/* --- Items Tab --- */
+.menu-section {
+    margin-bottom: 1.25rem;
+}
+
+.menu-section-title {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: var(--menu-section-title-color, rgba(255, 255, 255, 0.7));
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid var(--menu-section-border, rgba(255, 255, 255, 0.2));
+}
+
+.menu-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.25rem;
+    background: var(--menu-item-bg, rgba(255, 255, 255, 0.05));
+    border-left: 3px solid var(--menu-item-border, #888);
+    border-radius: 0 4px 4px 0;
+    font-size: 0.85rem;
+}
+
+.menu-item-key {
+    border-left-color: var(--menu-item-key-color, #ffd700);
+}
+
+.menu-item-consumable {
+    border-left-color: var(--menu-item-consumable-color, #4caf50);
+}
+
+.menu-item-knowledge {
+    border-left-color: var(--menu-item-knowledge-color, #64b5f6);
+}
+
+.menu-item-skill {
+    border-left-color: var(--menu-item-skill-color, #9c27b0);
+}
+
+.menu-item-count {
+    opacity: 0.7;
+    font-size: 0.8rem;
+}
+
+.menu-item-disabled {
+    opacity: 0.5;
+}
+
+/* --- Skills Tab --- */
+.skill-item {
+    padding: 0.6rem 0.75rem;
+    margin-bottom: 0.5rem;
+    background: var(--menu-item-bg, rgba(255, 255, 255, 0.05));
+    border-left: 3px solid var(--menu-item-skill-color, #9c27b0);
+    border-radius: 0 4px 4px 0;
+}
+
+.skill-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.25rem;
+}
+
+.skill-name {
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.skill-cost {
+    font-size: 0.75rem;
+    color: var(--mana-color, #4fc3f7);
+}
+
+.skill-description {
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+
+.skill-requirement {
+    font-size: 0.7rem;
+    color: var(--warning-color, #ff9800);
+    margin-top: 0.25rem;
+}
+
+/* --- Stats Tab --- */
+.stat-block {
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    margin-bottom: 0.15rem;
+}
+
+.stat-bar-outer {
+    height: 1rem;
+    background: var(--stat-bar-bg, rgba(0, 0, 0, 0.3));
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.stat-bar-inner {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.stat-bar-hp {
+    background: var(--hp-bar-color, linear-gradient(90deg, #e74c3c, #c0392b));
+}
+
+.stat-bar-mana {
+    background: var(--mana-bar-color, linear-gradient(90deg, #3498db, #2980b9));
+}
+
+.stat-row {
+    display: flex;
+    gap: 0.5em;
+    padding: 0.2rem 0;
+    border-bottom: 1px solid var(--menu-section-border, rgba(255, 255, 255, 0.1));
+    font-size: 0.85rem;
+}
+
+.stat-value {
+    font-weight: bold;
+}
+
+/* --- Journal Tab --- */
+.journal-entry {
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    background: var(--menu-item-bg, rgba(255, 255, 255, 0.05));
+    border-radius: 4px;
+}
+
+.journal-title {
+    font-weight: bold;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.journal-recap {
+    font-size: 0.8rem;
+    opacity: 0.8;
+    line-height: 1.4;
+}
+
+/* --- Save/Load Tab --- */
+.save-slot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    background: var(--menu-item-bg, rgba(255, 255, 255, 0.05));
+    border-radius: 4px;
+    border: 1px solid var(--menu-section-border, rgba(255, 255, 255, 0.1));
+}
+
+.save-slot-info {
+    flex: 1;
+}
+
+.save-slot-name {
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.save-slot-details {
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+
+.save-slot-empty {
+    opacity: 0.5;
+    font-style: italic;
+}
+
+.save-slot-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.save-slot-btn {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+    background: var(--btn-bg, rgba(100, 100, 100, 0.5));
+    color: var(--btn-color, #fff);
+    border: var(--btn-border, 1px solid rgba(255, 255, 255, 0.3));
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.save-slot-btn:hover {
+    background: var(--btn-bg-hover, rgba(120, 120, 120, 0.7));
+}
+
+.save-slot-btn.save-btn {
+    background: var(--save-btn-bg, rgba(46, 125, 50, 0.7));
+}
+
+.save-slot-btn.save-btn:hover {
+    background: var(--save-btn-hover, rgba(56, 142, 60, 0.9));
+}
+
+.save-slot-btn.load-btn {
+    background: var(--load-btn-bg, rgba(25, 118, 210, 0.7));
+}
+
+.save-slot-btn.load-btn:hover {
+    background: var(--load-btn-hover, rgba(33, 150, 243, 0.9));
+}
+
+.save-slot-btn.delete-btn {
+    background: var(--delete-btn-bg, rgba(198, 40, 40, 0.7));
+}
+
+.save-slot-btn.delete-btn:hover {
+    background: var(--delete-btn-hover, rgba(229, 57, 53, 0.9));
+}
+
+/* --- Empty State --- */
+.menu-empty {
+    text-align: center;
+    padding: 2rem;
+    opacity: 0.6;
+    font-style: italic;
+}
+
+/* --- Portrait Mode --- */
+@media (orientation: portrait) {
+    .menu-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .menu-tab {
+        flex: 0 0 auto;
+        padding: 0.4rem 0.6rem;
+    }
+
+    .tab-panel {
+        padding: 0.75rem;
+    }
+}
+
+/* --- Narrow Screens --- */
+@media (max-width: 37.5em) {
+    .menu-title {
+        font-size: 1rem;
+    }
+
+    .menu-tab {
+        font-size: 0.65rem;
+        padding: 0.4rem 0.4rem;
+    }
+
+    .menu-item,
+    .skill-item,
+    .journal-entry,
+    .save-slot {
+        font-size: 0.8rem;
+    }
+
+    .save-slot-actions {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+}

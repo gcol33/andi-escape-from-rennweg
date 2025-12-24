@@ -26,6 +26,9 @@
 /* === Inventory System === */
 @import url('inventory.css');
 
+/* === Game Menu System (full-screen RPG menu) === */
+@import url('game-menu.css');
+
 /* === Battle Stats Panels (HP/Mana/Limit bars) === */
 @import url('battle-panels.css');
 

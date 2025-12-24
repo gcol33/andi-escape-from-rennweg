@@ -9,7 +9,7 @@ hp: 12
 ac: 10
 damage: d6
 damageType: physical
-attackBonus: 2
+attack_bonus: 2
 
 # Duration (turns before expiring)
 duration: 5

@@ -173,7 +173,7 @@ var BattleSummon = (function() {
             ac: options.ac || def.ac || 10,
             damage: options.damage || def.damage || 'd4',
             damageType: options.damageType || def.damageType || 'physical',
-            attackBonus: options.attackBonus || def.attackBonus || 0,
+            attackBonus: options.attackBonus || def.attack_bonus || 0,
 
             // Duration
             duration: options.duration || def.duration || config.defaultDuration,
