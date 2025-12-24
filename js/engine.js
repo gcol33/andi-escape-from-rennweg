@@ -3257,11 +3257,12 @@ var VNEngine = (function() {
         resetPagination();
         if (config.textDisplayMode === 'fixed') {
             var pages = paginateText(currentText, config.fixedLines);
+            // Always store fullText for potential re-pagination on resize
+            state.pagination.fullText = currentText;
+            state.pagination.pages = pages;
             if (pages.length > 1) {
                 state.pagination.active = true;
-                state.pagination.pages = pages;
                 state.pagination.currentPage = 0;
-                state.pagination.fullText = currentText;
                 _log.debug('Engine', 'Paginated text into ' + pages.length + ' pages');
             }
         }
@@ -3702,13 +3703,56 @@ var VNEngine = (function() {
         _log.debug('Engine', 'Measured text height for ' + config.fixedLines + ' lines: ' + measuredHeight + 'px');
     }
 
-    // Debounced resize handler for text height measurement
+    // Debounced resize handler for text height measurement and re-pagination
     var resizeTimeout = null;
     function handleResizeForTextHeight() {
         if (resizeTimeout) clearTimeout(resizeTimeout);
         resizeTimeout = setTimeout(function() {
             if (config.textDisplayMode === 'fixed') {
                 measureTextHeight();
+                // Re-paginate current text if we have stored text
+                if (state.pagination.fullText) {
+                    var currentCharIndex = 0;
+                    // Calculate approximate character position we were at
+                    if (state.pagination.active && state.pagination.pages) {
+                        for (var i = 0; i < state.pagination.currentPage; i++) {
+                            currentCharIndex += state.pagination.pages[i].length;
+                        }
+                    }
+
+                    // Re-paginate with new dimensions
+                    var newPages = paginateText(state.pagination.fullText, config.fixedLines);
+
+                    if (newPages.length > 1) {
+                        // Find which new page contains our approximate position
+                        var newPageIndex = 0;
+                        var charCount = 0;
+                        for (var j = 0; j < newPages.length; j++) {
+                            charCount += newPages[j].length;
+                            if (charCount > currentCharIndex) {
+                                newPageIndex = j;
+                                break;
+                            }
+                        }
+
+                        state.pagination.active = true;
+                        state.pagination.pages = newPages;
+                        state.pagination.currentPage = Math.min(newPageIndex, newPages.length - 1);
+                        _log.debug('Engine', 'Re-paginated on resize: ' + newPages.length + ' pages, now on page ' + (state.pagination.currentPage + 1));
+
+                        // Re-render current page (instant, no typewriter)
+                        var textToRender = state.pagination.pages[state.pagination.currentPage];
+                        var formattedText = textToRender.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+                        elements.storyOutput.innerHTML = '<p class="typewriter-text">' + formattedText + '</p>';
+                    } else {
+                        // Text now fits on one page
+                        state.pagination.active = false;
+                        state.pagination.pages = newPages;
+                        state.pagination.currentPage = 0;
+                        var formattedText = newPages[0].replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+                        elements.storyOutput.innerHTML = '<p class="typewriter-text">' + formattedText + '</p>';
+                    }
+                }
             }
         }, 100);
     }
@@ -3775,23 +3819,38 @@ var VNEngine = (function() {
 
         // Create a hidden measurement element with same styles as story output
         var measureEl = document.createElement('div');
-        measureEl.style.cssText = window.getComputedStyle(elements.storyOutput).cssText;
+        var computedStyle = window.getComputedStyle(elements.storyOutput);
+
+        // Copy relevant styles for accurate measurement (matching measureTextHeight approach)
         measureEl.style.position = 'absolute';
         measureEl.style.visibility = 'hidden';
-        measureEl.style.width = elements.storyOutput.offsetWidth + 'px';
+        measureEl.style.pointerEvents = 'none';
+        measureEl.style.width = elements.storyOutput.clientWidth + 'px';  // Use clientWidth (content area)
         measureEl.style.height = 'auto';
         measureEl.style.maxHeight = 'none';
         measureEl.style.overflow = 'visible';
+        measureEl.style.fontSize = computedStyle.fontSize;
+        measureEl.style.fontFamily = computedStyle.fontFamily;
+        measureEl.style.lineHeight = computedStyle.lineHeight;
+        measureEl.style.letterSpacing = computedStyle.letterSpacing;
+        measureEl.style.wordSpacing = computedStyle.wordSpacing;
+        measureEl.style.padding = '0';
+        measureEl.style.margin = '0';
+        measureEl.style.boxSizing = 'content-box';
         document.body.appendChild(measureEl);
 
-        // Get line height
-        var computedStyle = window.getComputedStyle(elements.storyOutput);
-        var lineHeight = parseFloat(computedStyle.lineHeight);
-        if (isNaN(lineHeight)) {
-            // fallback: use font-size * 1.6
-            lineHeight = parseFloat(computedStyle.fontSize) * 1.6;
+        // Use the already-calculated --story-fixed-height as maxHeight (set by measureTextHeight)
+        var fixedHeightStr = document.documentElement.style.getPropertyValue('--story-fixed-height');
+        var maxHeight = parseFloat(fixedHeightStr);
+        if (isNaN(maxHeight) || maxHeight <= 0) {
+            // Fallback: calculate using explicit line breaks (same method as measureTextHeight)
+            var lines = [];
+            for (var k = 0; k < maxLines; k++) {
+                lines.push('Mgy');
+            }
+            measureEl.innerHTML = '<p class="typewriter-text" style="margin:0;padding:0;display:block;">' + lines.join('<br>') + '</p>';
+            maxHeight = measureEl.offsetHeight;
         }
-        var maxHeight = lineHeight * maxLines;
 
         // Split text into words
         var words = text.split(/(\s+)/);  // Keep whitespace
@@ -3802,7 +3861,7 @@ var VNEngine = (function() {
             var testText = currentPage + words[i];
             // Convert markdown bold for measurement
             var formattedTest = testText.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-            measureEl.innerHTML = '<p class="typewriter-text">' + formattedTest + '</p>';
+            measureEl.innerHTML = '<p class="typewriter-text" style="margin:0;padding:0;display:block;">' + formattedTest + '</p>';
 
             if (measureEl.offsetHeight > maxHeight && currentPage.trim() !== '') {
                 // Current page is full, start new page
