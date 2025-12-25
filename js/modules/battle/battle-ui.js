@@ -1010,6 +1010,16 @@ var BattleUI = (function() {
                 return;
             }
 
+            // Re-verify rows are still valid (could become stale if UI updates mid-animation)
+            if (!rows || !rows.row2 || !rows.row2.parentNode) {
+                rows = BattleUtils.getBattleLogRows();
+                if (!rows) {
+                    console.warn('[Typewriter] Rows became invalid, falling back to simple typing');
+                    typewriterEffectSimple(container, segments.slice(segmentIndex).join(' '), callback);
+                    return;
+                }
+            }
+
             var currentSegment = segments[segmentIndex];
 
             // End of segment - move to next
@@ -1036,12 +1046,28 @@ var BattleUI = (function() {
                 }
             }
 
-            // ALWAYS type into row2 (row1 is only for shifted content)
-            rows.row2.appendChild(document.createTextNode(char));
-            charIndex++;
+            // Check if adding this char would cause overflow BEFORE rendering
+            // Temporarily add char, check overflow, shift if needed, then keep char
+            var textNode = document.createTextNode(char);
+            rows.row2.appendChild(textNode);
 
-            // Check for overflow - if row2 has wrapped, move its content to row1
-            BattleUtils.handleBattleLogOverflow(rows);
+            // If this caused overflow, shift FIRST then the char stays in fresh row2
+            try {
+                if (BattleUtils.checkBattleLogOverflow(rows)) {
+                    // Remove the char we just added
+                    if (textNode.parentNode === rows.row2) {
+                        rows.row2.removeChild(textNode);
+                    }
+                    // Shift current content to row1
+                    BattleUtils.shiftBattleLogRows(rows);
+                    // Now add char to empty row2
+                    rows.row2.appendChild(textNode);
+                }
+            } catch (e) {
+                console.error('[Typewriter] Overflow error:', e);
+                // Continue anyway - char is already in row2
+            }
+            charIndex++;
 
             var t = setTimeout(renderNextChar, 1000 / speed);
             animationState.timeouts.push(t);

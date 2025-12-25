@@ -596,12 +596,11 @@ var BattleUtils = (function() {
 
     /**
      * Check if row2 has overflowed (content taller than one line).
-     * Uses actual DOM measurements instead of text calculation.
-     * When overflow detected, shifts entire row2 content to row1.
+     * Uses actual DOM measurements. Does NOT modify anything.
      * @param {Object} rows - { row1, row2 } from getBattleLogRows (optional, will fetch if not provided)
-     * @returns {boolean} - true if a shift occurred
+     * @returns {boolean} - true if overflow detected
      */
-    function handleBattleLogOverflow(rows) {
+    function checkBattleLogOverflow(rows) {
         rows = rows || getBattleLogRows();
         if (!rows || !rows.row2) {
             return false;
@@ -617,15 +616,20 @@ var BattleUtils = (function() {
 
         // Check if row2 content height exceeds single line height (with small tolerance)
         var contentHeight = rows.row2.scrollHeight;
-        var hasOverflow = contentHeight > (lineHeight * 1.2);
+        return contentHeight > (lineHeight * 1.2);
+    }
 
-        if (hasOverflow) {
-            // Move entire row2 content to row1, clear row2
-            rows.row1.innerHTML = rows.row2.innerHTML;
-            rows.row2.innerHTML = '';
+    /**
+     * Check and handle overflow - shifts rows if overflow detected.
+     * @param {Object} rows - { row1, row2 } from getBattleLogRows (optional, will fetch if not provided)
+     * @returns {boolean} - true if a shift occurred
+     */
+    function handleBattleLogOverflow(rows) {
+        rows = rows || getBattleLogRows();
+        if (checkBattleLogOverflow(rows)) {
+            shiftBattleLogRows(rows);
             return true;
         }
-
         return false;
     }
 
@@ -686,6 +690,7 @@ var BattleUtils = (function() {
         getBattleLogRows: getBattleLogRows,
         shiftBattleLogRows: shiftBattleLogRows,
         clearBattleLogRows: clearBattleLogRows,
+        checkBattleLogOverflow: checkBattleLogOverflow,
         handleBattleLogOverflow: handleBattleLogOverflow
     };
 })();

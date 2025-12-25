@@ -680,12 +680,27 @@ var BattleDiceUI = (function() {
                 }
             }
 
-            element.appendChild(document.createTextNode(char));
+            var textNode = document.createTextNode(char);
+            element.appendChild(textNode);
             index++;
 
-            // Check for overflow in parent row and shift if needed
-            if (typeof BattleUtils !== 'undefined' && BattleUtils.handleBattleLogOverflow) {
-                BattleUtils.handleBattleLogOverflow();
+            // Check for overflow - shift content up, keep typing in element (row2)
+            if (typeof BattleUtils !== 'undefined') {
+                var rows = BattleUtils.getBattleLogRows();
+                if (rows && rows.row2 && element.parentNode === rows.row2) {
+                    if (BattleUtils.checkBattleLogOverflow(rows)) {
+                        // Remove the char we just added
+                        if (textNode.parentNode === element) {
+                            element.removeChild(textNode);
+                        }
+                        // Shift: copy element's current content to row1
+                        rows.row1.innerHTML = element.innerHTML;
+                        // Clear element for new content
+                        element.innerHTML = '';
+                        // Re-add the char to start fresh line
+                        element.appendChild(textNode);
+                    }
+                }
             }
 
             diceTimeout(type, speed);
