@@ -94,31 +94,31 @@ console.log('  - Loading utils.js...');
 var utilsCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'utils.js'), 'utf8');
 eval(utilsCode);
 
-// Load QTE UI (QTE Engine depends on it)
+// Load QTE UI (QTE Engine depends on it) - from js/modules/qte/
 console.log('  - Loading qte-ui.js...');
-var qteUICode = fs.readFileSync(path.join(__dirname, '..', 'js', 'qte-ui.js'), 'utf8');
+var qteUICode = fs.readFileSync(path.join(__dirname, '..', 'js', 'modules', 'qte', 'qte-ui.js'), 'utf8');
 eval(stripESModuleSyntax(qteUICode));
 
 // Load QTE Engine
-console.log('  - Loading qte.js...');
-var qteCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'qte.js'), 'utf8');
+console.log('  - Loading qte-engine.js...');
+var qteCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'modules', 'qte', 'qte-engine.js'), 'utf8');
 eval(stripESModuleSyntax(qteCode));
 
-// Load modular battle system (for integration tests)
+// Load modular battle system (for integration tests) - from js/modules/battle/
 console.log('  - Loading modular battle system...');
-var battleDataCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-data.js'), 'utf8');
+var battleDataCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'modules', 'battle', 'battle-data.js'), 'utf8');
 eval(stripESModuleSyntax(battleDataCode));
-var battleDiceCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-dice.js'), 'utf8');
+var battleDiceCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'modules', 'battle', 'battle-dice.js'), 'utf8');
 eval(stripESModuleSyntax(battleDiceCode));
-var battleCoreCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-core.js'), 'utf8');
+var battleCoreCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'modules', 'battle', 'battle-core.js'), 'utf8');
 eval(stripESModuleSyntax(battleCoreCode));
-var battleDndCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-dnd.js'), 'utf8');
+var battleDndCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'modules', 'battle', 'battle-dnd.js'), 'utf8');
 eval(stripESModuleSyntax(battleDndCode));
-var battlePokemonCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-pokemon.js'), 'utf8');
+var battlePokemonCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'modules', 'battle', 'battle-pokemon.js'), 'utf8');
 eval(stripESModuleSyntax(battlePokemonCode));
-var battleExp33Code = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-exp33.js'), 'utf8');
+var battleExp33Code = fs.readFileSync(path.join(__dirname, '..', 'js', 'modules', 'battle', 'battle-exp33.js'), 'utf8');
 eval(stripESModuleSyntax(battleExp33Code));
-var battleFacadeCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-facade.js'), 'utf8');
+var battleFacadeCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'modules', 'battle', 'battle-facade.js'), 'utf8');
 eval(stripESModuleSyntax(battleFacadeCode));
 
 // Load test code

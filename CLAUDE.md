@@ -29,7 +29,7 @@ node tests/run-qte-tests.js       # QTE tests
 
 2. **Content/Code separation**: Writers edit Markdown only, never JS. No story text in engine code.
 
-3. **Logic/UI separation**: `js/battle/*.js` = pure logic (no DOM), `js/battle-ui.js` = rendering.
+3. **Logic/UI separation**: `js/modules/battle/*.js` = pure logic (no DOM), `battle-ui.js` = rendering.
 
 4. **Tuning layer**: All magic numbers (timing, speeds, balance) in `js/tuning.js`.
 
@@ -44,20 +44,32 @@ node tests/run-qte-tests.js       # QTE tests
 | Player | `player/player.md` | `js/player.js` | Player config, skills |
 | Theme | `theme.md` | `js/theme.js` | Active theme selection |
 
-### Core Modules
+### Core Engine
 
 - `js/engine.js` - VN engine: scene rendering, typewriter, choices, flags, inventory, action registry
-- `js/battle/` - Modular battle system:
-  - `battle-facade.js` - Main entry point, orchestrates battle flow
-  - `battle-core.js` - Shared state and logic
-  - `battle-data.js` - Skills, status effects, type chart
-  - `battle-dnd.js` - D&D-style combat (default)
-  - `battle-dice.js` + `battle-dice-ui.js` - Dice rolling
-  - `battle-barrier.js` - Enemy shield system
-  - `battle-intent.js` - Enemy telegraph system
-- `js/qte.js` + `js/qte-ui.js` - Quick-time event system
 - `js/tuning.js` - All balance values and timing constants
 - `css/themes/*.css` - Visual themes (20+ available)
+
+### Optional Modules (`js/modules/`)
+
+Modules can be included/excluded by adding/removing script tags in `index.html`.
+
+- `js/modules/module-registry.js` - Module registration and lifecycle
+- `js/modules/text-renderer/` - Text display system (core module)
+  - `text-utils.js` - Markdown, measurement, HTML parsing
+  - `typewriter.js` - Character-by-character display
+  - `pagination.js` - Fixed-height page splitting
+  - `index.js` - Unified API
+- `js/modules/battle/` - Combat system (D&D-style, 18 files)
+  - `index.js` - Module wrapper, provides `start_battle` action
+  - `battle-facade.js` - Main entry point
+  - `battle-core.js`, `battle-dnd.js`, `battle-data.js`, etc.
+- `js/modules/qte/` - Quick-time events (parry/dodge mechanics)
+  - `index.js`, `qte-engine.js`, `qte-ui.js`
+- `js/modules/quiz/` - Timed quiz system
+  - `index.js`, `quiz-engine.js`, `quiz-ui.js`
+- `js/modules/overworld/` - Tile-based maps (not yet integrated)
+- `js/modules/dev-tools/` - Developer panel (q+w+e+r+t chord)
 
 ### Battle System Flow
 

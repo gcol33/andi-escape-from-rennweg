@@ -85,25 +85,25 @@ eval(utilsCode);
 var tuningCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'tuning.js'), 'utf8');
 eval(tuningCode);
 
-// Load modular battle system in dependency order
-var battleDataCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-data.js'), 'utf8');
+// Load modular battle system in dependency order (from js/modules/battle/)
+var battleDataCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'modules', 'battle', 'battle-data.js'), 'utf8');
 eval(stripESModuleSyntax(battleDataCode));
-var battleDiceCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-dice.js'), 'utf8');
+var battleDiceCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'modules', 'battle', 'battle-dice.js'), 'utf8');
 eval(stripESModuleSyntax(battleDiceCode));
-var battleSummonCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-summon.js'), 'utf8');
+var battleSummonCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'modules', 'battle', 'battle-summon.js'), 'utf8');
 eval(stripESModuleSyntax(battleSummonCode));
 var summonsCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'summons.js'), 'utf8');
 eval(stripESModuleSyntax(summonsCode));
-var battleCoreCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-core.js'), 'utf8');
+var battleCoreCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'modules', 'battle', 'battle-core.js'), 'utf8');
 eval(stripESModuleSyntax(battleCoreCode));
-var battleDndCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-dnd.js'), 'utf8');
+var battleDndCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'modules', 'battle', 'battle-dnd.js'), 'utf8');
 eval(stripESModuleSyntax(battleDndCode));
-var battlePokemonCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-pokemon.js'), 'utf8');
+var battlePokemonCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'modules', 'battle', 'battle-pokemon.js'), 'utf8');
 eval(stripESModuleSyntax(battlePokemonCode));
-var battleExp33Code = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-exp33.js'), 'utf8');
+var battleExp33Code = fs.readFileSync(path.join(__dirname, '..', 'js', 'modules', 'battle', 'battle-exp33.js'), 'utf8');
 eval(stripESModuleSyntax(battleExp33Code));
 // Note: battle-finalized.js was removed/merged - skipping
-var battleFacadeCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'battle', 'battle-facade.js'), 'utf8');
+var battleFacadeCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'modules', 'battle', 'battle-facade.js'), 'utf8');
 eval(stripESModuleSyntax(battleFacadeCode));
 
 // Load test code

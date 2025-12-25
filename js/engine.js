@@ -142,6 +142,93 @@ var VNEngine = (function() {
         currentBackground: null  // Track current background to avoid Ken Burns reset on same bg
     };
 
+    // === Engine API for Modules ===
+    // This object is passed to modules during initialization.
+    // It provides access to core engine functions without exposing internals.
+    var engineAPI = {
+        // Scene navigation
+        loadScene: function(sceneId, prefixText) {
+            return loadScene(sceneId, prefixText);
+        },
+        getCurrentScene: function() {
+            return state.currentSceneId;
+        },
+
+        // Audio
+        playSfx: function(file) {
+            return playSfx(file);
+        },
+
+        // Inventory
+        getInventory: function() {
+            return state.inventory;
+        },
+        hasItem: function(item) {
+            return hasItem(item);
+        },
+        removeItem: function(item) {
+            removeItems([item]);
+        },
+        hasSkill: function(skill) {
+            return hasSkill(skill);
+        },
+        hasSkills: function() {
+            return hasSkills();
+        },
+
+        // Player stats
+        getPlayerStats: function() {
+            return {
+                hp: state.playerHP,
+                maxHP: state.playerMaxHP,
+                mana: state.playerMana,
+                maxMana: state.playerMaxMana
+            };
+        },
+        setPlayerStats: function(stats) {
+            if (stats.hp !== undefined) state.playerHP = stats.hp;
+            if (stats.maxHP !== undefined) state.playerMaxHP = stats.maxHP;
+            if (stats.mana !== undefined) state.playerMana = stats.mana;
+            if (stats.maxMana !== undefined) state.playerMaxMana = stats.maxMana;
+        },
+
+        // State
+        getState: function() {
+            return state;
+        },
+        setBattleActive: function(active) {
+            state.battle = active ? { active: true } : null;
+        },
+        markBattleWon: function(sceneId) {
+            state.wonBattles[sceneId] = true;
+        },
+
+        // Action registration
+        registerAction: function(type, handler) {
+            actionHandlers[type] = handler;
+        },
+
+        // Dev mode
+        isDevMode: function() {
+            return state.devMode === true;
+        },
+        getDevForcedRoll: function() {
+            return state.devMode ? state.devForcedRoll : null;
+        },
+        getDevForcedDamage: function() {
+            return state.devMode ? state.devForcedDamage : null;
+        },
+        getDevGuaranteeStatus: function() {
+            return state.devMode && state.devGuaranteeStatus;
+        },
+        getDevIntentsEnabled: function() {
+            return state.devIntentsEnabled;
+        },
+
+        // Logging
+        log: _log
+    };
+
     // === Action Handler Registry ===
     var actionHandlers = {
         /**
@@ -206,31 +293,48 @@ var VNEngine = (function() {
             if (isCrit) success = true;
             if (isFumble) success = false;
 
-            // Build result display
-            var skillLabel = skillName ? '<div class="skill-check-label">' + skillName + ' Check</div>' : '';
-            var resultClass = success ? 'dice-success' : 'dice-failure';
-            var critClass = isCrit ? ' dice-crit' : (isFumble ? ' dice-fumble' : '');
+            // Build result display using TextRenderer if available
+            var resultText;
+            if (typeof TextRenderer !== 'undefined') {
+                resultText = TextRenderer.formatDiceResult({
+                    roll: result,
+                    sides: sides,
+                    isCrit: isCrit,
+                    isFumble: isFumble
+                }, {
+                    success: success,
+                    skillName: skillName,
+                    rollDescription: rollDescription,
+                    critText: critText,
+                    fumbleText: fumbleText
+                });
+            } else {
+                // Fallback for when TextRenderer is not loaded
+                var skillLabel = skillName ? '<div class="skill-check-label">' + skillName + ' Check</div>' : '';
+                var resultClass = success ? 'dice-success' : 'dice-failure';
+                var critClass = isCrit ? ' dice-crit' : (isFumble ? ' dice-fumble' : '');
 
-            var resultText = '<div class="dice-roll ' + resultClass + critClass + '">';
-            resultText += skillLabel;
-            resultText += 'You rolled a ' + diceType;
-            if (rollDescription) {
-                resultText += ' ' + rollDescription;
+                resultText = '<div class="dice-roll ' + resultClass + critClass + '">';
+                resultText += skillLabel;
+                resultText += 'You rolled a ' + diceType;
+                if (rollDescription) {
+                    resultText += ' ' + rollDescription;
+                }
+                resultText += ' and got: <span class="battle-number">' + result + '</span>!';
+
+                // Add crit/fumble text
+                if (isCrit && critText) {
+                    resultText += '<div class="crit-text">' + critText + '</div>';
+                } else if (isFumble && fumbleText) {
+                    resultText += '<div class="fumble-text">' + fumbleText + '</div>';
+                } else if (isCrit) {
+                    resultText += '<div class="crit-text">CRITICAL SUCCESS!</div>';
+                } else if (isFumble) {
+                    resultText += '<div class="fumble-text">CRITICAL FAILURE!</div>';
+                }
+
+                resultText += '</div>';
             }
-            resultText += ' and got: <span class="battle-number">' + result + '</span>!';
-
-            // Add crit/fumble text
-            if (isCrit && critText) {
-                resultText += '<div class="crit-text">' + critText + '</div>';
-            } else if (isFumble && fumbleText) {
-                resultText += '<div class="fumble-text">' + fumbleText + '</div>';
-            } else if (isCrit) {
-                resultText += '<div class="crit-text">CRITICAL SUCCESS!</div>';
-            } else if (isFumble) {
-                resultText += '<div class="fumble-text">CRITICAL FAILURE!</div>';
-            }
-
-            resultText += '</div>';
 
             // Play appropriate SFX
             if (isCrit) {
@@ -294,99 +398,9 @@ var VNEngine = (function() {
             }
         },
 
-        /**
-         * Start a battle encounter
-         * Delegates to BattleEngine module
-         */
-        start_battle: function(action) {
-            // Initialize BattleEngine if not done yet
-            if (typeof BattleEngine !== 'undefined' && !BattleEngine.isInitialized()) {
-                BattleEngine.init({
-                    loadScene: loadScene,
-                    playSfx: playSfx,
-                    getInventory: function() { return state.inventory; },
-                    hasItem: hasItem,
-                    removeItem: function(item) { removeItems([item]); }
-                });
-                // Set up forced roll callback for dev mode
-                BattleEngine.setForcedRollCallback(function() {
-                    return state.devMode ? state.devForcedRoll : null;
-                });
-                // Set up forced damage callback for dev mode
-                if (BattleEngine.setForcedDamageCallback) {
-                    BattleEngine.setForcedDamageCallback(function() {
-                        return state.devMode ? state.devForcedDamage : null;
-                    });
-                }
-                // Set up guarantee status callback for dev mode
-                if (BattleEngine.setGuaranteeStatusCallback) {
-                    BattleEngine.setGuaranteeStatusCallback(function() {
-                        return state.devMode && state.devGuaranteeStatus;
-                    });
-                }
-            }
-
-            // Start battle using the module
-            if (typeof BattleEngine !== 'undefined') {
-                // Pass persisted HP/Mana from engine state to battle
-                var battleConfig = Object.assign({}, action, {
-                    persisted_hp: state.playerHP,
-                    persisted_max_hp: state.playerMaxHP,
-                    persisted_mana: state.playerMana,
-                    persisted_max_mana: state.playerMaxMana
-                });
-                var battleState = BattleEngine.start(battleConfig, state.currentSceneId);
-                // Sync player HP/Mana with engine state for saving
-                state.playerHP = battleState.player.hp;
-                state.playerMaxHP = battleState.player.maxHP;
-                state.playerMana = battleState.player.mana;
-                state.playerMaxMana = battleState.player.maxMana;
-                state.battle = { active: true }; // Flag for engine to know battle is active
-
-                // Register callback for when battle UI is ready (after intro animation)
-                battleState.onBattleReady = function() {
-                    // Show battle choices in the battle UI panel (not normal choices container)
-                    var scene = story[state.currentSceneId];
-                    if (scene && scene.choices) {
-                        renderBattleChoices(scene.choices);
-                    }
-                };
-            } else {
-                _log.error('Engine','BattleEngine module not loaded');
-            }
-        },
-
-        /**
-         * Start a quiz
-         * Delegates to QuizEngine module
-         */
-        start_quiz: function(action) {
-            if (typeof QuizEngine === 'undefined') {
-                _log.error('Engine','QuizEngine module not loaded');
-                return;
-            }
-
-            // Initialize QuizUI if available
-            if (typeof QuizUI !== 'undefined') {
-                QuizUI.init(document.getElementById('vn-container'));
-            }
-
-            // Start quiz - use current scene ID as quiz ID for tracking seen answers
-            QuizEngine.start({
-                questions: action.questions || [],
-                timePerQuestion: action.time_per_question || 10,
-                winTarget: action.win_target,
-                loseTarget: action.lose_target,
-                quizId: state.currentSceneId
-            }, function(result) {
-                // Quiz completed - navigate to appropriate scene
-                if (result.target) {
-                    loadScene(result.target);
-                } else {
-                    _log.error('Engine','Quiz ended without target scene');
-                }
-            });
-        },
+        // NOTE: start_battle and start_quiz actions are provided by their respective modules
+        // (js/modules/battle/index.js and js/modules/quiz/index.js)
+        // The ModuleRegistry fallback in executeActions() handles these.
 
         /**
          * Reset game state action handler
@@ -1814,6 +1828,25 @@ var VNEngine = (function() {
         if (typeof sceneManager !== 'undefined' && typeof story !== 'undefined') {
             sceneManager.init(story);
             _log.debug('Engine', 'SceneManager initialized with story data');
+        }
+
+        // Initialize optional modules via ModuleRegistry
+        // Modules register themselves when their scripts load.
+        // This call initializes all registered modules in dependency order.
+        if (typeof ModuleRegistry !== 'undefined') {
+            ModuleRegistry.initAll(engineAPI);
+            _log.debug('Engine', 'Modules initialized: ' + ModuleRegistry.listInitialized().join(', '));
+        }
+
+        // Listen for module events
+        if (typeof eventBus !== 'undefined') {
+            // Battle module emits this when battle UI is ready for choices
+            eventBus.on('battle:ready', function(data) {
+                var scene = story[data.sceneId || state.currentSceneId];
+                if (scene && scene.choices) {
+                    renderBattleChoices(scene.choices);
+                }
+            });
         }
 
         // Show dev mode indicator if enabled by default
@@ -3528,122 +3561,75 @@ var VNEngine = (function() {
     }
 
     // === Typewriter Effect ===
+    // Delegates to Typewriter module, maintains state.typewriter for compatibility
+
     function startTypewriter(html, element, onComplete, canSkip, speedOverride) {
         stopTypewriter();
 
-        var segments = parseHTMLSegments(html);
-
+        // Update state for compatibility checks
         state.typewriter = {
             isTyping: true,
             timeoutId: null,
             autoAdvanceId: null,
-            segments: segments,
-            currentSegment: 0,
-            currentChar: 0,
             element: element,
-            renderedHTML: '',
             onComplete: onComplete,
             canSkip: canSkip || false,
             speedOverride: speedOverride || null
         };
 
-        typeNextChar();
-    }
+        // Delegate to Typewriter module
+        if (typeof Typewriter !== 'undefined') {
+            // Initialize with speed callback if not done
+            Typewriter.init({
+                getSpeed: getTextSpeed
+            });
 
-    function parseHTMLSegments(html) {
-        var segments = [];
-        var regex = /(<[^>]+>)|([^<]+)/g;
-        var match;
-
-        while ((match = regex.exec(html)) !== null) {
-            if (match[1]) {
-                segments.push({ type: 'tag', content: match[1] });
-            } else if (match[2]) {
-                segments.push({ type: 'text', content: match[2] });
-            }
-        }
-
-        return segments;
-    }
-
-    function typeNextChar() {
-        var tw = state.typewriter;
-
-        if (!tw.isTyping) return;
-
-        if (tw.currentSegment >= tw.segments.length) {
-            finishTypewriter();
-            return;
-        }
-
-        var segment = tw.segments[tw.currentSegment];
-
-        if (segment.type === 'tag') {
-            tw.renderedHTML += segment.content;
-            tw.element.innerHTML = tw.renderedHTML;
-            tw.currentSegment++;
-            tw.currentChar = 0;
-            typeNextChar();
-        } else {
-            if (tw.currentChar < segment.content.length) {
-                tw.renderedHTML += segment.content[tw.currentChar];
-                tw.element.innerHTML = tw.renderedHTML;
-                tw.currentChar++;
-                var speed = getTextSpeed();
-                if (speed === 0) {
-                    typeNextChar();
-                } else {
-                    tw.timeoutId = typeof TimerManager !== 'undefined'
-                        ? TimerManager.setTimeout(typeNextChar, speed, 'typewriter')
-                        : setTimeout(typeNextChar, speed);
+            Typewriter.start(html, element, function() {
+                // Sync state and call original callback
+                state.typewriter.isTyping = false;
+                if (element) {
+                    element.classList.add('typewriter-complete');
                 }
-            } else {
-                tw.currentSegment++;
-                tw.currentChar = 0;
-                typeNextChar();
-            }
+                if (onComplete) {
+                    onComplete();
+                }
+            }, canSkip, speedOverride !== undefined ? config.textSpeed[speedOverride] : undefined);
+        } else {
+            // Fallback: instant display if module not loaded
+            element.innerHTML = html;
+            element.classList.add('typewriter-complete');
+            state.typewriter.isTyping = false;
+            if (onComplete) onComplete();
         }
     }
 
     function skipTypewriter() {
-        var tw = state.typewriter;
+        if (!state.typewriter.isTyping) return false;
 
-        if (!tw.isTyping || !tw.segments) return false;
-
-        // Always allow clicking to complete current text (standard VN behavior)
-        // Playtester feedback: restricting skip on new text was frustrating
-
-        // Build complete HTML
-        var fullHTML = tw.renderedHTML || '';
-
-        if (tw.currentSegment < tw.segments.length) {
-            var currentSeg = tw.segments[tw.currentSegment];
-            if (currentSeg.type === 'text' && tw.currentChar > 0) {
-                fullHTML += currentSeg.content.substring(tw.currentChar);
-                for (var i = tw.currentSegment + 1; i < tw.segments.length; i++) {
-                    fullHTML += tw.segments[i].content;
-                }
-            } else {
-                for (var i = tw.currentSegment; i < tw.segments.length; i++) {
-                    fullHTML += tw.segments[i].content;
-                }
-            }
+        // Delegate to Typewriter module
+        if (typeof Typewriter !== 'undefined') {
+            return Typewriter.skip();
         }
 
-        if (tw.element) {
-            tw.element.innerHTML = fullHTML;
-        }
-        finishTypewriter();
-        return true;
+        return false;
     }
 
     function stopTypewriter() {
-        if (state.typewriter.timeoutId) {
-            clearTimeout(state.typewriter.timeoutId);
-        }
+        // Clear auto-advance timer (managed by engine)
         if (state.typewriter.autoAdvanceId) {
-            clearTimeout(state.typewriter.autoAdvanceId);
+            if (typeof TimerManager !== 'undefined') {
+                TimerManager.clear(state.typewriter.autoAdvanceId);
+            } else {
+                clearTimeout(state.typewriter.autoAdvanceId);
+            }
+            state.typewriter.autoAdvanceId = null;
         }
+
+        // Stop Typewriter module
+        if (typeof Typewriter !== 'undefined') {
+            Typewriter.stop();
+        }
+
         state.typewriter.isTyping = false;
     }
 
@@ -3813,8 +3799,13 @@ var VNEngine = (function() {
 
     /**
      * Reset pagination state for a new text block.
+     * Delegates to Pagination module.
      */
     function resetPagination() {
+        if (typeof Pagination !== 'undefined') {
+            Pagination.reset();
+        }
+        // Keep state.pagination in sync for compatibility
         state.pagination = {
             active: false,
             pages: [],
@@ -3825,129 +3816,46 @@ var VNEngine = (function() {
 
     /**
      * Paginate text to fit within fixedLines.
-     * Uses a measurement element to calculate how many lines text takes.
-     * Returns array of text chunks (pages).
+     * Delegates to Pagination module.
      */
     function paginateText(text, maxLines) {
-        // If expanding mode or text is short, no pagination needed
+        // If expanding mode, no pagination needed
         if (config.textDisplayMode !== 'fixed') {
             return [text];
         }
 
-        // Create a hidden measurement element with same styles as story output
-        var measureEl = document.createElement('div');
-        var computedStyle = window.getComputedStyle(elements.storyOutput);
+        // Delegate to Pagination module
+        if (typeof Pagination !== 'undefined') {
+            // Configure pagination
+            Pagination.configure({
+                maxLines: maxLines || config.fixedLines,
+                balanceThreshold: typeof TUNING !== 'undefined' ? TUNING.text.pageBalanceThreshold || 0.5 : 0.5
+            });
 
-        // Copy relevant styles for accurate measurement (matching measureTextHeight approach)
-        measureEl.style.position = 'absolute';
-        measureEl.style.visibility = 'hidden';
-        measureEl.style.pointerEvents = 'none';
-        measureEl.style.width = elements.storyOutput.clientWidth + 'px';  // Use clientWidth (content area)
-        measureEl.style.height = 'auto';
-        measureEl.style.maxHeight = 'none';
-        measureEl.style.overflow = 'visible';
-        measureEl.style.fontSize = computedStyle.fontSize;
-        measureEl.style.fontFamily = computedStyle.fontFamily;
-        measureEl.style.lineHeight = computedStyle.lineHeight;
-        measureEl.style.letterSpacing = computedStyle.letterSpacing;
-        measureEl.style.wordSpacing = computedStyle.wordSpacing;
-        measureEl.style.padding = '0';
-        measureEl.style.margin = '0';
-        measureEl.style.boxSizing = 'content-box';
-        document.body.appendChild(measureEl);
+            // Start pagination and sync state
+            var result = Pagination.start(text, elements.storyOutput);
+            state.pagination = {
+                active: result.active,
+                pages: result.pages,
+                currentPage: result.currentPage,
+                fullText: text
+            };
 
-        // Use the already-calculated --story-fixed-height as maxHeight (set by measureTextHeight)
-        var fixedHeightStr = document.documentElement.style.getPropertyValue('--story-fixed-height');
-        var maxHeight = parseFloat(fixedHeightStr);
-        if (isNaN(maxHeight) || maxHeight <= 0) {
-            // Fallback: calculate using explicit line breaks (same method as measureTextHeight)
-            var lines = [];
-            for (var k = 0; k < maxLines; k++) {
-                lines.push('Mgy');
-            }
-            measureEl.innerHTML = '<p class="typewriter-text" style="margin:0;padding:0;display:block;">' + lines.join('<br>') + '</p>';
-            maxHeight = measureEl.offsetHeight;
+            return result.pages;
         }
 
-        // Split text into words
-        var words = text.split(/(\s+)/);  // Keep whitespace
-
-        // Helper function to paginate with a given target height
-        function doPaginate(targetHeight) {
-            var result = [];
-            var currentPage = '';
-
-            for (var i = 0; i < words.length; i++) {
-                var testText = currentPage + words[i];
-                // Convert markdown bold for measurement
-                var formattedTest = testText.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-                measureEl.innerHTML = '<p class="typewriter-text" style="margin:0;padding:0;display:block;">' + formattedTest + '</p>';
-
-                if (measureEl.offsetHeight > targetHeight && currentPage.trim() !== '') {
-                    // Current page is full, start new page
-                    result.push(currentPage.trim());
-                    currentPage = words[i];
-                } else {
-                    currentPage = testText;
-                }
-            }
-
-            // Add remaining text as last page
-            if (currentPage.trim() !== '') {
-                result.push(currentPage.trim());
-            }
-
-            return result;
-        }
-
-        // Helper to measure height of a text chunk
-        function measureHeight(chunk) {
-            var formatted = chunk.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-            measureEl.innerHTML = '<p class="typewriter-text" style="margin:0;padding:0;display:block;">' + formatted + '</p>';
-            return measureEl.offsetHeight;
-        }
-
-        // Initial greedy pagination
-        var pages = doPaginate(maxHeight);
-
-        // Page balancing: if last page is too short, redistribute
-        var threshold = TUNING.text.pageBalanceThreshold || 0;
-        if (threshold > 0 && pages.length > 1) {
-            var lastPageHeight = measureHeight(pages[pages.length - 1]);
-            var fillRatio = lastPageHeight / maxHeight;
-
-            if (fillRatio < threshold) {
-                // Calculate balanced target height
-                // We want to spread content more evenly across pages
-                // Reduce target height so pages fill more evenly
-                var totalHeight = 0;
-                for (var p = 0; p < pages.length; p++) {
-                    totalHeight += measureHeight(pages[p]);
-                }
-                var avgHeight = totalHeight / pages.length;
-                // Use average as the new target, but don't exceed maxHeight
-                var balancedTarget = Math.min(avgHeight * 1.1, maxHeight);  // 10% buffer
-
-                var balancedPages = doPaginate(balancedTarget);
-
-                // Only use balanced result if it doesn't create more pages
-                if (balancedPages.length <= pages.length) {
-                    pages = balancedPages;
-                    _log.debug('Engine', 'Rebalanced pages: ' + pages.length + ' pages with balanced fill');
-                }
-            }
-        }
-
-        // Cleanup
-        document.body.removeChild(measureEl);
-
-        return pages.length > 0 ? pages : [text];
+        // Fallback: no pagination
+        return [text];
     }
 
     /**
      * Check if there are more pages in current pagination.
+     * Delegates to Pagination module.
      */
     function hasMorePages() {
+        if (typeof Pagination !== 'undefined') {
+            return Pagination.hasMorePages();
+        }
         return state.pagination.active &&
                state.pagination.currentPage < state.pagination.pages.length - 1;
     }
@@ -3955,8 +3863,17 @@ var VNEngine = (function() {
     /**
      * Advance to next pagination page.
      * Returns true if advanced, false if no more pages.
+     * Delegates to Pagination module.
      */
     function advancePaginationPage() {
+        if (typeof Pagination !== 'undefined') {
+            var advanced = Pagination.advance();
+            if (advanced) {
+                state.pagination.currentPage = Pagination.getCurrentPageIndex();
+            }
+            return advanced;
+        }
+
         if (!hasMorePages()) {
             return false;
         }
@@ -4096,7 +4013,14 @@ var VNEngine = (function() {
         // Execute all actions in order
         for (var i = 0; i < scene.actions.length; i++) {
             var action = scene.actions[i];
+
+            // Try built-in handlers first
             var handler = actionHandlers[action.type];
+
+            // Fall back to ModuleRegistry for module-provided actions
+            if (!handler && typeof ModuleRegistry !== 'undefined') {
+                handler = ModuleRegistry.getActionHandler(action.type);
+            }
 
             _log.debug('Engine', 'executeActions: action type =', action.type, 'handler exists =', !!handler);
 

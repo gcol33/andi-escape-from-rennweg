@@ -155,7 +155,6 @@
     <script src="js/story.js"></script>
     <script src="js/enemies.js"></script>
     <script src="js/player.js"></script>
-    <script src="js/maps.js"></script>
     <script src="js/password.js"></script>
 
     <!-- Utility modules -->
@@ -190,45 +189,59 @@
     <script src="js/engine-inventory.js"></script>
     <script src="js/engine-saves.js"></script>
 
-    <!-- Battle UI helpers and main UI (load before QTE and battle modules) -->
-    <script src="js/battle/element-utils.js"></script>
-    <script src="js/battle/stat-bar.js"></script>
-    <script src="js/battle/floating-number.js"></script>
-    <script src="js/battle/battle-ui.js"></script>
+    <!-- Module Registry (before any modules) -->
+    <script src="js/modules/module-registry.js"></script>
 
-    <!-- QTE System -->
-    <script src="js/qte-ui.js"></script>
-    <script src="js/qte.js"></script>
+    <!-- Text Renderer Module (core, no dependencies) -->
+    <script src="js/modules/text-renderer/text-utils.js"></script>
+    <script src="js/modules/text-renderer/typewriter.js"></script>
+    <script src="js/modules/text-renderer/pagination.js"></script>
+    <script src="js/modules/text-renderer/text-effects.js"></script>
+    <script src="js/modules/text-renderer/index.js"></script>
 
-    <!-- Quiz System -->
-    <script src="js/quiz-ui.js"></script>
-    <script src="js/quiz.js"></script>
+    <!-- QTE Module -->
+    <script src="js/modules/qte/qte-ui.js"></script>
+    <script src="js/modules/qte/qte-engine.js"></script>
+    <script src="js/modules/qte/index.js"></script>
 
-    <!-- Modular Battle System -->
-    <script src="js/battle/pausable-timer.js"></script>
-    <script src="js/battle/battle-data.js"></script>
-    <script src="js/battle/battle-dice.js"></script>
-    <script src="js/battle/battle-dice-ui.js"></script>
-    <script src="js/battle/battle-barrier.js"></script>
-    <script src="js/battle/battle-intent.js"></script>
-    <script src="js/battle/battle-summon.js"></script>
+    <!-- Quiz Module -->
+    <script src="js/modules/quiz/quiz-ui.js"></script>
+    <script src="js/modules/quiz/quiz-engine.js"></script>
+    <script src="js/modules/quiz/index.js"></script>
+
+    <!-- Battle Module -->
+    <script src="js/modules/battle/element-utils.js"></script>
+    <script src="js/modules/battle/stat-bar.js"></script>
+    <script src="js/modules/battle/floating-number.js"></script>
+    <script src="js/modules/battle/battle-ui.js"></script>
+    <script src="js/modules/battle/pausable-timer.js"></script>
+    <script src="js/modules/battle/battle-data.js"></script>
+    <script src="js/modules/battle/battle-dice.js"></script>
+    <script src="js/modules/battle/battle-dice-ui.js"></script>
+    <script src="js/modules/battle/battle-barrier.js"></script>
+    <script src="js/modules/battle/battle-intent.js"></script>
+    <script src="js/modules/battle/battle-summon.js"></script>
     <script src="js/summons.js"></script>
-    <script src="js/battle/battle-utils.js"></script>
-    <script src="js/battle/battle-core.js"></script>
-    <script src="js/battle/battle-dnd.js"></script>
-    <script src="js/battle/battle-pokemon.js"></script>
-    <script src="js/battle/battle-exp33.js"></script>
-    <script src="js/battle/battle-facade.js"></script>
+    <script src="js/modules/battle/battle-utils.js"></script>
+    <script src="js/modules/battle/battle-core.js"></script>
+    <script src="js/modules/battle/battle-dnd.js"></script>
+    <script src="js/modules/battle/battle-pokemon.js"></script>
+    <script src="js/modules/battle/battle-exp33.js"></script>
+    <script src="js/modules/battle/battle-facade.js"></script>
+    <script src="js/modules/battle/index.js"></script>
 
-    <!-- Overworld System -->
-    <script src="js/overworld-ui.js"></script>
-    <script src="js/overworld.js"></script>
+    <!-- Overworld Module (not yet integrated) -->
+    <script src="js/modules/overworld/maps.js"></script>
+    <script src="js/modules/overworld/overworld-ui.js"></script>
+    <script src="js/modules/overworld/overworld-engine.js"></script>
+    <script src="js/modules/overworld/index.js"></script>
 
     <!-- Game Menu (full-screen RPG menu) -->
     <script src="js/game-menu.js"></script>
 
-    <!-- Dev Panel (load before engine) -->
-    <script src="js/dev-panel.js"></script>
+    <!-- Dev Tools Module -->
+    <script src="js/modules/dev-tools/dev-panel.js"></script>
+    <script src="js/modules/dev-tools/index.js"></script>
 
     <script src="js/engine.js"></script>
 </body>

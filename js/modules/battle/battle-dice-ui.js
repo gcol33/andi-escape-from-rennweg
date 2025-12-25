@@ -30,22 +30,31 @@ var BattleDiceUI = (function() {
 
     // =========================================================================
     // KEYWORDS - Centralized text for battle UI consistency
+    // Uses TextEffects.KEYWORDS as base if available, extends with battle-specific
     // =========================================================================
 
-    var KEYWORDS = {
-        // Attack results
-        CRITICAL_HIT: 'CRITICAL HIT!',
-        HIT: 'HIT!',
-        MISS: 'MISS!',
-        FUMBLE: 'FUMBLE!',
+    var KEYWORDS = (function() {
+        // Start with TextEffects keywords if available
+        var base = typeof TextEffects !== 'undefined' && TextEffects.KEYWORDS
+            ? Object.assign({}, TextEffects.KEYWORDS)
+            : {};
 
-        // Damage/Heal
-        DAMAGE: 'DAMAGE',
-        HEALED: 'HEALED!',
+        // Ensure all battle-required keywords exist
+        return Object.assign(base, {
+            // Attack results
+            CRITICAL_HIT: base.CRITICAL_HIT || 'CRITICAL HIT!',
+            HIT: base.HIT || 'HIT!',
+            MISS: base.MISS || 'MISS!',
+            FUMBLE: base.FUMBLE || 'FUMBLE!',
 
-        // Defend/Mana
-        MP: 'MP!'
-    };
+            // Damage/Heal
+            DAMAGE: base.DAMAGE || 'DAMAGE',
+            HEALED: base.HEALED || 'HEALED!',
+
+            // Defend/Mana
+            MP: base.MP || 'MP!'
+        });
+    })();
 
     // =========================================================================
     // STATE
@@ -187,22 +196,30 @@ var BattleDiceUI = (function() {
 
     /**
      * Get the CSS class for a roll based on type and result category.
-     * Uses the unified roll display system.
+     * Delegates to TextEffects if available, otherwise uses local implementation.
      *
      * @param {string} rollType - 'hit', 'damage', 'heal', 'status', 'neutral'
      * @param {string} resultCategory - 'crit', 'fail', 'max', 'min', 'normal'
      * @returns {string} CSS class like 'roll-hit-crit' or 'roll-damage-normal'
      */
     function getRollClass(rollType, resultCategory) {
+        if (typeof TextEffects !== 'undefined') {
+            return TextEffects.getRollClass(rollType, resultCategory);
+        }
         return 'roll-' + rollType + '-' + resultCategory;
     }
 
     /**
      * Determine the result category from roll result flags.
+     * Delegates to TextEffects if available, otherwise uses local implementation.
+     *
      * @param {Object} rollResult - { isCrit, isFumble, isMax, isMin }
      * @returns {string} 'crit', 'fail', 'max', 'min', or 'normal'
      */
     function getResultCategory(rollResult) {
+        if (typeof TextEffects !== 'undefined') {
+            return TextEffects.getResultCategory(rollResult);
+        }
         if (rollResult.isCrit) return 'crit';
         if (rollResult.isFumble) return 'fail';
         if (rollResult.isMax) return 'max';
