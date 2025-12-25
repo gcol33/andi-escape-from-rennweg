@@ -302,7 +302,6 @@ h1::before {
     left: 0;
     width: 100%;
     height: auto;
-    min-height: 40%;
     max-height: 50%;
     background: rgba(0, 0, 0, 0.95);
     border-top: 2px solid var(--dos-green);
@@ -328,7 +327,6 @@ h1::before {
 
 #text-box.ending-scene {
     height: auto;
-    min-height: 40%;
     max-height: 60%;
 }
 
@@ -502,7 +500,7 @@ h1::before {
     flex: 1 1 0;
     padding: 6px 12px;
     font-family: 'VT323', 'Courier New', monospace;
-    font-size: 1rem;
+    font-size: var(--choice-font-size, 0.7rem);
     background: var(--dos-black);
     color: var(--dos-green);
     border: 1px solid var(--dos-green);
@@ -575,7 +573,7 @@ h1::before {
     min-width: 180px;
     padding: 6px 24px;
     font-family: 'VT323', 'Courier New', monospace;
-    font-size: 1rem;
+    font-size: var(--continue-font-size, 0.7rem);
     background: var(--dos-black);
     color: var(--dos-green);
     border: 1px solid var(--dos-green);
@@ -634,7 +632,6 @@ h1::before {
 
     .choice-button {
         min-width: 120px;
-        font-size: 0.9rem;
         padding: 5px 10px;
     }
 
@@ -646,7 +643,6 @@ h1::before {
 @media (max-width: 37.5em) {
     #text-box {
         height: auto;
-        min-height: 40%;
         max-height: 60%;
     }
 
@@ -661,7 +657,6 @@ h1::before {
 
     .choice-button {
         min-width: 100%;
-        font-size: 0.85rem;
     }
 
     #sprite-layer img {
@@ -699,13 +694,11 @@ h1::before {
 
     #text-box {
         height: auto;
-        min-height: 40%;
         max-height: 75%;
     }
 
     #text-box.ending-scene {
         height: auto;
-        min-height: 40%;
         max-height: 90%;
     }
 

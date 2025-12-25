@@ -27,10 +27,10 @@
     --base-font-size: clamp(1.2rem, 1.7vw, 1.8rem);  /* 19px-29px */
 
     /* Story text sizing - scales with viewport for consistent line wrapping */
-    /* Pure vw for smooth continuous scaling across all resolutions */
-    --story-font-size-fallback: 0.825rem;  /* Fallback for older browsers */
-    --story-font-size: 1.425vw;  /* 25% smaller: ~11px at 800px, ~14px at 1000px */
-    --story-line-height: 1.6;
+    /* Compact sizing for 25-30% text box height */
+    --story-font-size-fallback: 0.7rem;  /* Fallback for older browsers */
+    --story-font-size: 1.15vw;  /* Compact: ~9px at 800px, ~12px at 1000px */
+    --story-line-height: 1.5;
 
     /* Fixed-height text box mode
      * --story-fixed-height is set by JS at runtime via measureTextHeight()
@@ -53,9 +53,9 @@
     --small-font-size: 0.75rem;
     --label-font-size: 0.72rem;
 
-    /* Choice/continue button sizing (25% smaller than original) */
-    --choice-font-size: 0.675rem;      /* was 0.9rem */
-    --continue-font-size: 0.75rem;     /* was 1rem */
+    /* Choice/continue button sizing - compact for 25-30% text box */
+    --choice-font-size: 0.7rem;
+    --continue-font-size: 0.7rem;
 
     /* Spacing - using rem for scalability (1rem = 16px at default) */
     --spacing-xs: 0.25rem;   /* 4px */
@@ -155,10 +155,10 @@
     /* Battle log height (used for bottom positioning) */
     --battle-log-height: 9rem;  /* Compact button layout */
 
-    /* Button area reserved height (prevents layout shift) */
-    /* Sized for 2-line button text (25% smaller) to prevent jumping */
-    --button-area-min-height: 3.5em;           /* Landscape: single row, 2-line text */
-    --button-area-min-height-portrait: 5.5em;  /* Portrait: 2 stacked buttons, 2-line text */
+    /* Button area reserved height - fixed for 2 rows of buttons */
+    /* 2 rows × ~1.6em button height + gap + padding = ~4em */
+    --button-area-height: 4em;                 /* Landscape: 2 rows */
+    --button-area-height-portrait: 5em;        /* Portrait: 2 stacked buttons */
 }
 
 /* === Battle Panel Colors === */

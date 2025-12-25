@@ -1859,6 +1859,12 @@ var VNEngine = (function() {
             // No save found, start fresh
             loadScene(config.startScene);
         }
+
+        // Reveal text box now that content is loaded (prevents flash of empty content)
+        var textBox = document.getElementById('text-box');
+        if (textBox) {
+            textBox.classList.add('engine-ready');
+        }
     }
 
     function setupFirstInteraction() {
@@ -3604,11 +3610,20 @@ var VNEngine = (function() {
     }
 
     function skipTypewriter() {
-        if (!state.typewriter.isTyping) return false;
+        // Check both engine state AND Typewriter module state
+        var engineTyping = state.typewriter.isTyping;
+        var moduleTyping = typeof Typewriter !== 'undefined' && Typewriter.isTyping();
+
+        if (!engineTyping && !moduleTyping) return false;
 
         // Delegate to Typewriter module
         if (typeof Typewriter !== 'undefined') {
-            return Typewriter.skip();
+            var skipped = Typewriter.skip();
+            // Ensure engine state is synced after skip
+            if (skipped) {
+                state.typewriter.isTyping = false;
+            }
+            return skipped;
         }
 
         return false;

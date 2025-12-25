@@ -230,14 +230,13 @@ h1 {
     left: 0;
     width: 100%;
     height: auto;
-    min-height: 40%;
     max-height: 50%;
     background-color: rgba(250, 241, 224, 0.95);
     border-top: 3px solid #d3c2a8;
     z-index: var(--z-text-box);
     display: flex;
     flex-direction: column;
-    padding: 12px 30px 20px 30px;
+    padding: 8px 30px 10px 30px;
     transition: transform 0.3s ease-out;
     overflow: hidden;
 }
@@ -245,7 +244,6 @@ h1 {
 /* Allow more expansion on ending screens (win/lose) */
 #text-box.ending-scene {
     height: auto;
-    min-height: 40%;
     max-height: 60%;
 }
 
@@ -511,12 +509,12 @@ h1 {
 .choice-button {
     display: inline-block; /* Fallback for older browsers */
     flex: 1 1 0;
-    padding: 10px 15px;
+    padding: 5px 10px;
     background-color: #b08b5a;
     color: #fffbe9;
     border: none;
     border-radius: 4px;
-    font-size: var(--choice-font-size, 0.675rem);
+    font-size: var(--choice-font-size, 0.5rem);
     cursor: pointer;
     transition: background-color 0.3s;
     white-space: normal;
@@ -557,14 +555,14 @@ h1 {
 .restart-button {
     display: inline-block; /* Fallback for older browsers */
     flex: 0 0 auto;
-    min-width: 250px;
-    margin-top: 0.25em;  /* Small gap from text/game-over message */
-    padding: 12px 30px;
+    min-width: 140px;
+    margin-top: 0.2em;  /* Small gap from text/game-over message */
+    padding: 6px 18px;
     background-color: #5c4732;
     color: #fffbe9;
     border: none;
     border-radius: 4px;
-    font-size: 1rem;
+    font-size: 0.65rem;
     font-weight: bold;
     cursor: pointer;
     transition: background-color 0.3s, transform 0.1s;
@@ -579,13 +577,13 @@ h1 {
 .continue-button {
     display: inline-block; /* Fallback for older browsers */
     flex: 0 0 auto;
-    min-width: 200px;
-    padding: 10px 30px;
+    min-width: 120px;
+    padding: 5px 16px;
     background-color: #b08b5a;
     color: #fffbe9;
     border: none;
     border-radius: 4px;
-    font-size: var(--continue-font-size, 0.75rem);
+    font-size: var(--continue-font-size, 0.55rem);
     cursor: pointer;
     transition: background-color 0.3s, transform 0.1s;
 }
@@ -613,7 +611,7 @@ h1 {
         height: auto;
         min-height: 36%;
         max-height: 55%;
-        padding: 12px 20px 15px 20px;
+        padding: 8px 20px 10px 20px;
     }
 
     #sprite-layer {
@@ -622,9 +620,9 @@ h1 {
     }
 
     .choice-button {
-        min-width: 150px;
-        font-size: 0.9rem;
-        padding: 8px 15px;
+        min-width: 120px;
+        font-size: var(--choice-font-size, 6px);
+        padding: 5px 10px;
     }
 
     #sprite-layer img {
@@ -635,9 +633,8 @@ h1 {
 @media (max-width: 37.5em) {
     #text-box {
         height: auto;
-        min-height: 40%;
         max-height: 60%;
-        padding: 10px 15px;
+        padding: 6px 15px 8px 15px;
     }
 
     #sprite-layer {
@@ -649,7 +646,7 @@ h1 {
 
     .choice-button {
         min-width: 100%;
-        font-size: 0.85rem;
+        font-size: var(--choice-font-size, 6px);
     }
 
     #sprite-layer img {
@@ -685,7 +682,6 @@ h1 {
     /* Adjust text box for taller container - larger in portrait */
     #text-box {
         height: auto;
-        min-height: 40%;
         max-height: 75%;
     }
 
@@ -701,7 +697,6 @@ h1 {
 
     #text-box.ending-scene {
         height: auto;
-        min-height: 40%;
         max-height: 90%;
     }
 
@@ -740,14 +735,16 @@ h1 {
     .choice-button {
         flex: none;
         width: 100%;
-        padding: 12px 15px;
+        padding: 5px 10px;
+        font-size: var(--choice-font-size, 6px);
     }
 
-    /* Smaller buttons for portrait */
+    /* Compact buttons for portrait */
     .continue-button,
     .restart-button {
-        min-width: 180px;
-        padding: 10px 20px;
+        min-width: 100px;
+        padding: 5px 12px;
+        font-size: var(--continue-font-size, 6px);
     }
 
     /* Move reset button to top-right on portrait phones */

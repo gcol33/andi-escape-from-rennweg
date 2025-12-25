@@ -273,7 +273,6 @@ h1 {
     left: 0;
     width: 100%;
     height: auto;
-    min-height: 40%;
     max-height: 50%;
     background-color: rgba(250, 241, 224, 0.95);
     border-top: 3px solid #d3c2a8;
@@ -300,7 +299,6 @@ h1 {
 /* Allow more expansion on ending screens (win/lose) */
 #text-box.ending-scene {
     height: auto;
-    min-height: 40%;
     max-height: 60%;
 }
 
@@ -486,7 +484,7 @@ h1 {
     color: #fffbe9;
     border: none;
     border-radius: 4px;
-    font-size: 0.9rem;
+    font-size: var(--choice-font-size, 0.7rem);
     cursor: pointer;
     transition: background-color 0.3s;
     white-space: normal;
@@ -548,7 +546,7 @@ h1 {
     color: #fffbe9;
     border: none;
     border-radius: 4px;
-    font-size: 1rem;
+    font-size: var(--continue-font-size, 0.7rem);
     cursor: pointer;
     transition: background-color 0.3s, transform 0.1s;
 }
@@ -590,7 +588,6 @@ h1 {
 
     .choice-button {
         min-width: 150px;
-        font-size: 0.9rem;
         padding: 8px 15px;
     }
 
@@ -602,7 +599,6 @@ h1 {
 @media (max-width: 37.5em) {
     #text-box {
         height: auto;
-        min-height: 40%;
         max-height: 60%;
         padding: 10px 15px;
     }
@@ -619,7 +615,6 @@ h1 {
 
     .choice-button {
         min-width: 100%;
-        font-size: 0.85rem;
     }
 
     #sprite-layer img {
@@ -665,13 +660,11 @@ h1 {
     /* Adjust text box for taller container - larger in portrait */
     #text-box {
         height: auto;
-        min-height: 40%;
         max-height: 75%;
     }
 
     #text-box.ending-scene {
         height: auto;
-        min-height: 40%;
         max-height: 90%;
     }
 

@@ -295,7 +295,6 @@ h1 {
     left: 0;
     width: 100%;
     height: auto;
-    min-height: 40%;
     max-height: 50%;
     background: var(--win-bg);
     border-top: 2px solid var(--win-light);
@@ -322,7 +321,6 @@ h1 {
 
 #text-box.ending-scene {
     height: auto;
-    min-height: 40%;
     max-height: 60%;
 }
 
@@ -513,7 +511,7 @@ h1 {
     flex: 1 1 0;
     padding: 8px 12px;
     font-family: 'MS Sans Serif', 'Segoe UI', Tahoma, sans-serif;
-    font-size: 0.85rem;
+    font-size: var(--choice-font-size, 0.7rem);
     background: var(--win-bg);
     color: var(--text-color);
     border: 2px solid;
@@ -581,7 +579,7 @@ h1 {
     min-width: 180px;
     padding: 8px 24px;
     font-family: 'MS Sans Serif', 'Segoe UI', Tahoma, sans-serif;
-    font-size: 1rem;
+    font-size: var(--continue-font-size, 0.7rem);
     background: var(--win-bg);
     color: var(--text-color);
     border: 2px solid;
@@ -652,7 +650,6 @@ h1 {
 
     .choice-button {
         min-width: 120px;
-        font-size: 0.85rem;
         padding: 6px 10px;
     }
 
@@ -664,7 +661,6 @@ h1 {
 @media (max-width: 37.5em) {
     #text-box {
         height: auto;
-        min-height: 40%;
         max-height: 60%;
     }
 
@@ -679,7 +675,6 @@ h1 {
 
     .choice-button {
         min-width: 100%;
-        font-size: 0.8rem;
     }
 
     #sprite-layer img {
@@ -717,13 +712,11 @@ h1 {
 
     #text-box {
         height: auto;
-        min-height: 40%;
         max-height: 75%;
     }
 
     #text-box.ending-scene {
         height: auto;
-        min-height: 40%;
         max-height: 90%;
     }
 
@@ -1118,7 +1111,6 @@ h1 {
     border-color: var(--win-light) var(--win-dark) var(--win-dark) var(--win-light);
     font-family: 'Silkscreen', 'MS Sans Serif', sans-serif;
     padding: 6px 10px;
-    font-size: 0.75rem;
 }
 
 .battle-choices .choice-button:hover {

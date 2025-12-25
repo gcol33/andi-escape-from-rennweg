@@ -304,7 +304,6 @@ h1 {
     left: 0;
     width: 100%;
     height: auto;
-    min-height: 40%;
     max-height: 50%;
     background: linear-gradient(180deg, rgba(26, 10, 46, 0.95), rgba(22, 33, 62, 0.98));
     border-top: 3px solid var(--vapor-pink);
@@ -332,7 +331,6 @@ h1 {
 
 #text-box.ending-scene {
     height: auto;
-    min-height: 40%;
     max-height: 60%;
 }
 
@@ -511,7 +509,7 @@ h1 {
     flex: 1 1 0;
     padding: 8px 12px;
     font-family: 'VT323', 'Courier New', monospace;
-    font-size: 0.9rem;
+    font-size: var(--choice-font-size, 0.7rem);
     background: transparent;
     color: var(--vapor-cyan);
     border: 2px solid var(--vapor-cyan);
@@ -576,7 +574,7 @@ h1 {
     min-width: 180px;
     padding: 8px 24px;
     font-family: 'VT323', 'Courier New', monospace;
-    font-size: 1rem;
+    font-size: var(--continue-font-size, 0.7rem);
     background: transparent;
     color: var(--vapor-cyan);
     border: 2px solid var(--vapor-cyan);
@@ -639,7 +637,6 @@ h1 {
 
     .choice-button {
         min-width: 120px;
-        font-size: 0.85rem;
         padding: 6px 10px;
     }
 
@@ -651,7 +648,6 @@ h1 {
 @media (max-width: 37.5em) {
     #text-box {
         height: auto;
-        min-height: 40%;
         max-height: 60%;
     }
 
@@ -666,7 +662,6 @@ h1 {
 
     .choice-button {
         min-width: 100%;
-        font-size: 0.8rem;
     }
 
     #sprite-layer img {
@@ -704,13 +699,11 @@ h1 {
 
     #text-box {
         height: auto;
-        min-height: 40%;
         max-height: 75%;
     }
 
     #text-box.ending-scene {
         height: auto;
-        min-height: 40%;
         max-height: 90%;
     }
 

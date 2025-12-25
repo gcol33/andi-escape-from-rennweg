@@ -310,6 +310,16 @@
  *   4. Button area never shrinks or gets cut
  */
 
+/* Hide text box until engine initializes (prevents flash of empty content) */
+#text-box {
+    opacity: 0;
+    transition: opacity 0.15s ease-out;
+}
+
+#text-box.engine-ready {
+    opacity: 1;
+}
+
 #text-box {
     max-height: 75% !important;
 }
@@ -368,10 +378,13 @@
     min-height: auto;
 }
 
-/* Button area: never shrink, never cut, always centered
- * min-height reserves space to prevent layout shift when buttons appear/disappear
- * Uses CSS variable so themes can override if needed
- * Gap between text and buttons uses --text-button-gap (minimal 4px)
+/* Fixed mode takes precedence even on ending scenes */
+#text-box.fixed-text-mode.ending-scene {
+    min-height: auto !important;
+}
+
+/* Button area: fixed height for consistent text box sizing
+ * Always reserves space for 2 rows of buttons
  */
 #button-area {
     display: flex;
@@ -379,10 +392,13 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    margin-top: var(--text-button-gap, 0.25rem) !important;  /* Minimal gap to text */
-    padding: 0 0.5em 0.4em 0.5em;  /* Reduced padding for smaller buttons */
-    gap: 6px;
-    min-height: var(--button-area-min-height, 3.5em);
+    margin-top: var(--text-button-gap, 0.2rem) !important;
+    padding: 0 0.5em 0.3em 0.5em;
+    gap: 4px;
+    height: var(--button-area-height, 4em);
+    min-height: var(--button-area-height, 4em);
+    max-height: var(--button-area-height, 4em);
+    overflow: hidden;
 }
 
 /* Choices container: horizontal row, centered, equal height buttons */
@@ -422,13 +438,11 @@
     }
 }
 
-/* Portrait mode: reserve more space for stacked buttons
- * 2 buttons (~2.5em each) + gap (0.5em) + padding (1.25em) = ~6.75em
- * This prevents major layout shift for typical 2-choice scenes.
- * Scenes with 3+ choices will still cause some shift, but that's acceptable.
- */
+/* Portrait mode: fixed height for 2 stacked buttons */
 @media (orientation: portrait) {
     #button-area {
-        min-height: var(--button-area-min-height-portrait, 6.75em);
+        height: var(--button-area-height-portrait, 5em);
+        min-height: var(--button-area-height-portrait, 5em);
+        max-height: var(--button-area-height-portrait, 5em);
     }
 }

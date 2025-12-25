@@ -52,6 +52,11 @@ var Typewriter = (function() {
      */
     function typeNextChar() {
         if (!state.isTyping) return;
+        if (!state.element) {
+            // No element to render to - finish immediately
+            finish();
+            return;
+        }
 
         if (state.currentSegment >= state.segments.length) {
             finish();
@@ -97,7 +102,7 @@ var Typewriter = (function() {
     function stop() {
         if (state.timeoutId) {
             if (typeof TimerManager !== 'undefined') {
-                TimerManager.clearTimeout(state.timeoutId);
+                TimerManager.clear(state.timeoutId);
             } else {
                 clearTimeout(state.timeoutId);
             }
@@ -105,7 +110,7 @@ var Typewriter = (function() {
         }
         if (state.autoAdvanceId) {
             if (typeof TimerManager !== 'undefined') {
-                TimerManager.clearTimeout(state.autoAdvanceId);
+                TimerManager.clear(state.autoAdvanceId);
             } else {
                 clearTimeout(state.autoAdvanceId);
             }
@@ -118,12 +123,21 @@ var Typewriter = (function() {
      * Finish typing and call completion callback
      */
     function finish() {
+        // Stop timers first
         stop();
-        if (state.element) {
-            state.element.classList.add('typewriter-complete');
+
+        // Capture callbacks before clearing state
+        var element = state.element;
+        var onComplete = state.onComplete;
+
+        // Add completion class
+        if (element) {
+            element.classList.add('typewriter-complete');
         }
-        if (state.onComplete) {
-            state.onComplete();
+
+        // Call completion callback synchronously
+        if (onComplete) {
+            onComplete();
         }
     }
 
@@ -180,23 +194,19 @@ var Typewriter = (function() {
          * @returns {boolean} - True if skip occurred
          */
         skip: function() {
-            if (!state.isTyping || !state.segments) return false;
+            // Check if there's anything to skip
+            if (!state.segments || state.segments.length === 0) return false;
 
-            // Build complete HTML from remaining segments
-            var fullHTML = state.renderedHTML || '';
+            // If not actively typing, check if we have an element and callback to complete
+            if (!state.isTyping) {
+                // Already finished or never started
+                return false;
+            }
 
-            if (state.currentSegment < state.segments.length) {
-                var currentSeg = state.segments[state.currentSegment];
-                if (currentSeg.type === 'text' && state.currentChar > 0) {
-                    fullHTML += currentSeg.content.substring(state.currentChar);
-                    for (var i = state.currentSegment + 1; i < state.segments.length; i++) {
-                        fullHTML += state.segments[i].content;
-                    }
-                } else {
-                    for (var i = state.currentSegment; i < state.segments.length; i++) {
-                        fullHTML += state.segments[i].content;
-                    }
-                }
+            // Build complete HTML from ALL segments
+            var fullHTML = '';
+            for (var i = 0; i < state.segments.length; i++) {
+                fullHTML += state.segments[i].content;
             }
 
             if (state.element) {

@@ -307,7 +307,6 @@ h1 {
     left: 0;
     width: 100%;
     height: auto;
-    min-height: 40%;
     max-height: 50%;
     background: linear-gradient(180deg, var(--parchment) 0%, var(--parchment-dark) 100%);
     border-top: 6px solid var(--ink-brown);
@@ -336,7 +335,6 @@ h1 {
 
 #text-box.ending-scene {
     height: auto;
-    min-height: 40%;
     max-height: 60%;
 }
 
@@ -513,7 +511,7 @@ h1 {
     flex: 1 1 0;
     padding: 10px 16px;
     font-family: 'Cinzel', 'Times New Roman', serif;
-    font-size: 0.85rem;
+    font-size: var(--choice-font-size, 0.7rem);
     background: linear-gradient(180deg, var(--parchment), var(--parchment-dark));
     color: var(--ink-brown);
     border: 3px solid var(--ink-brown);
@@ -579,7 +577,7 @@ h1 {
     min-width: 180px;
     padding: 10px 24px;
     font-family: 'Cinzel', 'Times New Roman', serif;
-    font-size: 1rem;
+    font-size: var(--continue-font-size, 0.7rem);
     background: var(--parchment);
     color: var(--ink-brown);
     border: 3px solid var(--ink-brown);
@@ -642,7 +640,6 @@ h1 {
 
     .choice-button {
         min-width: 120px;
-        font-size: 0.8rem;
         padding: 8px 12px;
     }
 
@@ -654,7 +651,6 @@ h1 {
 @media (max-width: 37.5em) {
     #text-box {
         height: auto;
-        min-height: 40%;
         max-height: 60%;
     }
 
@@ -670,7 +666,6 @@ h1 {
 
     .choice-button {
         min-width: 100%;
-        font-size: 0.75rem;
     }
 
     #sprite-layer img {
@@ -708,13 +703,11 @@ h1 {
 
     #text-box {
         height: auto;
-        min-height: 40%;
         max-height: 75%;
     }
 
     #text-box.ending-scene {
         height: auto;
-        min-height: 40%;
         max-height: 90%;
     }
 

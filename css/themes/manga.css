@@ -370,7 +370,6 @@ h1 {
     left: 0;
     width: 100%;
     height: auto;
-    min-height: 40%;
     max-height: 50%;
     background: var(--manga-white);
     border-top: 4px solid var(--manga-black);
@@ -396,7 +395,6 @@ h1 {
 
 #text-box.ending-scene {
     height: auto;
-    min-height: 40%;
     max-height: 60%;
 }
 
@@ -585,7 +583,7 @@ h1 {
     flex: 1 1 0;
     padding: 10px 14px;
     font-family: 'Courier New', monospace;
-    font-size: 0.9rem;
+    font-size: var(--choice-font-size, 0.7rem);
     font-weight: bold;
     background: var(--manga-white);
     color: var(--manga-black);
@@ -685,7 +683,7 @@ h1 {
     min-width: 180px;
     padding: 10px 24px;
     font-family: 'Courier New', monospace;
-    font-size: 1rem;
+    font-size: var(--continue-font-size, 0.7rem);
     font-weight: bold;
     background: var(--manga-white);
     color: var(--manga-black);
@@ -773,7 +771,6 @@ h1 {
 
     .choice-button {
         min-width: 120px;
-        font-size: 0.85rem;
         padding: 8px 10px;
         box-shadow: 3px 3px 0 var(--manga-black);
     }
@@ -786,7 +783,6 @@ h1 {
 @media (max-width: 37.5em) {
     #text-box {
         height: auto;
-        min-height: 40%;
         max-height: 60%;
     }
 
@@ -802,7 +798,6 @@ h1 {
 
     .choice-button {
         min-width: 100%;
-        font-size: 0.8rem;
         box-shadow: 2px 2px 0 var(--manga-black);
     }
 
@@ -841,13 +836,11 @@ h1 {
 
     #text-box {
         height: auto;
-        min-height: 40%;
         max-height: 75%;
     }
 
     #text-box.ending-scene {
         height: auto;
-        min-height: 40%;
         max-height: 90%;
     }
 
