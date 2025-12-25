@@ -180,6 +180,8 @@ var QTEEngine = (function() {
         if (typeof QTEUI !== 'undefined') {
             qteUI = QTEUI;
         }
+        // Bind input handlers (click, space, touch)
+        bindInputs();
     }
 
     /**
