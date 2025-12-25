@@ -1615,15 +1615,16 @@ var BattleDiceUI = (function() {
                         line.appendChild(manaSpan);
 
                         var displayMana = overmana > 0 ? manaRolled : manaRecovered;
-                        typewriter(manaSpan, '+' + displayMana, function() {
-                            // If there's overmana, show collapse animation
-                            if (overmana > 0) {
+
+                        // If there's overmana, type just the number (will collapse and add MP! later)
+                        if (overmana > 0) {
+                            typewriter(manaSpan, '+' + displayMana, function() {
                                 showOvermanaCollapse(line, manaSpan, manaRolled, overmana, manaRecovered, cooldown, finishWithCooldown);
-                            } else {
-                                // No overmana - just finish with MP! and cooldown
-                                typewriter(line, ' ' + KEYWORDS.MP, finishWithCooldown);
-                            }
-                        });
+                            });
+                        } else {
+                            // No overmana - type "+X MP!" together
+                            typewriter(manaSpan, '+' + displayMana + ' ' + KEYWORDS.MP, finishWithCooldown);
+                        }
                     });
                 }, rollType);
             }
@@ -1649,14 +1650,14 @@ var BattleDiceUI = (function() {
 
             diceTimeout(function() {
                 modSpan.remove();
-                // Update the mana number to final value
-                manaSpan.textContent = '+' + finalMana;
+                // Update the mana number to final value WITH MP! together
+                manaSpan.textContent = '+' + finalMana + ' ' + KEYWORDS.MP;
                 manaSpan.classList.add('dice-pop');
 
                 diceTimeout(function() {
                     manaSpan.classList.remove('dice-pop');
-                    // Finish with MP! then show cooldown via callback
-                    typewriter(line, ' ' + KEYWORDS.MP, finishCallback);
+                    // Continue to cooldown display
+                    finishCallback();
                 }, 200);
             }, 250);
         }, 400);
