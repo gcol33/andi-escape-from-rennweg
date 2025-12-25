@@ -1046,26 +1046,49 @@ var BattleUI = (function() {
                 }
             }
 
-            // Check if adding this char would cause overflow BEFORE rendering
-            // Temporarily add char, check overflow, shift if needed, then keep char
+            // Shift at word boundaries: when we're about to type a space, check if we should shift first
+            // This prevents the visual "overflow then snap back" effect
+            var shouldShiftBeforeTyping = false;
+            if (char === ' ') {
+                // About to type a space - check if row2 is getting close to full
+                // We shift BEFORE adding the space, so the completed word goes to row1
+                try {
+                    if (BattleUtils.checkBattleLogOverflow(rows)) {
+                        // Row2 is overflowing - shift current content to row1 before adding space
+                        var currentContent = rows.row2.textContent || '';
+                        if (currentContent.trim()) {
+                            rows.row1.textContent = currentContent;
+                            rows.row2.textContent = '';
+                            shouldShiftBeforeTyping = true;
+                        }
+                    }
+                } catch (e) {
+                    console.error('[Typewriter] Pre-shift error:', e);
+                }
+            }
+
+            // Now add the character
             var textNode = document.createTextNode(char);
             rows.row2.appendChild(textNode);
 
-            // If this caused overflow, shift FIRST then the char stays in fresh row2
-            try {
-                if (BattleUtils.checkBattleLogOverflow(rows)) {
-                    // Remove the char we just added
-                    if (textNode.parentNode === rows.row2) {
-                        rows.row2.removeChild(textNode);
+            // If we didn't shift on space, check for overflow now (fallback for edge cases)
+            if (!shouldShiftBeforeTyping) {
+                try {
+                    if (BattleUtils.checkBattleLogOverflow(rows)) {
+                        var fullText = rows.row2.textContent || '';
+                        var lastSpaceIndex = fullText.lastIndexOf(' ');
+
+                        if (lastSpaceIndex > 0) {
+                            var beforeSpace = fullText.substring(0, lastSpaceIndex);
+                            var afterSpace = fullText.substring(lastSpaceIndex + 1);
+
+                            rows.row1.textContent = beforeSpace;
+                            rows.row2.textContent = afterSpace;
+                        }
                     }
-                    // Shift current content to row1
-                    BattleUtils.shiftBattleLogRows(rows);
-                    // Now add char to empty row2
-                    rows.row2.appendChild(textNode);
+                } catch (e) {
+                    console.error('[Typewriter] Overflow error:', e);
                 }
-            } catch (e) {
-                console.error('[Typewriter] Overflow error:', e);
-                // Continue anyway - char is already in row2
             }
             charIndex++;
 

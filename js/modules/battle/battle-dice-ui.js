@@ -684,21 +684,31 @@ var BattleDiceUI = (function() {
             element.appendChild(textNode);
             index++;
 
-            // Check for overflow - shift content up, keep typing in element (row2)
+            // Check for overflow - shift content up ONLY at word boundaries
+            // NEVER split words - if no space found, don't shift
             if (typeof BattleUtils !== 'undefined') {
                 var rows = BattleUtils.getBattleLogRows();
                 if (rows && rows.row2 && element.parentNode === rows.row2) {
                     if (BattleUtils.checkBattleLogOverflow(rows)) {
-                        // Remove the char we just added
-                        if (textNode.parentNode === element) {
-                            element.removeChild(textNode);
+                        // Get full content INCLUDING the char we just added
+                        var fullContent = element.textContent || '';
+
+                        // Split by spaces to find word boundaries
+                        var words = fullContent.split(' ');
+                        var lastWord = words[words.length - 1];
+
+                        // ONLY shift if we have multiple words AND the last word is not empty
+                        // Never split mid-word - just let it overflow until we hit a space
+                        if (words.length > 1 && lastWord !== '') {
+                            // Keep the last word (which we're currently typing) in element
+                            // Move all previous words to row1
+                            words.pop();
+                            var previousContent = words.join(' ');
+
+                            rows.row1.textContent = previousContent;
+                            element.textContent = lastWord;
                         }
-                        // Shift: copy element's current content to row1
-                        rows.row1.innerHTML = element.innerHTML;
-                        // Clear element for new content
-                        element.innerHTML = '';
-                        // Re-add the char to start fresh line
-                        element.appendChild(textNode);
+                        // If no space found (single word), do nothing - wait for a space
                     }
                 }
             }
@@ -831,27 +841,29 @@ var BattleDiceUI = (function() {
 
                 var resultSpan = document.createElement('span');
                 resultSpan.className = 'roll-result-text ' + rollClass;
-                resultSpan.textContent = resultText;
                 line.appendChild(resultSpan);
 
-                // Play sound
-                if (rollResult.isCrit) {
-                    playSfx('success.ogg');
-                } else if (rollResult.isFumble) {
-                    playSfx('fail.ogg');
-                } else if (options.hit) {
-                    playSfx('thud.ogg');
-                }
+                // Typewrite the result text, then continue
+                typewriter(resultSpan, resultText, function() {
+                    // Play sound after text finishes
+                    if (rollResult.isCrit) {
+                        playSfx('success.ogg');
+                    } else if (rollResult.isFumble) {
+                        playSfx('fail.ogg');
+                    } else if (options.hit) {
+                        playSfx('thud.ogg');
+                    }
 
-                if (!options.hit) {
-                    // Miss - call onTextComplete before linger
-                    if (onTextComplete) onTextComplete();
-                    diceTimeout(callback, config.lingerDelay);
-                    return;
-                }
+                    if (!options.hit) {
+                        // Miss - call onTextComplete before linger
+                        if (onTextComplete) onTextComplete();
+                        diceTimeout(callback, config.lingerDelay);
+                        return;
+                    }
 
-                // Continue with damage on same line
-                diceTimeout(showDamage, 400);
+                    // Continue with damage on same line
+                    diceTimeout(showDamage, 400);
+                });
             }
 
             function showDamage() {
@@ -954,12 +966,14 @@ var BattleDiceUI = (function() {
                 var damageText = document.createElement('span');
                 // Just red color for text, no special outline/glow
                 damageText.className = 'damage-text roll-type-damage';
-                damageText.textContent = KEYWORDS.DAMAGE;
                 line.appendChild(damageText);
 
-                // Call onTextComplete before linger (so effects apply when text finishes)
-                if (onTextComplete) onTextComplete();
-                diceTimeout(callback, config.lingerDelay);
+                // Typewrite "DAMAGE" letter-by-letter
+                typewriter(damageText, KEYWORDS.DAMAGE, function() {
+                    // Call onTextComplete before linger (so effects apply when text finishes)
+                    if (onTextComplete) onTextComplete();
+                    diceTimeout(callback, config.lingerDelay);
+                });
             }
         });
     }
@@ -1492,18 +1506,20 @@ var BattleDiceUI = (function() {
         // Show HEALED! text - just green color, no special outline/glow
         var healedSpan = document.createElement('span');
         healedSpan.className = 'roll-result-text roll-type-heal';
-        healedSpan.textContent = KEYWORDS.HEALED;
         line.appendChild(healedSpan);
 
-        // Play heal sound
-        playSfx('heal.ogg');
+        // Typewrite "HEALED!" letter-by-letter
+        typewriter(healedSpan, KEYWORDS.HEALED, function() {
+            // Play heal sound
+            playSfx('heal.ogg');
 
-        // Call onTextComplete BEFORE linger (so effects apply when text finishes)
-        if (onTextComplete) {
-            onTextComplete();
-        }
+            // Call onTextComplete BEFORE linger (so effects apply when text finishes)
+            if (onTextComplete) {
+                onTextComplete();
+            }
 
-        diceTimeout(callback, config.lingerDelay);
+            diceTimeout(callback, config.lingerDelay);
+        });
     }
 
     // =========================================================================
@@ -1557,17 +1573,25 @@ var BattleDiceUI = (function() {
                 // Add cooldown label text
                 var cooldownLabel = document.createElement('span');
                 cooldownLabel.className = 'defend-cooldown-text';
-                cooldownLabel.textContent = ' Cooldown ';
                 line.appendChild(cooldownLabel);
 
-                // Add cooldown number (normal size, same style as label)
-                var cooldownNum = document.createElement('span');
-                cooldownNum.className = 'defend-cooldown-number';
-                cooldownNum.textContent = cooldown;
-                line.appendChild(cooldownNum);
+                // Typewrite cooldown text
+                typewriter(cooldownLabel, ' Cooldown ', function() {
+                    // Add cooldown number (normal size, same style as label)
+                    var cooldownNum = document.createElement('span');
+                    cooldownNum.className = 'defend-cooldown-number';
+                    line.appendChild(cooldownNum);
+
+                    // Typewrite the number
+                    typewriter(cooldownNum, String(cooldown), function() {
+                        // Longer linger for defend results
+                        diceTimeout(callback, config.lingerDelay * 2);
+                    });
+                });
+            } else {
+                // Longer linger for defend results
+                diceTimeout(callback, config.lingerDelay * 2);
             }
-            // Longer linger for defend results
-            diceTimeout(callback, config.lingerDelay * 2);
         }
 
         // Phase 1: Type intro text with Kung Fu Panda-inspired flavor
@@ -1689,19 +1713,21 @@ var BattleDiceUI = (function() {
             }, function() {
                 config.spinDuration = originalDuration;
 
-                // Phase 3: Add damage text
+                // Phase 3: Add damage text with typewriter
                 var textSpan = document.createElement('span');
                 textSpan.className = 'damage-text roll-type-damage';
-                textSpan.textContent = ' ' + damageText;
                 line.appendChild(textSpan);
 
-                // Call onTextComplete before linger (for applying effects)
-                if (onTextComplete) onTextComplete();
+                // Typewrite the damage text (e.g., " DAMAGE")
+                typewriter(textSpan, ' ' + damageText, function() {
+                    // Call onTextComplete before linger (for applying effects)
+                    if (onTextComplete) onTextComplete();
 
-                // Linger then callback
-                diceTimeout(function() {
-                    if (callback) callback();
-                }, config.lingerDelay);
+                    // Linger then callback
+                    diceTimeout(function() {
+                        if (callback) callback();
+                    }, config.lingerDelay);
+                });
             }, 'damage');
         });
     }
