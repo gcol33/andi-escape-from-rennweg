@@ -1040,8 +1040,8 @@ var BattleUI = (function() {
             rows.row2.appendChild(document.createTextNode(char));
             charIndex++;
 
-            // Check for visual overflow and shift if needed
-            BattleUtils.handleBattleLogOverflow(rows);
+            // Don't call handleBattleLogOverflow - it overwrites row1, destroying the previous message
+            // Let text wrap naturally within row2
 
             var t = setTimeout(renderNextChar, 1000 / speed);
             animationState.timeouts.push(t);
