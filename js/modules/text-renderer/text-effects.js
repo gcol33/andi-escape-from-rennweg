@@ -72,7 +72,9 @@ var TextEffects = (function() {
         'DAMAGE': 'keyword-damage',
         'HEALED!': 'keyword-heal',
         'HP': 'keyword-hp',
-        'MP!': 'keyword-mana'
+        'MP!': 'keyword-mana',
+        // Intent hints - red to highlight counter-play
+        'DEFEND': 'keyword-damage'
     };
 
     // =========================================================================

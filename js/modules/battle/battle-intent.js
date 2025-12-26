@@ -35,12 +35,6 @@ var BattleIntent = (function() {
     var _log = Utils.getLogger();
 
     // =========================================================================
-    // DEPENDENCIES
-    // =========================================================================
-
-    var _hasBattleData = typeof BattleData !== 'undefined';
-
-    // =========================================================================
     // INTENT TYPE DEFINITIONS
     // =========================================================================
 
@@ -170,35 +164,6 @@ var BattleIntent = (function() {
     }
 
     // =========================================================================
-    // LEGACY INTENT GENERATION (for backwards compatibility)
-    // =========================================================================
-
-    var T = typeof TUNING !== 'undefined' ? TUNING : null;
-    var config = {
-        healThreshold: T && T.battle.ai ? T.battle.ai.healThreshold : 0.3,
-        defendThreshold: T && T.battle.ai ? T.battle.ai.defendThreshold : 0.4,
-        skillChance: 0.6
-    };
-
-    function findHealMove(moves) {
-        if (!_hasBattleData) return null;
-        for (var i = 0; i < moves.length; i++) {
-            var move = BattleData.getSkill(moves[i]);
-            if (move && move.healAmount) {
-                return { id: moves[i], move: move };
-            }
-        }
-        return null;
-    }
-
-    function getRandomSkill(moves) {
-        if (moves.length === 0) return null;
-        var randomId = Utils.pickRandom(moves);
-        var move = _hasBattleData ? BattleData.getSkill(randomId) : null;
-        return { id: randomId, move: move };
-    }
-
-    // =========================================================================
     // PUBLIC API
     // =========================================================================
 
@@ -271,7 +236,9 @@ var BattleIntent = (function() {
             }
 
             // === NEW: Check for telegraphed intents first ===
-            if (hasIntents(enemy) && !currentIntent) {
+            // Note: Must check when no intent OR when current intent is basic (non-telegraphed)
+            // Otherwise the basic intent from LEGACY code blocks all future telegraphed checks
+            if (hasIntents(enemy) && (!currentIntent || !currentIntent.isTelegraphed)) {
                 var intents = enemy.intents;
                 for (var i = 0; i < intents.length; i++) {
                     var intentConfig = intents[i];
@@ -304,63 +271,13 @@ var BattleIntent = (function() {
                 }
             }
 
-            // If we already have a telegraphed intent, don't generate basic intent
+            // If we already have a telegraphed intent, return it
             if (currentIntent && currentIntent.isTelegraphed) {
                 return currentIntent;
             }
 
-            // === LEGACY: Basic intent generation ===
-            var moves = enemy.moves || [];
-            var hpPercent = enemy.hp / enemy.maxHP;
-            var intent = { type: 'attack', moveId: null, data: null };
-
-            // Priority 1: Heal if low HP
-            if (hpPercent < config.healThreshold) {
-                var healMove = findHealMove(moves);
-                if (healMove) {
-                    intent = {
-                        type: 'skill',
-                        moveId: healMove.id,
-                        data: { isHeal: true, moveName: healMove.move ? healMove.move.name : 'Heal' }
-                    };
-                    intent.icon = INTENT_ICONS.heal;
-                    this.set(intent.type, intent.moveId, intent.data);
-                    currentIntent.icon = intent.icon;
-                    return currentIntent;
-                }
-            }
-
-            // Priority 2: Defend occasionally when hurt
-            if (hpPercent < config.defendThreshold && Math.random() < 0.2) {
-                intent = { type: 'defend', moveId: null, data: null };
-                this.set(intent.type, intent.moveId, intent.data);
-                return currentIntent;
-            }
-
-            // Priority 3: Use skill (60% chance if available)
-            if (moves.length > 0 && Math.random() < config.skillChance) {
-                var skill = getRandomSkill(moves);
-                if (skill) {
-                    var skillIcon = INTENT_ICONS.skill;
-                    if (skill.move) {
-                        if (skill.move.isHeal) skillIcon = INTENT_ICONS.heal;
-                        else if (skill.move.isBuff) skillIcon = INTENT_ICONS.buff;
-                        else if (skill.move.statusEffect) skillIcon = INTENT_ICONS.debuff;
-                    }
-                    intent = {
-                        type: 'skill',
-                        moveId: skill.id,
-                        data: { moveName: skill.move ? skill.move.name : skill.id }
-                    };
-                    this.set(intent.type, intent.moveId, intent.data);
-                    currentIntent.icon = skillIcon;
-                    return currentIntent;
-                }
-            }
-
-            // Default: Basic attack
-            this.set('attack', null, null);
-            return currentIntent;
+            // No telegraphed intent triggered this turn
+            return null;
         },
 
         /**

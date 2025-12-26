@@ -52,7 +52,8 @@ var BattleEngine = (function() {
             screenShake: T ? T.battle.timing.screenShake : 300,
             uiTransition: T ? T.battle.timing.uiTransition : 1500,
             dialogueDuration: T ? T.battle.timing.dialogueBubble : 2500,
-            fadeOutDuration: T ? T.battle.timing.fadeOut : 300
+            fadeOutDuration: T ? T.battle.timing.fadeOut : 300,
+            intentAnnouncementDelay: T ? T.battle.timing.intentAnnouncementDelay : 1500
         },
         dice: {
             spinDuration: T ? T.battle.dice.spinDuration : 1800,
@@ -1432,9 +1433,12 @@ var BattleEngine = (function() {
                     if (flavorText) {
                         endMessages.push('<em>' + flavorText + '</em>');
                     }
-                    // Show if stance wore off
+                    // Show if stance wore off and apply cooldown
                     if (state.player.defending <= 0) {
                         endMessages.push('Defensive stance wore off!');
+                        var cooldown = T && T.battle && T.battle.combat ? (T.battle.combat.defendCooldown || 2) : 2;
+                        state.player.defendCooldown = cooldown;
+                        state.player.defendCooldownJustSet = true;
                     }
                 }
 
@@ -1466,9 +1470,12 @@ var BattleEngine = (function() {
                 if (flavorText) {
                     messages.push('<em>' + flavorText + '</em>');
                 }
-                // Show if stance wore off
+                // Show if stance wore off and apply cooldown
                 if (state.player.defending <= 0) {
                     messages.push('Defensive stance wore off!');
+                    var cooldown = T && T.battle && T.battle.combat ? (T.battle.combat.defendCooldown || 2) : 2;
+                    state.player.defendCooldown = cooldown;
+                    state.player.defendCooldownJustSet = true;
                 }
             }
             // Wait for status message to complete before ending turn
@@ -1512,10 +1519,14 @@ var BattleEngine = (function() {
                 }
 
                 // If there's an active (not ready) intent that was already announced,
-                // just do a normal attack (the announcement was a previous turn)
+                // show concentration message and skip attack (enemy is focusing)
                 if (intent && intent.isTelegraphed && intent.turnsRemaining > 0) {
-                    _log.debug('BattleFacade', 'Intent already announced, doing normal attack');
-                    // Intent was announced on a previous turn, proceed with normal attack
+                    _log.debug('BattleFacade', 'Intent active but not ready, showing concentration');
+                    var concentrateMsg = '<em>' + (enemy.name || 'Enemy') + ' is concentrating...</em>';
+                    updateBattleLog(concentrateMsg, null, function() {
+                        finishEnemyTurn(remainingMessages, callback);
+                    });
+                    return;
                 } else {
                     // Check if a new intent should trigger
                     var newIntent = BattleIntent.generate(enemy, state.player);
@@ -1557,12 +1568,13 @@ var BattleEngine = (function() {
 
     /**
      * Show intent preparation dialogue and UI
+     * Sequence: dialogue bubble first, then delay, then battle log text
      */
     function showIntentPreparation(enemy, intent, callback) {
         var enemyName = enemy.name || 'Enemy';
         var dialogue = intent.dialogue || (enemyName + ' is preparing something...');
 
-        // Show dialogue bubble
+        // Show dialogue bubble first
         showDialogueBubble(dialogue);
 
         // Show intent indicator above enemy
@@ -1571,13 +1583,16 @@ var BattleEngine = (function() {
             BattleUI.showIntentIndicator(displayData);
         }
 
-        // Log the intent
-        var intentType = BattleIntent.getType(intent.type);
-        var logClass = 'intent-message ' + (intent.cssClass || '');
-        var logMessage = '<span class="' + logClass + '">' + enemyName + ' ' + dialogue + '</span>';
-        updateBattleLog(logMessage, null, function() {
-            scheduleTimeout(callback, config.timing.dialogueDuration);
-        });
+        // Wait for dialogue to be read before showing battle log
+        scheduleTimeout(function() {
+            // Log the intent after dialogue delay
+            var intentType = BattleIntent.getType(intent.type);
+            var logClass = 'intent-message ' + (intent.cssClass || '');
+            var logMessage = '<span class="' + logClass + '">' + enemyName + ': "' + dialogue + '"</span>';
+            updateBattleLog(logMessage, null, function() {
+                scheduleTimeout(callback, config.timing.dialogueDuration);
+            });
+        }, config.timing.intentAnnouncementDelay);
     }
 
     /**
@@ -1619,6 +1634,9 @@ var BattleEngine = (function() {
                 player.defending--;
                 if (player.defending <= 0) {
                     messages.push('Defensive stance wore off!');
+                    var cooldown = T && T.battle && T.battle.combat ? (T.battle.combat.defendCooldown || 2) : 2;
+                    player.defendCooldown = cooldown;
+                    player.defendCooldownJustSet = true;
                 }
             }
             scheduleTimeout(function() {
@@ -1692,14 +1710,20 @@ var BattleEngine = (function() {
         // Clear the intent
         BattleIntent.clear(state.turn);
 
-        // Calculate damage
-        var baseDamage;
-        if (typeof skill.damage === 'number') {
-            baseDamage = skill.damage;
-        } else if (style.rollDamage) {
-            baseDamage = style.rollDamage(skill.damage || '2d6');
-        } else {
-            baseDamage = 10;
+        // Calculate damage (handle multi-hit skills)
+        var hits = skill.hits || 1;
+        var baseDamage = 0;
+
+        for (var i = 0; i < hits; i++) {
+            var hitDamage;
+            if (typeof skill.damage === 'number') {
+                hitDamage = skill.damage;
+            } else if (style.rollDamage) {
+                hitDamage = style.rollDamage(skill.damage || '2d6');
+            } else {
+                hitDamage = 10;
+            }
+            baseDamage += hitDamage;
         }
 
         // Decrement defending counter
@@ -1711,22 +1735,23 @@ var BattleEngine = (function() {
 
         var resultMessages = [];
         var skillName = skill.name || 'Special Attack';
+        var isMultiHit = hits > 1;
 
         // Always show what attack was used
-        resultMessages.push(enemyName + ' uses ' + skillName + '!');
+        resultMessages.push(enemyName + ' uses ' + skillName + (isMultiHit ? ' (' + hits + ' hits)!' : '!'));
 
         // Handle QTE outcomes
         if (mods.result === 'parry') {
             // PARRY: Reflect damage, take none
             var counterDice = mods.counterDamageDice || '1d6';
             var counterDamage = style.rollDamage ? style.rollDamage(counterDice) : Math.floor(Math.random() * 6) + 1;
-            resultMessages.push('PARRY! ' + playerName + ' deflects the attack!');
+            resultMessages.push('PARRY! ' + playerName + ' deflects ' + skillName + '!');
             resultMessages.push('<span class="roll-damage-normal">' + counterDamage + ' DAMAGE</span> reflected!');
             BattleCore.damageEnemy(counterDamage, { source: 'parry', type: 'physical' });
             showDamageNumber(counterDamage, 'enemy', 'damage');
         } else if (mods.result === 'dodge') {
             // DODGE: Avoid completely
-            resultMessages.push('DODGE! ' + playerName + ' evades the attack!');
+            resultMessages.push('DODGE! ' + playerName + ' evades ' + skillName + '!');
             showDamageNumber(0, 'player', 'miss');
         } else {
             // CONFUSE/FUMBLE: Take damage (reduced by 50% for defending)
@@ -1747,6 +1772,10 @@ var BattleEngine = (function() {
 
         if (stanceWoreOff) {
             resultMessages.push('Defensive stance wore off!');
+            // Apply cooldown when stance ends
+            var cooldown = T && T.battle && T.battle.combat ? (T.battle.combat.defendCooldown || 2) : 2;
+            player.defendCooldown = cooldown;
+            player.defendCooldownJustSet = true;  // Skip next tick
         }
 
         _log.debug('BattleFacade', 'Result messages:', resultMessages);
@@ -1755,8 +1784,9 @@ var BattleEngine = (function() {
 
         _log.debug('BattleFacade', 'Showing result messages, then finishing turn');
         updateBattleLog(resultMessages.join('<br>'), null, function() {
-            _log.debug('BattleFacade', 'Result shown, calling finishEnemyTurn');
-            finishEnemyTurn(messages, callback);
+            _log.debug('BattleFacade', 'Result shown, calling finishEnemyTurn with skipReattack');
+            // Intent attacks are BIG attacks - skip the "enemy attacks again" logic
+            finishEnemyTurn(messages, callback, { skipReattack: true });
         });
     }
 
@@ -1823,9 +1853,12 @@ var BattleEngine = (function() {
         resultMsgs.push('<span class="roll-damage-normal">' + damage + ' DAMAGE</span>');
         if (wasDefending) {
             resultMsgs.push('Defending reduced the damage!');
-            // Check if stance wore off
+            // Check if stance wore off and apply cooldown
             if (player.defending <= 0) {
                 resultMsgs.push('Defensive stance wore off!');
+                var cooldown = T && T.battle && T.battle.combat ? (T.battle.combat.defendCooldown || 2) : 2;
+                player.defendCooldown = cooldown;
+                player.defendCooldownJustSet = true;
             }
         }
 
@@ -1838,7 +1871,8 @@ var BattleEngine = (function() {
             isCrit: false
         }, function() {
             if (checkEnd()) return;
-            finishEnemyTurn([], callback);
+            // Intent attacks are BIG attacks - skip the "enemy attacks again" logic
+            finishEnemyTurn([], callback, { skipReattack: true });
         });
     }
 
@@ -1871,15 +1905,19 @@ var BattleEngine = (function() {
                 var totalMsg = 'Total: <span class="roll-damage-normal">' + totalDamage + ' DAMAGE</span>';
                 if (wasDefending) {
                     totalMsg += '<br>Defending reduced the damage!';
-                    // Check if stance wore off
+                    // Check if stance wore off and apply cooldown
                     if (player.defending <= 0) {
                         totalMsg += '<br>Defensive stance wore off!';
+                        var cooldown = T && T.battle && T.battle.combat ? (T.battle.combat.defendCooldown || 2) : 2;
+                        player.defendCooldown = cooldown;
+                        player.defendCooldownJustSet = true;
                     }
                 }
                 updateBattleLog(totalMsg, null, function() {
                     updateDisplay();
                     if (checkEnd()) return;
-                    finishEnemyTurn([], callback);
+                    // Intent attacks are BIG attacks - skip the "enemy attacks again" logic
+                    finishEnemyTurn([], callback, { skipReattack: true });
                 });
                 return;
             }
@@ -1946,13 +1984,13 @@ var BattleEngine = (function() {
 
         if (!_hasBattleSummon) {
             _log.warn('BattleEngine', 'BattleSummon module not loaded - cannot summon');
-            finishEnemyTurn([], callback);
+            finishEnemyTurn([], callback, { skipReattack: true });
             return;
         }
 
         if (!summonId) {
             _log.warn('BattleEngine', 'Summon skill has no summonId:', skill);
-            finishEnemyTurn([], callback);
+            finishEnemyTurn([], callback, { skipReattack: true });
             return;
         }
 
@@ -1965,7 +2003,7 @@ var BattleEngine = (function() {
             // Failed to summon (e.g., max summons reached)
             var failMsg = enemyName + ' tries to call for help, but ' + (result.message || 'fails!');
             updateBattleLog(failMsg, null, function() {
-                finishEnemyTurn([], callback);
+                finishEnemyTurn([], callback, { skipReattack: true });
             });
             return;
         }
@@ -1990,7 +2028,8 @@ var BattleEngine = (function() {
         }
 
         updateBattleLog(summonMsgs.join('<br>'), null, function() {
-            finishEnemyTurn([], callback);
+            // Intent-triggered summons - skip the "enemy attacks again" logic
+            finishEnemyTurn([], callback, { skipReattack: true });
         });
     }
 
@@ -2068,7 +2107,7 @@ var BattleEngine = (function() {
                 var message;
                 if (attackResult.hit) {
                     message = action.summon.name + ' attacks and deals ' +
-                        '<span class="battle-number">' + attackResult.damage + ' damage</span>!';
+                        '<span class="roll-damage-normal">' + attackResult.damage + ' DAMAGE</span>!';
                 } else {
                     message = action.summon.name + ' attacks and misses!';
                 }
@@ -2286,6 +2325,10 @@ var BattleEngine = (function() {
             // Show stance wore off if applicable
             if (stanceWoreOff) {
                 defendMessages.push('Defensive stance wore off!');
+                // Apply cooldown when stance ends
+                var cooldown = T && T.battle && T.battle.combat ? (T.battle.combat.defendCooldown || 2) : 2;
+                player.defendCooldown = cooldown;
+                player.defendCooldownJustSet = true;  // Skip next tick
             }
             updateDisplay();
             if (checkEnd()) return;
@@ -2355,6 +2398,10 @@ var BattleEngine = (function() {
         // Show stance wore off message
         if (stanceWoreOff) {
             defendMessages.push('Defensive stance wore off!');
+            // Apply cooldown when stance ends
+            var cooldown = T && T.battle && T.battle.combat ? (T.battle.combat.defendCooldown || 2) : 2;
+            player.defendCooldown = cooldown;
+            player.defendCooldownJustSet = true;  // Skip next tick
         }
 
         // Check if player died (before applying parry damage)
@@ -2590,8 +2637,9 @@ var BattleEngine = (function() {
         finishEnemyTurn(messages, callback);
     }
 
-    function finishEnemyTurn(messages, callback) {
-        _log.debug('BattleFacade', 'finishEnemyTurn called');
+    function finishEnemyTurn(messages, callback, options) {
+        _log.debug('BattleFacade', 'finishEnemyTurn called', options);
+        options = options || {};
 
         // Function to continue after messages are displayed
         function continueAfterMessages() {
@@ -2606,7 +2654,7 @@ var BattleEngine = (function() {
 
             // === SUMMON SYSTEM: Process enemy summon turns ===
             processEnemySummonTurns(function() {
-                continueFinishEnemyTurn(callback);
+                continueFinishEnemyTurn(callback, options);
             });
         }
 
@@ -2623,9 +2671,12 @@ var BattleEngine = (function() {
 
     /**
      * Continue finishing enemy turn after summons have acted
+     * @param {function} callback - Callback when turn ends
+     * @param {Object} options - { skipReattack: boolean } - Skip "enemy attacks again" for intent attacks
      */
-    function continueFinishEnemyTurn(callback) {
-        _log.debug('BattleFacade', 'continueFinishEnemyTurn called');
+    function continueFinishEnemyTurn(callback, options) {
+        options = options || {};
+        _log.debug('BattleFacade', 'continueFinishEnemyTurn called', options);
         // incrementTurn() handles: turn counter++, dialogue cooldown, AND defend cooldown
         // Cooldown ticks once per full turn cycle (enemy action + player action)
         BattleCore.incrementTurn();
@@ -2731,7 +2782,8 @@ var BattleEngine = (function() {
                 }
 
                 // If player is still in defensive stance, enemy attacks again automatically
-                if (state.player.defending && state.player.defending > 0) {
+                // Skip this for intent attacks (skipReattack) - big attacks end the enemy's turn
+                if (!options.skipReattack && state.player.defending && state.player.defending > 0) {
                     _log.debug('BattleFacade', 'Player still defending (' + state.player.defending + ' attacks remaining), enemy attacks again');
                     state._playerStatusResult = null;
                     processEnemyTurn([], callback, { playerAction: 'defending' });
@@ -2743,6 +2795,10 @@ var BattleEngine = (function() {
 
                 BattleCore.setPhase('player');
                 updateDisplay();
+                // Refresh battle choices to show updated cooldowns
+                if (typeof VNEngine !== 'undefined' && VNEngine.refreshBattleChoices) {
+                    VNEngine.refreshBattleChoices();
+                }
 
                 // Clear action lock - player can now act again
                 _actionInProgress = false;
@@ -2766,7 +2822,8 @@ var BattleEngine = (function() {
         }
 
         // If player is still in defensive stance, enemy attacks again automatically
-        if (state.player.defending && state.player.defending > 0) {
+        // Skip this for intent attacks (skipReattack) - big attacks end the enemy's turn
+        if (!options.skipReattack && state.player.defending && state.player.defending > 0) {
             _log.debug('BattleFacade', 'Player still defending (' + state.player.defending + ' attacks remaining), enemy attacks again');
             state._playerStatusResult = null;
             processEnemyTurn([], callback, { playerAction: 'defending' });
@@ -2776,6 +2833,10 @@ var BattleEngine = (function() {
         _log.debug('BattleFacade', 'Setting phase to player, unlocking actions');
         BattleCore.setPhase('player');
         updateDisplay();
+        // Refresh battle choices to show updated cooldowns
+        if (typeof VNEngine !== 'undefined' && VNEngine.refreshBattleChoices) {
+            VNEngine.refreshBattleChoices();
+        }
 
         // Clear action lock - player can now act again
         _actionInProgress = false;

@@ -267,7 +267,7 @@ const enemies = {
         "chance": 0.15,
         "minTurn": 3,
         "cooldown": 5,
-        "prepTurns": 1,
+        "prepTurns": 2,
         "dialogue": "INTERN! Get in here NOW!",
         "executeDialogue": "You wanted to see me, Agnes?",
         "skill": {
@@ -285,9 +285,8 @@ const enemies = {
         "chance": 0.2,
         "minTurn": 2,
         "cooldown": 4,
-        "hpThreshold": 0.7,
         "prepTurns": 1,
-        "dialogue": "I'm preparing your TERMINATION NOTICE!",
+        "dialogue": "I'm preparing your TERMINATION NOTICE! You can never DEFEND against my power!",
         "executeDialogue": "Your employment is TERMINATED!",
         "skill": {
           "name": "Termination Notice",

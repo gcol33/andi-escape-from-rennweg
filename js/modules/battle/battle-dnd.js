@@ -713,7 +713,7 @@ var BattleStyleDnD = (function() {
                     isCrit: attackResult.isCrit
                 };
 
-                messages.push(skill.name + ' hits for <span class="battle-number">' + attackResult.damage + ' damage</span>!');
+                messages.push(skill.name + ' hits for <span class="roll-damage-normal">' + attackResult.damage + ' DAMAGE</span>!');
 
                 if (attackResult.isCrit) {
                     messages.push('Critical hit!');
@@ -754,9 +754,8 @@ var BattleStyleDnD = (function() {
         var duration = config.defendDuration || 2;
         player.defending = duration;
 
-        // Set cooldown (turns before defend can be used again)
-        var cooldown = config.defendCooldown || 5;
-        player.defendCooldown = cooldown;
+        // Note: Cooldown is NOT applied here - it starts when stance ends (after QTE)
+        var cooldown = config.defendCooldown || 2;
 
         // Roll for mana recovery
         var rollResult = rollD20();
@@ -1296,7 +1295,7 @@ var BattleStyleDnD = (function() {
                     type: attackResult.damageType,
                     isCrit: attackResult.isCrit
                 };
-                messages.push(skill.name + ' hits for <span class="battle-number">' + attackResult.damage + ' damage</span>!');
+                messages.push(skill.name + ' hits for <span class="roll-damage-normal">' + attackResult.damage + ' DAMAGE</span>!');
                 if (attackResult.isCrit) messages.push('Critical hit!');
                 BattleCore.playSfx('attack_' + attackResult.damageType);
             }
@@ -1500,9 +1499,11 @@ var BattleStyleDnD = (function() {
                 defendResult: defendMods.result || 'block'
             };
 
-            // Handle defend ending on bad QTE
+            // Handle defend ending on QTE - cooldown starts now
             if (defendMods.defendEnds) {
                 player.defending = 0;
+                player.defendCooldown = config.defendCooldown || 2;
+                player.defendCooldownJustSet = true;  // Skip next tick
                 modifiers.defendBroken = true;
             }
 

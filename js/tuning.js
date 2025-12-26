@@ -183,7 +183,8 @@ const TUNING = {
                 uiTransition: 1500,         // UI fade in/out transitions
                 dialogueBubble: 2500,       // Enemy dialogue bubble duration
                 fadeOut: 300,               // General fade out animation time
-                messageLingerDelay: 2200    // How long battle log messages linger before next message
+                messageLingerDelay: 1200,   // How long battle log messages linger before next message
+                intentAnnouncementDelay: 1200  // Delay after intent dialogue before battle log text
             },
 
             // === Dice Roll Animation ===
@@ -223,8 +224,8 @@ const TUNING = {
             combat: {
                 // Defense
                 defendACBonus: 0,               // AC bonus when defending (removed - can be a skill later)
-                defendDuration: 2,              // How many enemy attacks defensive stance lasts
-                defendCooldown: 5,              // Turns before defend can be used again
+                defendDuration: 1,              // How many enemy attacks defensive stance lasts
+                defendCooldown: 2,              // Turns before defend can be used again
                 defendManaRecoveryMin: 2,       // Min mana on defend
                 defendManaRecoveryMax: 4,       // Max mana on defend
                 defendStaggerReduction: 15,     // Stagger reduced on defend
@@ -435,31 +436,32 @@ const TUNING = {
             },
 
             // DEFEND QTE (enemy attacking while player defends) - NEW FINALIZED SYSTEM
+            // Defensive stance ends after first QTE OR after defendDuration attacks (whichever first)
             defendModifiers: {
                 perfect: {
                     result: 'parry',        // Parry: 0 damage + counter
                     damageReduction: 1.0,   // Full block
                     counterAttack: true,    // Deal counter damage
                     counterDamagePercent: 0.5, // Counter = 50% of blocked damage
-                    defendEnds: false       // Defend persists
+                    defendEnds: true        // Stance ends after QTE
                 },
                 good: {
                     result: 'dodge',        // Dodge: 0 damage
                     damageReduction: 1.0,   // Full dodge
                     counterAttack: false,
-                    defendEnds: false       // Defend persists
+                    defendEnds: true        // Stance ends after QTE
                 },
                 normal: {
                     result: 'block',        // Block: damage halved
                     damageReduction: 0.5,   // 50% reduction
                     counterAttack: false,
-                    defendEnds: false       // Defend persists
+                    defendEnds: true        // Stance ends after QTE
                 },
                 bad: {
                     result: 'fumble',       // Fumbled defense - take full damage + confusion
                     damageReduction: 0,     // Full damage
                     counterAttack: false,
-                    defendEnds: false,      // Defend stance continues (lasts full defendDuration)
+                    defendEnds: true,       // Stance ends after QTE
                     confused: true          // Player gets confused
                 }
             },

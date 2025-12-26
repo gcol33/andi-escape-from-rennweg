@@ -444,6 +444,10 @@ var VNEngine = (function() {
                 // skills are preserved
             }
 
+            // Always clear read history on any reset (so "(read)" indicator doesn't appear)
+            state.readBlocks = {};
+            updateSkipButtonVisibility();
+
             // Reset HP/Mana and battle state
             state.playerHP = null;
             state.playerMaxHP = typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxHP : 20;
@@ -616,6 +620,25 @@ var VNEngine = (function() {
                     var wakeText = 'Your eyes open.';
                     if (flavorText) {
                         wakeText += ' ' + flavorText;
+                    }
+
+                    // If player has skills or key items from a previous run, show a recap
+                    var hasSkills = state.inventory.skills && state.inventory.skills.length > 0;
+                    var hasKeyItems = state.inventory.keyItems && state.inventory.keyItems.length > 0;
+
+                    if (hasSkills || hasKeyItems) {
+                        wakeText += '\n\n';
+                        if (hasSkills) {
+                            var skillList = state.inventory.skills.join(', ');
+                            wakeText += '*You remember what you learned: ' + skillList + '.*';
+                        }
+                        if (hasSkills && hasKeyItems) {
+                            wakeText += '\n';
+                        }
+                        if (hasKeyItems) {
+                            var itemList = state.inventory.keyItems.join(', ');
+                            wakeText += '*You still have: ' + itemList + '.*';
+                        }
                     }
 
                     renderText(wakeText, '', function() {

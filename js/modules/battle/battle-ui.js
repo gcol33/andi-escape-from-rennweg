@@ -1624,10 +1624,13 @@ var BattleUI = (function() {
         var existing = document.getElementById('battle-dialogue');
         if (existing) existing.remove();
 
+        // Highlight action keywords in red (DEFEND, ATTACK, etc.)
+        var highlightedText = text.replace(/\b(DEFEND|ATTACK|HEAL)\b/g, '<span class="dialogue-keyword">$1</span>');
+
         var dialogue = document.createElement('div');
         dialogue.id = 'battle-dialogue';
         dialogue.className = 'battle-dialogue';
-        dialogue.innerHTML = '<div class="dialogue-bubble">' + text + '</div>';
+        dialogue.innerHTML = '<div class="dialogue-bubble">' + highlightedText + '</div>';
 
         elements.container.appendChild(dialogue);
 

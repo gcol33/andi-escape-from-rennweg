@@ -1271,7 +1271,7 @@ var BattleCore = (function() {
                 // Apply damage to enemy
                 var dmgResult = damageEnemy(damageRoll, { source: 'summon', type: move.type || 'physical' });
                 messages.push(summon.icon + ' ' + summon.name + ' uses ' + move.name +
-                    ' for <span class="battle-number">' + dmgResult.damage + ' damage</span>!');
+                    ' for <span class="roll-damage-normal">' + dmgResult.damage + ' DAMAGE</span>!');
 
                 attackResult = { hit: true, damage: dmgResult.damage };
             }
@@ -1469,6 +1469,11 @@ var BattleCore = (function() {
      * Decrement the defend cooldown (called when player takes an action)
      */
     function tickDefendCooldown() {
+        // Skip tick if cooldown was just set this turn (prevents 3→2→1 visual bug)
+        if (state.player.defendCooldownJustSet) {
+            state.player.defendCooldownJustSet = false;
+            return;
+        }
         if (state.player.defendCooldown > 0) {
             state.player.defendCooldown--;
         }

@@ -680,37 +680,12 @@ var BattleDiceUI = (function() {
                 }
             }
 
-            var textNode = document.createTextNode(char);
-            element.appendChild(textNode);
+            element.appendChild(document.createTextNode(char));
             index++;
 
-            // Check for overflow - shift content up ONLY at word boundaries
-            // NEVER split words - if no space found, don't shift
-            if (typeof BattleUtils !== 'undefined') {
-                var rows = BattleUtils.getBattleLogRows();
-                if (rows && rows.row2 && element.parentNode === rows.row2) {
-                    if (BattleUtils.checkBattleLogOverflow(rows)) {
-                        // Get full content INCLUDING the char we just added
-                        var fullContent = element.textContent || '';
-
-                        // Split by spaces to find word boundaries
-                        var words = fullContent.split(' ');
-                        var lastWord = words[words.length - 1];
-
-                        // ONLY shift if we have multiple words AND the last word is not empty
-                        // Never split mid-word - just let it overflow until we hit a space
-                        if (words.length > 1 && lastWord !== '') {
-                            // Keep the last word (which we're currently typing) in element
-                            // Move all previous words to row1
-                            words.pop();
-                            var previousContent = words.join(' ');
-
-                            rows.row1.textContent = previousContent;
-                            element.textContent = lastWord;
-                        }
-                        // If no space found (single word), do nothing - wait for a space
-                    }
-                }
+            // Check for overflow in parent row and shift if needed
+            if (typeof BattleUtils !== 'undefined' && BattleUtils.handleBattleLogOverflow) {
+                BattleUtils.handleBattleLogOverflow();
             }
 
             diceTimeout(type, speed);

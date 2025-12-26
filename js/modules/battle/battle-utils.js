@@ -595,7 +595,8 @@ var BattleUtils = (function() {
     }
 
     /**
-     * Check if row2 has overflowed (content taller than one line).
+     * Check if row2 has overflowed (content exceeds one line).
+     * Checks BOTH vertical overflow (text wrapping) and horizontal overflow (text extending past width).
      * Uses actual DOM measurements. Does NOT modify anything.
      * @param {Object} rows - { row1, row2 } from getBattleLogRows (optional, will fetch if not provided)
      * @returns {boolean} - true if overflow detected
@@ -606,7 +607,13 @@ var BattleUtils = (function() {
             return false;
         }
 
-        // Get computed line height for comparison
+        // Check for horizontal overflow (text extending beyond container width)
+        // This catches cases where text is in a single line that extends past the container
+        if (rows.row2.scrollWidth > rows.row2.clientWidth) {
+            return true;
+        }
+
+        // Check for vertical overflow (text wrapping to multiple lines)
         var style = window.getComputedStyle(rows.row2);
         var lineHeight = parseFloat(style.lineHeight);
         if (isNaN(lineHeight)) {
@@ -621,11 +628,33 @@ var BattleUtils = (function() {
 
     /**
      * Check and handle overflow - shifts rows if overflow detected.
+     * For nested elements (dice UI), scrolls container instead of text manipulation.
+     * For simple text, redistributes between rows.
      * @param {Object} rows - { row1, row2 } from getBattleLogRows (optional, will fetch if not provided)
      * @returns {boolean} - true if a shift occurred
      */
     function handleBattleLogOverflow(rows) {
         rows = rows || getBattleLogRows();
+        if (!rows || !rows.row2) {
+            return false;
+        }
+
+        // Check if row2 has nested elements (dice UI case)
+        var hasNestedElements = rows.row2.querySelector('div, span.roll-result, span.dice-number');
+
+        if (hasNestedElements) {
+            // For nested elements (dice UI), scroll to bottom unconditionally
+            // This ensures newest content is always visible during typewriter animation
+            var content = rows.row2.parentElement; // battle-log-content
+            if (content) {
+                // Force layout recalc before scrolling
+                void content.scrollHeight;
+                content.scrollTop = content.scrollHeight;
+            }
+            return false;
+        }
+
+        // Simple text case - check and shift if overflow
         if (checkBattleLogOverflow(rows)) {
             shiftBattleLogRows(rows);
             return true;
