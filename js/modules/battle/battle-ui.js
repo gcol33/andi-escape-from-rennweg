@@ -2314,7 +2314,7 @@ var BattleUI = (function() {
     function clearAllSummons() {
         // Clean up summon listeners first
         if (typeof ListenerManager !== 'undefined') {
-            ListenerManager.removeByNamespace('battle-summons');
+            ListenerManager.removeAll('battle-summons');
         }
 
         var containers = document.querySelectorAll('.summon-container');

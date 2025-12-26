@@ -23,6 +23,41 @@ var QuizUI = (function() {
         progressText: null    // "Question 1/3" text
     };
 
+    // === Cleanup State ===
+    var cleanup = {
+        answerHandlers: [],   // { element, handler } pairs for answer buttons
+        timeoutIds: []        // Active timeout IDs for cancellation
+    };
+
+    /**
+     * Create a tracked timeout that can be cancelled on cleanup
+     * @param {function} callback - Function to call
+     * @param {number} delay - Delay in ms
+     * @returns {number} Timeout ID
+     */
+    function trackedTimeout(callback, delay) {
+        var id = setTimeout(function() {
+            // Remove from tracking array when executed
+            var idx = cleanup.timeoutIds.indexOf(id);
+            if (idx !== -1) {
+                cleanup.timeoutIds.splice(idx, 1);
+            }
+            callback();
+        }, delay);
+        cleanup.timeoutIds.push(id);
+        return id;
+    }
+
+    /**
+     * Cancel all tracked timeouts
+     */
+    function cancelAllTimeouts() {
+        cleanup.timeoutIds.forEach(function(id) {
+            clearTimeout(id);
+        });
+        cleanup.timeoutIds = [];
+    }
+
     // === Configuration ===
     function getConfig() {
         var T = typeof TUNING !== 'undefined' ? TUNING.quiz : null;
@@ -92,6 +127,9 @@ var QuizUI = (function() {
         answersContainer.className = 'quiz-answers';
         elements.answersContainer = answersContainer;
 
+        // Clear previous answer handlers
+        cleanup.answerHandlers = [];
+
         // Create answer buttons
         data.answers.forEach(function(answer, index) {
             var btn = document.createElement('button');
@@ -104,9 +142,18 @@ var QuizUI = (function() {
                 btn.classList.add('quiz-answer-hint');
             }
 
-            btn.addEventListener('click', function() {
+            // Create handler and track for cleanup
+            var handler = function() {
                 handleAnswerClick(index);
-            });
+            };
+            cleanup.answerHandlers.push({ element: btn, handler: handler });
+
+            // Use ListenerManager if available
+            if (typeof ListenerManager !== 'undefined') {
+                ListenerManager.add(btn, 'click', handler, 'quiz');
+            } else {
+                btn.addEventListener('click', handler);
+            }
 
             answersContainer.appendChild(btn);
         });
@@ -195,7 +242,7 @@ var QuizUI = (function() {
             // Play success sound
             playSfx('success.ogg');
 
-            setTimeout(function() {
+            trackedTimeout(function() {
                 if (elements.quizOverlay) {
                     elements.quizOverlay.classList.remove('quiz-correct-flash');
                 }
@@ -274,7 +321,7 @@ var QuizUI = (function() {
         }
 
         // Clean up after delay
-        setTimeout(function() {
+        trackedTimeout(function() {
             // Remove outro overlay
             Utils.removeElement(document.getElementById('quiz-outro-overlay'));
 
@@ -321,9 +368,32 @@ var QuizUI = (function() {
     }
 
     /**
+     * Clean up event listeners
+     */
+    function cleanupListeners() {
+        // Remove answer button listeners
+        if (typeof ListenerManager !== 'undefined') {
+            ListenerManager.removeAll('quiz');
+        } else {
+            // Manual cleanup
+            cleanup.answerHandlers.forEach(function(entry) {
+                entry.element.removeEventListener('click', entry.handler);
+            });
+        }
+        cleanup.answerHandlers = [];
+    }
+
+    /**
      * Hide and remove quiz UI
      */
     function hide() {
+        // Cancel pending timeouts
+        cancelAllTimeouts();
+
+        // Clean up listeners before removing elements
+        cleanupListeners();
+
+        // Remove DOM elements
         Utils.removeElement(elements.quizOverlay);
 
         elements.quizOverlay = null;
@@ -331,6 +401,15 @@ var QuizUI = (function() {
         elements.answersContainer = null;
         elements.countdown = null;
         elements.progressText = null;
+    }
+
+    /**
+     * Full cleanup - call when quiz module is being destroyed
+     */
+    function destroy() {
+        hide();
+        elements.container = null;
+        _log.debug('QuizUI', 'Destroyed');
     }
 
     /**
@@ -357,7 +436,7 @@ var QuizUI = (function() {
         }
 
         // Call callback after brief delay
-        setTimeout(function() {
+        trackedTimeout(function() {
             if (callback) callback();
         }, 1500);
     }
@@ -373,6 +452,7 @@ var QuizUI = (function() {
     // === Module Export ===
     return {
         init: init,
+        destroy: destroy,
         showQuestion: showQuestion,
         updateCountdown: updateCountdown,
         showAnswerFeedback: showAnswerFeedback,

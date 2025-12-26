@@ -23,6 +23,16 @@ var GameMenu = (function() {
     // State
     var isOpen = false;
     var activeTab = 'items';
+    var initialized = false;
+
+    // Event handler references for cleanup
+    var handlers = {
+        menuBtnClick: null,
+        closeBtnClick: null,
+        overlayClick: null,
+        keydown: null,
+        tabClicks: []
+    };
 
     // Save slot configuration
     var SAVE_SLOTS = [
@@ -36,6 +46,8 @@ var GameMenu = (function() {
      * Initialize the game menu system
      */
     function init() {
+        if (initialized) return;
+
         // Cache DOM elements
         overlay = document.getElementById('game-menu-overlay');
         container = document.getElementById('game-menu-container');
@@ -58,37 +70,114 @@ var GameMenu = (function() {
             save: document.getElementById('tab-save')
         };
 
-        // Bind event listeners
-        if (menuBtn) {
-            menuBtn.addEventListener('click', open);
-        }
-
-        if (closeBtn) {
-            closeBtn.addEventListener('click', close);
-        }
-
-        // Tab switching
-        tabs.forEach(function(tab) {
-            tab.addEventListener('click', function() {
-                switchTab(tab.dataset.tab);
-            });
-        });
-
-        // Close on overlay click (outside container)
-        overlay.addEventListener('click', function(e) {
+        // Create named handler functions for cleanup
+        handlers.menuBtnClick = function() { open(); };
+        handlers.closeBtnClick = function() { close(); };
+        handlers.overlayClick = function(e) {
             if (e.target === overlay) {
                 close();
             }
-        });
-
-        // Close on Escape key
-        document.addEventListener('keydown', function(e) {
+        };
+        handlers.keydown = function(e) {
             if (e.key === 'Escape' && isOpen) {
                 close();
             }
-        });
+        };
 
+        // Bind event listeners (use ListenerManager if available)
+        if (typeof ListenerManager !== 'undefined') {
+            if (menuBtn) {
+                ListenerManager.add(menuBtn, 'click', handlers.menuBtnClick, 'game-menu');
+            }
+            if (closeBtn) {
+                ListenerManager.add(closeBtn, 'click', handlers.closeBtnClick, 'game-menu');
+            }
+            ListenerManager.add(overlay, 'click', handlers.overlayClick, 'game-menu');
+            ListenerManager.add(document, 'keydown', handlers.keydown, 'game-menu');
+
+            // Tab switching
+            tabs.forEach(function(tab) {
+                var handler = function() { switchTab(tab.dataset.tab); };
+                handlers.tabClicks.push({ element: tab, handler: handler });
+                ListenerManager.add(tab, 'click', handler, 'game-menu');
+            });
+        } else {
+            // Fallback to direct addEventListener
+            if (menuBtn) {
+                menuBtn.addEventListener('click', handlers.menuBtnClick);
+            }
+            if (closeBtn) {
+                closeBtn.addEventListener('click', handlers.closeBtnClick);
+            }
+            overlay.addEventListener('click', handlers.overlayClick);
+            document.addEventListener('keydown', handlers.keydown);
+
+            // Tab switching
+            tabs.forEach(function(tab) {
+                var handler = function() { switchTab(tab.dataset.tab); };
+                handlers.tabClicks.push({ element: tab, handler: handler });
+                tab.addEventListener('click', handler);
+            });
+        }
+
+        initialized = true;
         console.log('GameMenu initialized');
+    }
+
+    /**
+     * Clean up event listeners and reset state
+     */
+    function destroy() {
+        if (!initialized) return;
+
+        // Close menu if open
+        if (isOpen) {
+            close();
+        }
+
+        // Remove event listeners
+        if (typeof ListenerManager !== 'undefined') {
+            ListenerManager.removeAll('game-menu');
+        } else {
+            // Manual cleanup
+            if (menuBtn && handlers.menuBtnClick) {
+                menuBtn.removeEventListener('click', handlers.menuBtnClick);
+            }
+            if (closeBtn && handlers.closeBtnClick) {
+                closeBtn.removeEventListener('click', handlers.closeBtnClick);
+            }
+            if (overlay && handlers.overlayClick) {
+                overlay.removeEventListener('click', handlers.overlayClick);
+            }
+            if (handlers.keydown) {
+                document.removeEventListener('keydown', handlers.keydown);
+            }
+            handlers.tabClicks.forEach(function(entry) {
+                entry.element.removeEventListener('click', entry.handler);
+            });
+        }
+
+        // Reset handler references
+        handlers = {
+            menuBtnClick: null,
+            closeBtnClick: null,
+            overlayClick: null,
+            keydown: null,
+            tabClicks: []
+        };
+
+        // Reset state
+        overlay = null;
+        container = null;
+        tabs = null;
+        tabPanels = {};
+        menuBtn = null;
+        closeBtn = null;
+        isOpen = false;
+        activeTab = 'items';
+        initialized = false;
+
+        console.log('GameMenu destroyed');
     }
 
     /**
@@ -681,6 +770,7 @@ var GameMenu = (function() {
     // Public API
     return {
         init: init,
+        destroy: destroy,
         open: open,
         close: close,
         toggle: toggle,
