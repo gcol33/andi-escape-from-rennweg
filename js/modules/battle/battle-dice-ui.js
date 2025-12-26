@@ -200,32 +200,40 @@ var BattleDiceUI = (function() {
         // Don't skip if clicking on a button
         if (event && event.target && event.target.tagName === 'BUTTON') return;
 
-        // First, try to skip typewriter (BattleUI)
+        var skippedSomething = false;
+
+        // Skip BattleUI typewriter if running
         if (typeof BattleUI !== 'undefined' && BattleUI.isTyping && BattleUI.isTyping()) {
             BattleUI.skipTypewriter();
-            return;
+            skippedSomething = true;
         }
 
-        // Then, skip dice roll animations (includes typewriter)
+        // Also skip dice roll animations (includes dice typewriter)
         if (activeAnimations.length > 0) {
             skipAllAnimations();
+            skippedSomething = true;
         }
     }
 
     // Global keydown handler for skipping (spacebar)
     function handleGlobalKeydown(event) {
         if (event.code === 'Space') {
-            // First, try to skip typewriter
+            var skippedSomething = false;
+
+            // Skip BattleUI typewriter if running
             if (typeof BattleUI !== 'undefined' && BattleUI.isTyping && BattleUI.isTyping()) {
-                event.preventDefault();
                 BattleUI.skipTypewriter();
-                return;
+                skippedSomething = true;
             }
 
-            // Then, skip dice roll animations
+            // Also skip dice roll animations
             if (activeAnimations.length > 0) {
-                event.preventDefault();
                 skipAllAnimations();
+                skippedSomething = true;
+            }
+
+            if (skippedSomething) {
+                event.preventDefault();
             }
         }
     }
