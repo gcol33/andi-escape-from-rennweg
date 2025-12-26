@@ -25,7 +25,9 @@ var BattleDiceUI = (function() {
         spinInterval: T ? T.battle.dice.spinInterval : 70,
         lingerDelay: T ? T.battle.dice.lingerDelay : 500,
         typewriterSpeed: T ? T.battle.dice.typewriterSpeed : 25,
-        scrollThreshold: T ? T.ui.battleLogScrollThreshold : 5  // px hidden before auto-scroll
+        scrollThreshold: T ? T.ui.battleLogScrollThreshold : 5,  // px hidden before auto-scroll
+        // 'stepwise' = skip one animation at a time, 'instant' = skip entire chain
+        skipMode: T && T.battle.dice.skipMode ? T.battle.dice.skipMode : 'stepwise'
     };
 
     // =========================================================================
@@ -62,8 +64,8 @@ var BattleDiceUI = (function() {
 
     // Track active animations for click-to-skip
     var activeAnimations = [];
-    // When true, new animations render instantly (set during skip cascade)
-    var skipMode = false;
+    // When true (and config.skipMode === 'instant'), new animations render instantly
+    var instantSkipActive = false;
 
     // Pausable timer instance (uses shared PausableTimer module)
     var _timer = null;
@@ -103,11 +105,10 @@ var BattleDiceUI = (function() {
     /**
      * Pausable setTimeout for dice animations
      * Delegates to shared PausableTimer module
-     * In skipMode, executes immediately with no delay
      */
     function diceTimeout(callback, delay) {
-        // In skip mode, execute immediately
-        if (skipMode) {
+        // In instant skip mode, execute immediately
+        if (instantSkipActive) {
             callback();
             return null;
         }
@@ -143,17 +144,20 @@ var BattleDiceUI = (function() {
 
     /**
      * Skip all active roll animations - instantly reveal results
-     * Sets skipMode so new animations created by callbacks also render instantly
+     * In 'instant' mode, also skips all subsequent animations in the chain
      */
     function skipAllAnimations() {
-        skipMode = true;
+        // In instant mode, set flag so new animations also skip
+        if (config.skipMode === 'instant') {
+            instantSkipActive = true;
+        }
         var animations = activeAnimations.slice(); // Copy to avoid mutation during iteration
         for (var i = 0; i < animations.length; i++) {
             if (animations[i].skip) {
                 animations[i].skip();
             }
         }
-        skipMode = false;
+        instantSkipActive = false;
     }
 
     // Global click handler for skipping typewriter and rolls
@@ -268,16 +272,15 @@ var BattleDiceUI = (function() {
     function animateRoll(element, rollResult, callback, rollType) {
         var sides = rollResult.sides || 20;
 
-        // Determine roll type - default based on die size if not specified
+        // Determine roll type for coloring
         var type = rollType || rollResult.rollType || (sides === 20 ? 'hit' : 'damage');
 
-        // If in skip mode, show final result instantly
-        if (skipMode) {
+        // In instant skip mode, show final result immediately
+        if (instantSkipActive) {
             element.textContent = rollResult.roll;
             element.classList.add('dice-final');
             var resultCategory = getResultCategory(rollResult);
-            var rollClass = getRollClass(type, resultCategory);
-            element.classList.add(rollClass);
+            element.classList.add(getRollClass(type, resultCategory));
             if (callback) callback();
             return;
         }
@@ -377,8 +380,8 @@ var BattleDiceUI = (function() {
         var isDisadvantage = rollResult.disadvantage;
         hitInfo = hitInfo || {};
 
-        // If in skip mode, show only the winning die instantly
-        if (skipMode) {
+        // In instant skip mode, show only the winning die instantly
+        if (instantSkipActive) {
             var winnerDie = document.createElement('strong');
             winnerDie.className = 'dice-number dice-final';
             winnerDie.textContent = rollResult.roll;
@@ -523,8 +526,8 @@ var BattleDiceUI = (function() {
     function animateRollGrey(element, rollResult, callback) {
         var sides = rollResult.sides || 20;
 
-        // If in skip mode, show final value instantly
-        if (skipMode) {
+        // In instant skip mode, show final value instantly
+        if (instantSkipActive) {
             element.textContent = rollResult.roll;
             element.classList.add('dice-final');
             element.classList.add(getRollClass('neutral', 'normal'));
@@ -716,8 +719,8 @@ var BattleDiceUI = (function() {
      * Simple typewriter with click-to-skip support
      */
     function typewriterSimple(element, text, callback) {
-        // If in skip mode, render instantly and return
-        if (skipMode) {
+        // In instant skip mode, render instantly and return
+        if (instantSkipActive) {
             element.insertAdjacentHTML('beforeend', text);
             if (typeof BattleUtils !== 'undefined' && BattleUtils.handleBattleLogOverflow) {
                 BattleUtils.handleBattleLogOverflow();

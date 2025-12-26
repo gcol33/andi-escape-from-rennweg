@@ -192,7 +192,10 @@ const TUNING = {
                 spinDuration: 1800,         // Total dice spin animation time
                 spinInterval: 70,           // Time between number changes
                 lingerDelay: 500,           // Pause after reveal before continuing
-                typewriterSpeed: 25         // Characters per second in battle log
+                typewriterSpeed: 25,        // Characters per second in battle log
+                // Skip mode: 'stepwise' = skip one animation at a time (text→roll→text)
+                //            'instant' = skip entire animation chain at once
+                skipMode: 'stepwise'
             },
 
             // === Visual Effects ===
