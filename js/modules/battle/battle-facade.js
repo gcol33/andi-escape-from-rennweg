@@ -2315,6 +2315,7 @@ var BattleEngine = (function() {
         var state = BattleCore.getState();
         var enemyName = state.enemy.name || 'Enemy';
         var pendingParryDamage = null; // Store parry counter for deferred application
+        var pendingPlayerDamage = null; // Store fumble damage for deferred application
 
         // Check if enemy fumbled (rolled natural 1) - this takes priority over QTE outcome
         var enemyFumbled = attackResult && attackResult.attackResult && attackResult.attackResult.isFumble;
@@ -2379,10 +2380,12 @@ var BattleEngine = (function() {
             BattleCore.playSfx('defend');
             // Don't apply pending damage - dodge avoids it
         } else {
-            // CONFUSE or FUMBLE: Take full damage - apply pending damage now
-            applyPendingEffects(attackResult, 'player');
+            // CONFUSE or FUMBLE: Store damage for deferred application (sync with HP bar update)
             if (damage > 0) {
-                showDamageNumber(damage, 'player', 'damage');
+                pendingPlayerDamage = {
+                    attackResult: attackResult,
+                    damage: damage
+                };
             }
 
             // Add attack messages (but filter out the "uses X" message since we showed it before QTE)
@@ -2415,6 +2418,11 @@ var BattleEngine = (function() {
                 finishEnemyTurn([], callback);
             }, {
                 onTextComplete: function() {
+                    // Apply fumble damage when text finishes (sync with HP bar update)
+                    if (pendingPlayerDamage !== null) {
+                        applyPendingEffects(pendingPlayerDamage.attackResult, 'player');
+                        showDamageNumber(pendingPlayerDamage.damage, 'player', 'damage');
+                    }
                     // Apply parry counter damage when text finishes (before linger)
                     if (pendingParryDamage !== null) {
                         BattleCore.damageEnemy(pendingParryDamage, { source: 'parry', type: 'physical' });
@@ -2424,7 +2432,12 @@ var BattleEngine = (function() {
                 }
             });
         } else {
-            // No messages but still might have parry damage
+            // No messages but still might have pending damage
+            if (pendingPlayerDamage !== null) {
+                applyPendingEffects(pendingPlayerDamage.attackResult, 'player');
+                showDamageNumber(pendingPlayerDamage.damage, 'player', 'damage');
+                updateDisplay();
+            }
             if (pendingParryDamage !== null) {
                 BattleCore.damageEnemy(pendingParryDamage, { source: 'parry', type: 'physical' });
                 showDamageNumber(pendingParryDamage, 'enemy', 'damage');
@@ -3507,14 +3520,23 @@ var BattleEngine = (function() {
     }
 
     function hideTextBox() {
-        if (elements.textBox) {
+        // Use BattleUI.hideTextBox() to add 'battle-mode' class for proper hiding
+        if (_hasBattleUI && BattleUI.hideTextBox) {
+            BattleUI.hideTextBox();
+        } else if (elements.textBox) {
             elements.textBox.style.display = 'none';
+            elements.textBox.classList.add('battle-mode');
         }
     }
 
     function showTextBox() {
-        if (elements.textBox) {
+        // Must use BattleUI.showTextBox() to remove 'battle-mode' class
+        // The class has 'display: none !important' which overrides inline styles
+        if (_hasBattleUI && BattleUI.showTextBox) {
+            BattleUI.showTextBox();
+        } else if (elements.textBox) {
             elements.textBox.style.display = '';
+            elements.textBox.classList.remove('battle-mode');
         }
     }
 
