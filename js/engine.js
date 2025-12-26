@@ -3021,6 +3021,9 @@ var VNEngine = (function() {
         // Clean up resources from previous scene
         cleanupSceneResources();
 
+        // Hide "(read)" indicator from previous scene
+        showAlreadyReadIndicator(false);
+
         // Hide ending overlay if visible
         var endingOverlay = document.getElementById('ending-overlay');
         if (endingOverlay) {
