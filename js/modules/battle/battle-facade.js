@@ -596,6 +596,11 @@ var BattleEngine = (function() {
         // Make sure we're not paused from a previous battle
         unpause();
 
+        // Rebind QTE inputs (cleanup unbinds them at battle end)
+        if (typeof QTEEngine !== 'undefined' && QTEEngine.bindInputs) {
+            QTEEngine.bindInputs();
+        }
+
         // Determine style from config
         var styleName = battleConfig.style || 'dnd';
         setStyle(styleName);
