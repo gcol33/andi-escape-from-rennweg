@@ -1121,7 +1121,8 @@ var BattleEngine = (function() {
                 }
             }, function() {
                 // Continue after linger completes
-                finishPlayerActionAfterRoll(actionType, result, messages, callback);
+                // Pass effectsApplied: true since heal was already applied in onTextComplete
+                finishPlayerActionAfterRoll(actionType, result, messages, callback, { effectsApplied: true });
             });
         }
         // Buff skill with pending status (no heal/damage roll)
@@ -1131,7 +1132,8 @@ var BattleEngine = (function() {
             if (statusMessages.length > 0) {
                 updateBattleLog(statusMessages.join('<br>'), null, function() {
                     // Continue after linger completes
-                    finishPlayerActionAfterRoll(actionType, result, [], callback);
+                    // Pass effectsApplied: true since status was already applied in onTextComplete
+                    finishPlayerActionAfterRoll(actionType, result, [], callback, { effectsApplied: true });
                 }, {
                     onTextComplete: function() {
                         // Apply pending status when text finishes (before linger)
