@@ -447,6 +447,11 @@ var VNEngine = (function() {
                 // readBlocks are preserved (so "(read)" shows on revisited scenes)
             }
 
+            // Clear "new this run" tracking (always cleared on any reset)
+            if (typeof inventoryManager !== 'undefined' && inventoryManager.clearNewThisRun) {
+                inventoryManager.clearNewThisRun();
+            }
+
             updateSkipButtonVisibility();
 
             // Reset HP/Mana and battle state
@@ -4020,6 +4025,13 @@ var VNEngine = (function() {
                 elements.choicesContainer.appendChild(button);
             });
         } else {
+            // Check if MemoryModule wants to handle scene completion (for memory chains)
+            if (typeof MemoryModule !== 'undefined' && MemoryModule.onSceneComplete) {
+                if (MemoryModule.onSceneComplete(state.currentSceneId)) {
+                    return; // MemoryModule handled it
+                }
+            }
+
             // Game over state - show ending overlay with restart button
             var endingOverlay = document.getElementById('ending-overlay');
             if (endingOverlay) {
@@ -4034,8 +4046,9 @@ var VNEngine = (function() {
                 restartButton.className = 'restart-button';
                 restartButton.textContent = 'Play Again';
                 restartButton.onclick = function() {
-                    // Go to wake_up scene - reset happens there via action
-                    loadScene('wake_up');
+                    // Go to memory_start to play memory recap, then wake_up
+                    // memory_start triggers memory_chain which shows memories of items obtained this run
+                    loadScene('memory_start');
                 };
                 endingOverlay.appendChild(restartButton);
 

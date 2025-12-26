@@ -46,6 +46,10 @@ var initialState = {
             consumables: {},
             skills: []          // Learned skills (persist across soft reset)
         },
+        newThisRun: {           // Tracks items/skills obtained this run (cleared on soft reset)
+            keyItems: [],
+            skills: []
+        },
         hp: null,
         maxHp: null,
         mana: null,

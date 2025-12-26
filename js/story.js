@@ -45,6 +45,17 @@ const story = {
       }
     ]
   },
+  "memory_floristic_knowledge": {
+    "id": "memory_floristic_knowledge",
+    "bg": "black.svg",
+    "music": "lost.mp3",
+    "textBlocks": [
+      "Names you never forgot...",
+      "Siegrun's quiz. The vegetation surveys, the fieldwork, the countless species you identified together.",
+      "The knowledge is part of you now. It always was."
+    ],
+    "choices": []
+  },
   "dnd_group": {
     "id": "dnd_group",
     "bg": "back_stairwell_dim.jpg",
@@ -213,6 +224,28 @@ const story = {
     ],
     "choices": []
   },
+  "memory_charcoal": {
+    "id": "memory_charcoal",
+    "bg": "black.svg",
+    "music": "lost.mp3",
+    "textBlocks": [
+      "Fuel for the flames...",
+      "Premium BBQ charcoal from Billa. The promise of a proper rooftop gathering, waiting to be fulfilled.",
+      "The embers will glow again."
+    ],
+    "choices": []
+  },
+  "memory_beer": {
+    "id": "memory_beer",
+    "bg": "black.svg",
+    "music": "lost.mp3",
+    "textBlocks": [
+      "The golden reward...",
+      "Beer, hard-won from the D&D group. The taste of victory in a bottle.",
+      "Some things are worth fighting for."
+    ],
+    "choices": []
+  },
   "STEFAN": {
     "id": "STEFAN",
     "bg": "stairwell_landing.jpg",
@@ -355,6 +388,17 @@ const story = {
         ]
       }
     ]
+  },
+  "memory_smile": {
+    "id": "memory_smile",
+    "bg": "black.svg",
+    "music": "lost.mp3",
+    "textBlocks": [
+      "A ripple of connection...",
+      "Adrian's lesson. When you smile, people smile back. Then you feel like smiling more.",
+      "A positive feedback mechanism. You remember how."
+    ],
+    "choices": []
   },
   "FRANZ2_tarot": {
     "id": "FRANZ2_tarot",
@@ -779,6 +823,17 @@ const story = {
       }
     ]
   },
+  "memory_magnifying_glass": {
+    "id": "memory_magnifying_glass",
+    "bg": "black.svg",
+    "music": "lost.mp3",
+    "textBlocks": [
+      "To see what others miss...",
+      "The magnifying glass. Cool metal against your palm. A lens that reveals the hidden details of the world.",
+      "You earned this. It stays with you."
+    ],
+    "choices": []
+  },
   "STEFAN_defeat": {
     "id": "STEFAN_defeat",
     "bg": "stairwell_landing.jpg",
@@ -973,6 +1028,17 @@ const story = {
       }
     ]
   },
+  "memory_rooftop_discovery": {
+    "id": "memory_rooftop_discovery",
+    "bg": "black.svg",
+    "music": "lost.mp3",
+    "textBlocks": [
+      "A glimpse through the trees...",
+      "The moment with Jen and the squirrel. Looking up, you saw people gathered on the rooftop. Laughter drifting down.",
+      "You know where to go now."
+    ],
+    "choices": []
+  },
   "bbq3": {
     "id": "bbq3",
     "bg": "rooftop.jpg",
@@ -984,6 +1050,17 @@ const story = {
       "The evening unfolds. Jen regales the group with elaborate squirrel theories. Lisa brings up \"the mouse incident\" and everyone groans. Wolfgang corners anyone who'll listen with plans for FloraWiki 3.0. Adrian's smile never wavers. Agnes is actually laughing at something Michi said. Even Franz approaches, nodding at your grillwork. \"Not bad for a computer person.\"",
       "As the fairy lights flicker on, you look around. These people made your time here special. Taught you things no university course ever could. This isn't goodbye. It's \"see you around.\" Vienna is a small city, academia an even smaller world. And somewhere in a basement far below, the ghost of Hercules finally rests in peace.",
       "Thank you for playing! And thank you, Andi, for everything."
+    ],
+    "choices": []
+  },
+  "memory_lighter": {
+    "id": "memory_lighter",
+    "bg": "black.svg",
+    "music": "lost.mp3",
+    "textBlocks": [
+      "A spark in the darkness...",
+      "The lighter. \"CATS Forever\" engraved on its side. A going-away gift from the smokers' corner crew.",
+      "The flame remembers you."
     ],
     "choices": []
   },
@@ -1008,6 +1085,17 @@ const story = {
         "target": "FRANZ_1"
       }
     ]
+  },
+  "memory_flora_book": {
+    "id": "memory_flora_book",
+    "bg": "black.svg",
+    "music": "lost.mp3",
+    "textBlocks": [
+      "The weight of knowledge in your hands...",
+      "Moritz's flora book. Annotations in at least three languages. Pressed specimens tucked between pages.",
+      "You remember now. This is yours to keep."
+    ],
+    "choices": []
   },
   "bbq2": {
     "id": "bbq2",
@@ -1138,6 +1226,19 @@ const story = {
         "target": "ending_early_exit"
       }
     ]
+  },
+  "memory_start": {
+    "id": "memory_start",
+    "bg": "black.svg",
+    "music": "lost.mp3",
+    "actions": [
+      {
+        "type": "memory_chain",
+        "fallback": "wake_up"
+      }
+    ],
+    "textBlocks": [],
+    "choices": []
   },
   "floor0": {
     "id": "floor0",
@@ -1314,6 +1415,17 @@ const story = {
         ]
       }
     ]
+  },
+  "memory_coffee_mug": {
+    "id": "memory_coffee_mug",
+    "bg": "black.svg",
+    "music": "lost.mp3",
+    "textBlocks": [
+      "Warmth in your hands...",
+      "The coffee mug. Grabbed from the kitchen chaos. A small comfort in a strange day.",
+      "Sometimes the simple things matter most."
+    ],
+    "choices": []
   },
   "ADRIAN": {
     "id": "ADRIAN",

@@ -38,10 +38,21 @@ InventoryManagerClass.prototype.constructor = InventoryManagerClass;
 InventoryManagerClass.prototype.addKeyItem = function(item) {
     if (!item) return;
 
+    var isNew = !this.hasKeyItem(item);
+
     this.setState('player.inventory.keyItems', function(items) {
         if (items.indexOf(item) !== -1) return items;
         return items.concat([item]);
     });
+
+    // Track as new this run if it was actually added
+    if (isNew) {
+        this.setState('player.newThisRun.keyItems', function(items) {
+            items = items || [];
+            if (items.indexOf(item) !== -1) return items;
+            return items.concat([item]);
+        });
+    }
 
     this.emit(InventoryEvents.ITEM_ADDED, { item: item, type: 'key' });
     this.debug('Added key item:', item);
@@ -98,10 +109,21 @@ InventoryManagerClass.prototype.getKeyItems = function() {
 InventoryManagerClass.prototype.addSkill = function(skill) {
     if (!skill) return;
 
+    var isNew = !this.hasSkill(skill);
+
     this.setState('player.inventory.skills', function(skills) {
         if (skills.indexOf(skill) !== -1) return skills;
         return skills.concat([skill]);
     });
+
+    // Track as new this run if it was actually added
+    if (isNew) {
+        this.setState('player.newThisRun.skills', function(skills) {
+            skills = skills || [];
+            if (skills.indexOf(skill) !== -1) return skills;
+            return skills.concat([skill]);
+        });
+    }
 
     this.emit(InventoryEvents.ITEM_ADDED, { item: skill, type: 'skill' });
     this.debug('Added skill:', skill);
@@ -368,6 +390,40 @@ InventoryManagerClass.prototype.clearEverything = function() {
         };
     });
     this.debug('Cleared everything including skills');
+};
+
+// =========================================================================
+// NEW THIS RUN TRACKING
+// =========================================================================
+
+/**
+ * Get all items and skills obtained this run
+ * @returns {Object} { keyItems: string[], skills: string[] }
+ */
+InventoryManagerClass.prototype.getNewThisRun = function() {
+    return {
+        keyItems: this.getState('player.newThisRun.keyItems') || [],
+        skills: this.getState('player.newThisRun.skills') || []
+    };
+};
+
+/**
+ * Check if anything new was obtained this run
+ * @returns {boolean}
+ */
+InventoryManagerClass.prototype.hasNewThisRun = function() {
+    var newItems = this.getNewThisRun();
+    return newItems.keyItems.length > 0 || newItems.skills.length > 0;
+};
+
+/**
+ * Clear the "new this run" tracking (called on soft reset)
+ */
+InventoryManagerClass.prototype.clearNewThisRun = function() {
+    this.setState('player.newThisRun', function() {
+        return { keyItems: [], skills: [] };
+    });
+    this.debug('Cleared newThisRun tracking');
 };
 
 // Singleton instance
