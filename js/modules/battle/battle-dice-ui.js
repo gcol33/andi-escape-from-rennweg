@@ -145,18 +145,38 @@ var BattleDiceUI = (function() {
         }
     }
 
-    // Global click handler for skipping rolls
-    function handleGlobalClick() {
+    // Global click handler for skipping typewriter and rolls
+    function handleGlobalClick(event) {
+        // Don't skip if clicking on a button
+        if (event && event.target && event.target.tagName === 'BUTTON') return;
+
+        // First, try to skip typewriter (BattleUI)
+        if (typeof BattleUI !== 'undefined' && BattleUI.isTyping && BattleUI.isTyping()) {
+            BattleUI.skipTypewriter();
+            return;
+        }
+
+        // Then, skip dice roll animations (includes typewriter)
         if (activeAnimations.length > 0) {
             skipAllAnimations();
         }
     }
 
-    // Global keydown handler for skipping rolls (spacebar)
+    // Global keydown handler for skipping (spacebar)
     function handleGlobalKeydown(event) {
-        if (event.code === 'Space' && activeAnimations.length > 0) {
-            event.preventDefault();
-            skipAllAnimations();
+        if (event.code === 'Space') {
+            // First, try to skip typewriter
+            if (typeof BattleUI !== 'undefined' && BattleUI.isTyping && BattleUI.isTyping()) {
+                event.preventDefault();
+                BattleUI.skipTypewriter();
+                return;
+            }
+
+            // Then, skip dice roll animations
+            if (activeAnimations.length > 0) {
+                event.preventDefault();
+                skipAllAnimations();
+            }
         }
     }
 
@@ -633,16 +653,48 @@ var BattleDiceUI = (function() {
     }
 
     /**
-     * Simple typewriter fallback (no row system)
+     * Simple typewriter with click-to-skip support
      */
     function typewriterSimple(element, text, callback) {
+        // Ensure click listeners are active BEFORE we start
+        ensureClickListener();
+
         var speed = config.typewriterSpeed;
         var index = 0;
         var isTag = false;
         var tagBuffer = '';
+        var completed = false;
+
+        // Create animation entry for click-to-skip
+        var animation = {
+            skip: function() {
+                if (completed) return;
+                completed = true;
+                // Remove from active animations
+                var idx = activeAnimations.indexOf(animation);
+                if (idx !== -1) activeAnimations.splice(idx, 1);
+                // Render remaining text instantly
+                var remaining = text.substring(index);
+                if (remaining) {
+                    element.insertAdjacentHTML('beforeend', remaining);
+                    // Handle overflow after inserting all text
+                    if (typeof BattleUtils !== 'undefined' && BattleUtils.handleBattleLogOverflow) {
+                        BattleUtils.handleBattleLogOverflow();
+                    }
+                }
+                if (callback) callback();
+            }
+        };
+        activeAnimations.push(animation);
 
         function type() {
+            if (completed) return;
+
             if (index >= text.length) {
+                completed = true;
+                // Remove from active animations
+                var idx = activeAnimations.indexOf(animation);
+                if (idx !== -1) activeAnimations.splice(idx, 1);
                 if (callback) callback();
                 return;
             }
@@ -1746,6 +1798,9 @@ var BattleDiceUI = (function() {
         // Pause system
         pause: pauseDice,
         unpause: unpauseDice,
+
+        // Click-to-skip setup (call when typewriter starts to enable skipping)
+        ensureClickListener: ensureClickListener,
 
         // Cleanup (call on battle end to prevent memory leaks)
         cleanup: cleanup

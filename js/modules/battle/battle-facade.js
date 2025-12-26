@@ -2104,10 +2104,10 @@ var BattleEngine = (function() {
                 }
 
                 // Build combined message (no dice roll animation for summons - too long)
+                // Styled damage - typewriter preserves roll-* class spans via placeholder system
                 var message;
                 if (attackResult.hit) {
-                    message = action.summon.name + ' attacks and deals ' +
-                        '<span class="roll-damage-normal">' + attackResult.damage + ' DAMAGE</span>!';
+                    message = action.summon.name + ' attacks for <span class="roll-damage-normal">' + attackResult.damage + ' DAMAGE!</span>';
                 } else {
                     message = action.summon.name + ' attacks and misses!';
                 }

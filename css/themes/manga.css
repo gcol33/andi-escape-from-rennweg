@@ -39,7 +39,7 @@
     --roll-color-damage: #ff4444;
     --roll-color-heal: #4caf50;
     --roll-color-status: var(--manga-mid-gray);
-    --roll-color-neutral: var(--manga-gray);
+    --roll-color-neutral: var(--manga-mid-gray);  /* Lighter for visibility on dark panel */
     --emphasis-crit-glow: #ffd700;
     --emphasis-fail-glow: var(--manga-blood);
 

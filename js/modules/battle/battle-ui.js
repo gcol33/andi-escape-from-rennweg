@@ -105,7 +105,10 @@ var BattleUI = (function() {
         timeouts: [],
         damageQueue: [],
         statUpdateQueue: [],  // Queue for HP/mana/limit bar updates
-        onComplete: null
+        onComplete: null,
+        // Click-to-skip state
+        typewriterSkipData: null,  // { segments, styledElements, rows, callback }
+        isTyping: false
     };
 
     // === Initialization ===
@@ -811,6 +814,91 @@ var BattleUI = (function() {
         animationState.onComplete = null;
         animationState.onTextComplete = null;
         animationState.active = false;
+        animationState.typewriterSkipData = null;
+        animationState.isTyping = false;
+    }
+
+    /**
+     * Skip typewriter animation - instantly render remaining text
+     * @returns {boolean} True if typewriter was skipped, false if nothing to skip
+     */
+    function skipTypewriter() {
+        if (!animationState.isTyping || !animationState.typewriterSkipData) {
+            return false;
+        }
+
+        var skipData = animationState.typewriterSkipData;
+        var rows = skipData.rows;
+        var segments = skipData.segments;
+        var styledElements = skipData.styledElements;
+        var callback = skipData.callback;
+
+        // Clear pending timeouts
+        animationState.timeouts.forEach(function(t) { clearTimeout(t); });
+        animationState.timeouts = [];
+
+        // Re-verify rows are valid
+        if (!rows || !rows.row2 || !rows.row2.parentNode) {
+            rows = BattleUtils.getBattleLogRows();
+        }
+
+        if (rows) {
+            // Render all remaining segments instantly
+            // Clear row2 and rebuild with complete text
+            rows.row2.innerHTML = '';
+
+            // Get all text for row2 (last segment after any shifts)
+            // For simplicity, render last segment only (previous segments already shifted)
+            var lastSegment = segments[segments.length - 1] || '';
+
+            // Replace placeholders with styled spans
+            var html = lastSegment.replace(/\x00STYLED(\d+)\x00/g, function(match, index) {
+                var styled = styledElements[parseInt(index)];
+                if (styled) {
+                    return '<span class="' + styled.className + '">' + styled.content + '</span>';
+                }
+                return '';
+            });
+
+            rows.row2.innerHTML = html;
+
+            // If multiple segments, put earlier ones in row1
+            if (segments.length > 1) {
+                var prevSegment = segments[segments.length - 2] || '';
+                var prevHtml = prevSegment.replace(/\x00STYLED(\d+)\x00/g, function(match, index) {
+                    var styled = styledElements[parseInt(index)];
+                    if (styled) {
+                        return '<span class="' + styled.className + '">' + styled.content + '</span>';
+                    }
+                    return '';
+                });
+                rows.row1.innerHTML = prevHtml;
+            }
+
+            // Handle overflow after rendering (in case single segment is too long)
+            if (BattleUtils.checkBattleLogOverflow && BattleUtils.checkBattleLogOverflow(rows)) {
+                // Split row2 at last space if possible
+                var fullText = rows.row2.textContent || '';
+                var lastSpaceIndex = fullText.lastIndexOf(' ');
+                if (lastSpaceIndex > 0) {
+                    var beforeSpace = fullText.substring(0, lastSpaceIndex);
+                    var afterSpace = fullText.substring(lastSpaceIndex + 1);
+                    rows.row1.textContent = beforeSpace;
+                    rows.row2.textContent = afterSpace;
+                }
+            }
+        }
+
+        // Clear skip data
+        animationState.typewriterSkipData = null;
+        animationState.isTyping = false;
+
+        // Call callback to complete the animation
+        if (callback) {
+            callback();
+        }
+
+        return true;
     }
 
     /**
@@ -983,29 +1071,60 @@ var BattleUI = (function() {
     function typewriterEffect(container, text, callback) {
         var speed = config.dice.typewriterSpeed;
 
+        // Ensure click listener is active for click-to-skip
+        if (typeof BattleDiceUI !== 'undefined' && BattleDiceUI.ensureClickListener) {
+            BattleDiceUI.ensureClickListener();
+        }
+
         // Get the row containers using shared utility
         var rows = BattleUtils.getBattleLogRows();
 
         // If no row system, fall back to simple typing
         if (!rows) {
-            console.warn('[Typewriter] No rows found! Falling back to simple typing.');
             typewriterEffectSimple(container, text, callback);
             return;
         }
-        console.log('[Typewriter] Using row system, text length:', text.length);
 
         // Convert <br> tags to newlines before stripping other HTML
         var textWithNewlines = text.replace(/<br\s*\/?>/gi, '\n');
-        // Strip remaining HTML
-        var plainText = textWithNewlines.replace(/<[^>]*>/g, '');
+
+        // Preserve styled elements by converting them to placeholders
+        // Matches <span class="roll-...">content</span> and stores for later restoration
+        var styledElements = [];
+        var textWithPlaceholders = textWithNewlines.replace(
+            /<span\s+class="(roll-[^"]+)"[^>]*>([^<]+)<\/span>/gi,
+            function(match, className, content) {
+                var placeholder = '\x00STYLED' + styledElements.length + '\x00';
+                styledElements.push({ className: className, content: content });
+                return placeholder;
+            }
+        );
+
+        // Strip remaining HTML (but placeholders are preserved)
+        var plainText = textWithPlaceholders.replace(/<[^>]*>/g, '');
 
         // Split by newlines to get segments
         var segments = plainText.split('\n').filter(function(s) { return s.trim(); });
         var segmentIndex = 0;
         var charIndex = 0;
 
+        // Store skip data for click-to-skip
+        animationState.isTyping = true;
+        animationState.typewriterSkipData = {
+            segments: segments,
+            styledElements: styledElements,
+            rows: rows,
+            callback: function() {
+                animationState.isTyping = false;
+                animationState.typewriterSkipData = null;
+                if (callback) callback();
+            }
+        };
+
         function renderNextChar() {
             if (segmentIndex >= segments.length) {
+                animationState.isTyping = false;
+                animationState.typewriterSkipData = null;
                 if (callback) callback();
                 return;
             }
@@ -1014,7 +1133,6 @@ var BattleUI = (function() {
             if (!rows || !rows.row2 || !rows.row2.parentNode) {
                 rows = BattleUtils.getBattleLogRows();
                 if (!rows) {
-                    console.warn('[Typewriter] Rows became invalid, falling back to simple typing');
                     typewriterEffectSimple(container, segments.slice(segmentIndex).join(' '), callback);
                     return;
                 }
@@ -1035,6 +1153,27 @@ var BattleUI = (function() {
             }
 
             var char = currentSegment[charIndex];
+
+            // Handle styled element placeholders (inserted as complete styled spans)
+            if (char === '\x00') {
+                // Find the end of the placeholder
+                var placeholderEnd = currentSegment.indexOf('\x00', charIndex + 1);
+                if (placeholderEnd !== -1) {
+                    var placeholder = currentSegment.substring(charIndex, placeholderEnd + 1);
+                    var match = placeholder.match(/\x00STYLED(\d+)\x00/);
+                    if (match && styledElements[parseInt(match[1])]) {
+                        var styled = styledElements[parseInt(match[1])];
+                        var styledSpan = document.createElement('span');
+                        styledSpan.className = styled.className;
+                        styledSpan.textContent = styled.content;
+                        rows.row2.appendChild(styledSpan);
+                        charIndex = placeholderEnd + 1;
+                        var t = setTimeout(renderNextChar, 1000 / speed);
+                        animationState.timeouts.push(t);
+                        return;
+                    }
+                }
+            }
 
             // Handle surrogate pairs (emoji, etc.)
             if (char.charCodeAt(0) >= 0xD800 && char.charCodeAt(0) <= 0xDBFF &&
@@ -2321,6 +2460,10 @@ var BattleUI = (function() {
         animateDiceRoll: animateDiceRoll,
         scrollToBottomIfNeeded: scrollToBottomIfNeeded,
         typewriterEffect: typewriterEffect,
+        skipTypewriter: skipTypewriter,
+        isTyping: function() {
+            return animationState.isTyping;
+        },
 
         // Fixed row log system
         getActiveLogRow: getActiveLogRow,

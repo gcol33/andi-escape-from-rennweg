@@ -373,7 +373,8 @@ var BattleSummon = (function() {
         summon.isLowHp = summon.hp <= summon.maxHp * 0.3;
 
         var killed = summon.hp <= 0;
-        var message = summon.name + ' takes ' + actualDamage + ' damage!';
+        // Styled damage - typewriter preserves roll-* class spans via placeholder system
+        var message = summon.name + ' takes <span class="roll-damage-normal">' + actualDamage + ' DAMAGE!</span>';
 
         if (killed) {
             var dismissResult = dismiss(uid, 'killed');

@@ -1270,8 +1270,8 @@ var BattleCore = (function() {
 
                 // Apply damage to enemy
                 var dmgResult = damageEnemy(damageRoll, { source: 'summon', type: move.type || 'physical' });
-                messages.push(summon.icon + ' ' + summon.name + ' uses ' + move.name +
-                    ' for <span class="roll-damage-normal">' + dmgResult.damage + ' DAMAGE</span>!');
+                // Styled damage - typewriter preserves roll-* class spans via placeholder system
+                messages.push(summon.icon + ' ' + summon.name + ' uses ' + move.name + ' for <span class="roll-damage-normal">' + dmgResult.damage + ' DAMAGE!</span>');
 
                 attackResult = { hit: true, damage: dmgResult.damage };
             }
