@@ -200,40 +200,47 @@ var BattleDiceUI = (function() {
         // Don't skip if clicking on a button
         if (event && event.target && event.target.tagName === 'BUTTON') return;
 
-        var skippedSomething = false;
+        // Capture what's currently running BEFORE any skipping
+        // (skipping one might start another via callbacks)
+        var battleUITyping = typeof BattleUI !== 'undefined' && BattleUI.isTyping && BattleUI.isTyping();
+        var diceAnimationsToSkip = activeAnimations.slice();
 
-        // Skip BattleUI typewriter if running
-        if (typeof BattleUI !== 'undefined' && BattleUI.isTyping && BattleUI.isTyping()) {
+        // Skip BattleUI typewriter if it was running
+        if (battleUITyping) {
             BattleUI.skipTypewriter();
-            skippedSomething = true;
         }
 
-        // Also skip dice roll animations (includes dice typewriter)
-        if (activeAnimations.length > 0) {
-            skipAllAnimations();
-            skippedSomething = true;
+        // Skip dice animations that were running (not new ones started by callbacks)
+        for (var i = 0; i < diceAnimationsToSkip.length; i++) {
+            if (diceAnimationsToSkip[i].skip) {
+                diceAnimationsToSkip[i].skip();
+            }
         }
     }
 
     // Global keydown handler for skipping (spacebar)
     function handleGlobalKeydown(event) {
         if (event.code === 'Space') {
-            var skippedSomething = false;
+            // Capture what's currently running BEFORE any skipping
+            var battleUITyping = typeof BattleUI !== 'undefined' && BattleUI.isTyping && BattleUI.isTyping();
+            var diceAnimationsToSkip = activeAnimations.slice();
 
-            // Skip BattleUI typewriter if running
-            if (typeof BattleUI !== 'undefined' && BattleUI.isTyping && BattleUI.isTyping()) {
+            if (!battleUITyping && diceAnimationsToSkip.length === 0) {
+                return; // Nothing to skip
+            }
+
+            event.preventDefault();
+
+            // Skip BattleUI typewriter if it was running
+            if (battleUITyping) {
                 BattleUI.skipTypewriter();
-                skippedSomething = true;
             }
 
-            // Also skip dice roll animations
-            if (activeAnimations.length > 0) {
-                skipAllAnimations();
-                skippedSomething = true;
-            }
-
-            if (skippedSomething) {
-                event.preventDefault();
+            // Skip dice animations that were running (not new ones started by callbacks)
+            for (var i = 0; i < diceAnimationsToSkip.length; i++) {
+                if (diceAnimationsToSkip[i].skip) {
+                    diceAnimationsToSkip[i].skip();
+                }
             }
         }
     }
