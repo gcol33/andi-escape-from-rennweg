@@ -3276,7 +3276,11 @@ var VNEngine = (function() {
         state.isEndingScene = isEnding;
 
         // Add random flavor text if scene has random_flavor array
-        if (scene.random_flavor && scene.random_flavor.length > 0) {
+        // Skip if scene has wake_sequence action - that action handles flavor itself
+        var hasWakeSequence = scene.actions && scene.actions.some(function(a) {
+            return a.type === 'wake_sequence';
+        });
+        if (scene.random_flavor && scene.random_flavor.length > 0 && !hasWakeSequence) {
             var flavorText = Utils.pickRandom(scene.random_flavor);
             state.processedTextBlocks.push(flavorText);
         }
