@@ -650,11 +650,8 @@ var BattleCore = (function() {
      * @returns {boolean} True if status should apply
      */
     function shouldApplyStatus(chance) {
-        // Dev mode: guarantee all status effects
-        if (guaranteeStatusCallback && guaranteeStatusCallback()) {
-            return true;
-        }
-        return Math.random() < chance;
+        // Always apply status effects (100% chance)
+        return true;
     }
 
     /**

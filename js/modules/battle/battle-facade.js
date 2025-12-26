@@ -578,6 +578,9 @@ var BattleEngine = (function() {
     function start(battleConfig, sceneId) {
         _log.debug('BattleEngine', 'start() called', { battleConfig: battleConfig, sceneId: sceneId });
 
+        // Reset battle ending flag for new battle
+        _battleEnding = false;
+
         // Reset display state tracking from previous battles
         prevDisplayState = {
             playerHP: null,
@@ -744,6 +747,9 @@ var BattleEngine = (function() {
      * Reset battle state
      */
     function reset() {
+        // Reset battle ending flag
+        _battleEnding = false;
+
         // Clear all pending timeouts to prevent callbacks after reset
         clearAllScheduledTimeouts();
 
@@ -814,12 +820,23 @@ var BattleEngine = (function() {
         showTextBox();
     }
 
+    // Track if battle end has already been triggered
+    var _battleEnding = false;
+
     /**
      * Check if battle has ended
+     * ROBUST: Only triggers end sequence once, even if called multiple times
      */
     function checkEnd() {
+        // Prevent multiple end triggers
+        if (_battleEnding) {
+            return true;  // Already ending
+        }
+
         var result = BattleCore.checkBattleEnd();
         if (result && result.ended) {
+            _battleEnding = true;  // Lock to prevent duplicate triggers
+
             // Trigger dialogue
             var dialogueType = result.result === 'win' ? 'victory' : 'defeat';
             var line = BattleCore.triggerDialogue(dialogueType);
@@ -3471,6 +3488,10 @@ var BattleEngine = (function() {
 
             // Show damage floating number
             showDamageNumber(attackResult.damage, target, damageType);
+
+            // ROBUST: Check for battle end immediately after damage
+            // This ensures we catch deaths even if callback chains break
+            checkEnd();
         } else {
             // Show miss
             showDamageNumber(0, target, 'miss');
@@ -3565,6 +3586,9 @@ var BattleEngine = (function() {
                 type: result.pendingCounter.type
             });
         }
+
+        // ROBUST: Check for battle end immediately after any damage
+        checkEnd();
     }
 
     /**
@@ -3598,6 +3622,10 @@ var BattleEngine = (function() {
             }
             showDamageNumber(damage, target, 'damage');
             updateDisplay();
+
+            // ROBUST: Check for battle end immediately after damage
+            if (checkEnd()) return;
+
             if (callback) callback();
         });
     }

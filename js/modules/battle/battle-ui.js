@@ -95,6 +95,9 @@ var BattleUI = (function() {
         limitBar: null,
         limitText: null,
         terrainIndicator: null,
+        battleLogContent: null,
+        battleLogRow1: null,
+        battleLogRow2: null,
         battleLog: null,
         battleChoices: null
     };
@@ -374,7 +377,9 @@ var BattleUI = (function() {
     }
 
     function hideUI() {
-        if (elements.battleUI) elements.battleUI.style.display = 'none';
+        // Query DOM directly - cached reference may be null after cleanup()
+        var battleUI = document.getElementById('battle-ui');
+        if (battleUI) battleUI.style.display = 'none';
     }
 
     function destroyUI() {
@@ -1167,6 +1172,33 @@ var BattleUI = (function() {
                         styledSpan.className = styled.className;
                         styledSpan.textContent = styled.content;
                         rows.row2.appendChild(styledSpan);
+
+                        // ROBUST: Check for overflow after inserting styled element
+                        // Styled spans can be large and cause overflow
+                        try {
+                            if (BattleUtils.checkBattleLogOverflow(rows)) {
+                                // Move all text content to row1, keep styled span in row2
+                                var textNodes = [];
+                                var nodesToRemove = [];
+                                rows.row2.childNodes.forEach(function(node) {
+                                    if (node !== styledSpan) {
+                                        if (node.nodeType === Node.TEXT_NODE) {
+                                            textNodes.push(node.textContent);
+                                        } else if (node.nodeType === Node.ELEMENT_NODE) {
+                                            textNodes.push(node.outerHTML);
+                                        }
+                                        nodesToRemove.push(node);
+                                    }
+                                });
+                                nodesToRemove.forEach(function(node) { node.remove(); });
+                                if (textNodes.length > 0) {
+                                    rows.row1.innerHTML = textNodes.join('');
+                                }
+                            }
+                        } catch (e) {
+                            console.error('[Typewriter] Styled overflow error:', e);
+                        }
+
                         charIndex = placeholderEnd + 1;
                         var t = setTimeout(renderNextChar, 1000 / speed);
                         animationState.timeouts.push(t);
@@ -2151,8 +2183,8 @@ var BattleUI = (function() {
 
         container.appendChild(spriteWrapper);
 
-        // Add click handler for selection
-        container.addEventListener('click', function() {
+        // Add click handler for selection (use ListenerManager if available)
+        var clickHandler = function() {
             if (container.classList.contains('summon-targetable')) {
                 // Dispatch custom event for target selection
                 var event = new CustomEvent('summon-selected', {
@@ -2160,7 +2192,13 @@ var BattleUI = (function() {
                 });
                 document.dispatchEvent(event);
             }
-        });
+        };
+
+        if (typeof ListenerManager !== 'undefined') {
+            ListenerManager.add(container, 'click', clickHandler, 'battle-summons');
+        } else {
+            container.addEventListener('click', clickHandler);
+        }
 
         // Summons always go to their respective slots (aligned with stats panels)
         // CSS handles orientation: vertical stack in landscape, horizontal in portrait
@@ -2274,6 +2312,11 @@ var BattleUI = (function() {
      * Clear all summon sprites from the battlefield
      */
     function clearAllSummons() {
+        // Clean up summon listeners first
+        if (typeof ListenerManager !== 'undefined') {
+            ListenerManager.removeByNamespace('battle-summons');
+        }
+
         var containers = document.querySelectorAll('.summon-container');
         containers.forEach(function(container) {
             Utils.removeElement(container);
