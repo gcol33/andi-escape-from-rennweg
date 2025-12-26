@@ -427,7 +427,7 @@ var VNEngine = (function() {
 
             // Skills and key items persist across soft reset (New Game+ style)
             // Consumables are cleared on soft reset
-            // Full reset clears everything including skills, key items, quiz progress
+            // Full reset clears everything including skills, key items, quiz progress, read history
             if (fullReset) {
                 state.inventory = { keyItems: [], consumables: {}, skills: [] };
                 if (typeof flagManager !== 'undefined') {
@@ -437,15 +437,16 @@ var VNEngine = (function() {
                 if (typeof QuizEngine !== 'undefined' && QuizEngine.clearSeenAnswers) {
                     QuizEngine.clearSeenAnswers();
                 }
+                // Clear read history on full reset only
+                state.readBlocks = {};
             } else {
                 // Keep skills and key items, clear only consumables
                 state.inventory.consumables = {};
                 // keyItems are preserved
                 // skills are preserved
+                // readBlocks are preserved (so "(read)" shows on revisited scenes)
             }
 
-            // Always clear read history on any reset (so "(read)" indicator doesn't appear)
-            state.readBlocks = {};
             updateSkipButtonVisibility();
 
             // Reset HP/Mana and battle state
@@ -3541,12 +3542,17 @@ var VNEngine = (function() {
         // Convert markdown bold (**text**) to HTML <strong>
         var formattedText = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 
+        // Skip read tracking for wake_up scene (respawn screen never shows "(read)")
+        var isRespawnScreen = state.currentSceneId === 'wake_up';
+
         // Check if this block was already read
         var blockKey = state.currentSceneId + ':' + state.currentBlockIndex;
-        var alreadyRead = state.readBlocks[blockKey];
+        var alreadyRead = isRespawnScreen ? false : state.readBlocks[blockKey];
 
-        // Mark block as read
-        state.readBlocks[blockKey] = true;
+        // Mark block as read (but not for respawn screen)
+        if (!isRespawnScreen) {
+            state.readBlocks[blockKey] = true;
+        }
 
         // Update skip button visibility
         updateSkipButtonVisibility();
