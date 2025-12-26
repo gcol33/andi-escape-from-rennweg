@@ -105,6 +105,7 @@ var BattleDiceUI = (function() {
     /**
      * Pausable setTimeout for dice animations
      * Delegates to shared PausableTimer module
+     * Registers as skippable animation so clicks can skip delays
      */
     function diceTimeout(callback, delay) {
         // In instant skip mode, execute immediately
@@ -112,12 +113,46 @@ var BattleDiceUI = (function() {
             callback();
             return null;
         }
+
+        var completed = false;
+        var timerId = null;
+
+        // Wrapper that marks as complete and removes from active
+        function executeCallback() {
+            if (completed) return;
+            completed = true;
+            // Remove from active animations
+            var idx = activeAnimations.indexOf(animation);
+            if (idx !== -1) activeAnimations.splice(idx, 1);
+            callback();
+        }
+
+        // Register as skippable animation
+        var animation = {
+            skip: function() {
+                if (completed) return;
+                // Cancel the timer
+                var timer = getTimer();
+                if (timer && timerId) {
+                    timer.cancel(timerId);
+                } else if (timerId) {
+                    clearTimeout(timerId);
+                }
+                // Execute immediately
+                executeCallback();
+            }
+        };
+        activeAnimations.push(animation);
+
+        // Schedule the timeout
         var timer = getTimer();
         if (timer) {
-            return timer.schedule(callback, delay);
+            timerId = timer.schedule(executeCallback, delay);
+        } else {
+            timerId = setTimeout(executeCallback, delay);
         }
-        // Fallback if PausableTimer not available
-        return setTimeout(callback, delay);
+
+        return timerId;
     }
 
     /**
