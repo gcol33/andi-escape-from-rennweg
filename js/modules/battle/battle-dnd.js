@@ -1098,9 +1098,10 @@ var BattleStyleDnD = (function() {
                     messages.push(attackResult.statusResult.message);
                 }
 
-                // Counter attack from perfect dodge - also defer
+                // Counter attack from perfect parry (legacy path - QTE-based parries handled in battle-facade)
                 if (qteResult && qteResult.counterAttack) {
-                    var counterDamage = Math.floor(attackResult.damage * 0.5);
+                    var counterPercent = qteResult.counterDamagePercent || 0.5;
+                    var counterDamage = Math.floor(attackResult.damage * counterPercent);
                     pendingCounter = {
                         amount: counterDamage,
                         source: 'counter',

@@ -437,12 +437,18 @@ const TUNING = {
 
             // DEFEND QTE (enemy attacking while player defends) - NEW FINALIZED SYSTEM
             // Defensive stance ends after first QTE OR after defendDuration attacks (whichever first)
+            // Parry model: how counter damage is calculated on perfect parry
+            // 'fixed' = current behavior: deal counterDamagePercent of blocked damage
+            // 'reflect' = roll attack with advantage; on hit, deal full player damage
+            parryModel: 'fixed',
+
             defendModifiers: {
                 perfect: {
                     result: 'parry',        // Parry: 0 damage + counter
                     damageReduction: 1.0,   // Full block
                     counterAttack: true,    // Deal counter damage
-                    counterDamagePercent: 0.5, // Counter = 50% of blocked damage
+                    counterDamagePercent: 0.5, // Counter = 50% of blocked damage (used by legacy path)
+                    counterDamageDice: '1d5', // Counter damage dice (used by 'fixed' model)
                     defendEnds: true        // Stance ends after QTE
                 },
                 good: {

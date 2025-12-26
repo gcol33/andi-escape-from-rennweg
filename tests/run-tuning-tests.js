@@ -44,6 +44,8 @@ var path = require('path');
 // Load TUNING first
 var tuningCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'tuning.js'), 'utf8');
 eval(tuningCode);
+// Access TUNING via window since const is block-scoped in eval
+var TUNING = global.window.TUNING;
 
 // Load BattleUI helper modules (optional, may not work without full DOM)
 try {

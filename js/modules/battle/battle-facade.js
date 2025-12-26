@@ -2353,20 +2353,140 @@ var BattleEngine = (function() {
 
         // Handle defend outcomes
         if (mods.result === 'parry') {
-            // PARRY: Reflect damage back, take no damage
-            var counterDice = mods.counterDamageDice || '1d5';
-            var counterDamage = style.rollDamage ? style.rollDamage(counterDice) : Math.floor(Math.random() * 5) + 1;
-            // Store for deferred application (damage applied after message shown)
-            pendingParryDamage = counterDamage;
-            defendMessages.push('PARRY! ' + playerName + ' reflects <span class="roll-damage-normal">' + counterDamage + ' DAMAGE</span>!');
-            // Add flavored parry text
-            var parryFlavor = getDefendFlavorText('parry');
-            if (parryFlavor) {
-                defendMessages.push('<em>' + parryFlavor + '</em>');
+            // Check which parry model to use
+            var parryModel = T && T.qte && T.qte.parryModel ? T.qte.parryModel : 'fixed';
+
+            if (parryModel === 'reflect') {
+                // REFLECT MODEL: Roll attack with advantage against enemy
+                BattleCore.playSfx('defend');
+
+                // Roll d20 with advantage
+                var rollResult = BattleDice.rollWithAdvantage();
+                var roll = rollResult.roll;
+                var isCrit = rollResult.isCrit;
+                var isFumble = rollResult.isFumble;
+
+                // Get player attack bonus
+                var attackModifiers = [];
+                var baseAttackBonus = player.attackBonus || 0;
+                if (baseAttackBonus !== 0) {
+                    attackModifiers.push({ value: baseAttackBonus, source: 'ATK' });
+                }
+                var attackBonus = baseAttackBonus;
+                var attackTotal = isFumble ? 1 : roll + attackBonus;
+
+                // Get enemy AC
+                var enemyAC = state.enemy.ac || 10;
+
+                // Determine hit (crits always hit, fumbles always miss)
+                var counterHit = false;
+                if (isCrit) {
+                    counterHit = true;
+                } else if (isFumble) {
+                    counterHit = false;
+                } else {
+                    counterHit = attackTotal >= enemyAC;
+                }
+
+                // Roll damage if hit
+                var counterDamage = 0;
+                var baseDamageRoll = 0;
+                var damageModifiers = [];
+                var isMinDamage = false;
+                var isMaxDamage = false;
+
+                if (counterHit) {
+                    // Get player damage dice
+                    var damageDice = player.damage || '1d6';
+                    var damageRollResult;
+                    if (typeof BattleDice !== 'undefined' && BattleDice.rollDamageDetailed) {
+                        damageRollResult = BattleDice.rollDamageDetailed(damageDice);
+                    } else {
+                        damageRollResult = { total: style.rollDamage ? style.rollDamage(damageDice) : Math.floor(Math.random() * 6) + 1 };
+                    }
+                    baseDamageRoll = damageRollResult.total;
+                    counterDamage = baseDamageRoll;
+                    isMinDamage = damageRollResult.isMin || false;
+                    isMaxDamage = damageRollResult.isMax || false;
+
+                    // Apply crit multiplier
+                    if (isCrit) {
+                        var critMult = T && T.battle && T.battle.combat ? T.battle.combat.critMultiplier || 2 : 2;
+                        damageModifiers.push({ value: critMult, source: 'CRIT', isMultiplier: true });
+                        counterDamage = Math.floor(counterDamage * critMult);
+                    }
+                }
+
+                // Build attackResult object for showAttackRoll
+                var counterAttackResult = {
+                    roll: roll,
+                    rolls: rollResult.rolls,
+                    hasAdvantage: true,
+                    hasDisadvantage: false,
+                    isCrit: isCrit,
+                    isFumble: isFumble,
+                    attackTotal: attackTotal,
+                    attackModifiers: attackModifiers,
+                    defenderAC: enemyAC,
+                    hit: counterHit,
+                    baseDamageRoll: baseDamageRoll,
+                    damage: counterDamage,
+                    damageModifiers: damageModifiers,
+                    isMinDamage: isMinDamage,
+                    isMaxDamage: isMaxDamage
+                };
+
+                // Show parry message first
+                var parryMessage = 'PARRY! ' + playerName + ' counter-attacks!';
+                var parryFlavor = getDefendFlavorText('parry');
+                if (parryFlavor) {
+                    parryMessage += '<br><em>' + parryFlavor + '</em>';
+                }
+
+                // Add stance wore off message
+                if (stanceWoreOff) {
+                    parryMessage += '<br>Defensive stance wore off!';
+                    var cooldown = T && T.battle && T.battle.combat ? (T.battle.combat.defendCooldown || 2) : 2;
+                    player.defendCooldown = cooldown;
+                    player.defendCooldownJustSet = true;
+                }
+
+                updateBattleLog(parryMessage, null, function() {
+                    // Show counter-attack roll with dice animation
+                    showAttackRoll(playerName, counterAttackResult, true, function() {
+                        // Apply damage after animation
+                        if (counterHit && counterDamage > 0) {
+                            BattleCore.damageEnemy(counterDamage, { source: 'parry', type: 'physical', isCrit: isCrit });
+                            showDamageNumber(counterDamage, 'enemy', isCrit ? 'crit' : 'damage');
+                        } else {
+                            showDamageNumber(0, 'enemy', 'miss');
+                        }
+                        updateDisplay();
+                        if (checkEnd()) return;
+                        finishEnemyTurn([], callback);
+                    }, {
+                        onTextComplete: function() {
+                            // Effects applied after dice animation in the callback above
+                        }
+                    });
+                });
+                return; // Early return - flow handled by callbacks
+            } else {
+                // FIXED MODEL: Roll counterDamageDice (original behavior)
+                var counterDice = mods.counterDamageDice || (T && T.qte && T.qte.defendModifiers && T.qte.defendModifiers.perfect && T.qte.defendModifiers.perfect.counterDamageDice) || '1d5';
+                var counterDamage = style.rollDamage ? style.rollDamage(counterDice) : Math.floor(Math.random() * 5) + 1;
+                // Store for deferred application (damage applied after message shown)
+                pendingParryDamage = counterDamage;
+                defendMessages.push('PARRY! ' + playerName + ' reflects <span class="roll-damage-normal">' + counterDamage + ' DAMAGE</span>!');
+                // Add flavored parry text
+                var parryFlavor = getDefendFlavorText('parry');
+                if (parryFlavor) {
+                    defendMessages.push('<em>' + parryFlavor + '</em>');
+                }
+                // Play parry SFX
+                BattleCore.playSfx('defend');
+                // Don't apply pending damage - parry blocks it
             }
-            // Play parry SFX
-            BattleCore.playSfx('defend');
-            // Don't apply pending damage - parry blocks it
         } else if (mods.result === 'dodge') {
             // DODGE: No damage taken
             defendMessages.push('DODGE! ' + playerName + ' avoids the attack!');
