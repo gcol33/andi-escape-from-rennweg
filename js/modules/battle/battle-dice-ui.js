@@ -62,6 +62,8 @@ var BattleDiceUI = (function() {
 
     // Track active animations for click-to-skip
     var activeAnimations = [];
+    // When true, new animations render instantly (set during skip cascade)
+    var skipMode = false;
 
     // Pausable timer instance (uses shared PausableTimer module)
     var _timer = null;
@@ -101,8 +103,14 @@ var BattleDiceUI = (function() {
     /**
      * Pausable setTimeout for dice animations
      * Delegates to shared PausableTimer module
+     * In skipMode, executes immediately with no delay
      */
     function diceTimeout(callback, delay) {
+        // In skip mode, execute immediately
+        if (skipMode) {
+            callback();
+            return null;
+        }
         var timer = getTimer();
         if (timer) {
             return timer.schedule(callback, delay);
@@ -135,14 +143,17 @@ var BattleDiceUI = (function() {
 
     /**
      * Skip all active roll animations - instantly reveal results
+     * Sets skipMode so new animations created by callbacks also render instantly
      */
     function skipAllAnimations() {
+        skipMode = true;
         var animations = activeAnimations.slice(); // Copy to avoid mutation during iteration
         for (var i = 0; i < animations.length; i++) {
             if (animations[i].skip) {
                 animations[i].skip();
             }
         }
+        skipMode = false;
     }
 
     // Global click handler for skipping typewriter and rolls
@@ -255,14 +266,26 @@ var BattleDiceUI = (function() {
      * @param {string} rollType - Optional override: 'hit', 'damage', 'heal', 'status', 'neutral'
      */
     function animateRoll(element, rollResult, callback, rollType) {
-        var duration = config.spinDuration;
-        var interval = config.spinInterval;
-        var elapsed = 0;
         var sides = rollResult.sides || 20;
-        var finished = false;
 
         // Determine roll type - default based on die size if not specified
         var type = rollType || rollResult.rollType || (sides === 20 ? 'hit' : 'damage');
+
+        // If in skip mode, show final result instantly
+        if (skipMode) {
+            element.textContent = rollResult.roll;
+            element.classList.add('dice-final');
+            var resultCategory = getResultCategory(rollResult);
+            var rollClass = getRollClass(type, resultCategory);
+            element.classList.add(rollClass);
+            if (callback) callback();
+            return;
+        }
+
+        var duration = config.spinDuration;
+        var interval = config.spinInterval;
+        var elapsed = 0;
+        var finished = false;
 
         // Ensure click listener is set up
         ensureClickListener();
@@ -353,6 +376,33 @@ var BattleDiceUI = (function() {
     function animateAdvantageRoll(container, rollResult, callback, hitInfo) {
         var isDisadvantage = rollResult.disadvantage;
         hitInfo = hitInfo || {};
+
+        // If in skip mode, show only the winning die instantly
+        if (skipMode) {
+            var winnerDie = document.createElement('strong');
+            winnerDie.className = 'dice-number dice-final';
+            winnerDie.textContent = rollResult.roll;
+
+            // Determine color based on hit/miss result
+            var rollType, resultCategory;
+            if (rollResult.isCrit) {
+                rollType = 'hit';
+                resultCategory = 'crit';
+            } else if (rollResult.isFumble) {
+                rollType = 'neutral';
+                resultCategory = 'fail';
+            } else if (hitInfo && hitInfo.hit) {
+                rollType = 'hit';
+                resultCategory = 'normal';
+            } else {
+                rollType = 'neutral';
+                resultCategory = 'normal';
+            }
+            winnerDie.classList.add(getRollClass(rollType, resultCategory));
+            container.appendChild(winnerDie);
+            if (callback) callback(winnerDie);
+            return;
+        }
 
         // Create two dice elements - both start grey
         // Use <strong> to match normal dice behavior
@@ -471,10 +521,20 @@ var BattleDiceUI = (function() {
      * @param {function} callback - Called when done
      */
     function animateRollGrey(element, rollResult, callback) {
+        var sides = rollResult.sides || 20;
+
+        // If in skip mode, show final value instantly
+        if (skipMode) {
+            element.textContent = rollResult.roll;
+            element.classList.add('dice-final');
+            element.classList.add(getRollClass('neutral', 'normal'));
+            if (callback) callback();
+            return;
+        }
+
         var duration = config.spinDuration;
         var interval = config.spinInterval;
         var elapsed = 0;
-        var sides = rollResult.sides || 20;
         var finished = false;
 
         // Ensure click listener is set up
@@ -656,6 +716,16 @@ var BattleDiceUI = (function() {
      * Simple typewriter with click-to-skip support
      */
     function typewriterSimple(element, text, callback) {
+        // If in skip mode, render instantly and return
+        if (skipMode) {
+            element.insertAdjacentHTML('beforeend', text);
+            if (typeof BattleUtils !== 'undefined' && BattleUtils.handleBattleLogOverflow) {
+                BattleUtils.handleBattleLogOverflow();
+            }
+            if (callback) callback();
+            return;
+        }
+
         // Ensure click listeners are active BEFORE we start
         ensureClickListener();
 
