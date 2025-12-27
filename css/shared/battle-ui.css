@@ -347,6 +347,110 @@
                 0 0 25px rgba(255, 215, 0, 0.5);
 }
 
+/* === Memory Overlay Styles === */
+
+/* Full-screen memory overlay - similar to tarot hint screen */
+.memory-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 100;
+    padding: 20px;
+    box-sizing: border-box;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.5s ease-in;
+}
+
+.memory-overlay.visible {
+    opacity: 1;
+}
+
+/* "Obtained..." label */
+.memory-obtained {
+    font-size: 0.9rem;
+    font-family: inherit;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-bottom: 0.5rem;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+
+.memory-overlay.visible .memory-obtained {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Item name - prominent display */
+.memory-item-name {
+    font-size: 1.8rem;
+    font-family: inherit;
+    font-weight: bold;
+    color: var(--btn-color, #ffd700);
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+    margin-bottom: 2rem;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.4s ease-out 0.2s, transform 0.4s ease-out 0.2s;
+}
+
+.memory-overlay.visible .memory-item-name {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Memory text - typewriter container */
+.memory-text {
+    font-size: var(--base-font-size, 1rem);
+    font-family: inherit;
+    font-style: italic;
+    color: var(--text-color, #b8a9c9);
+    line-height: 1.8;
+    text-align: center;
+    max-width: 80%;
+    margin-bottom: 2rem;
+    min-height: 3em;
+}
+
+/* Typewriter characters */
+.memory-text .memory-char {
+    opacity: 0;
+    transition: opacity 0.03s ease-in;
+}
+
+.memory-text .memory-char.visible {
+    opacity: 1;
+}
+
+/* Click hint */
+.memory-click-hint {
+    font-size: 0.85rem;
+    font-family: inherit;
+    color: rgba(255, 255, 255, 0.4);
+    opacity: 0;
+    transition: opacity 0.4s ease-out;
+    animation: memory-hint-pulse 2s ease-in-out infinite;
+}
+
+.memory-click-hint.visible {
+    opacity: 1;
+}
+
+@keyframes memory-hint-pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.7; }
+}
+
 /* Damage roll min/max indicators - shared fumble/crit style */
 /* Use high specificity to override theme-specific roll-result colors */
 .damage-min,
@@ -1619,9 +1723,7 @@ div.battle-log-content span.defend-duration {
     display: -webkit-flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
-    padding-top: 10%;
-    padding-bottom: 55%;  /* Defensive: reserve space for text box */
+    justify-content: center;
     pointer-events: none;
 }
 

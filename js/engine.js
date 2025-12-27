@@ -628,24 +628,7 @@ var VNEngine = (function() {
                         wakeText += ' ' + flavorText;
                     }
 
-                    // If player has skills or key items from a previous run, show a recap
-                    var hasSkills = state.inventory.skills && state.inventory.skills.length > 0;
-                    var hasKeyItems = state.inventory.keyItems && state.inventory.keyItems.length > 0;
-
-                    if (hasSkills || hasKeyItems) {
-                        wakeText += '\n\n';
-                        if (hasSkills) {
-                            var skillList = state.inventory.skills.join(', ');
-                            wakeText += '*You remember what you learned: ' + skillList + '.*';
-                        }
-                        if (hasSkills && hasKeyItems) {
-                            wakeText += '\n';
-                        }
-                        if (hasKeyItems) {
-                            var itemList = state.inventory.keyItems.join(', ');
-                            wakeText += '*You still have: ' + itemList + '.*';
-                        }
-                    }
+                    // Note: Item/skill recap removed - memory overlay now handles this
 
                     renderText(wakeText, '', function() {
                         if (!isSequenceActive()) return;  // Abort check
@@ -4622,13 +4605,22 @@ var VNEngine = (function() {
      * @param {string} item - Key item name
      */
     function addKeyItem(item) {
-        if (state.inventory.keyItems.indexOf(item) === -1) {
+        var isNew = state.inventory.keyItems.indexOf(item) === -1;
+        if (isNew) {
             state.inventory.keyItems.push(item);
             _log.info('Engine','Added key item: ' + item);
             showItemNotification(item, 'added', 'key');
             // Emit inventory event
             if (typeof eventBus !== 'undefined' && typeof InventoryEvents !== 'undefined') {
                 eventBus.emit(InventoryEvents.ITEM_ADDED, { item: item, type: 'key' });
+            }
+            // Track as new this run for memory system
+            if (typeof inventoryManager !== 'undefined' && inventoryManager.setState) {
+                inventoryManager.setState('player.newThisRun.keyItems', function(items) {
+                    items = items || [];
+                    if (items.indexOf(item) !== -1) return items;
+                    return items.concat([item]);
+                });
             }
         }
         updateInventoryDisplay();
@@ -4639,13 +4631,22 @@ var VNEngine = (function() {
      * @param {string} skill - Skill name
      */
     function addSkill(skill) {
-        if (state.inventory.skills.indexOf(skill) === -1) {
+        var isNew = state.inventory.skills.indexOf(skill) === -1;
+        if (isNew) {
             state.inventory.skills.push(skill);
             _log.info('Engine','Learned skill: ' + skill);
             showItemNotification(skill, 'added', 'skill');
             // Emit inventory event
             if (typeof eventBus !== 'undefined' && typeof InventoryEvents !== 'undefined') {
                 eventBus.emit(InventoryEvents.ITEM_ADDED, { item: skill, type: 'skill' });
+            }
+            // Track as new this run for memory system
+            if (typeof inventoryManager !== 'undefined' && inventoryManager.setState) {
+                inventoryManager.setState('player.newThisRun.skills', function(skills) {
+                    skills = skills || [];
+                    if (skills.indexOf(skill) !== -1) return skills;
+                    return skills.concat([skill]);
+                });
             }
         }
         updateInventoryDisplay();
