@@ -1785,7 +1785,8 @@ var BattleUI = (function() {
     // === Battle Dialogue ===
 
     /**
-     * Show dialogue bubble
+     * Show dialogue bubble with row-based typewriter effect
+     * Uses same scrolling approach as battle log for long text
      * @param {string} text - Dialogue text
      */
     function showDialogue(text) {
@@ -1801,18 +1802,124 @@ var BattleUI = (function() {
         var dialogue = document.createElement('div');
         dialogue.id = 'battle-dialogue';
         dialogue.className = 'battle-dialogue';
-        dialogue.innerHTML = '<div class="dialogue-bubble">' + highlightedText + '</div>';
+
+        // Create multi-row bubble structure (like battle log)
+        dialogue.innerHTML =
+            '<div class="dialogue-bubble">' +
+                '<div class="dialogue-row dialogue-row-1"></div>' +
+                '<div class="dialogue-row dialogue-row-2"></div>' +
+                '<div class="dialogue-row dialogue-row-3"></div>' +
+            '</div>';
 
         elements.container.appendChild(dialogue);
 
-        setTimeout(function() {
-            if (dialogue.parentNode) {
-                dialogue.classList.add('fade-out');
-                setTimeout(function() {
-                    Utils.removeElement(dialogue);
-                }, config.timing.fadeOutDuration);
+        var rows = {
+            row1: dialogue.querySelector('.dialogue-row-1'),
+            row2: dialogue.querySelector('.dialogue-row-2'),
+            row3: dialogue.querySelector('.dialogue-row-3')
+        };
+
+        // Typewriter effect with row shifting for dialogue
+        dialogueTypewriter(rows, highlightedText, function() {
+            // After typing complete, wait then fade
+            setTimeout(function() {
+                if (dialogue.parentNode) {
+                    dialogue.classList.add('fade-out');
+                    setTimeout(function() {
+                        Utils.removeElement(dialogue);
+                    }, config.timing.fadeOutDuration);
+                }
+            }, config.timing.dialogueDuration);
+        });
+    }
+
+    /**
+     * Typewriter effect for dialogue bubble with 3 rows
+     * Shifts content up when row overflows
+     */
+    function dialogueTypewriter(rows, text, callback) {
+        var speed = config.dice.typewriterSpeed;
+
+        // Strip HTML for plain text typing, but preserve styled spans
+        var styledElements = [];
+        var textWithPlaceholders = text.replace(
+            /<span\s+class="([^"]+)"[^>]*>([^<]+)<\/span>/gi,
+            function(_match, className, content) {
+                var placeholder = '\x00STYLED' + styledElements.length + '\x00';
+                styledElements.push({ className: className, content: content });
+                return placeholder;
             }
-        }, config.timing.dialogueDuration);
+        );
+        var plainText = textWithPlaceholders.replace(/<[^>]*>/g, '');
+
+        var charIndex = 0;
+        var currentRow = rows.row3;  // Start typing in bottom row
+
+        function shiftRows() {
+            rows.row1.textContent = rows.row2.textContent;
+            rows.row2.textContent = rows.row3.textContent;
+            rows.row3.textContent = '';
+
+            // Copy styled elements too
+            rows.row1.innerHTML = rows.row2.innerHTML;
+            rows.row2.innerHTML = rows.row3.innerHTML;
+            rows.row3.innerHTML = '';
+        }
+
+        function renderNextChar() {
+            if (charIndex >= plainText.length) {
+                if (callback) callback();
+                return;
+            }
+
+            var char = plainText[charIndex];
+
+            // Check for styled placeholder
+            if (char === '\x00') {
+                var endIndex = plainText.indexOf('\x00', charIndex + 1);
+                if (endIndex !== -1) {
+                    var placeholder = plainText.substring(charIndex, endIndex + 1);
+                    var match = placeholder.match(/STYLED(\d+)/);
+                    if (match) {
+                        var styledIndex = parseInt(match[1], 10);
+                        var styledEl = styledElements[styledIndex];
+                        if (styledEl) {
+                            var span = document.createElement('span');
+                            span.className = styledEl.className;
+                            span.textContent = styledEl.content;
+                            currentRow.appendChild(span);
+                        }
+                    }
+                    charIndex = endIndex + 1;
+                    renderNextChar();
+                    return;
+                }
+            }
+
+            // Add character
+            currentRow.textContent += char;
+
+            // Check for overflow - if row is too wide, shift up
+            if (currentRow.scrollWidth > currentRow.clientWidth + 5) {
+                // Find last word boundary
+                var text = currentRow.textContent;
+                var lastSpace = text.lastIndexOf(' ');
+                if (lastSpace > 0) {
+                    var overflow = text.substring(lastSpace + 1);
+                    currentRow.textContent = text.substring(0, lastSpace);
+                    shiftRows();
+                    currentRow.textContent = overflow;
+                } else {
+                    shiftRows();
+                }
+            }
+
+            charIndex++;
+            var t = setTimeout(renderNextChar, 1000 / speed);
+            animationState.timeouts.push(t);
+        }
+
+        renderNextChar();
     }
 
     // === Limit Break Animation ===
