@@ -8,17 +8,6 @@
  */
 
 const story = {
-  "memory_smile": {
-    "id": "memory_smile",
-    "bg": "black.svg",
-    "music": "lost.mp3",
-    "textBlocks": [
-      "A ripple of connection...",
-      "Adrian's lesson. When you smile, people smile back. Then you feel like smiling more.",
-      "A positive feedback mechanism. You remember how."
-    ],
-    "choices": []
-  },
   "ending_early_exit": {
     "id": "ending_early_exit",
     "bg": "sunny_street_freedom.jpg",
@@ -361,17 +350,6 @@ const story = {
     ],
     "choices": []
   },
-  "memory_floristic_knowledge": {
-    "id": "memory_floristic_knowledge",
-    "bg": "black.svg",
-    "music": "lost.mp3",
-    "textBlocks": [
-      "Names you never forgot...",
-      "Siegrun's quiz. The vegetation surveys, the fieldwork, the countless species you identified together.",
-      "The knowledge is part of you now. It always was."
-    ],
-    "choices": []
-  },
   "FRANZ_tarot": {
     "id": "FRANZ_tarot",
     "bg": "stairwell_landing.jpg",
@@ -437,17 +415,6 @@ const story = {
         "target": "AGNES"
       }
     ]
-  },
-  "memory_beer": {
-    "id": "memory_beer",
-    "bg": "black.svg",
-    "music": "lost.mp3",
-    "textBlocks": [
-      "The golden reward...",
-      "Beer, hard-won from the D&D group. The taste of victory in a bottle.",
-      "Some things are worth fighting for."
-    ],
-    "choices": []
   },
   "floor4": {
     "id": "floor4",
@@ -1102,17 +1069,6 @@ const story = {
       }
     ]
   },
-  "memory_rooftop_discovery": {
-    "id": "memory_rooftop_discovery",
-    "bg": "black.svg",
-    "music": "lost.mp3",
-    "textBlocks": [
-      "A glimpse through the trees...",
-      "The moment with Jen and the squirrel. Looking up, you saw people gathered on the rooftop. Laughter drifting down.",
-      "You know where to go now."
-    ],
-    "choices": []
-  },
   "GIS_ending": {
     "id": "GIS_ending",
     "bg": "meeting_room_whiteboard.jpg",
@@ -1503,17 +1459,6 @@ const story = {
       }
     ]
   },
-  "memory_magnifying_glass": {
-    "id": "memory_magnifying_glass",
-    "bg": "black.svg",
-    "music": "lost.mp3",
-    "textBlocks": [
-      "To see what others miss...",
-      "The magnifying glass. Cool metal against your palm. A lens that reveals the hidden details of the world.",
-      "You earned this. It stays with you."
-    ],
-    "choices": []
-  },
   "MICHI_battle": {
     "id": "MICHI_battle",
     "bg": "hallway_fluorescent.jpg",
@@ -1572,17 +1517,6 @@ const story = {
         "target": "elevator1"
       }
     ]
-  },
-  "memory_coffee_mug": {
-    "id": "memory_coffee_mug",
-    "bg": "black.svg",
-    "music": "lost.mp3",
-    "textBlocks": [
-      "Warmth in your hands...",
-      "The coffee mug. Grabbed from the kitchen chaos. A small comfort in a strange day.",
-      "Sometimes the simple things matter most."
-    ],
-    "choices": []
   },
   "JONI": {
     "id": "JONI",
@@ -1720,17 +1654,6 @@ const story = {
       }
     ]
   },
-  "memory_charcoal": {
-    "id": "memory_charcoal",
-    "bg": "black.svg",
-    "music": "lost.mp3",
-    "textBlocks": [
-      "Fuel for the flames...",
-      "Premium BBQ charcoal from Billa. The promise of a proper rooftop gathering, waiting to be fulfilled.",
-      "The embers will glow again."
-    ],
-    "choices": []
-  },
   "AGNES_battle": {
     "id": "AGNES_battle",
     "bg": "office_corridor.jpg",
@@ -1803,17 +1726,6 @@ const story = {
       }
     ]
   },
-  "memory_lighter": {
-    "id": "memory_lighter",
-    "bg": "black.svg",
-    "music": "lost.mp3",
-    "textBlocks": [
-      "A spark in the darkness...",
-      "The lighter. \"CATS Forever\" engraved on its side. A going-away gift from the smokers' corner crew.",
-      "The flame remembers you."
-    ],
-    "choices": []
-  },
   "ending_bbq_nocharcoal": {
     "id": "ending_bbq_nocharcoal",
     "bg": "rooftop.jpg",
@@ -1823,17 +1735,6 @@ const story = {
       "You approach the grill with confidence. Then you look down at the empty metal basin. No charcoal. The grill sits there, cold and accusatory. \"Did anyone bring the charcoal?\" All eyes turn to you.",
       "Someone pulls out their phone and starts googling pizza delivery. Others follow suit. \"I'll have the Margherita,\" \"Make mine a Quattro Formaggi,\" \"Does anyone have the code for the building door?\"",
       "A farewell party with delivered pizza is not a farewell party. It's just pizza on a roof."
-    ],
-    "choices": []
-  },
-  "memory_flora_book": {
-    "id": "memory_flora_book",
-    "bg": "black.svg",
-    "music": "lost.mp3",
-    "textBlocks": [
-      "The weight of knowledge in your hands...",
-      "Moritz's flora book. Annotations in at least three languages. Pressed specimens tucked between pages.",
-      "You remember now. This is yours to keep."
     ],
     "choices": []
   },
