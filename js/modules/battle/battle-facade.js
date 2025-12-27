@@ -948,6 +948,10 @@ var BattleEngine = (function() {
                 handleLimitBreakAction(style, messages, callback);
                 break;
 
+            case 'skip_battle':
+                handleSkipBattleAction(messages);
+                break;
+
             default:
                 _log.warn('BattleEngine', 'Unknown action:', action);
                 BattleCore.setPhase('player');
@@ -1074,6 +1078,16 @@ var BattleEngine = (function() {
         }
 
         finishPlayerAction('limit', result, messages, callback);
+    }
+
+    function handleSkipBattleAction(messages) {
+        // Coffee gives you the energy to just... leave
+        messages.push('You chug the coffee. The caffeine hits like a revelation.');
+        messages.push('Why are you even fighting? You have places to be.');
+
+        updateBattleLog(messages.join('<br>'), null, function() {
+            end('win');
+        });
     }
 
     function finishPlayerAction(actionType, result, messages, callback) {

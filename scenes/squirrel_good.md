@@ -9,7 +9,7 @@ Together, you stroll through the park behind the building. The autumn sun filter
 
 ---
 
-You hold out your hand with a nut. The squirrel hesitates... then jumps onto your hand! Its tiny paws grip your fingers as it munches away. You feel the happiest you've felt in a long time. From where you stand, you notice something through the trees—people on the rooftop terrace, setting up what looks like some kind of gathering. "Oh, something's happening up there!" Jen says. "You should definitely check that out later."
+You hold out your hand with a nut. The squirrel hesitates... then jumps onto your hand! Its tiny paws grip your fingers as it munches away. You feel the happiest you've felt in a long time. From where you stand, you notice something through the trees. People on the rooftop terrace, setting up what looks like some kind of gathering. "Oh, something's happening up there!" Jen says. "You should definitely check that out later."
 
 ### Choices
 

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400" width="200" height="400">
+  <!-- KARL - Dry nihilist biologist, Birkenstock energy -->
+  <!-- Body - earth-tone sweater -->
+  <ellipse cx="100" cy="320" rx="38" ry="48" fill="#8b7355"/>
+  <!-- Sweater texture lines -->
+  <path d="M65 300 Q100 310 135 300" stroke="#7a6348" stroke-width="1" fill="none"/>
+  <path d="M62 320 Q100 330 138 320" stroke="#7a6348" stroke-width="1" fill="none"/>
+  <!-- Head -->
+  <ellipse cx="100" cy="235" rx="30" ry="34" fill="#d4b896"/>
+  <!-- Beard - scruffy -->
+  <path d="M75 250 Q70 270 80 280 Q100 290 120 280 Q130 270 125 250" fill="#4a3728" opacity="0.7"/>
+  <ellipse cx="100" cy="275" rx="18" ry="12" fill="#4a3728"/>
+  <!-- Hair - messy, receding -->
+  <path d="M75 220 Q75 200 90 195 Q100 192 110 195 Q125 200 125 220" fill="#4a3728"/>
+  <path d="M78 220 Q85 215 92 220" fill="#d4b896"/>
+  <path d="M108 220 Q115 215 122 220" fill="#d4b896"/>
+  <!-- Eyes - tired, knowing -->
+  <ellipse cx="88" cy="235" rx="4" ry="3" fill="#5c5c5c"/>
+  <ellipse cx="112" cy="235" rx="4" ry="3" fill="#5c5c5c"/>
+  <!-- Eyebrows - slightly furrowed -->
+  <path d="M80 228 Q88 225 96 228" stroke="#4a3728" stroke-width="2" fill="none"/>
+  <path d="M104 228 Q112 225 120 228" stroke="#4a3728" stroke-width="2" fill="none"/>
+  <!-- Nose -->
+  <path d="M100 240 L98 252 L102 252" stroke="#b8a082" stroke-width="1.5" fill="none"/>
+  <!-- Mouth hidden in beard, slight frown implied -->
+  <!-- Arms -->
+  <ellipse cx="58" cy="315" rx="14" ry="28" fill="#8b7355"/>
+  <ellipse cx="142" cy="315" rx="14" ry="28" fill="#8b7355"/>
+  <!-- Hands -->
+  <ellipse cx="55" cy="348" rx="9" ry="11" fill="#d4b896"/>
+  <ellipse cx="145" cy="348" rx="9" ry="11" fill="#d4b896"/>
+  <!-- Cargo pants -->
+  <rect x="75" y="362" width="22" height="32" fill="#5c5c4a"/>
+  <rect x="103" y="362" width="22" height="32" fill="#5c5c4a"/>
+  <!-- Cargo pockets -->
+  <rect x="78" y="372" width="10" height="8" fill="#4a4a3d" stroke="#3d3d32"/>
+  <rect x="112" y="372" width="10" height="8" fill="#4a4a3d" stroke="#3d3d32"/>
+  <!-- BIRKENSTOCKS -->
+  <ellipse cx="86" cy="398" rx="14" ry="5" fill="#8b4513"/>
+  <ellipse cx="114" cy="398" rx="14" ry="5" fill="#8b4513"/>
+  <!-- Birkenstock straps -->
+  <rect x="78" y="393" width="16" height="3" fill="#5c3317"/>
+  <rect x="106" y="393" width="16" height="3" fill="#5c3317"/>
+  <!-- Socks with sandals (of course) -->
+  <rect x="80" y="388" width="12" height="8" fill="#f5f5f5"/>
+  <rect x="108" y="388" width="12" height="8" fill="#f5f5f5"/>
+</svg>

@@ -27,7 +27,7 @@ actions:
     lose_target: ending_quiz_fail_moritz
 ---
 
-Moritz pulls out a well-worn flora identification book, pages dog-eared and stained from years of field use. The cover shows a faded illustration of Stipa pennata—that distinctive feather grass you've seen a hundred times but could never quite remember the name of.
+Moritz pulls out a well-worn flora identification book, pages dog-eared and stained from years of field use. The cover shows a faded illustration of Stipa pennata, that distinctive feather grass you've seen a hundred times but could never quite remember the name of.
 
 ---
 

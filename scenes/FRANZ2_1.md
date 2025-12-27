@@ -7,7 +7,7 @@ set_flags:
   - met_franz
 ---
 
-You encounter Franz in the corridor. He looks up from a hand-written document—pages covered in meticulous handwriting, not a laptop or tablet in sight. Some things never change.
+You encounter Franz in the corridor. He looks up from a hand-written document. Pages covered in meticulous handwriting, not a laptop or tablet in sight. Some things never change.
 
 ---
 

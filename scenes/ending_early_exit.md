@@ -2,6 +2,8 @@
 id: ending_early_exit
 bg: sunny_street_freedom.jpg
 music: game_over.mp3
+chars:
+  - cat_5.svg
 ending_title: "BAD ENDING: Trapped by CATS"
 ---
 
@@ -9,35 +11,35 @@ You step through the front doors. The afternoon sun hits your face. Freedom! You
 
 ---
 
-You take three steps toward the tram stop when a stray cat crosses your path.
+You take three steps toward the tram stop when a shadow falls over you. It's the cat. The cat that has been following you. It is now the size of a small car.
 
 ---
 
-Cat.
+"Leaving? Without saying goodbye? How very... human of you."
 
 ---
 
-CATS.
+The cat's eyes glow with that familiar golden light. Its whiskers stretch across the entire sidewalk. Pedestrians walk around it without seeming to notice. Only you see it. Only you have ever seen it.
 
 ---
 
-The servers. The code. You never said goodbye to CATS. The backup scripts that only you understand. The mysterious cronjob that runs at 3:47 AM and nobody knows why but everything breaks if you disable it.
+"I run from nothing. Except vacuums. You run from everything. Especially yourself."
 
 ---
 
-You can't just LEAVE. Not like this. You turn around and walk back inside. "Forgot something," you mutter.
+"...Back to your desk."
 
 ---
 
-You sit back down at your desk. The monitors glow with familiar lines of code. CATS hums contentedly.
+Cat. CATS. The servers. The code. You never said goodbye to CATS. The backup scripts that only you understand. The mysterious cronjob that runs at 3:47 AM and nobody knows why but everything breaks if you disable it.
 
 ---
 
-Just one more commit. One more bug fix. One more optimization.
+You can't just LEAVE. Not like this. You turn around and walk back inside.
 
 ---
 
-Hours pass. Days. The farewell party happens without you. Your new job at the physics institute calls, but you don't answer. There's always something else to check.
+You sit back down at your desk. The monitors glow with familiar lines of code. CATS hums contentedly. The cat watches from somewhere. The cat is always watching.
 
 ---
 

@@ -14,4 +14,5 @@ Stefan looks up from his phone and grins. "Andi! Leaving already? Without a prop
 ### Choices
 
 - Face Stefan → STEFAN_battle
+- Offer Coffee (uses: Coffee Mug) → STEFAN_victory
 

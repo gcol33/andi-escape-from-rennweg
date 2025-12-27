@@ -23,3 +23,4 @@ You take a sip of the tea. It tastes... interesting. After a few minutes, you st
 - Skills (battle: skill) → ANNA_battle
 - Defend (battle: defend) → ANNA_battle
 - Item (battle: item) → ANNA_battle
+- Chug Coffee (battle: skip_battle, uses: Coffee Mug) → ANNA_battle

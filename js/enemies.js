@@ -315,6 +315,60 @@ const enemies = {
     ],
     "description": "Agnes from HR. The final boss of every office worker's nightmare. Her weapon? Paperwork. Her armor? Policy. Her weakness? Actual human connection (which she lacks)."
   },
+  "karl": {
+    "id": "karl",
+    "name": "Karl",
+    "sprite": "karl.svg",
+    "hp": 35,
+    "ac": 10,
+    "attack_bonus": 3,
+    "damage": "d8",
+    "type": "psychic",
+    "stagger_threshold": 55,
+    "ai": "defensive",
+    "dialogue": {
+      "battle_start": [
+        "None of this matters, you know. But sure, let's do this."
+      ],
+      "attack_default": [
+        "...",
+        "Interesting.",
+        "If you say so.",
+        "That's one way to look at it."
+      ],
+      "victory": [
+        "As expected."
+      ],
+      "defeat": [
+        "Well. That happened."
+      ]
+    },
+    "moves": [
+      {
+        "name": "Existential Observation",
+        "damage": "d8",
+        "type": "psychic",
+        "description": "He points out that all species eventually go extinct. Including yours."
+      },
+      {
+        "name": "Nihilistic Sigh",
+        "damage": "d6",
+        "type": "psychic",
+        "statusEffect": {
+          "type": "poison",
+          "chance": 0.15
+        },
+        "description": "The weight of meaninglessness seeps into your bones."
+      },
+      {
+        "name": "Passive Aggressive Comment",
+        "damage": "2d4",
+        "type": "psychic",
+        "description": "\"That's an... interesting approach to life you have there.\""
+      }
+    ],
+    "description": "Karl. Biologist. Wears Birkenstocks with socks. Has seen too much of nature to believe in anything."
+  },
   "michi": {
     "id": "michi",
     "name": "Michi",
@@ -365,6 +419,59 @@ const enemies = {
       }
     ],
     "description": "Michi. The whiteboard master."
+  },
+  "johannes": {
+    "id": "johannes",
+    "name": "Johannes",
+    "sprite": "johannes.svg",
+    "hp": 30,
+    "ac": 11,
+    "attack_bonus": 2,
+    "damage": "d6",
+    "type": "psychic",
+    "stagger_threshold": 50,
+    "ai": "default",
+    "dialogue": {
+      "battle_start": [
+        "Did you know today is exactly 3.14159... days until the next pi day?"
+      ],
+      "attack_default": [
+        "The numbers don't lie!",
+        "Let me show you some elegant proofs!",
+        "This is statistically optimal!"
+      ],
+      "victory": [
+        "Q.E.D."
+      ],
+      "defeat": [
+        "But... the math was perfect..."
+      ]
+    },
+    "moves": [
+      {
+        "name": "Pi Recitation",
+        "damage": "d6",
+        "type": "psychic",
+        "description": "He starts reciting pi to 50 decimal places. Your brain hurts."
+      },
+      {
+        "name": "Euler's Identity",
+        "damage": "2d4",
+        "type": "psychic",
+        "statusEffect": {
+          "type": "confusion",
+          "chance": 0.2
+        },
+        "description": "The most beautiful equation in mathematics. Too beautiful. It burns."
+      },
+      {
+        "name": "Statistical Analysis",
+        "damage": "d4",
+        "type": "psychic",
+        "description": "He calculates your probability of winning. It's not looking good."
+      }
+    ],
+    "description": "Johannes. Mathematician. Pi enthusiast. Will corner you to talk about prime numbers."
   }
 };
 

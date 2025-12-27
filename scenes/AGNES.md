@@ -9,7 +9,7 @@ As you round the corner, a familiar figure blocks your path. Agnes. From HR. "An
 
 ---
 
-You groan internally. The timesheets. You'd been putting them off for weeks. You were always precise when you finally filled them out—but actually sitting down to do it... "Es hat mir immer total gegraust," you mutter. Agnes's expression hardens. "Your resignation has been... REJECTED!"
+You groan internally. The timesheets. You'd been putting them off for weeks. You were always precise when you finally filled them out, but actually sitting down to do it... "Es hat mir immer total gegraust," you mutter. Agnes's expression hardens. "Your resignation has been... REJECTED!"
 
 ---
 
@@ -18,3 +18,4 @@ You groan internally. The timesheets. You'd been putting them off for weeks. You
 ### Choices
 
 - Face Agnes → AGNES_battle
+- Offer Coffee (uses: Coffee Mug) → AGNES_victory

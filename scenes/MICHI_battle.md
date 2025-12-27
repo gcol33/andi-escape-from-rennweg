@@ -11,7 +11,7 @@ actions:
     lose_target: MICHI_defeat
 ---
 
-Michi twirls the marker between his fingers like a switchblade. The fluorescent lights flicker ominously. Or maybe that's just your imagination.
+Michi twirls the marker between his fingers like a switchblade. The fluorescent lights flicker. Or maybe that's just your imagination.
 
 ---
 
@@ -23,3 +23,4 @@ Michi twirls the marker between his fingers like a switchblade. The fluorescent 
 - Skills (battle: skill) → MICHI_battle
 - Defend (battle: defend) → MICHI_battle
 - Item (battle: item) → MICHI_battle
+- Chug Coffee (battle: skip_battle, uses: Coffee Mug) → MICHI_battle

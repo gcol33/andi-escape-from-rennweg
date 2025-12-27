@@ -11,7 +11,7 @@ You pull out the Flora Book and the Magnifying Glass. Crouching by the terracott
 
 ---
 
-"Now then," someone says, "who's handling the grill?" The ancient charcoal grill stands waiting, cold and empty. All eyes turn to you again. Of course they do.
+"Now then," someone says, "who's handling the grill?" The old charcoal grill stands waiting, cold and empty. All eyes turn to you again. Of course they do.
 
 ### Choices
 

@@ -10,4 +10,5 @@ You drop by Anna's office to say goodbye. She's sitting at her desk with a steam
 ### Choices
 
 - "Sure, why not?" → ANNA_battle
+- Offer Coffee Instead (uses: Coffee Mug) → ANNA_victory
 - Politely refuse → stairs_0

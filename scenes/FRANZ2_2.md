@@ -7,7 +7,7 @@ set_flags:
   - met_franz
 ---
 
-Franz emerges from around a corner, almost as if he was waiting for you. He's examining a pressed flower specimen held between aged fingers—no doubt something with a Latin name three syllables longer than necessary.
+Franz emerges from around a corner, almost as if he was waiting for you. He's examining a pressed flower specimen held between aged fingers. No doubt something with a Latin name three syllables longer than necessary.
 
 ---
 

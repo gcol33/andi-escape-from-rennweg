@@ -2,6 +2,8 @@
 id: ending_bbq_nocharcoal
 bg: rooftop.jpg
 music: game_over.mp3
+chars:
+  - cat_5.svg
 ending_title: "BAD ENDING: Cold Grill"
 ---
 
@@ -15,3 +17,26 @@ Someone pulls out their phone and starts googling pizza delivery. Others follow 
 
 A farewell party with delivered pizza is not a farewell party. It's just pizza on a roof.
 
+---
+
+The cat sits inside the empty grill. It fits perfectly, despite being the size of a small tiger. It radiates warmth. Not enough to cook anything, but enough to be irritating.
+
+---
+
+"No fire fuel. I am warm-blooded. I need nothing. You need everything."
+
+---
+
+The cat yawns, displaying teeth the size of bananas.
+
+---
+
+"...Back to your desk."
+
+---
+
+Cat. CATS. Heat. Fuel. Maybe CATS needs a resource management module. A reminder system. "Don't forget the charcoal." The code would never forget.
+
+---
+
+You slip away before the pizza arrives. CATS is waiting. Warm. Humming. Always.

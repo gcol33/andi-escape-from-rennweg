@@ -12,4 +12,4 @@ The screens glow with lines of code. CATS, your life's work. Today is your last 
 
 ### Choices
 
-- Leave the office → charlie
+- Leave the office → cat_scene_1

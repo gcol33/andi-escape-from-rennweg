@@ -9,7 +9,7 @@ Franz's eyes widen with genuine respect. A rare expression from the analog sage.
 
 ---
 
-He places a hand on your shoulder—perhaps the first physical gesture he's made toward you in all your years working here. "I, who know nothing of your digital realm... am truly impressed by your journey through mine."
+He places a hand on your shoulder. Perhaps the first physical gesture he's made toward you in all your years working here. "I, who know nothing of your digital world... am truly impressed by your journey through mine."
 
 ---
 

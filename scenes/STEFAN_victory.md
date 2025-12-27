@@ -12,5 +12,5 @@ You shake on it. The ghost of Hercules may never truly rest, but at least the li
 
 ### Choices
 
-- Head outside → billa
+- Head outside → cat_scene_3
 

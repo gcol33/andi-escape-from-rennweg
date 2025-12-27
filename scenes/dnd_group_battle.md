@@ -11,7 +11,7 @@ actions:
     lose_target: dnd_group_defeat
 ---
 
-The D&D group rises from their chairs, dice rattling ominously in their hands. Character sheets flutter to the ground like fallen soldiers.
+The D&D group rises from their chairs, dice rattling in their hands. Character sheets flutter to the ground like fallen soldiers.
 
 ---
 
@@ -23,3 +23,4 @@ The D&D group rises from their chairs, dice rattling ominously in their hands. C
 - Skills (battle: skill) → dnd_group_battle
 - Defend (battle: defend) → dnd_group_battle
 - Item (battle: item) → dnd_group_battle
+- Chug Coffee (battle: skip_battle, uses: Coffee Mug) → dnd_group_battle

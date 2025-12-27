@@ -9,7 +9,7 @@ You run into Lisa near the kitchen. She's making coffee. "Oh, Andi! Did you hear
 
 ---
 
-Lisa reaches for the kitchen cabinet—the infamous party cabinet—and opens it. A MOUSE RUNS OUT! It darts past you both and into the small hallway in front of your office. You and Lisa quickly close the doors, trapping yourselves and the mouse in the two-square-meter space.
+Lisa reaches for the kitchen cabinet, the infamous party cabinet, and opens it. A MOUSE RUNS OUT! It darts past you both and into the small hallway in front of your office. You and Lisa quickly close the doors, trapping yourselves and the mouse in the two-square-meter space.
 
 ---
 
@@ -17,5 +17,5 @@ Five solid minutes of chaos. Diving behind boxes. Scrambling over chairs. Finall
 
 ### Choices
 
-- Go to hallway → hallway
+- Go to hallway → cat_scene_2
 - Join a field excursion → MORITZ_excursion

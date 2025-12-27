@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400" width="200" height="400">
+  <!-- CAT Stage 2 - Noticeably bigger -->
+  <!-- Body -->
+  <ellipse cx="100" cy="335" rx="28" ry="22" fill="#1a1a1a"/>
+  <!-- Head -->
+  <ellipse cx="100" cy="298" rx="20" ry="18" fill="#1a1a1a"/>
+  <!-- Ears -->
+  <path d="M84 284 L74 262 L88 280" fill="#1a1a1a"/>
+  <path d="M116 284 L126 262 L112 280" fill="#1a1a1a"/>
+  <!-- Inner ears -->
+  <path d="M84 283 L78 268 L86 280" fill="#2a2a2a"/>
+  <path d="M116 283 L122 268 L114 280" fill="#2a2a2a"/>
+  <!-- Eyes - glowing -->
+  <ellipse cx="92" cy="295" rx="5" ry="6" fill="#ffcc00"/>
+  <ellipse cx="108" cy="295" rx="5" ry="6" fill="#ffcc00"/>
+  <ellipse cx="92" cy="295" rx="2" ry="5" fill="#111"/>
+  <ellipse cx="108" cy="295" rx="2" ry="5" fill="#111"/>
+  <!-- Eye glow -->
+  <ellipse cx="92" cy="295" rx="6" ry="7" fill="none" stroke="#ffcc00" stroke-width="1" opacity="0.3"/>
+  <ellipse cx="108" cy="295" rx="6" ry="7" fill="none" stroke="#ffcc00" stroke-width="1" opacity="0.3"/>
+  <!-- Nose -->
+  <path d="M100 305 L97 311 L100 313 L103 311 Z" fill="#3a3a3a"/>
+  <!-- Whiskers -->
+  <line x1="82" y1="308" x2="62" y2="304" stroke="#3a3a3a" stroke-width="0.8"/>
+  <line x1="80" y1="314" x2="60" y2="318" stroke="#3a3a3a" stroke-width="0.8"/>
+  <line x1="118" y1="308" x2="138" y2="304" stroke="#3a3a3a" stroke-width="0.8"/>
+  <line x1="120" y1="314" x2="140" y2="318" stroke="#3a3a3a" stroke-width="0.8"/>
+  <!-- Tail -->
+  <path d="M128 335 Q155 322 148 290" stroke="#1a1a1a" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <!-- Front paws -->
+  <ellipse cx="82" cy="360" rx="12" ry="7" fill="#1a1a1a"/>
+  <ellipse cx="118" cy="360" rx="12" ry="7" fill="#1a1a1a"/>
+</svg>

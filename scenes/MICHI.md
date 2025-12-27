@@ -14,4 +14,5 @@ On the 4th floor, you find Michi standing guard by the whiteboard. The legendary
 ### Choices
 
 - Face Michi → MICHI_battle
+- Offer Coffee (uses: Coffee Mug) → MICHI_victory
 

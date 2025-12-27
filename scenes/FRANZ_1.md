@@ -7,7 +7,7 @@ set_flags:
   - met_franz
 ---
 
-In the stairwell, half-illuminated by afternoon light filtering through a dusty window, you encounter Franz. Where you speak in code and algorithms, he speaks in Latin plant names. Where you live in digital realms, he is the quintessential "digital non-native"—a man who prefers handwritten notes and regards computers with deep suspicion.
+In the stairwell, half-illuminated by afternoon light filtering through a dusty window, you encounter Franz. Where you speak in code and algorithms, he speaks in Latin plant names. Where you live in digital realms, he is the quintessential "digital non-native". A man who prefers handwritten notes and regards computers with deep suspicion.
 
 ---
 

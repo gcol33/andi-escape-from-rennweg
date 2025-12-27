@@ -16,5 +16,5 @@ You grab paper towels. The kitchen is flooding! A medium-sized disaster. You emp
 
 ### Choices
 
-- Leave with the coffee → hallway
+- Leave with the coffee → cat_scene_2
 - Drink the coffee (uses: Coffee Mug) → coffee_end

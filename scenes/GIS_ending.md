@@ -7,7 +7,7 @@ chars:
   - charlie_neutral.svg
 ---
 
-You fix the coordinate swap. Charlie runs the transformation again. The points land exactly where they should—somewhere in the Wienerwald, not the Atlantic. "That's amazing!" Charlie beams. But then his expression shifts. "Actually, while you're here... there's this other script that's been giving me trouble..."
+You fix the coordinate swap. Charlie runs the transformation again. The points land exactly where they should. Somewhere in the Wienerwald, not the Atlantic. "That's amazing!" Charlie beams. But then his expression shifts. "Actually, while you're here... there's this other script that's been giving me trouble..."
 
 ---
 

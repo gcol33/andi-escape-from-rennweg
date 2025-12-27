@@ -27,7 +27,7 @@ actions:
     lose_target: ending_quiz_fail_siegrun
 ---
 
-Siegrun pulls out her field notebook—the legendary one that has survived alpine expeditions, sudden rainstorms, and at least one encounter with an overly curious marmot. Precise handwriting fills every margin.
+Siegrun pulls out her field notebook. The legendary one that has survived alpine expeditions, sudden rainstorms, and at least one encounter with an overly curious marmot. Precise handwriting fills every margin.
 
 ---
 

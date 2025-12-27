@@ -9,7 +9,7 @@ You follow Charlie to his workstation. Maps cover every surface. Topographical n
 
 ---
 
-You lean in, scanning the code. Something's off. Line 47—he's swapped the order of the coordinate axes. "There. You've got latitude and longitude reversed." Charlie's face cycles through confusion, realization, and embarrassment.
+You lean in, scanning the code. Something's off. Line 47, he's swapped the order of the coordinate axes. "There. You've got latitude and longitude reversed." Charlie's face cycles through confusion, realization, and embarrassment.
 
 ### Choices
 

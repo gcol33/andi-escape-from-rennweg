@@ -5,7 +5,7 @@ music: game_over.mp3
 ending_title: "BAD ENDING: Squirrel Sting Operation"
 ---
 
-Jen pulls out actual handcuffs—real, professional-grade handcuffs that definitely don't belong to anyone who just studies nature. The squirrels scatter like furry smoke, vanishing back into the trees with the discipline of trained operatives. "You have the right to remain silent. Anything you say can and will be used against you in the Court of Nature."
+Jen pulls out actual handcuffs. Real, professional-grade handcuffs that definitely don't belong to anyone who just studies nature. The squirrels scatter like furry smoke, vanishing back into the trees with the discipline of trained operatives. "You have the right to remain silent. Anything you say can and will be used against you in the Court of Nature."
 
 ---
 

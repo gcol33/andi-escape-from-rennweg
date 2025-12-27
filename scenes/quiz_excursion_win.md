@@ -6,7 +6,7 @@ add_items:
     type: key
 ---
 
-Moritz's eyebrows rise fractionally—in Moritz-speak, roughly equivalent to a standing ovation. "Not bad for a computer guy."
+Moritz's eyebrows rise fractionally. In Moritz-speak, roughly equivalent to a standing ovation. "Not bad for a computer guy."
 
 ---
 

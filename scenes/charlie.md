@@ -5,7 +5,7 @@ chars:
   - charlie_neutral.svg
 ---
 
-You step into the corridor. The fluorescent lights hum their familiar tune overhead. You're pacing back and forth—your usual thinking-and-walking routine—when you nearly collide with Charlie.
+You step into the corridor. The fluorescent lights hum their familiar tune overhead. You're pacing back and forth, your usual thinking-and-walking routine, when you nearly collide with Charlie.
 
 ---
 
@@ -14,4 +14,4 @@ You step into the corridor. The fluorescent lights hum their familiar tune overh
 ### Choices
 
 - Help Charlie with his code → GIS_scene
-- Head to the kitchen instead → LISA_scene
+- Head to the kitchen instead → jk_r1

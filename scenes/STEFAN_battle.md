@@ -11,7 +11,7 @@ actions:
     lose_target: STEFAN_defeat
 ---
 
-Stefan blocks the stairwell, arms crossed. The ghost of Hercules looms between you—thousands of euros of unassembled hardware gathering dust in some storage closet.
+Stefan blocks the stairwell, arms crossed. The ghost of Hercules looms between you. Thousands of euros of unassembled hardware gathering dust in some storage closet.
 
 ---
 
@@ -23,3 +23,4 @@ Stefan blocks the stairwell, arms crossed. The ghost of Hercules looms between y
 - Skills (battle: skill) → STEFAN_battle
 - Defend (battle: defend) → STEFAN_battle
 - Item (battle: item) → STEFAN_battle
+- Chug Coffee (battle: skip_battle, uses: Coffee Mug) → STEFAN_battle
