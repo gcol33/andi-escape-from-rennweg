@@ -184,7 +184,7 @@ const TUNING = {
                 dialogueBubble: 2500,       // Enemy dialogue bubble duration
                 fadeOut: 300,               // General fade out animation time
                 messageLingerDelay: 1200,   // How long battle log messages linger before next message
-                intentAnnouncementDelay: 1200  // Delay after intent dialogue before battle log text
+                intentAnnouncementDelay: 1600  // Delay after intent dialogue before battle log text (skippable)
             },
 
             // === Dice Roll Animation ===

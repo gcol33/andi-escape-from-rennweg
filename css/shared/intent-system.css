@@ -155,6 +155,22 @@
     font-weight: bold;
 }
 
+/* DEFEND hint in intent messages - bright red to catch attention */
+.defend-hint {
+    color: #ff4444;
+    font-weight: bold;
+    font-style: normal;
+    text-transform: uppercase;
+}
+
+/* CONCENTRATE hint for summon intents - red like DEFEND */
+.concentrate-hint {
+    color: #ff4444;
+    font-weight: bold;
+    font-style: normal;
+    text-transform: uppercase;
+}
+
 /* Mobile responsive - smaller intent indicator */
 @media (max-width: 37.5em) {
     .intent-icon {

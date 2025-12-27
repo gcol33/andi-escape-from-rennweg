@@ -758,12 +758,17 @@ var BattleUI = (function() {
         // Store onTextComplete callback for completeAnimation to call
         animationState.onTextComplete = options && options.onTextComplete ? options.onTextComplete : null;
 
-        // Wrapper to add linger delay before callback
+        // Wrapper to add linger delay before callback (skippable via click/space)
         var lingerCallback = function() {
             if (callback) {
                 var delay = (options && options.lingerDelay !== undefined) ? options.lingerDelay : config.timing.messageLingerDelay;
-                var t = setTimeout(callback, delay);
-                animationState.timeouts.push(t);
+                // Use skippable timeout if BattleDiceUI available
+                if (typeof BattleDiceUI !== 'undefined' && BattleDiceUI.diceTimeout) {
+                    BattleDiceUI.diceTimeout(callback, delay);
+                } else {
+                    var t = setTimeout(callback, delay);
+                    animationState.timeouts.push(t);
+                }
             }
         };
 

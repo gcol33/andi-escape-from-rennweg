@@ -1621,15 +1621,46 @@ var BattleEngine = (function() {
             BattleUI.showIntentIndicator(displayData);
         }
 
-        // Wait for dialogue to be read before showing battle log
-        scheduleTimeout(function() {
-            // Log the intent after dialogue delay
-            var intentType = BattleIntent.getType(intent.type);
+        // Wait for dialogue to be read before showing battle log (skippable via click/space)
+        var skipTimeout = typeof BattleDiceUI !== 'undefined' && BattleDiceUI.diceTimeout
+            ? BattleDiceUI.diceTimeout
+            : scheduleTimeout;
+        skipTimeout(function() {
             var logClass = 'intent-message ' + (intent.cssClass || '');
-            var logMessage = '<span class="' + logClass + '">' + enemyName + ': "' + dialogue + '"</span>';
-            updateBattleLog(logMessage, null, function() {
-                scheduleTimeout(callback, config.timing.dialogueDuration);
-            });
+
+            // Check if dialogue already contains the action hint
+            var hasDefend = /defend/i.test(dialogue);
+            var hasConcentrate = /concentrate/i.test(dialogue);
+
+            // Flavor text: use action hint only if not already in dialogue
+            var flavor;
+            if (intent.type === 'summon') {
+                if (hasConcentrate) {
+                    var genericSummon = ['Break their focus!', 'Interrupt them!', 'Don\'t let them finish!'];
+                    flavor = genericSummon[Math.floor(Math.random() * genericSummon.length)];
+                } else {
+                    var concentrateFlavors = ['You need to CONCENTRATE!', 'Use CONCENTRATE to interrupt!', 'CONCENTRATE to break their focus!'];
+                    flavor = concentrateFlavors[Math.floor(Math.random() * concentrateFlavors.length)];
+                    flavor = flavor.replace(/CONCENTRATE/g, '<span class="concentrate-hint">CONCENTRATE</span>');
+                }
+            } else {
+                if (hasDefend) {
+                    var genericAttack = ['Brace yourself!', 'Incoming!', 'Watch out!'];
+                    flavor = genericAttack[Math.floor(Math.random() * genericAttack.length)];
+                } else {
+                    var defendFlavors = ['You should DEFEND!', 'Better DEFEND yourself!', 'Time to DEFEND!'];
+                    flavor = defendFlavors[Math.floor(Math.random() * defendFlavors.length)];
+                    flavor = flavor.replace(/DEFEND/g, '<span class="defend-hint">DEFEND</span>');
+                }
+            }
+
+            // Highlight DEFEND/CONCENTRATE in dialogue too
+            var styledDialogue = dialogue.replace(/DEFEND/gi, '<span class="defend-hint">DEFEND</span>');
+            styledDialogue = styledDialogue.replace(/CONCENTRATE/gi, '<span class="concentrate-hint">CONCENTRATE</span>');
+
+            var logMessage = '<span class="' + logClass + '">' + enemyName + ': "' + styledDialogue + '" ' + flavor + '</span>';
+            // Normal linger delay - both delays are skippable together via BattleDiceUI
+            updateBattleLog(logMessage, null, callback);
         }, config.timing.intentAnnouncementDelay);
     }
 
