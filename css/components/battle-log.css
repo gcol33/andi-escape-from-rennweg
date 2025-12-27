@@ -59,8 +59,6 @@
     display: block;
     min-height: 1.6em;  /* Match line-height for consistent height */
     line-height: 1.6;
-    white-space: nowrap;  /* Force horizontal overflow for proper word-boundary shifting */
-    overflow: hidden;     /* Hide overflow until shifted */
 }
 
 /* Previous line (row1) - slightly dimmed */
