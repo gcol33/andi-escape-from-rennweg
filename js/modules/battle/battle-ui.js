@@ -1098,7 +1098,7 @@ var BattleUI = (function() {
         var styledElements = [];
         var textWithPlaceholders = textWithNewlines.replace(
             /<span\s+class="(roll-[^"]+)"[^>]*>([^<]+)<\/span>/gi,
-            function(match, className, content) {
+            function(_match, className, content) {
                 var placeholder = '\x00STYLED' + styledElements.length + '\x00';
                 styledElements.push({ className: className, content: content });
                 return placeholder;
