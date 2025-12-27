@@ -1508,33 +1508,9 @@ div.battle-log-content span.defend-duration {
     text-align: center;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     position: relative;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
     box-sizing: border-box;
-    /* Row container for typewriter effect */
-    display: flex;
-    flex-direction: column;
-    min-height: 1.6em;
-}
-
-/* Dialogue rows - like battle log rows */
-.dialogue-row {
-    display: block;
-    min-height: 1.4em;
-    line-height: 1.4;
-    white-space: nowrap;
-    overflow: hidden;
-}
-
-/* Hide empty rows */
-.dialogue-row:empty {
-    display: none;
-}
-
-/* Portrait mode - smaller dialogue */
-@media (orientation: portrait) {
-    .dialogue-bubble {
-        font-size: 1rem;
-        padding: 8px 16px;
-    }
 }
 
 /* Highlighted action keywords in dialogue (e.g., DEFEND, ATTACK) */
