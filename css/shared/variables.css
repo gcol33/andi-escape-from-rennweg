@@ -155,10 +155,10 @@
     /* Battle log height (used for bottom positioning) */
     --battle-log-height: 9rem;  /* Compact button layout */
 
-    /* Button area reserved height - fixed for 2 rows of buttons */
+    /* Button area reserved height - fixed for rows of buttons */
     /* 2 rows × ~1.6em button height + gap + padding = ~4em */
     --button-area-height: 4em;                 /* Landscape: 2 rows */
-    --button-area-height-portrait: 5em;        /* Portrait: 2 stacked buttons */
+    --button-area-height-portrait: 7.5em;      /* Portrait: up to 3 stacked buttons */
 }
 
 /* === Battle Panel Colors === */

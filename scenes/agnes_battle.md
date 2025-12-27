@@ -23,4 +23,3 @@ Agnes assumes a fighting stance. Her HR badge glints under the fluorescent light
 - Skills (battle: skill) → AGNES_battle
 - Defend (battle: defend) → AGNES_battle
 - Item (battle: item) → AGNES_battle
-- Chug Coffee (battle: skip_battle, uses: Coffee Mug) → AGNES_battle

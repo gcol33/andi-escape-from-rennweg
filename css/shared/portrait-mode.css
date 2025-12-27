@@ -99,8 +99,8 @@
         aspect-ratio: 9 / 16 !important;
         max-height: 80vh !important;
         max-height: 80dvh !important;  /* Dynamic viewport - accounts for keyboard */
-        margin-bottom: 10vh !important;
-        margin-bottom: 10dvh !important;
+        margin-bottom: 5vh !important;
+        margin-bottom: 5dvh !important;
     }
 
     /* --- Text Box & Header --- */

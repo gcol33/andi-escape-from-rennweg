@@ -23,4 +23,3 @@ Stefan blocks the stairwell, arms crossed. The ghost of Hercules looms between y
 - Skills (battle: skill) → STEFAN_battle
 - Defend (battle: defend) → STEFAN_battle
 - Item (battle: item) → STEFAN_battle
-- Chug Coffee (battle: skip_battle, uses: Coffee Mug) → STEFAN_battle

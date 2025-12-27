@@ -8,5 +8,5 @@ set_flags:
 
 ### Choices
 
-- (requires: jk_battle_done) → LISA_scene
-- (requires: !jk_battle_done) → jk_r1_roll
+- Continue (requires: jk_battle_done) → LISA_scene
+- Continue (requires: !jk_battle_done) → jk_r1_roll

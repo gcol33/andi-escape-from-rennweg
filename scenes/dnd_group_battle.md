@@ -23,4 +23,3 @@ The D&D group rises from their chairs, dice rattling in their hands. Character s
 - Skills (battle: skill) → dnd_group_battle
 - Defend (battle: defend) → dnd_group_battle
 - Item (battle: item) → dnd_group_battle
-- Chug Coffee (battle: skip_battle, uses: Coffee Mug) → dnd_group_battle

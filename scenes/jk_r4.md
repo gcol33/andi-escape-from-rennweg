@@ -8,5 +8,5 @@ set_flags:
 
 ### Choices
 
-- (requires: jk_battle_done) → SIEGRUN
-- (requires: !jk_battle_done) → jk_r4_roll
+- Continue (requires: jk_battle_done) → SIEGRUN
+- Continue (requires: !jk_battle_done) → jk_r4_roll

@@ -8,7 +8,7 @@ set_flags:
 
 ### Choices
 
-- (requires: jk_battle_done) → MICHI
-- (requires: johannes_defeated) → MICHI
-- (requires: karl_defeated) → MICHI
-- (requires: !jk_battle_done) → jk_r5_roll
+- Continue (requires: jk_battle_done) → MICHI
+- Continue (requires: johannes_defeated) → MICHI
+- Continue (requires: karl_defeated) → MICHI
+- Continue (requires: !jk_battle_done) → jk_r5_roll

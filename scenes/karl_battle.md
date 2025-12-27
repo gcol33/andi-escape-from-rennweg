@@ -29,4 +29,3 @@ actions:
 - Skills (battle: skill) → karl_battle
 - Defend (battle: defend) → karl_battle
 - Item (battle: item) → karl_battle
-- Chug Coffee (battle: skip_battle, uses: Coffee Mug) → karl_battle

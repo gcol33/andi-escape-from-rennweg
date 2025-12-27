@@ -25,4 +25,3 @@ actions:
 - Skills (battle: skill) → johannes_battle
 - Defend (battle: defend) → johannes_battle
 - Item (battle: item) → johannes_battle
-- Chug Coffee (battle: skip_battle, uses: Coffee Mug) → johannes_battle

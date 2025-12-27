@@ -8,7 +8,7 @@ set_flags:
 
 ### Choices
 
-- (requires: jk_battle_done) → dnd_group
-- (requires: johannes_defeated) → dnd_group
-- (requires: karl_defeated) → dnd_group
-- (requires: !jk_battle_done) → jk_r6_roll
+- Continue (requires: jk_battle_done) → dnd_group
+- Continue (requires: johannes_defeated) → dnd_group
+- Continue (requires: karl_defeated) → dnd_group
+- Continue (requires: !jk_battle_done) → jk_r6_roll
