@@ -472,9 +472,9 @@ var GameMenu = (function() {
         // Get base stats from player config
         if (typeof playerConfig !== 'undefined') {
             console.log('[GameMenu] renderStats - playerConfig:', playerConfig);
-            if (!maxHp) maxHp = playerConfig.hp || 20;
+            if (!maxHp) maxHp = playerConfig.hp || 42;
             if (!maxMana) maxMana = playerConfig.mana || 10;
-            ac = playerConfig.ac || 10;
+            ac = playerConfig.ac || 11;
             attackBonus = playerConfig.attack_bonus || 0;
         } else {
             console.warn('[GameMenu] renderStats - playerConfig not available');

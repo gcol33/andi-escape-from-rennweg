@@ -1,9 +1,12 @@
 ---
 id: hallway
 bg: office_corridor.jpg
+add_items:
+  - name: Energy Drink
+    type: consumable
 ---
 
-You reach the main crossing of the building, where all paths seem to intersect. The smell of coffee drifts from somewhere nearby. Voices echo from multiple directions.
+You reach the main crossing of the building, where all paths seem to intersect. The smell of coffee drifts from somewhere nearby. Voices echo from multiple directions. You pass the vending machine and grab an energy drink - might need the boost later.
 
 ---
 

@@ -58,8 +58,8 @@
 /**
  * @typedef {Object} BattleCombatConfig
  * @property {number} defendACBonus - AC bonus when defending
- * @property {number} defendManaRecoveryMin - Min mana on defend
- * @property {number} defendManaRecoveryMax - Max mana on defend
+ * @property {number} defendDuration - How many enemy attacks defensive stance lasts
+ * @property {number} defendCooldown - Turns before defend can be used again
  * @property {number} defendStaggerReduction - Stagger reduced on defend
  * @property {number} critMultiplier - Damage multiplier on crit
  * @property {number} minDamage - Minimum damage per hit
@@ -229,8 +229,6 @@ const TUNING = {
                 defendACBonus: 0,               // AC bonus when defending (removed - can be a skill later)
                 defendDuration: 1,              // How many enemy attacks defensive stance lasts
                 defendCooldown: 2,              // Turns before defend can be used again
-                defendManaRecoveryMin: 2,       // Min mana on defend
-                defendManaRecoveryMax: 4,       // Max mana on defend
                 defendStaggerReduction: 15,     // Stagger reduced on defend
 
                 // Damage
@@ -328,9 +326,9 @@ const TUNING = {
 
         player: {
             defaultName: 'Player',       // Default player display name
-            defaultMaxHP: 20,
+            defaultMaxHP: 42,            // Should match player.md
             defaultMaxMana: 10,
-            defaultAC: 10,
+            defaultAC: 11,               // Should match player.md
             defaultAttackBonus: 2,
             defaultDamage: '1d6',
             defaultStaggerThreshold: 100,

@@ -117,8 +117,8 @@ var BattleIntent = (function() {
     /**
      * Check if an intent should trigger this turn
      */
-    function shouldTrigger(intentConfig, enemy, player, turn) {
-        // Check cooldown
+    function shouldTrigger(intentConfig, enemy, player, turn, forceGenerate) {
+        // Check cooldown (still applies even in force mode)
         var cooldown = intentConfig.cooldown || 3;
         var lastUsed = getLastUsedTurn(intentConfig.id, enemy.id);
         if (lastUsed !== null && (turn - lastUsed) < cooldown) {
@@ -133,6 +133,11 @@ var BattleIntent = (function() {
         if (intentConfig.hpThreshold) {
             var hpPercent = enemy.hp / enemy.maxHP;
             if (hpPercent > intentConfig.hpThreshold) return false;
+        }
+
+        // In force mode (intents-only phase), skip random chance
+        if (forceGenerate) {
+            return true;
         }
 
         // Random chance
@@ -227,10 +232,14 @@ var BattleIntent = (function() {
         /**
          * Generate intent based on AI behavior
          * Now checks for telegraphed intents first, then falls back to basic intent
+         * @param {Object} enemy - Enemy state
+         * @param {Object} player - Player state
+         * @param {boolean|number} forceGenerate - If true, force intent generation (intents-only phase)
          */
-        generate: function(enemy, player, turn) {
-            // Get turn from BattleCore if not provided
-            if (turn === undefined && typeof BattleCore !== 'undefined') {
+        generate: function(enemy, player, forceGenerate) {
+            // Get turn from BattleCore
+            var turn = 1;
+            if (typeof BattleCore !== 'undefined') {
                 var state = BattleCore.getState();
                 turn = state.turn || 1;
             }
@@ -242,7 +251,7 @@ var BattleIntent = (function() {
                 var intents = enemy.intents;
                 for (var i = 0; i < intents.length; i++) {
                     var intentConfig = intents[i];
-                    if (shouldTrigger(intentConfig, enemy, player, turn)) {
+                    if (shouldTrigger(intentConfig, enemy, player, turn, forceGenerate)) {
                         // Create telegraphed intent
                         var typeDef = intentTypes[intentConfig.type];
                         currentIntent = {

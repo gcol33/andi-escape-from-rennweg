@@ -4,7 +4,7 @@ name: D&D Group
 sprite: dnd_group.svg
 
 # Base Stats
-hp: 30
+hp: 50
 ac: 13
 attack_bonus: 4
 damage: d8

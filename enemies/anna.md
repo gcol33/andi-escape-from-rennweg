@@ -4,7 +4,7 @@ name: Anna
 sprite: anna_neutral.svg
 
 # Base Stats
-hp: 24
+hp: 40
 ac: 12
 attack_bonus: 3
 damage: d6

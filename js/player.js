@@ -24,47 +24,13 @@ const playerConfig = {
   },
   "skills": [
     {
-      "id": "power_strike",
-      "name": "Power Strike",
-      "damage": "2d6",
-      "type": "physical",
-      "manaCost": 3,
-      "description": "A powerful blow that deals extra damage."
-    },
-    {
-      "id": "heal",
-      "name": "Heal",
-      "healAmount": "2d4",
-      "manaCost": 4,
-      "description": "Restore some health."
-    },
-    {
-      "id": "fire_bolt",
-      "name": "Fire Bolt",
-      "damage": "1d8",
-      "type": "fire",
-      "manaCost": 2,
-      "description": "Launch a bolt of fire at the enemy."
-    },
-    {
-      "id": "ice_shard",
-      "name": "Ice Shard",
-      "damage": "1d6",
-      "type": "ice",
-      "manaCost": 2,
-      "statusEffect": {
-        "type": "slow",
-        "chance": 0.25
-      },
-      "description": "A shard of ice that may slow the target."
-    },
-    {
-      "id": "summon_keyboard",
-      "name": "Summon Keyboard",
-      "isSummon": true,
-      "summonId": "sentient_keyboard",
-      "manaCost": 5,
-      "description": "Summon a sentient mechanical keyboard to type furiously at enemies!"
+      "id": "short_rest",
+      "name": "Short Rest",
+      "manaCost": 0,
+      "isRest": true,
+      "restoreMana": 10,
+      "skipsTurn": true,
+      "description": "Take a breather to restore 10 MP. Skips your turn!"
     },
     {
       "id": "lighter_ignite",
@@ -132,12 +98,101 @@ const playerConfig = {
       "manaCost": 0,
       "isHeal": true,
       "healsToFull": true,
-      "appliesSelfStatus": "",
-      "type": "confusion",
-      "duration": 2,
+      "appliesSelfStatus": {
+        "type": "confusion",
+        "duration": 2
+      },
       "requiresItem": "Beer",
       "consumesItem": true,
       "description": "Chug a beer. Full HP but confused for 2 turns!"
+    },
+    {
+      "id": "granola_bar",
+      "name": "Granola Bar",
+      "manaCost": 0,
+      "isHeal": true,
+      "healAmount": 10,
+      "appliesSelfBuff": {
+        "type": "fortified",
+        "duration": "infinite",
+        "acBonus": 1
+      },
+      "requiresItem": "Granola Bar",
+      "consumesItem": true,
+      "description": "A healthy snack. +10 HP and +1 AC for this fight."
+    },
+    {
+      "id": "energy_drink",
+      "name": "Energy Drink",
+      "manaCost": 0,
+      "isHeal": true,
+      "healAmount": 8,
+      "appliesSelfBuff": {
+        "type": "energized",
+        "duration": "infinite",
+        "attackBonus": 2
+      },
+      "requiresItem": "Energy Drink",
+      "consumesItem": true,
+      "description": "Caffeinated boost. +8 HP and +2 Attack for this fight."
+    },
+    {
+      "id": "aspirin",
+      "name": "Aspirin",
+      "manaCost": 0,
+      "isHeal": true,
+      "healAmount": 5,
+      "appliesSelfBuff": {
+        "type": "clear_headed",
+        "duration": "infinite",
+        "immuneTo": [
+          "stun",
+          "confusion"
+        ]
+      },
+      "requiresItem": "Aspirin",
+      "consumesItem": true,
+      "description": "Clear your head. +5 HP and immune to stun/confusion this fight."
+    },
+    {
+      "id": "spicy_goulash",
+      "name": "Spicy Goulash",
+      "manaCost": 0,
+      "isHeal": true,
+      "healAmount": 5,
+      "appliesSelfStatus": {
+        "type": "burn",
+        "duration": 1
+      },
+      "appliesSelfBuff": {
+        "type": "burning_attacks",
+        "duration": "infinite",
+        "burnOnAttack": 3
+      },
+      "requiresItem": "Spicy Goulash",
+      "consumesItem": true,
+      "description": "Hot stuff! +5 HP, burn yourself, but next 3 attacks apply burn."
+    },
+    {
+      "id": "break_room_snacks",
+      "name": "Break Room Snacks",
+      "manaCost": 0,
+      "isHeal": true,
+      "healAmount": 10,
+      "requiresItem": "Break Room Snacks",
+      "consumesItem": true,
+      "description": "Stolen from Agnes's stash. +10 HP."
+    },
+    {
+      "id": "first_aid_kit",
+      "name": "First Aid Kit",
+      "manaCost": 0,
+      "isHeal": true,
+      "healAmount": 15,
+      "clearsStatus": true,
+      "requiresItem": "First Aid Kit",
+      "consumesItem": true,
+      "description": "Proper medical supplies. +15 HP and removes all negative status effects."
     }
   ]
 };

@@ -1673,52 +1673,30 @@ var BattleDiceUI = (function() {
     }
 
     // =========================================================================
-    // DEFEND ROLL DISPLAY
+    // DEFEND DISPLAY
     // =========================================================================
 
     /**
-     * Show animated defend roll for mana recovery
-     * Format: "Andi increases defense +4 AC and rolls [X]... Recovered +3 MP! Cooldown 5"
-     * Or with overmana: "... Recovered +5 (-2) → +3 MP! Cooldown 5"
+     * Show defend action text
+     * Format: "Andi takes a defensive stance! Cooldown 2"
      *
-     * @param {Object} options - { container, rollResult, defender, acBonus, manaRecovered, manaRolled, cooldown, isMinMana, isMaxMana, onACComplete }
+     * @param {Object} options - { container, defender, cooldown }
      * @param {function} callback
      */
     function showDefendRoll(options, callback) {
         var container = options.container;
-        var rollResult = options.rollResult;
         var defenderName = options.defender || 'Player';
-        var acBonus = options.acBonus || 4;
-        var manaRecovered = options.manaRecovered || 0;
-        var manaRolled = options.manaRolled || manaRecovered;  // Rolled amount (before MP cap)
-        var overmana = manaRolled - manaRecovered;  // Amount wasted due to MP cap
-        var cooldown = options.cooldown || 0;  // Turns until defend available again
-        var isMinMana = options.isMinMana || false;
-        var isMaxMana = options.isMaxMana || false;
-        var onACComplete = options.onACComplete || null;  // Callback when AC text finishes
+        var cooldown = options.cooldown || 0;
 
-        // Determine roll type and color class based on result
-        // Always use 'status' type - the result category (max/min/normal) handles the styling
-        var rollType = 'status';
-        var manaColorClass = getRollClass('status', 'normal');
-
-        if (isMinMana) {
-            // Set rollResult flags for animateRoll to pick up
-            rollResult.isMin = true;
-            manaColorClass = getRollClass('status', 'min');
-        } else if (isMaxMana && overmana === 0) {
-            // Set rollResult flags for animateRoll to pick up
-            rollResult.isMax = true;
-            manaColorClass = getRollClass('status', 'max');
-        }
-
-        // Single line for defend display (matches attack roll structure)
+        // Single line for defend display
         var line = document.createElement('div');
         line.className = 'roll-result defend-roll';
         container.appendChild(line);
 
-        // Helper to finish with cooldown display
-        function finishWithCooldown() {
+        // Defend flavor text
+        var introText = defenderName + ' takes a defensive stance!';
+
+        typewriter(line, introText, function() {
             if (cooldown > 0) {
                 // Add cooldown label text
                 var cooldownLabel = document.createElement('span');
@@ -1727,90 +1705,20 @@ var BattleDiceUI = (function() {
 
                 // Typewrite cooldown text
                 typewriter(cooldownLabel, ' Cooldown ', function() {
-                    // Add cooldown number (normal size, same style as label)
+                    // Add cooldown number
                     var cooldownNum = document.createElement('span');
                     cooldownNum.className = 'defend-cooldown-number';
                     line.appendChild(cooldownNum);
 
                     // Typewrite the number
                     typewriter(cooldownNum, String(cooldown), function() {
-                        // Longer linger for defend results
-                        diceTimeout(callback, config.lingerDelay * 2);
+                        diceTimeout(callback, config.lingerDelay);
                     });
                 });
             } else {
-                // Longer linger for defend results
-                diceTimeout(callback, config.lingerDelay * 2);
+                diceTimeout(callback, config.lingerDelay);
             }
-        }
-
-        // Phase 1: Type intro text with Kung Fu Panda-inspired flavor
-        var introText = defenderName + ' breathes deeply... "Inner peace... inner peace..." The Dragon Warrior stance is assumed! SKADOOSH! Rolling for focus: ';
-
-        typewriter(line, introText, function() {
-            function showDiceRoll() {
-                // Create dice element
-                var diceNum = document.createElement('strong');
-                diceNum.className = 'dice-number';
-                diceNum.textContent = '?';
-                line.appendChild(diceNum);
-
-                // Animate the roll with appropriate type (grey if 0 MP, blue otherwise)
-                animateRoll(diceNum, rollResult, function() {
-                    // Add result text with typewriter
-                    typewriter(line, '... Recovered ', function() {
-                        // Show MP - show rolled amount first if there's overmana
-                        var manaSpan = document.createElement('span');
-                        manaSpan.className = 'dice-number ' + manaColorClass;
-                        line.appendChild(manaSpan);
-
-                        var displayMana = overmana > 0 ? manaRolled : manaRecovered;
-
-                        // If there's overmana, type just the number (will collapse and add MP! later)
-                        if (overmana > 0) {
-                            typewriter(manaSpan, '+' + displayMana, function() {
-                                showOvermanaCollapse(line, manaSpan, manaRolled, overmana, manaRecovered, cooldown, finishWithCooldown);
-                            });
-                        } else {
-                            // No overmana - type "+X MP!" together
-                            typewriter(manaSpan, '+' + displayMana + ' ' + KEYWORDS.MP, finishWithCooldown);
-                        }
-                    });
-                }, rollType);
-            }
-
-            showDiceRoll();
         });
-    }
-
-    /**
-     * Show overmana modifier then collapse to final value (like overheal)
-     * Example: +5 (-2) → +3 MP! Cooldown 5
-     */
-    function showOvermanaCollapse(line, manaSpan, manaRolled, overmana, finalMana, cooldown, finishCallback) {
-        // Show the overmana modifier
-        var modSpan = document.createElement('span');
-        modSpan.className = 'mod-part mod-animate-in';
-        modSpan.innerHTML = ' <span class="overheal-mod">(-' + overmana + ')</span>';
-        line.appendChild(modSpan);
-
-        // Wait, then collapse
-        diceTimeout(function() {
-            modSpan.classList.add('mod-collapsing');
-
-            diceTimeout(function() {
-                modSpan.remove();
-                // Update the mana number to final value WITH MP! together
-                manaSpan.textContent = '+' + finalMana + ' ' + KEYWORDS.MP;
-                manaSpan.classList.add('dice-pop');
-
-                diceTimeout(function() {
-                    manaSpan.classList.remove('dice-pop');
-                    // Continue to cooldown display
-                    finishCallback();
-                }, 200);
-            }, 250);
-        }, 400);
     }
 
     // =========================================================================

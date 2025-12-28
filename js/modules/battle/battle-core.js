@@ -81,8 +81,6 @@ var BattleCore = (function() {
     };
     var combatConfig = T ? T.battle.combat : {
         defendACBonus: 0,   // AC bonus removed (can be a skill later)
-        defendManaRecoveryMin: 2,
-        defendManaRecoveryMax: 4,
         defendStaggerReduction: 15,
         critMultiplier: 2,
         minDamage: 1,
@@ -121,6 +119,7 @@ var BattleCore = (function() {
             limitCharge: undefined,  // undefined = not initialized
             limitBreak: 'overdrive',
             passives: [],
+            buffs: [],    // Temporary buffs from consumables (e.g., +1 AC from Granola Bar)
             items: []
         },
         enemy: createDefaultEnemyState(),
@@ -309,11 +308,30 @@ var BattleCore = (function() {
             staggerThreshold: enemy.stagger_threshold || enemyDefaults.defaultStaggerThreshold,
             ai: enemy.ai || enemyDefaults.defaultAI,
             moves: enemy.moves || [{ name: 'Attack', damage: '1d6', type: 'physical' }],
+            superMoves: enemy.super_moves || null,  // Unlocked in super phase
             passives: enemy.passives || [],
             dialogue: enemy.dialogue || null,
             summons: enemy.summons || null,
-            intents: enemy.intents || null
+            intents: enemy.intents || null,
+            // Phase system for multi-phase boss fights
+            phases: enemy.phases || null,
+            currentPhase: null,
+            baseStats: null  // Store original stats for phase reference
         };
+
+        // Initialize phase system if enemy has phases
+        if (state.enemy.phases && state.enemy.phases.length > 0) {
+            // Store base stats for reference
+            state.enemy.baseStats = {
+                attackBonus: state.enemy.attackBonus,
+                damage: state.enemy.damage,
+                sprite: state.enemy.sprite,
+                name: state.enemy.name
+            };
+            // Start in first phase (highest hp_threshold)
+            state.enemy.currentPhase = state.enemy.phases[0];
+            _log.debug('BattleCore', 'Enemy has phases:', state.enemy.phases.length, 'Starting phase:', state.enemy.currentPhase.id);
+        }
     }
 
     /**
@@ -572,6 +590,9 @@ var BattleCore = (function() {
             newHP: state.enemy.hp
         });
 
+        // Check for phase transition
+        var phaseTransition = checkPhaseTransition();
+
         if (state.enemy.hp <= 0) {
             emitEvent('enemy:defeated', { enemy: state.enemy });
         }
@@ -580,8 +601,88 @@ var BattleCore = (function() {
             damage: actualDamage,
             oldHP: oldHP,
             newHP: state.enemy.hp,
-            killed: state.enemy.hp <= 0
+            killed: state.enemy.hp <= 0,
+            phaseTransition: phaseTransition
         };
+    }
+
+    /**
+     * Check if enemy should transition to a new phase based on HP
+     * @returns {Object|null} Phase transition info or null if no transition
+     */
+    function checkPhaseTransition() {
+        var enemy = state.enemy;
+        if (!enemy.phases || enemy.phases.length === 0) return null;
+
+        var hpPercent = enemy.hp / enemy.maxHP;
+        var currentPhaseId = enemy.currentPhase ? enemy.currentPhase.id : null;
+
+        // Find the appropriate phase based on HP threshold
+        // Phases are sorted by hp_threshold descending (1.0 = base, 0.66 = super, 0.33 = ultra)
+        var newPhase = null;
+        for (var i = 0; i < enemy.phases.length; i++) {
+            var phase = enemy.phases[i];
+            if (hpPercent <= phase.hp_threshold) {
+                newPhase = phase;
+            }
+        }
+
+        // Check if we've transitioned to a new phase
+        if (newPhase && newPhase.id !== currentPhaseId) {
+            var oldPhase = enemy.currentPhase;
+            enemy.currentPhase = newPhase;
+
+            // Apply phase stats
+            if (newPhase.attack_bonus !== undefined) {
+                enemy.attackBonus = newPhase.attack_bonus;
+            }
+            if (newPhase.damage) {
+                enemy.damage = newPhase.damage;
+            }
+            if (newPhase.sprite) {
+                enemy.sprite = newPhase.sprite;
+            }
+            if (newPhase.name) {
+                enemy.name = newPhase.name;
+            }
+
+            // Add super moves to available moves in super+ phases
+            if (enemy.superMoves && newPhase.id !== 'base') {
+                // Merge super moves with regular moves
+                enemy.moves = enemy.moves.concat(enemy.superMoves);
+            }
+
+            _log.info('BattleCore', 'Phase transition:', oldPhase ? oldPhase.id : 'none', '->', newPhase.id,
+                '| HP:', Math.round(hpPercent * 100) + '%',
+                '| New stats: ATK+' + enemy.attackBonus + ', DMG=' + enemy.damage);
+
+            // Emit phase transition event for UI handling
+            emitEvent('enemy:phase-transition', {
+                enemy: enemy,
+                oldPhase: oldPhase,
+                newPhase: newPhase,
+                dialogue: newPhase.dialogue || null,
+                intentsOnly: newPhase.intents_only || false
+            });
+
+            return {
+                oldPhase: oldPhase,
+                newPhase: newPhase,
+                dialogue: newPhase.dialogue,
+                intentsOnly: newPhase.intents_only
+            };
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if enemy is in intents-only phase (Ultra Stefan)
+     * @returns {boolean}
+     */
+    function isIntentsOnlyPhase() {
+        var enemy = state.enemy;
+        return enemy.currentPhase && enemy.currentPhase.intents_only === true;
     }
 
     /**
@@ -667,6 +768,15 @@ var BattleCore = (function() {
         var effectDef = BattleData.getStatusEffect(statusType);
         if (!effectDef) return { applied: false, message: '' };
 
+        // Check for immunity from buffs (only for player)
+        if (target === state.player && hasBuffImmunity(statusType)) {
+            return {
+                applied: false,
+                immune: true,
+                message: '🛡️ Immune to ' + effectDef.name + '!'
+            };
+        }
+
         stacks = stacks || 1;
         var duration = customDuration || effectDef.duration;
         var existing = findStatus(target, statusType);
@@ -748,6 +858,175 @@ var BattleCore = (function() {
             }
         }
         return null;
+    }
+
+    // =========================================================================
+    // BUFF SYSTEM (temporary positive effects from consumables)
+    // =========================================================================
+
+    /**
+     * Apply a buff to the player
+     * @param {Object} buffData - { type, duration, acBonus, attackBonus, immuneTo, burnOnAttack, etc. }
+     * @returns {Object} { applied, message }
+     */
+    function applyBuff(buffData) {
+        if (!buffData || !buffData.type) {
+            return { applied: false, message: '' };
+        }
+
+        // Check if buff already exists - refresh duration
+        var existing = findBuff(buffData.type);
+        if (existing) {
+            // If either duration is infinite, keep infinite
+            if (existing.duration === 'infinite' || buffData.duration === 'infinite') {
+                existing.duration = 'infinite';
+            } else {
+                existing.duration = Math.max(existing.duration, buffData.duration || 99);
+            }
+            return {
+                applied: true,
+                refreshed: true,
+                message: '✨ ' + buffData.type + ' refreshed!'
+            };
+        }
+
+        // Add new buff
+        state.player.buffs.push({
+            type: buffData.type,
+            duration: buffData.duration || 99,
+            acBonus: buffData.acBonus || 0,
+            attackBonus: buffData.attackBonus || 0,
+            immuneTo: buffData.immuneTo || [],
+            burnOnAttack: buffData.burnOnAttack || 0,  // Number of attacks that apply burn
+            burnAttacksRemaining: buffData.burnOnAttack || 0
+        });
+
+        _log.debug('BattleCore', 'Applied buff:', buffData.type, buffData);
+
+        return {
+            applied: true,
+            message: '✨ Gained ' + buffData.type + '!'
+        };
+    }
+
+    /**
+     * Find a buff by type
+     * @param {string} buffType - Buff type to find
+     * @returns {Object|null} Buff object or null
+     */
+    function findBuff(buffType) {
+        for (var i = 0; i < state.player.buffs.length; i++) {
+            if (state.player.buffs[i].type === buffType) {
+                return state.player.buffs[i];
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Check if player has immunity to a status effect
+     * @param {string} statusType - Status to check immunity for
+     * @returns {boolean}
+     */
+    function hasBuffImmunity(statusType) {
+        for (var i = 0; i < state.player.buffs.length; i++) {
+            var buff = state.player.buffs[i];
+            if (buff.immuneTo && buff.immuneTo.indexOf(statusType) !== -1) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Get total AC bonus from all buffs
+     * @returns {number}
+     */
+    function getBuffACBonus() {
+        var total = 0;
+        for (var i = 0; i < state.player.buffs.length; i++) {
+            total += state.player.buffs[i].acBonus || 0;
+        }
+        return total;
+    }
+
+    /**
+     * Get total attack bonus from all buffs
+     * @returns {number}
+     */
+    function getBuffAttackBonus() {
+        var total = 0;
+        for (var i = 0; i < state.player.buffs.length; i++) {
+            total += state.player.buffs[i].attackBonus || 0;
+        }
+        return total;
+    }
+
+    /**
+     * Check if any buff provides burn on attack
+     * Consumes one burn attack charge if available
+     * @returns {boolean} True if attack should apply burn
+     */
+    function consumeBurnOnAttack() {
+        for (var i = 0; i < state.player.buffs.length; i++) {
+            var buff = state.player.buffs[i];
+            if (buff.burnAttacksRemaining && buff.burnAttacksRemaining > 0) {
+                buff.burnAttacksRemaining--;
+                _log.debug('BattleCore', 'Consumed burn attack, remaining:', buff.burnAttacksRemaining);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Clear all status effects from player
+     * @returns {Object} { cleared, messages }
+     */
+    function clearAllStatuses() {
+        var cleared = state.player.statuses.length;
+        var messages = [];
+
+        if (cleared > 0) {
+            for (var i = 0; i < state.player.statuses.length; i++) {
+                var status = state.player.statuses[i];
+                var def = _hasBattleData ? BattleData.getStatusEffect(status.type) : null;
+                if (def) {
+                    messages.push(def.icon + ' ' + def.name + ' cleared!');
+                }
+            }
+            state.player.statuses = [];
+        }
+
+        return { cleared: cleared, messages: messages };
+    }
+
+    /**
+     * Clear all buffs from player (called at battle end or when needed)
+     */
+    function clearAllBuffs() {
+        state.player.buffs = [];
+    }
+
+    /**
+     * Tick buff durations (called each turn)
+     * @returns {Array} Messages for expired buffs
+     */
+    function tickBuffs() {
+        var messages = [];
+        for (var i = state.player.buffs.length - 1; i >= 0; i--) {
+            var buff = state.player.buffs[i];
+            // Skip infinite duration buffs (they last the whole fight)
+            if (buff.duration === 'infinite') {
+                continue;
+            }
+            buff.duration--;
+            if (buff.duration <= 0) {
+                messages.push('✨ ' + buff.type + ' wore off.');
+                state.player.buffs.splice(i, 1);
+            }
+        }
+        return messages;
     }
 
     /**
@@ -1543,6 +1822,16 @@ var BattleCore = (function() {
         getCannotActMessage: getCannotActMessage,
         shouldApplyStatus: shouldApplyStatus,
         setGuaranteeStatusCallback: setGuaranteeStatusCallback,
+        clearAllStatuses: clearAllStatuses,
+
+        // Buffs (temporary positive effects from consumables)
+        applyBuff: applyBuff,
+        hasBuffImmunity: hasBuffImmunity,
+        getBuffACBonus: getBuffACBonus,
+        getBuffAttackBonus: getBuffAttackBonus,
+        consumeBurnOnAttack: consumeBurnOnAttack,
+        clearAllBuffs: clearAllBuffs,
+        tickBuffs: tickBuffs,
 
         // Stagger
         addStagger: addStagger,
@@ -1587,6 +1876,7 @@ var BattleCore = (function() {
         tickDefendCooldown: tickDefendCooldown,
         getPlayer: getPlayer,
         getEnemy: getEnemy,
+        isIntentsOnlyPhase: isIntentsOnlyPhase,
         getSummon: getSummon,
         getTerrain: getTerrain,
         getTargets: getTargets,

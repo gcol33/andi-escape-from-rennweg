@@ -4,7 +4,7 @@ name: Karl
 sprite: karl.svg
 
 # Base Stats
-hp: 35
+hp: 48
 ac: 10
 attack_bonus: 3
 damage: d8

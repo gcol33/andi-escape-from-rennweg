@@ -6,6 +6,9 @@ chars:
 set_flags:
   - karl_defeated
   - jk_battle_done
+add_items:
+  - name: Birkenstock
+    type: key
 ---
 
 "Hm." Karl sits down on the floor, cross-legged. "That happened."

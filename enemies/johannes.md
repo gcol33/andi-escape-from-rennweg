@@ -4,7 +4,7 @@ name: Johannes
 sprite: johannes.svg
 
 # Base Stats
-hp: 30
+hp: 48
 ac: 11
 attack_bonus: 2
 damage: d6

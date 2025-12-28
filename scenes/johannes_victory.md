@@ -6,6 +6,9 @@ chars:
 set_flags:
   - johannes_defeated
   - jk_battle_done
+add_items:
+  - name: Pi Pin
+    type: key
 ---
 
 Johannes adjusts his cracked glasses. "Impossible. I calculated every variable. The math was perfect."

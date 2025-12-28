@@ -40,9 +40,8 @@ var BattleStyleDnD = (function() {
     var config = T ? T.battle.combat : {
         defendACBonus: 0,   // AC bonus removed (can be a skill later)
         defendDuration: 2,  // How many enemy attacks defensive stance lasts
-        defendManaRecoveryMin: 2,
-        defendManaRecoveryMax: 4,
         defendCooldown: 5,  // Turns before defend can be used again
+        defendStaggerReduction: 15,
         critMultiplier: 2,
         minDamage: 1,
         fleeThreshold: 10
@@ -143,6 +142,21 @@ var BattleStyleDnD = (function() {
             attackModifiers.push({ value: statusAttackBonus, source: statusSource });
         }
 
+        // Buff attack bonus (from consumables like Energy Drink)
+        // Only applies if attacker is the player (has buffs array)
+        if (attacker.buffs && BattleCore.getBuffAttackBonus) {
+            var buffAttackBonus = BattleCore.getBuffAttackBonus();
+            if (buffAttackBonus !== 0) {
+                attackModifiers.push({ value: buffAttackBonus, source: 'Buff' });
+            }
+        }
+
+        // Passive equipment attack bonus (Pi Pin from Johannes)
+        // Only applies if attacker is the player
+        if (attacker.buffs && typeof VNEngine !== 'undefined' && VNEngine.hasKeyItem && VNEngine.hasKeyItem('Pi Pin')) {
+            attackModifiers.push({ value: 1, source: 'Pi Pin' });
+        }
+
         // Skill attack bonus
         if (skill.attackBonus) {
             attackModifiers.push({ value: skill.attackBonus, source: 'Skill' });
@@ -183,6 +197,18 @@ var BattleStyleDnD = (function() {
         // Calculate defender AC
         var defenderAC = defender.ac || 10;
         defenderAC += BattleCore.getStatusACModifier(defender);
+
+        // Buff AC bonus (from consumables like Granola Bar)
+        // Only applies if defender is the player (has buffs array)
+        if (defender.buffs && BattleCore.getBuffACBonus) {
+            defenderAC += BattleCore.getBuffACBonus();
+        }
+
+        // Passive equipment AC bonus (Birkenstock from Karl)
+        // Only applies if defender is the player
+        if (defender.buffs && typeof VNEngine !== 'undefined' && VNEngine.hasKeyItem && VNEngine.hasKeyItem('Birkenstock')) {
+            defenderAC += 1;
+        }
 
         // Note: Defending no longer provides AC bonus (removed)
 
@@ -303,6 +329,15 @@ var BattleStyleDnD = (function() {
             statusResult = tryApplyStatus(skill, defender);
         }
 
+        // Apply burn from buff (Spicy Goulash - "next 3 attacks burn")
+        // Only applies if attacker is the player (has buffs array)
+        var burnFromBuff = null;
+        if (hit && attacker.buffs && BattleCore.consumeBurnOnAttack && !qteResult.noStatusEffect) {
+            if (BattleCore.consumeBurnOnAttack()) {
+                burnFromBuff = BattleCore.applyStatus(defender, 'burn', 1);
+            }
+        }
+
         // Apply confusion on fumble (nat 1)
         var fumbleStatusResult = null;
         if (isFumble) {
@@ -323,6 +358,7 @@ var BattleStyleDnD = (function() {
             damageType: damageType,
             typeMultiplier: _hasBattleData ? BattleData.getTypeMultiplier(damageType, defender.type) : 1,
             statusResult: statusResult,
+            burnFromBuff: burnFromBuff,
             fumbleStatusResult: fumbleStatusResult,
             isMinDamage: isMinDamage,
             isMaxDamage: isMaxDamage,
@@ -507,6 +543,16 @@ var BattleStyleDnD = (function() {
         var messages = [];
         var result = { success: true, messages: messages, skill: skill };
 
+        // Rest skill (Short Rest - restores mana, skips turn)
+        if (skill.isRest && skill.restoreMana) {
+            var manaRestored = BattleCore.restoreMana(skill.restoreMana);
+            messages.push(player.name + ' takes a short rest... Restored <span class="regen-mp">+' + manaRestored + ' MP</span>!');
+            result.manaRestored = manaRestored;
+            result.skipsTurn = true;
+            BattleCore.playSfx('heal');
+            return result;
+        }
+
         // Healing skill (check both isHeal flag and healAmount property)
         var isHealSkill = skill.isHeal || (skill.healAmount && !skill.damage);
         if (isHealSkill) {
@@ -618,6 +664,48 @@ var BattleStyleDnD = (function() {
                         type: skill.statusEffect.type,
                         stacks: 1
                     };
+                }
+            }
+
+            // Handle appliesSelfBuff - apply positive buff effects (from consumables)
+            if (skill.appliesSelfBuff) {
+                var buffResult = BattleCore.applyBuff(skill.appliesSelfBuff);
+                if (buffResult.applied) {
+                    // Build a descriptive message based on buff properties
+                    var buffParts = [];
+                    if (skill.appliesSelfBuff.acBonus) {
+                        buffParts.push('+' + skill.appliesSelfBuff.acBonus + ' AC');
+                    }
+                    if (skill.appliesSelfBuff.attackBonus) {
+                        buffParts.push('+' + skill.appliesSelfBuff.attackBonus + ' Attack');
+                    }
+                    if (skill.appliesSelfBuff.immuneTo && skill.appliesSelfBuff.immuneTo.length > 0) {
+                        buffParts.push('Immune to ' + skill.appliesSelfBuff.immuneTo.join(', '));
+                    }
+                    if (skill.appliesSelfBuff.burnOnAttack) {
+                        buffParts.push('Next ' + skill.appliesSelfBuff.burnOnAttack + ' attacks burn!');
+                    }
+                    if (buffParts.length > 0) {
+                        messages.push('✨ ' + buffParts.join(', ') + '!');
+                    }
+                    result.buffApplied = skill.appliesSelfBuff;
+                }
+            }
+
+            // Handle clearsStatus - clear all status effects from player (from First Aid Kit)
+            if (skill.clearsStatus) {
+                var clearResult = BattleCore.clearAllStatuses();
+                if (clearResult.cleared > 0) {
+                    messages.push('🩹 All status effects cleared!');
+                    result.statusesCleared = clearResult.cleared;
+                }
+            }
+
+            // Handle consumesItem - remove item from inventory after use
+            if (skill.consumesItem && skill.requiresItem) {
+                if (typeof VNEngine !== 'undefined' && VNEngine.removeItem) {
+                    VNEngine.removeItem(skill.requiresItem);
+                    messages.push('(Used up ' + skill.requiresItem + ')');
                 }
             }
 
@@ -757,18 +845,6 @@ var BattleStyleDnD = (function() {
         // Note: Cooldown is NOT applied here - it starts when stance ends (after QTE)
         var cooldown = config.defendCooldown || 2;
 
-        // Roll for mana recovery
-        var rollResult = rollD20();
-        var roll = rollResult.roll;
-
-        // Mana recovery scales with roll (min 1, max 5 for roll 20)
-        var manaRecovered = Math.max(1, Math.floor(roll / 4));
-        var actualMana = BattleCore.restoreMana(manaRecovered);
-
-        // Track min/max for visual styling (0 = grey if at max mana, 5 = max roll)
-        var isMinMana = actualMana === 0;
-        var isMaxMana = manaRecovered >= 5 && actualMana > 0;
-
         // Reduce stagger
         BattleCore.decayStagger(player, config.defendStaggerReduction || 15);
 
@@ -776,14 +852,8 @@ var BattleStyleDnD = (function() {
 
         return {
             success: true,
-            manaRecovered: actualMana,
-            manaRolled: manaRecovered,  // Amount rolled before MP cap
-            isMinMana: isMinMana,
-            isMaxMana: isMaxMana,
             acBonus: 0,  // AC bonus removed from defending
-            cooldown: cooldown,  // Return cooldown for UI display
-            roll: roll,
-            rollResult: rollResult
+            cooldown: cooldown  // Return cooldown for UI display
         };
     }
 

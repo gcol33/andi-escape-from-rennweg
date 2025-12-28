@@ -4,7 +4,7 @@ name: Michi
 sprite: michi_whiteboard.svg
 
 # Base Stats
-hp: 28
+hp: 55
 ac: 13
 attack_bonus: 4
 damage: d8

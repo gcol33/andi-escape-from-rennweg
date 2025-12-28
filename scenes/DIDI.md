@@ -3,9 +3,12 @@ id: DIDI
 bg: office_corridor.jpg
 chars:
   - didi_neutral.svg
+add_items:
+  - name: Aspirin
+    type: consumable
 ---
 
-You duck into Didi's office to say goodbye. He's watching something on his computer. Looks like a TV series. You notice a book lying on his desk: the 5th volume of "The Expanse." "Oh, you've read The Expanse?" you ask. A dangerous question. Didi's eyes light up.
+You duck into Didi's office to say goodbye. You notice a bottle of aspirin on his desk - "For the bureaucracy headaches," he explains. You pocket a few. He's watching something on his computer. Looks like a TV series. You notice a book lying on his desk: the 5th volume of "The Expanse." "Oh, you've read The Expanse?" you ask. A dangerous question. Didi's eyes light up.
 
 ---
 

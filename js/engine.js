@@ -101,9 +101,13 @@ var VNEngine = (function() {
         },
         inventoryExpanded: false, // UI state for expandable panel
         playerHP: null, // player HP (null until first battle)
-        playerMaxHP: typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxHP : 20,
+        playerMaxHP: typeof playerConfig !== 'undefined' && playerConfig.hp
+            ? playerConfig.hp
+            : (typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxHP : 42),
         playerMana: null, // player Mana (null until first battle)
-        playerMaxMana: typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxMana : 20,
+        playerMaxMana: typeof playerConfig !== 'undefined' && playerConfig.mana
+            ? playerConfig.mana
+            : (typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxMana : 10),
         battle: null, // active battle state
         history: [],
         readBlocks: {}, // tracks which scene+block combos have been read
@@ -1452,11 +1456,16 @@ var VNEngine = (function() {
         var battleState = BattleEngine.getState();
         var currentMana = battleState.player.mana;
 
-        _log.debug('Engine', '[Skill Menu] Opened with mana:', currentMana, 'skills:', playerSkills.map(function(s) {
+        // Filter out consumable skills - they go in Items menu instead
+        var nonConsumableSkills = playerSkills.filter(function(skill) {
+            return !skill.consumesItem;
+        });
+
+        _log.debug('Engine', '[Skill Menu] Opened with mana:', currentMana, 'skills:', nonConsumableSkills.map(function(s) {
             return { name: s.name, cost: s.manaCost, canUse: s.canUse };
         }));
 
-        playerSkills.forEach(function(skill) {
+        nonConsumableSkills.forEach(function(skill) {
             var skillItem = document.createElement('div');
             skillItem.className = 'skill-item' + (skill.canUse ? '' : ' disabled');
 
@@ -1704,6 +1713,80 @@ var VNEngine = (function() {
             };
 
             itemRow.title = item.description || '';
+            itemList.appendChild(itemRow);
+        });
+
+        // Also add consumable skills (skills with consumesItem: true) to the Items menu
+        var playerSkills = BattleEngine.getPlayerSkills ? BattleEngine.getPlayerSkills() : [];
+        var consumableSkills = playerSkills.filter(function(skill) {
+            return skill.consumesItem;
+        });
+
+        consumableSkills.forEach(function(skill) {
+            hasItems = true;
+
+            var itemRow = document.createElement('div');
+            itemRow.className = 'item-row' + (skill.canUse ? '' : ' disabled');
+
+            var itemIcon = document.createElement('span');
+            itemIcon.className = 'item-icon';
+            // Use appropriate icon based on skill effect
+            if (skill.isHeal) {
+                itemIcon.textContent = '💊';
+            } else if (skill.statusEffect) {
+                itemIcon.textContent = '🧪';
+            } else {
+                itemIcon.textContent = '📦';
+            }
+
+            var itemName = document.createElement('span');
+            itemName.className = 'item-name';
+            itemName.textContent = skill.name;
+
+            var itemEffect = document.createElement('span');
+            itemEffect.className = 'item-qty';
+            if (skill.isHeal && skill.healAmount) {
+                itemEffect.textContent = '+' + skill.healAmount + ' HP';
+            } else if (skill.healsToFull) {
+                itemEffect.textContent = 'Full HP';
+            } else {
+                itemEffect.textContent = '';
+            }
+
+            itemRow.appendChild(itemIcon);
+            itemRow.appendChild(itemName);
+            itemRow.appendChild(itemEffect);
+
+            if (skill.canUse) {
+                (function(skillData) {
+                    itemRow.onclick = function() {
+                        // Remove submenu
+                        Utils.removeElement(document.getElementById('item-submenu'));
+                        // Show battle choices and log content again
+                        var battleChoices = document.getElementById('battle-choices');
+                        var battleLogContent = document.getElementById('battle-log-content');
+                        var battleLogPanel = document.querySelector('.battle-log-panel');
+                        var playerStats = document.getElementById('player-stats-panel');
+                        if (battleChoices) {
+                            battleChoices.style.display = '';
+                        }
+                        if (battleLogContent) {
+                            battleLogContent.style.display = '';
+                        }
+                        if (battleLogPanel) {
+                            battleLogPanel.classList.remove('menu-expanded');
+                        }
+                        if (playerStats) {
+                            playerStats.classList.remove('menu-expanded');
+                        }
+
+                        // Execute skill action (consumable skills are still skills internally)
+                        executeBattleAction('skill', { skillId: skillData.id });
+                    };
+                })(skill);
+            }
+
+            itemRow.title = skill.description || '';
             itemList.appendChild(itemRow);
         });
 
@@ -5162,12 +5245,32 @@ var VNEngine = (function() {
             } else {
                 state.inventory = { keyItems: [], consumables: {}, skills: [] };
             }
-            state.playerHP = saveData.playerHP !== undefined ? saveData.playerHP : null;
-            var defaultMaxHP = typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxHP : 20;
-            state.playerMaxHP = saveData.playerMaxHP || defaultMaxHP;
-            state.playerMana = saveData.playerMana !== undefined ? saveData.playerMana : null;
-            var defaultMaxMana = typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxMana : 20;
-            state.playerMaxMana = saveData.playerMaxMana || defaultMaxMana;
+            // Always use current player config for max stats (not saved values)
+            // This ensures balance changes apply to existing saves
+            var currentMaxHP = typeof playerConfig !== 'undefined' && playerConfig.hp
+                ? playerConfig.hp
+                : (typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxHP : 42);
+            var currentMaxMana = typeof playerConfig !== 'undefined' && playerConfig.mana
+                ? playerConfig.mana
+                : (typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxMana : 10);
+
+            state.playerMaxHP = currentMaxHP;
+            state.playerMaxMana = currentMaxMana;
+
+            // Scale current HP/Mana if max changed (maintain percentage)
+            if (saveData.playerHP !== undefined && saveData.playerHP !== null && saveData.playerMaxHP) {
+                var hpRatio = saveData.playerHP / saveData.playerMaxHP;
+                state.playerHP = Math.round(hpRatio * currentMaxHP);
+            } else {
+                state.playerHP = saveData.playerHP !== undefined ? saveData.playerHP : null;
+            }
+
+            if (saveData.playerMana !== undefined && saveData.playerMana !== null && saveData.playerMaxMana) {
+                var manaRatio = saveData.playerMana / saveData.playerMaxMana;
+                state.playerMana = Math.round(manaRatio * currentMaxMana);
+            } else {
+                state.playerMana = saveData.playerMana !== undefined ? saveData.playerMana : null;
+            }
             state.readBlocks = saveData.readBlocks || {};
             state.wonBattles = saveData.wonBattles || {};
             state.history = saveData.history || [];
@@ -5310,9 +5413,14 @@ var VNEngine = (function() {
             // keyFlags are preserved
         }
         state.playerHP = null;
-        state.playerMaxHP = typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxHP : 20;
+        // Always use current player config for max stats
+        state.playerMaxHP = typeof playerConfig !== 'undefined' && playerConfig.hp
+            ? playerConfig.hp
+            : (typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxHP : 42);
         state.playerMana = null;
-        state.playerMaxMana = typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxMana : 20;
+        state.playerMaxMana = typeof playerConfig !== 'undefined' && playerConfig.mana
+            ? playerConfig.mana
+            : (typeof TUNING !== 'undefined' ? TUNING.player.defaultMaxMana : 10);
         state.battle = null;
         state.history = [];
 

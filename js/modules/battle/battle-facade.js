@@ -1021,16 +1021,9 @@ var BattleEngine = (function() {
         BattleDiceUI.showDefendRoll({
             container: logEntry,
             defender: BattleCore.getPlayer().name,
-            rollResult: result.rollResult,
-            acBonus: 0,  // AC bonus removed from defending
-            manaRecovered: result.manaRecovered,
-            manaRolled: result.manaRolled,
-            cooldown: result.cooldown,
-            isMinMana: result.isMinMana,
-            isMaxMana: result.isMaxMana
-            // onACComplete removed - no AC bonus to show
+            cooldown: result.cooldown
         }, function() {
-            updateDisplay();  // Update MP bar after animation completes
+            updateDisplay();
             processEnemyTurn(messages, callback, { playerAction: 'defend' });
         });
     }
@@ -1567,8 +1560,10 @@ var BattleEngine = (function() {
                     return;
                 } else {
                     // Check if a new intent should trigger
-                    var newIntent = BattleIntent.generate(enemy, state.player);
-                    _log.debug('BattleFacade', 'Generated new intent:', newIntent ? newIntent.id : 'none');
+                    // In intents-only phase (Ultra Stefan), force intent generation
+                    var isIntentsOnly = BattleCore.isIntentsOnlyPhase && BattleCore.isIntentsOnlyPhase();
+                    var newIntent = BattleIntent.generate(enemy, state.player, isIntentsOnly);
+                    _log.debug('BattleFacade', 'Generated new intent:', newIntent ? newIntent.id : 'none', 'intentsOnly:', isIntentsOnly);
                     if (newIntent && newIntent.isTelegraphed) {
                         // New intent triggered - show preparation and END TURN
                         // The preparation IS the enemy's action for this turn
@@ -1579,10 +1574,20 @@ var BattleEngine = (function() {
                         });
                         return;
                     }
+
+                    // In intents-only phase, if no intent was generated, skip turn (concentrate)
+                    if (isIntentsOnly) {
+                        _log.debug('BattleFacade', 'Intents-only phase but no intent - enemy concentrates');
+                        var ultraConcentrateMsg = '<em>' + (enemy.name || 'Enemy') + ' is gathering power...</em>';
+                        updateBattleLog(ultraConcentrateMsg, null, function() {
+                            finishEnemyTurn(remainingMessages, callback);
+                        });
+                        return;
+                    }
                 }
             }
 
-            // Normal attack flow
+            // Normal attack flow (not in intents-only phase)
             _log.debug('BattleFacade', 'Proceeding to normal attack');
             proceedWithNormalAttack();
 
