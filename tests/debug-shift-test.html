@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Shift Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+
+        .test-container {
+            width: 300px;
+            height: 4.4rem;
+            overflow: hidden;
+            padding: 0.875rem 1rem;
+            font-size: 1rem;
+            line-height: 1.6;
+            border: 2px solid #333;
+            background: #fafafa;
+            position: relative;
+            margin: 20px auto;
+        }
+
+        .wrapper {
+            position: relative;
+        }
+
+        .placeholder {
+            color: transparent;
+        }
+
+        .visible {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+        }
+
+        button {
+            display: block;
+            margin: 20px auto;
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .info {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 15px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center;">Debug: Placeholder vs Visible Wrapping</h1>
+
+    <button onclick="runTest()">Run Test</button>
+
+    <div class="info" id="info">Click "Run Test" to see wrapping comparison</div>
+
+    <h3 style="text-align: center;">Placeholder (final HTML, transparent)</h3>
+    <div class="test-container" id="container1"></div>
+
+    <h3 style="text-align: center;">Visible (typing HTML incrementally)</h3>
+    <div class="test-container" id="container2"></div>
+
+    <script>
+        const testText = "Andi trips over their own feet! Andi is confused!";
+
+        function runTest() {
+            const container1 = document.getElementById('container1');
+            const container2 = document.getElementById('container2');
+            const info = document.getElementById('info');
+
+            // Test 1: Placeholder (full HTML immediately)
+            container1.innerHTML = '';
+            const wrapper1 = document.createElement('div');
+            wrapper1.className = 'wrapper';
+            const placeholder = document.createElement('div');
+            placeholder.className = 'placeholder';
+            placeholder.innerHTML = testText;
+            placeholder.style.width = '100%';
+            placeholder.style.boxSizing = 'border-box';
+            wrapper1.appendChild(placeholder);
+            container1.appendChild(wrapper1);
+
+            const placeholderHeight = placeholder.scrollHeight;
+            const placeholderWraps = placeholderHeight > 30; // ~1.6rem line height
+
+            // Test 2: Visible (incremental HTML)
+            container2.innerHTML = '';
+            const wrapper2 = document.createElement('div');
+            wrapper2.className = 'wrapper';
+            const visible = document.createElement('div');
+            visible.className = 'visible';
+            visible.style.position = 'static'; // Don't overlay for this test
+            visible.style.width = '100%';
+            visible.style.boxSizing = 'border-box';
+            wrapper2.appendChild(visible);
+            container2.appendChild(wrapper2);
+
+            let index = 0;
+            const interval = setInterval(() => {
+                if (index < testText.length) {
+                    visible.innerHTML += testText[index];
+                    index++;
+                } else {
+                    clearInterval(interval);
+
+                    const visibleHeight = visible.scrollHeight;
+                    const visibleWraps = visibleHeight > 30;
+
+                    info.innerHTML = `
+                        <strong>Placeholder:</strong><br>
+                        - Final HTML set immediately<br>
+                        - scrollHeight: ${placeholderHeight}px<br>
+                        - Wraps: ${placeholderWraps}<br>
+                        <br>
+                        <strong>Visible:</strong><br>
+                        - HTML built character-by-character<br>
+                        - scrollHeight: ${visibleHeight}px<br>
+                        - Wraps: ${visibleWraps}<br>
+                        <br>
+                        <strong>Match:</strong> ${placeholderHeight === visibleHeight ? '✓ YES' : '✗ NO - This is the problem!'}
+                    `;
+
+                    // Show where they wrap differently
+                    setTimeout(() => {
+                        placeholder.style.color = 'black';
+                    }, 1000);
+                }
+            }, 20);
+        }
+    </script>
+</body>
+</html>

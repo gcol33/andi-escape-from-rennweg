@@ -419,24 +419,6 @@ const enemies = {
     ],
     "intents": [
       {
-        "id": "call_intern",
-        "type": "summon",
-        "chance": 0.15,
-        "minTurn": 3,
-        "cooldown": 5,
-        "prepTurns": 2,
-        "dialogue": "INTERN! Get in here NOW!",
-        "executeDialogue": "You wanted to see me, Agnes?",
-        "skill": {
-          "name": "Call Intern",
-          "damage": 0,
-          "type": "physical",
-          "isSummon": true,
-          "summonId": "office_intern",
-          "description": "Agnes summons an intern to assist her."
-        }
-      },
-      {
         "id": "termination_notice",
         "type": "big_attack",
         "chance": 0.2,

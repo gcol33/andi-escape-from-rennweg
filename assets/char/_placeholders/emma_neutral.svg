@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400" width="200" height="400">
+  <!-- Emma - Friendly colleague near window -->
+  <defs>
+    <linearGradient id="emmaBlouse" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#7eb87e"/>
+      <stop offset="100%" style="stop-color:#5a8a5a"/>
+    </linearGradient>
+  </defs>
+  <!-- Body/Green Blouse -->
+  <path d="M70 150 Q60 200 55 300 L55 380 L145 380 L145 300 Q140 200 130 150 Z" fill="url(#emmaBlouse)"/>
+  <!-- Head -->
+  <ellipse cx="100" cy="80" rx="40" ry="50" fill="#e8c4a0"/>
+  <!-- Hair - shoulder length, wavy -->
+  <path d="M55 75 Q50 30 100 22 Q150 30 145 75" fill="#8b5a2b"/>
+  <path d="M55 75 Q50 100 55 140" stroke="#8b5a2b" stroke-width="15" fill="none"/>
+  <path d="M145 75 Q150 100 145 140" stroke="#8b5a2b" stroke-width="15" fill="none"/>
+  <!-- Eyes - warm -->
+  <ellipse cx="82" cy="72" rx="5" ry="4" fill="#4a6741"/>
+  <ellipse cx="118" cy="72" rx="5" ry="4" fill="#4a6741"/>
+  <circle cx="83" cy="71" r="1.5" fill="white"/>
+  <circle cx="119" cy="71" r="1.5" fill="white"/>
+  <!-- Warm smile -->
+  <path d="M82 96 Q100 108 118 96" stroke="#a0522d" stroke-width="2" fill="none"/>
+  <!-- Arms - welcoming gesture -->
+  <path d="M70 160 Q40 190 45 250" stroke="#e8c4a0" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <path d="M130 160 Q160 190 155 250" stroke="#e8c4a0" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <!-- Necklace -->
+  <path d="M80 145 Q100 155 120 145" stroke="#c9a227" stroke-width="2" fill="none"/>
+  <circle cx="100" cy="155" r="4" fill="#c9a227"/>
+</svg>

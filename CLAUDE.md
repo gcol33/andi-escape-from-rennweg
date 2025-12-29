@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 python tools/build_story_from_md.py
 
 # Run tests
-node tests/run-tests.js           # Battle system (177 tests)
+node tests/run-tests.js           # Battle system (178 tests)
 node tests/run-theme-tests.js     # Theme CSS validation (126 tests)
 node tests/run-tuning-tests.js    # Tuning validation
 node tests/run-qte-tests.js       # QTE tests
@@ -22,6 +22,7 @@ node tests/run-qte-tests.js       # QTE tests
 1. **Generated files - DO NOT edit manually:**
    - `js/story.js` - generated from `scenes/*.md`
    - `js/enemies.js` - generated from `enemies/*.md`
+   - `js/summons.js` - generated from `summons/*.md`
    - `js/player.js` - generated from `player/player.md`
    - `js/theme.js` - generated from `theme.md`
 
@@ -40,7 +41,8 @@ node tests/run-qte-tests.js       # QTE tests
 | Layer | Source | Output | Purpose |
 |-------|--------|--------|---------|
 | Story | `scenes/*.md` | `js/story.js` | Scene content, choices, flags |
-| Enemies | `enemies/*.md` | `js/enemies.js` | Enemy stats, moves, dialogue |
+| Enemies | `enemies/*.md` | `js/enemies.js` | Enemy stats, moves, intents, dialogue |
+| Summons | `summons/*.md` | `js/summons.js` | Summonable allies/enemies |
 | Player | `player/player.md` | `js/player.js` | Player config, skills |
 | Theme | `theme.md` | `js/theme.js` | Active theme selection |
 
@@ -48,7 +50,15 @@ node tests/run-qte-tests.js       # QTE tests
 
 - `js/engine.js` - VN engine: scene rendering, typewriter, choices, flags, inventory, action registry
 - `js/tuning.js` - All balance values and timing constants
-- `css/themes/*.css` - Visual themes (20+ available)
+- `js/game-menu.js` - Full-screen RPG menu (Items, Skills, Stats, Journal)
+- `css/themes/*.css` - Visual themes (19 available)
+
+### Architecture Refactor (in progress)
+
+- `js/core/` - New event-driven architecture
+  - `event-bus.js` - Pub/sub event system
+  - `store.js` - Centralized state management
+- `js/managers/` - Manager pattern (not yet active)
 
 ### Optional Modules (`js/modules/`)
 
@@ -79,6 +89,20 @@ Enemy Turn:  Status tick → Check can act → AI selects move → Execute → C
 ```
 
 Key state in `BattleCore`: `player`, `enemy`, `phase` ('player'|'enemy'|'animating'|'ended'), `turn`.
+
+## Tuning Configuration
+
+Key runtime options in `js/tuning.js`:
+
+```javascript
+TUNING.text.displayMode      // 'fixed' (paginated) or 'expanding' (dynamic height)
+TUNING.text.fixedLines       // Lines per page in fixed mode (default: 3)
+TUNING.battle.dice.skipMode  // 'stepwise' (click advances) or 'instant' (skip all)
+```
+
+Runtime API:
+- `VNEngine.setTextDisplayMode('fixed'|'expanding')`
+- `VNEngine.setFixedLines(n)`
 
 ## Scene Markdown Format
 
@@ -114,6 +138,55 @@ Second text block (after "Continue" click).
 - Heal (heals: 5) → healed
 ```
 
+## Enemy Markdown Format
+
+```markdown
+---
+id: enemy_id
+name: Display Name
+sprite: sprite.svg
+hp: 50
+ac: 12
+attack_bonus: 2
+damage: d6
+type: physical
+ai: default  # default, aggressive, defensive, support
+
+moves:
+  - name: Attack Name
+    damage: 2d4
+    type: psychic
+    statusEffect:
+      type: stun  # burn, bleed, poison, stun, confusion
+      chance: 0.15
+    description: Flavor text for battle log
+
+  - name: Heal Move
+    isHeal: true
+    healAmount: 1d4+1
+
+intents:  # Telegraphed attacks (enemy announces, player can counter)
+  - id: big_attack
+    type: big_attack  # big_attack, summon, multi_hit
+    chance: 0.2
+    minTurn: 2
+    cooldown: 4
+    prepTurns: 1
+    dialogue: "Preparing..."
+    executeDialogue: "Attack!"
+    skill:
+      name: Big Hit
+      damage: 15
+      type: physical
+
+dialogue:
+  battle_start: ["Opening line"]
+  attack_default: ["Generic attack taunt"]
+  attack_player_low_hp: ["When player is weak"]
+  defeat: ["Death line"]
+---
+```
+
 ## CSS Standards
 
 - **Never use pixel-based media queries** - use `em` (e.g., `56em` not `900px`)
@@ -135,6 +208,12 @@ Second text block (after "Continue" click).
 ## Changelog
 
 Recent changes are documented at the end of this file to track balance changes and bug fixes.
+
+### 2025-12-26
+- Added click-to-skip for battle UI typewriter and dice animations
+- Configurable skip mode in `TUNING.battle.dice.skipMode`: 'stepwise' (default) or 'instant'
+- Fixed summon damage messages to use uppercase "DAMAGE" for consistency
+- Fixed manga theme neutral color visibility
 
 ### 2025-12-22
 - Added modular text display modes: 'fixed' (3-line stable height with pagination) and 'expanding' (original behavior)

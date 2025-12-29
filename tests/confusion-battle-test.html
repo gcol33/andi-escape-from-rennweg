@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confusion Battle Test</title>
+    <link rel="stylesheet" href="../css/shared.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+
+        #test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 12px 24px;
+            margin: 0 10px;
+            cursor: pointer;
+            font-size: 16px;
+            border: none;
+            background: #007bff;
+            color: white;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        /* Force small width to trigger wrapping */
+        .battle-log-content {
+            width: 300px !important;
+            margin: 20px auto;
+        }
+
+        .test-info {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .test-info strong {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div id="test-container">
+        <h1>Confusion Battle Test</h1>
+
+        <div class="test-info">
+            <strong>Test Purpose:</strong> Spawn a battle with a confused enemy to test the text shifting fix.<br>
+            <strong>Message to test:</strong> "Andi gets distracted by a shiny object! Andi is confused!"<br>
+            <strong>Expected:</strong> Text should NOT shift when wrapping to 2 lines at 300px width.
+        </div>
+
+        <div class="controls">
+            <button onclick="testConfusionMessage()">▶ Test Confusion Message</button>
+            <button onclick="testLongMessage()">▶ Test 3-Line Message</button>
+        </div>
+
+        <!-- Battle UI Container -->
+        <div id="battle-ui" class="battle-ui">
+            <div class="battle-log">
+                <div class="battle-log-content" id="battle-log-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load battle-ui.js -->
+    <script src="../js/battle-ui.js"></script>
+
+    <script>
+        // Initialize battle UI
+        BattleUI.init();
+
+        function testConfusionMessage() {
+            const message = "Andi gets distracted by a shiny object! Andi is confused!";
+            console.log('Testing confusion message:', message);
+            BattleUI.showMessage(message);
+        }
+
+        function testLongMessage() {
+            const message = "This is a very long message that will definitely wrap to three lines and should hide the first line automatically!";
+            console.log('Testing 3-line message:', message);
+            BattleUI.showMessage(message);
+        }
+
+        // Add info
+        console.log('%c=== Confusion Battle Test ===', 'color: blue; font-weight: bold; font-size: 14px;');
+        console.log('Click the buttons to test different messages');
+        console.log('Watch for text shifting when messages wrap to 2 lines');
+        console.log('The container is forced to 300px width to trigger wrapping');
+    </script>
+</body>
+</html>

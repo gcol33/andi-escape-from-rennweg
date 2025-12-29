@@ -500,7 +500,6 @@ var BattleSummon = (function() {
     function processSummonAction(summon, target) {
         // Summons that can heal do that (support type)
         if (summon.canHeal && summon.healAmount > 0) {
-            // TODO: Implement heal targeting (master or allies)
             return {
                 type: 'heal',
                 summon: summon,

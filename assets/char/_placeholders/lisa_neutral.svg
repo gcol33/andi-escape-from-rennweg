@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400" width="200" height="400">
+  <!-- Lisa - Kitchen encounter, mouse story -->
+  <defs>
+    <linearGradient id="lisaBlouse" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#c75050"/>
+      <stop offset="100%" style="stop-color:#a03030"/>
+    </linearGradient>
+  </defs>
+  <!-- Body/Red Blouse -->
+  <path d="M70 150 Q60 200 55 300 L55 380 L145 380 L145 300 Q140 200 130 150 Z" fill="url(#lisaBlouse)"/>
+  <!-- Head -->
+  <ellipse cx="100" cy="80" rx="38" ry="48" fill="#e0c0a0"/>
+  <!-- Hair - short bob -->
+  <path d="M58 75 Q55 30 100 22 Q145 30 142 75 Q140 90 135 110 L65 110 Q60 90 58 75" fill="#1a1a1a"/>
+  <!-- Eyes -->
+  <ellipse cx="82" cy="74" rx="5" ry="4" fill="#3a2a1a"/>
+  <ellipse cx="118" cy="74" rx="5" ry="4" fill="#3a2a1a"/>
+  <!-- Raised eyebrow - slightly worried -->
+  <path d="M75 65 Q82 62 90 65" stroke="#1a1a1a" stroke-width="2" fill="none"/>
+  <!-- Slight nervous smile -->
+  <path d="M85 98 Q100 103 115 98" stroke="#8b4513" stroke-width="2" fill="none"/>
+  <!-- Arms - one gesturing -->
+  <path d="M70 160 Q45 200 50 260" stroke="#e0c0a0" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <path d="M130 160 Q165 175 175 210" stroke="#e0c0a0" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <!-- Coffee cup -->
+  <rect x="40" y="245" width="20" height="25" fill="#f5f5f5" rx="2"/>
+  <ellipse cx="50" cy="245" rx="10" ry="3" fill="#f5f5f5"/>
+  <path d="M60 250 Q70 255 60 265" stroke="#f5f5f5" stroke-width="3" fill="none"/>
+</svg>

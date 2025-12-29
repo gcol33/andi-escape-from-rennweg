@@ -27,7 +27,7 @@ var QTEEngine = (function() {
 
     // === Logging ===
     // Use Logger module with fallback (safe for test environments without Utils)
-    var _log = (function() {
+    const _log = (function() {
         // Try Utils.getLogger() first
         if (typeof Utils !== 'undefined' && typeof Utils.getLogger === 'function') {
             return Utils.getLogger();
@@ -47,10 +47,10 @@ var QTEEngine = (function() {
 
     // === Configuration ===
     // Values sourced from TUNING.js when available
-    var T = typeof TUNING !== 'undefined' ? TUNING : null;
-    var qteConfig = T && T.qte ? T.qte : null;
+    const T = typeof TUNING !== 'undefined' ? TUNING : null;
+    const qteConfig = T && T.qte ? T.qte : null;
 
-    var config = {
+    const config = {
         // Timing bar settings
         bar: {
             duration: qteConfig ? qteConfig.bar.duration : 2000,        // Total time for one pass
@@ -134,7 +134,7 @@ var QTEEngine = (function() {
     };
 
     // === State ===
-    var state = {
+    const state = {
         active: false,
         type: null,           // 'accuracy' or 'dodge'
         phase: 'idle',        // 'idle', 'waiting', 'running', 'input', 'result'
@@ -156,7 +156,7 @@ var QTEEngine = (function() {
     };
 
     // === Countdown State ===
-    var countdown = {
+    const countdown = {
         remaining: 0,         // Seconds remaining
         timerId: null,        // Timer ID for interval
         onTick: null,         // Callback when countdown ticks
@@ -164,10 +164,10 @@ var QTEEngine = (function() {
     };
 
     // Reference to battle engine
-    var battleEngine = null;
+    let battleEngine = null;
 
     // Reference to UI module
-    var qteUI = null;
+    let qteUI = null;
 
     // === Initialization ===
 

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Shift Bug - Before vs After Comparison</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+
+        #test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .test-column {
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .test-column.broken {
+            border-color: #e74c3c;
+            background: #ffebee;
+        }
+
+        .test-column.fixed {
+            border-color: #27ae60;
+            background: #e8f5e9;
+        }
+
+        .test-column h3 {
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid currentColor;
+        }
+
+        .broken h3 { color: #e74c3c; }
+        .fixed h3 { color: #27ae60; }
+
+        .battle-log-content {
+            height: 4.4rem;
+            overflow: hidden;
+            padding: 0.875rem 1rem;
+            font-size: 1rem;
+            line-height: 1.6;
+            border: 2px solid #333;
+            background: #fafafa;
+            position: relative;
+            max-width: 400px;
+            margin: 20px auto;
+        }
+
+        /* Match battle UI number styling */
+        .battle-log-content strong,
+        .battle-log-content b {
+            color: #ffd700;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .typewriter-wrapper {
+            position: relative;
+        }
+
+        .controls {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        button {
+            padding: 12px 24px;
+            margin: 0 10px;
+            cursor: pointer;
+            font-size: 16px;
+            border: none;
+            background: #007bff;
+            color: white;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .status.waiting {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status.running {
+            background: #cfe2ff;
+            color: #084298;
+        }
+
+        .status.shift-detected {
+            background: #f8d7da;
+            color: #842029;
+        }
+
+        .status.no-shift {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .shift-indicator {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: red;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .shift-indicator.visible {
+            opacity: 1;
+        }
+
+        .measurement-box {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div id="test-container">
+        <h1>Text Shift Bug - Visual Comparison Test</h1>
+        <p><strong>Purpose:</strong> This test visually demonstrates the text shifting bug and confirms the fix works.</p>
+        <p><strong>What to watch:</strong> The BROKEN version shifts upward when animation completes. The FIXED version stays stable.</p>
+
+        <div class="controls">
+            <button onclick="runComparison()">▶ Run Side-by-Side Test</button>
+            <button onclick="resetTests()">↺ Reset</button>
+        </div>
+
+        <div class="comparison-grid">
+            <!-- BROKEN (OLD METHOD) -->
+            <div class="test-column broken">
+                <h3>❌ BROKEN (Old Method)</h3>
+                <p style="font-size: 0.9rem;">Uses <code>container.innerHTML = text</code> which replaces DOM structure</p>
+                <div id="status-broken" class="status waiting">Waiting...</div>
+                <div style="position: relative;">
+                    <div class="shift-indicator" id="shift-indicator-broken"></div>
+                    <div class="battle-log-content" id="log-broken"></div>
+                </div>
+                <div class="measurement-box" id="measurement-broken">
+                    Initial height: -<br>
+                    Final height: -<br>
+                    Shift detected: -
+                </div>
+            </div>
+
+            <!-- FIXED (NEW METHOD) -->
+            <div class="test-column fixed">
+                <h3>✅ FIXED (New Method)</h3>
+                <p style="font-size: 0.9rem;">Reveals placeholder instead of replacing DOM structure</p>
+                <div id="status-fixed" class="status waiting">Waiting...</div>
+                <div style="position: relative;">
+                    <div class="shift-indicator" id="shift-indicator-fixed"></div>
+                    <div class="battle-log-content" id="log-fixed"></div>
+                </div>
+                <div class="measurement-box" id="measurement-fixed">
+                    Initial height: -<br>
+                    Final height: -<br>
+                    Shift detected: -
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 30px; padding: 15px; background: #e9ecef; border-radius: 4px;">
+            <strong>Test Text:</strong>
+            <div style="margin-top: 10px; padding: 10px; background: white; border: 1px solid #ccc; border-radius: 3px; font-size: 0.9rem;" id="text-preview"></div>
+        </div>
+    </div>
+
+    <script>
+        const testText = "Andi trips over their own <strong>20</strong> feet! 💫 Andi is <strong>99</strong> confused!";
+
+        // Display preview
+        document.getElementById('text-preview').innerHTML = testText;
+
+        function resetTests() {
+            ['broken', 'fixed'].forEach(type => {
+                document.getElementById('log-' + type).innerHTML = '';
+                document.getElementById('status-' + type).className = 'status waiting';
+                document.getElementById('status-' + type).textContent = 'Waiting...';
+                document.getElementById('shift-indicator-' + type).classList.remove('visible');
+                document.getElementById('measurement-' + type).innerHTML =
+                    'Initial height: -<br>Final height: -<br>Shift detected: -';
+            });
+        }
+
+        function runComparison() {
+            resetTests();
+
+            // Run both tests simultaneously
+            setTimeout(() => runBrokenTest(), 100);
+            setTimeout(() => runFixedTest(), 100);
+        }
+
+        // OLD BROKEN METHOD - builds up HTML without reserving space
+        function runBrokenTest() {
+            const container = document.getElementById('log-broken');
+            const statusEl = document.getElementById('status-broken');
+            const shiftIndicator = document.getElementById('shift-indicator-broken');
+            const measurementEl = document.getElementById('measurement-broken');
+
+            statusEl.className = 'status running';
+            statusEl.textContent = 'Running...';
+
+            let index = 0;
+            const speed = 25;
+
+            // Create a wrapper div to track
+            const tracker = document.createElement('div');
+            tracker.id = 'tracker-broken';
+            container.innerHTML = '';
+            container.appendChild(tracker);
+
+            let initialTop = null;
+            let maxShift = 0;
+
+            function typeNext() {
+                if (index < testText.length) {
+                    if (testText[index] === '<') {
+                        const tagEnd = testText.indexOf('>', index);
+                        if (tagEnd !== -1) {
+                            tracker.innerHTML += testText.substring(index, tagEnd + 1);
+                            index = tagEnd + 1;
+
+                            // Track first text node position
+                            const range = document.createRange();
+                            const textNode = findFirstTextNode(tracker);
+                            if (textNode) {
+                                range.selectNodeContents(textNode);
+                                const rect = range.getBoundingClientRect();
+                                if (initialTop === null) {
+                                    initialTop = rect.top;
+                                } else {
+                                    const shift = Math.abs(rect.top - initialTop);
+                                    if (shift > maxShift) {
+                                        maxShift = shift;
+                                    }
+                                }
+                            }
+
+                            typeNext();
+                            return;
+                        }
+                    }
+
+                    tracker.innerHTML += testText[index];
+                    index++;
+
+                    // Track first text node position after each character
+                    const range = document.createRange();
+                    const textNode = findFirstTextNode(tracker);
+                    if (textNode) {
+                        range.selectNodeContents(textNode);
+                        const rect = range.getBoundingClientRect();
+                        if (initialTop === null) {
+                            initialTop = rect.top;
+                        } else {
+                            const shift = Math.abs(rect.top - initialTop);
+                            if (shift > maxShift) {
+                                maxShift = shift;
+                            }
+                        }
+                    }
+
+                    setTimeout(typeNext, 1000 / speed);
+                } else {
+                    setTimeout(() => {
+                        const range = document.createRange();
+                        const textNode = findFirstTextNode(tracker);
+                        let finalTop = initialTop;
+                        if (textNode) {
+                            range.selectNodeContents(textNode);
+                            finalTop = range.getBoundingClientRect().top;
+                        }
+
+                        measurementEl.innerHTML =
+                            `Initial Y: ${initialTop ? initialTop.toFixed(2) : 'N/A'}px<br>` +
+                            `Final Y: ${finalTop.toFixed(2)}px<br>` +
+                            `Max shift: ${maxShift > 0.5 ? '<strong style="color: red;">' + maxShift.toFixed(2) + 'px ⚠️</strong>' : 'None'}`;
+
+                        if (maxShift > 0.5) {
+                            statusEl.className = 'status shift-detected';
+                            statusEl.textContent = '⚠️ Shift Detected: ' + maxShift.toFixed(2) + 'px';
+                            shiftIndicator.classList.add('visible');
+                        } else {
+                            statusEl.className = 'status no-shift';
+                            statusEl.textContent = '✓ No Shift Detected';
+                        }
+                    }, 100);
+                }
+            }
+
+            function findFirstTextNode(node) {
+                if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+                    return node;
+                }
+                for (let child of node.childNodes) {
+                    const result = findFirstTextNode(child);
+                    if (result) return result;
+                }
+                return null;
+            }
+
+            typeNext();
+        }
+
+        // NEW FIXED METHOD - reveals text nodes without changing DOM structure
+        function runFixedTest() {
+            const container = document.getElementById('log-fixed');
+            const statusEl = document.getElementById('status-fixed');
+            const shiftIndicator = document.getElementById('shift-indicator-fixed');
+            const measurementEl = document.getElementById('measurement-fixed');
+
+            statusEl.className = 'status running';
+            statusEl.textContent = 'Running...';
+
+            const speed = 25;
+
+            // Set final HTML immediately to reserve space
+            container.innerHTML = testText;
+
+            // Collect all text nodes and wrap each in a hidden span
+            const textNodes = [];
+            let firstTextNode = null;
+            function wrapTextNodes(node) {
+                if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+                    // Track the very first text node for measurement
+                    if (!firstTextNode) {
+                        firstTextNode = node;
+                    }
+
+                    // Wrap this text node in a span we can control
+                    const span = document.createElement('span');
+                    span.style.visibility = 'hidden';
+                    node.parentNode.insertBefore(span, node);
+                    span.appendChild(node);
+
+                    textNodes.push({
+                        node: node,
+                        span: span,
+                        fullText: node.textContent,
+                        revealed: 0
+                    });
+                    node.textContent = ''; // Clear for now
+                } else if (node.nodeType === Node.ELEMENT_NODE) {
+                    // Process children (collect first to avoid live list issues)
+                    const children = [];
+                    for (let i = 0; i < node.childNodes.length; i++) {
+                        children.push(node.childNodes[i]);
+                    }
+                    for (let j = 0; j < children.length; j++) {
+                        wrapTextNodes(children[j]);
+                    }
+                }
+            }
+            wrapTextNodes(container);
+
+            let initialTop = null;
+            let maxShift = 0;
+
+            let currentNodeIndex = 0;
+            let currentCharIndex = 0;
+
+            function typeNext() {
+                // Track first text node position using Range
+                if (firstTextNode && firstTextNode.textContent.length > 0) {
+                    const range = document.createRange();
+                    range.selectNodeContents(firstTextNode);
+                    const rect = range.getBoundingClientRect();
+                    if (initialTop === null) {
+                        initialTop = rect.top;
+                    } else {
+                        const shift = Math.abs(rect.top - initialTop);
+                        if (shift > maxShift) {
+                            maxShift = shift;
+                        }
+                    }
+                }
+
+                // Find next non-empty text node
+                while (currentNodeIndex < textNodes.length && currentCharIndex >= textNodes[currentNodeIndex].fullText.length) {
+                    currentCharIndex = 0;
+                    currentNodeIndex++;
+                }
+
+                if (currentNodeIndex >= textNodes.length) {
+                    // All done - report results
+                    setTimeout(() => {
+                        let finalTop = initialTop;
+                        if (firstTextNode) {
+                            const range = document.createRange();
+                            range.selectNodeContents(firstTextNode);
+                            finalTop = range.getBoundingClientRect().top;
+                        }
+
+                        measurementEl.innerHTML =
+                            `Initial Y: ${initialTop ? initialTop.toFixed(2) : 'N/A'}px<br>` +
+                            `Final Y: ${finalTop.toFixed(2)}px<br>` +
+                            `Max shift: ${maxShift > 0.5 ? '<strong style="color: red;">' + maxShift.toFixed(2) + 'px ⚠️</strong>' : '<strong style="color: green;">None ✓</strong>'}`;
+
+                        if (maxShift > 0.5) {
+                            statusEl.className = 'status shift-detected';
+                            statusEl.textContent = '⚠️ Shift Detected: ' + maxShift.toFixed(2) + 'px';
+                            shiftIndicator.classList.add('visible');
+                        } else {
+                            statusEl.className = 'status no-shift';
+                            statusEl.textContent = '✓ No Shift Detected';
+                        }
+                    }, 100);
+                    return;
+                }
+
+                const currentNode = textNodes[currentNodeIndex];
+
+                // Make span visible when we start typing this node
+                if (currentCharIndex === 0) {
+                    currentNode.span.style.visibility = '';
+                }
+
+                currentCharIndex++;
+                currentNode.node.textContent = currentNode.fullText.substring(0, currentCharIndex);
+                setTimeout(typeNext, 1000 / speed);
+            }
+
+            typeNext();
+        }
+    </script>
+</body>
+</html>

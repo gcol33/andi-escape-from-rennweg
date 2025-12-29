@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400" width="200" height="400">
+  <!-- Franz - Mystical colleague with tarot cards -->
+  <defs>
+    <linearGradient id="darkSweater" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#2c2c54"/>
+      <stop offset="100%" style="stop-color:#1a1a3e"/>
+    </linearGradient>
+  </defs>
+  <!-- Body/Dark sweater -->
+  <path d="M70 150 Q60 200 55 300 L55 380 L145 380 L145 300 Q140 200 130 150 Z" fill="url(#darkSweater)"/>
+  <!-- Collar/turtleneck -->
+  <path d="M78 145 Q100 155 122 145 L122 160 Q100 170 78 160 Z" fill="#1a1a3e"/>
+  <!-- Head -->
+  <ellipse cx="100" cy="80" rx="38" ry="48" fill="#e8c9a0"/>
+  <!-- Dark wavy hair -->
+  <path d="M60 75 Q52 25 100 18 Q148 25 140 75 Q135 50 100 42 Q65 50 60 75" fill="#2a1f14"/>
+  <path d="M62 70 Q58 55 68 50" stroke="#2a1f14" stroke-width="6" fill="none"/>
+  <path d="M78 55 Q82 45 92 48" stroke="#2a1f14" stroke-width="5" fill="none"/>
+  <path d="M108 48 Q118 45 122 55" stroke="#2a1f14" stroke-width="5" fill="none"/>
+  <path d="M132 50 Q142 55 138 70" stroke="#2a1f14" stroke-width="6" fill="none"/>
+  <!-- Knowing eyes -->
+  <ellipse cx="85" cy="75" rx="5" ry="5" fill="white"/>
+  <ellipse cx="115" cy="75" rx="5" ry="5" fill="white"/>
+  <ellipse cx="86" cy="76" rx="3" ry="3" fill="#3d2914"/>
+  <ellipse cx="116" cy="76" rx="3" ry="3" fill="#3d2914"/>
+  <!-- Slight raised eyebrows - mysterious expression -->
+  <path d="M76 66 Q85 62 94 66" stroke="#3d2914" stroke-width="2" fill="none"/>
+  <path d="M106 66 Q115 62 124 66" stroke="#3d2914" stroke-width="2" fill="none"/>
+  <!-- Nose -->
+  <path d="M100 78 L97 92 Q100 95 103 92" stroke="#c9a66b" stroke-width="1.5" fill="none"/>
+  <!-- Slight enigmatic smile -->
+  <path d="M88 102 Q100 108 112 102" stroke="#8b4513" stroke-width="2" fill="none"/>
+  <!-- Light stubble -->
+  <ellipse cx="100" cy="115" rx="20" ry="8" fill="#3d2914" opacity="0.15"/>
+  <!-- Arms holding tarot cards -->
+  <path d="M70 160 Q50 200 60 250" stroke="#e8c9a0" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <path d="M130 160 Q150 200 140 250" stroke="#e8c9a0" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <!-- Hands coming together -->
+  <ellipse cx="85" cy="255" rx="12" ry="10" fill="#e8c9a0"/>
+  <ellipse cx="115" cy="255" rx="12" ry="10" fill="#e8c9a0"/>
+  <!-- Tarot cards in hands -->
+  <rect x="70" y="260" width="25" height="40" rx="2" fill="#2d1b4e" stroke="#9370db" stroke-width="1"/>
+  <rect x="78" y="265" width="25" height="40" rx="2" fill="#2d1b4e" stroke="#9370db" stroke-width="1"/>
+  <rect x="86" y="270" width="25" height="40" rx="2" fill="#2d1b4e" stroke="#ffd700" stroke-width="1"/>
+  <!-- Card back pattern on top card -->
+  <circle cx="98" cy="290" r="8" fill="none" stroke="#9370db" stroke-width="1"/>
+  <path d="M94 286 L98 282 L102 286 M94 294 L98 298 L102 294" stroke="#ffd700" stroke-width="1" fill="none"/>
+</svg>

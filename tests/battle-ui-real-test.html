@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battle UI Real Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+
+        /* Exact CSS from shared.css */
+        .battle-log-content {
+            height: 4.4rem;
+            overflow: hidden;
+            padding: 0.875rem 1rem;
+            font-size: 1rem;
+            line-height: 1.6;
+            border: 2px solid #333;
+            background: #fafafa;
+            position: relative;
+            width: 300px;
+            margin: 20px auto;
+        }
+
+        .battle-log-content .battle-number,
+        .battle-log-messages .battle-number,
+        #battle-log-content .battle-number {
+            color: #ff4444 !important;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        button {
+            padding: 12px 24px;
+            margin: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            border: none;
+            background: #007bff;
+            color: white;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .controls {
+            text-align: center;
+        }
+
+        .measurement {
+            text-align: center;
+            font-family: monospace;
+            margin-top: 20px;
+            padding: 10px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <h1>Battle UI Real Test</h1>
+        <p>Testing: "Andi trips over their own feet! Andi is confused!"</p>
+        <button onclick="runTest()">▶ Run Test</button>
+    </div>
+
+    <div class="battle-log-content" id="test-container"></div>
+
+    <div class="measurement" id="measurement">
+        Waiting to run test...
+    </div>
+
+    <script src="../js/battle-ui.js"></script>
+    <script>
+        const testText = "Andi trips over their own feet! Andi is confused!";
+
+        function runTest() {
+            const container = document.getElementById('test-container');
+            const measurementEl = document.getElementById('measurement');
+
+            container.innerHTML = '';
+
+            // Track position
+            let initialTop = null;
+            let maxShift = 0;
+
+            // Set up position monitoring
+            const monitorInterval = setInterval(() => {
+                const range = document.createRange();
+                const textNode = findFirstTextNode(container);
+                if (textNode && textNode.textContent.length > 0) {
+                    range.selectNodeContents(textNode);
+                    const rect = range.getBoundingClientRect();
+                    if (initialTop === null) {
+                        initialTop = rect.top;
+                    } else {
+                        const shift = Math.abs(rect.top - initialTop);
+                        if (shift > maxShift) {
+                            maxShift = shift;
+                        }
+                    }
+                }
+            }, 10);
+
+            // Run typewriter effect from battle-ui.js
+            if (typeof BattleUI !== 'undefined' && BattleUI.typewriterEffect) {
+                BattleUI.typewriterEffect(container, testText, function() {
+                    clearInterval(monitorInterval);
+
+                    setTimeout(() => {
+                        measurementEl.innerHTML =
+                            `Initial Y: ${initialTop ? initialTop.toFixed(2) : 'N/A'}px<br>` +
+                            `Final Y: ${initialTop ? initialTop.toFixed(2) : 'N/A'}px<br>` +
+                            `Max shift: ${maxShift > 0.5 ? '<strong style="color: red;">' + maxShift.toFixed(2) + 'px ⚠️</strong>' : '<strong style="color: green;">None ✓</strong>'}`;
+                    }, 100);
+                });
+            } else {
+                clearInterval(monitorInterval);
+                measurementEl.innerHTML = 'Error: BattleUI.typewriterEffect not found!';
+            }
+        }
+
+        function findFirstTextNode(node) {
+            if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+                return node;
+            }
+            for (let child of node.childNodes) {
+                const result = findFirstTextNode(child);
+                if (result) return result;
+            }
+            return null;
+        }
+    </script>
+</body>
+</html>

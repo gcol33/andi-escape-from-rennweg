@@ -44,23 +44,6 @@ moves:
 
 # Telegraphed Intent Skills - powerful moves that require preparation
 intents:
-  # Summon intent - can be broken by applying any status effect
-  - id: call_intern
-    type: summon
-    chance: 0.15
-    minTurn: 3
-    cooldown: 5
-    prepTurns: 2
-    dialogue: "INTERN! Get in here NOW!"
-    executeDialogue: "You wanted to see me, Agnes?"
-    skill:
-      name: Call Intern
-      damage: 0
-      type: physical
-      isSummon: true
-      summonId: office_intern
-      description: Agnes summons an intern to assist her.
-
   # Big Attack intent - counter by defending
   - id: termination_notice
     type: big_attack
@@ -91,21 +74,6 @@ intents:
       type: physical
       hits: 5
       description: A rapid barrage of policy violations!
-
-# Special Abilities (optional)
-# can_limit_break: false
-# limit_break_name: "Final Warning"
-# limit_break_damage: 3d6
-# limit_break_type: psychic
-
-# Summons - enemies or allies this character can call for help
-# summons:
-#   - id: intern_helper
-#     chance: 0.2         # 20% chance per turn when below 50% HP
-#     hp_threshold: 0.5   # Only try to summon when HP below this %
-#     max_active: 1       # Max number of this summon active at once
-#     cooldown: 3         # Turns between summon attempts
-#     dialogue: "Intern! Get in here!"
 
 # Dialogue - context-aware taunts the enemy says before attacking
 dialogue:

@@ -228,9 +228,11 @@ function SceneManagerClass() {
 
             // Check skill requirements
             if (choice.require_skills && choice.require_skills.length > 0) {
-                // Skills are stored separately - delegate to inventory manager or VNEngine
-                // For now, emit event and let VNEngine handle
-                // TODO: Add skills to store
+                var skills = inventory.skills || [];
+                var hasAllSkills = choice.require_skills.every(function(skillId) {
+                    return skills.indexOf(skillId) !== -1;
+                });
+                if (!hasAllSkills) return false;
             }
 
             return true;

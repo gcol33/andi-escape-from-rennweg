@@ -1263,11 +1263,53 @@ var DevPanel = (function() {
     }
 
     // =========================================================================
+    // CLEANUP
+    // =========================================================================
+
+    /**
+     * Destroy the dev panel and clean up all resources
+     */
+    function destroy() {
+        // Unsubscribe from all events
+        unsubscribeFromEvents();
+
+        // Clear event log state
+        eventLogState.entries = [];
+        eventLogState.paused = false;
+
+        // Remove DOM elements (this also removes their event listeners)
+        if (elements.indicator) {
+            Utils.removeElement(elements.indicator);
+            elements.indicator = null;
+        }
+
+        if (elements.panel) {
+            Utils.removeElement(elements.panel);
+            elements.panel = null;
+        }
+
+        // Remove undo button
+        removeUndoButton();
+
+        // Clear element references
+        elements = {
+            indicator: null,
+            panel: null,
+            terrainSelect: null,
+            eventLog: null,
+            stateViewer: null
+        };
+
+        callbacks.log.debug('[DevPanel] Destroyed');
+    }
+
+    // =========================================================================
     // PUBLIC API
     // =========================================================================
 
     return {
         init: init,
+        destroy: destroy,
         show: showDevModeIndicator,
         toggle: toggleDevPanelPortrait,
         setTerrain: setTerrain,
