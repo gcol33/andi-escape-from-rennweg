@@ -421,7 +421,7 @@ const enemies = {
       {
         "id": "termination_notice",
         "type": "big_attack",
-        "chance": 0.2,
+        "chance": 0.24,
         "minTurn": 2,
         "cooldown": 4,
         "prepTurns": 1,
@@ -437,7 +437,7 @@ const enemies = {
       {
         "id": "policy_barrage",
         "type": "multi_hit",
-        "chance": 0.18,
+        "chance": 0.24,
         "minTurn": 4,
         "cooldown": 5,
         "prepTurns": 1,

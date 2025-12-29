@@ -118,7 +118,14 @@ var BattleIntent = (function() {
      * Check if an intent should trigger this turn
      */
     function shouldTrigger(intentConfig, enemy, player, turn, forceGenerate) {
-        // Check cooldown (still applies even in force mode)
+        // Check global intent cooldown (prevents back-to-back intents of any type)
+        var globalCooldown = enemy.intentGlobalCooldown || 3;
+        var lastAnyIntent = getLastAnyIntentTurn(enemy.id);
+        if (lastAnyIntent !== null && (turn - lastAnyIntent) < globalCooldown) {
+            return false;
+        }
+
+        // Check per-intent cooldown (still applies even in force mode)
         var cooldown = intentConfig.cooldown || 3;
         var lastUsed = getLastUsedTurn(intentConfig.id, enemy.id);
         if (lastUsed !== null && (turn - lastUsed) < cooldown) {
@@ -151,6 +158,20 @@ var BattleIntent = (function() {
         for (var i = intentHistory.length - 1; i >= 0; i--) {
             var record = intentHistory[i];
             if (record.intentId === intentId && record.enemyId === enemyId) {
+                return record.turn;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get the turn when ANY intent was last used by this enemy
+     * Used for global intent cooldown
+     */
+    function getLastAnyIntentTurn(enemyId) {
+        for (var i = intentHistory.length - 1; i >= 0; i--) {
+            var record = intentHistory[i];
+            if (record.enemyId === enemyId) {
                 return record.turn;
             }
         }

@@ -1101,6 +1101,11 @@ var BattleUI = (function() {
             return;
         }
 
+        // Ensure row2 is clear before starting (handles edge cases where previous content remains)
+        if (rows.row2.innerHTML !== '') {
+            rows.row2.innerHTML = '';
+        }
+
         // Convert <br> tags to newlines before stripping other HTML
         var textWithNewlines = text.replace(/<br\s*\/?>/gi, '\n');
 
