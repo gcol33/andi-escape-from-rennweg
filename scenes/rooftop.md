@@ -16,6 +16,5 @@ The smiles are genuine, welcoming. Everyone seems to be waiting for something. E
 
 ### Choices
 
-- Continue (require_skills: Smile, Floristic Knowledge) (require_items: Flora Book, Magnifying Glass, Charcoal, Lighter, Beer) → bbq3
 - Smile back (require_skills: Smile) → bbq1
 - Stand awkwardly (require_skills: !Smile) → ending_bbq_nosmile

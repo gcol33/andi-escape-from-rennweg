@@ -7,5 +7,5 @@ You push through the glass doors and step out into the Vienna afternoon. The air
 
 ### Choices
 
-- Continue → ending_early_exit
+- Continue → cat_scene_5
 

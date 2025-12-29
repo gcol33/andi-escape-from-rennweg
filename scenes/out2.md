@@ -7,5 +7,5 @@ The side exit deposits you into the quieter courtyard, away from the bustle of R
 
 ### Choices
 
-- Continue → ending_early_exit
+- Continue → cat_scene_5
 

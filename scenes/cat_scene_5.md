@@ -1,34 +1,30 @@
 ---
 id: cat_scene_5
-bg: rooftop.jpg
+bg: sunny_street_freedom.jpg
 chars:
   - cat_5.svg
 set_flags:
   - cat_seen_5
 ---
 
-The cat is enormous. It takes up most of your field of vision. The rooftop party continues behind it, but you can barely see around its massive form. Nobody else seems to notice. Nobody else has ever noticed.
+You take three steps toward freedom when a shadow falls over you. The cat. It is enormous now, larger than any cat has a right to be. It blocks the entire sidewalk.
 
 ---
 
-"This building has always been mine. You are the guest. You have always been the guest."
+"Leaving? Without saying goodbye?" The cat's voice rumbles like distant thunder. "How very... human of you."
 
 ---
 
-The cat's whiskers extend beyond the edges of your peripheral vision. Its purring shakes the floor slightly. Or maybe that's just the elevator machinery. You're not sure anymore.
+The cat's whiskers stretch across your entire field of vision. Pedestrians walk around it without seeming to notice. Only you see it. Only you have ever seen it.
 
 ---
 
-"I have been here since before the walls. I will be here after the walls forget they were walls."
+"I run from nothing. Except vacuums. You run from everything. Especially yourself."
 
 ---
 
-"Also, someone left a sandwich in the kitchen. Three days ago. I have been watching it. Waiting."
-
----
-
-"Miau."
+"...Back inside."
 
 ### Choices
 
-- Squeeze past the cat → bbq1
+- Continue → ending_early_exit
