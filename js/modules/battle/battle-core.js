@@ -120,7 +120,8 @@ var BattleCore = (function() {
             limitBreak: 'overdrive',
             passives: [],
             buffs: [],    // Temporary buffs from consumables (e.g., +1 AC from Granola Bar)
-            items: []
+            items: [],
+            itemCooldown: 0  // Turns until items can be used again
         },
         enemy: createDefaultEnemyState(),
         targets: {
@@ -1739,6 +1740,7 @@ var BattleCore = (function() {
         // Tick defend cooldown at end of each full turn cycle
         // A turn = enemy action + player action (or QTE during defensive stance)
         tickDefendCooldown();
+        tickItemCooldown();
     }
 
     /**
@@ -1753,6 +1755,35 @@ var BattleCore = (function() {
         if (state.player.defendCooldown > 0) {
             state.player.defendCooldown--;
         }
+    }
+
+    /**
+     * Decrement the item cooldown (called each turn)
+     */
+    function tickItemCooldown() {
+        // Skip tick if cooldown was just set this turn (prevents visual bug)
+        if (state.player.itemCooldownJustSet) {
+            state.player.itemCooldownJustSet = false;
+            return;
+        }
+        if (state.player.itemCooldown > 0) {
+            state.player.itemCooldown--;
+        }
+    }
+
+    /**
+     * Set item cooldown (called when a consumable item is used)
+     */
+    function setItemCooldown(turns) {
+        state.player.itemCooldown = turns;
+        state.player.itemCooldownJustSet = true;
+    }
+
+    /**
+     * Get current item cooldown
+     */
+    function getItemCooldown() {
+        return state.player.itemCooldown || 0;
     }
 
     function getPlayer() {
@@ -1874,6 +1905,9 @@ var BattleCore = (function() {
         getTurn: getTurn,
         incrementTurn: incrementTurn,
         tickDefendCooldown: tickDefendCooldown,
+        tickItemCooldown: tickItemCooldown,
+        setItemCooldown: setItemCooldown,
+        getItemCooldown: getItemCooldown,
         getPlayer: getPlayer,
         getEnemy: getEnemy,
         isIntentsOnlyPhase: isIntentsOnlyPhase,

@@ -844,6 +844,7 @@ var BattleUI = (function() {
         var styledElements = skipData.styledElements;
         var position = skipData.getPosition();
         var segmentIndex = position.segmentIndex;
+        var charIndex = position.charIndex;
 
         // Clear pending timeouts
         animationState.timeouts.forEach(function(t) { clearTimeout(t); });
@@ -855,27 +856,49 @@ var BattleUI = (function() {
             skipData.rows = rows;
         }
 
-        // Check if we're on the last segment
-        var isLastSegment = segmentIndex >= segments.length - 1;
+        if (!rows || segmentIndex >= segments.length) {
+            var callback = skipData.callback;
+            animationState.typewriterSkipData = null;
+            animationState.isTyping = false;
+            if (callback) callback();
+            return true;
+        }
 
-        if (rows && segmentIndex < segments.length) {
-            // Complete the current segment only
-            var currentSegment = segments[segmentIndex];
+        var currentSegment = segments[segmentIndex];
 
-            // Replace placeholders with styled spans
-            var html = currentSegment.replace(/\x00STYLED(\d+)\x00/g, function(match, index) {
-                var styled = styledElements[parseInt(index)];
-                if (styled) {
-                    return '<span class="' + styled.className + '">' + styled.content + '</span>';
+        // Clear row2 and rebuild character by character until overflow or segment end
+        // This properly handles word wrapping for long single-segment text
+        rows.row2.innerHTML = '';
+        var i = charIndex;
+
+        while (i < currentSegment.length) {
+            var char = currentSegment[i];
+
+            // Handle styled element placeholders
+            if (char === '\x00') {
+                var placeholderEnd = currentSegment.indexOf('\x00', i + 1);
+                if (placeholderEnd !== -1) {
+                    var placeholder = currentSegment.substring(i, placeholderEnd + 1);
+                    var match = placeholder.match(/\x00STYLED(\d+)\x00/);
+                    if (match && styledElements[parseInt(match[1])]) {
+                        var styled = styledElements[parseInt(match[1])];
+                        var span = document.createElement('span');
+                        span.className = styled.className;
+                        span.textContent = styled.content;
+                        rows.row2.appendChild(span);
+                        i = placeholderEnd + 1;
+                        continue;
+                    }
                 }
-                return '';
-            });
+            }
 
-            // Render the complete current segment
-            rows.row2.innerHTML = html;
+            // Add character
+            rows.row2.appendChild(document.createTextNode(char));
+            i++;
 
-            // Handle overflow after rendering (in case segment is too long)
-            if (BattleUtils.checkBattleLogOverflow && BattleUtils.checkBattleLogOverflow(rows)) {
+            // At word boundaries (space), check for overflow
+            if (char === ' ' && BattleUtils.checkBattleLogOverflow && BattleUtils.checkBattleLogOverflow(rows)) {
+                // Overflow detected - do word wrap split
                 var fullText = rows.row2.textContent || '';
                 var lastSpaceIndex = fullText.lastIndexOf(' ');
                 if (lastSpaceIndex > 0) {
@@ -884,28 +907,38 @@ var BattleUI = (function() {
                     rows.row1.textContent = beforeSpace;
                     rows.row2.textContent = afterSpace;
                 }
+                // Update position and stop - wait for next skip
+                skipData.setPosition(segmentIndex, i);
+                return true;
             }
         }
+
+        // Completed segment without mid-segment overflow
+        // Final overflow check in case last word caused overflow
+        if (BattleUtils.checkBattleLogOverflow && BattleUtils.checkBattleLogOverflow(rows)) {
+            var fullText = rows.row2.textContent || '';
+            var lastSpaceIndex = fullText.lastIndexOf(' ');
+            if (lastSpaceIndex > 0) {
+                var beforeSpace = fullText.substring(0, lastSpaceIndex);
+                var afterSpace = fullText.substring(lastSpaceIndex + 1);
+                rows.row1.textContent = beforeSpace;
+                rows.row2.textContent = afterSpace;
+            }
+        }
+
+        // Check if we're on the last segment
+        var isLastSegment = segmentIndex >= segments.length - 1;
 
         if (isLastSegment) {
             // Final segment - complete the animation
             var callback = skipData.callback;
             animationState.typewriterSkipData = null;
             animationState.isTyping = false;
-
-            if (callback) {
-                callback();
-            }
+            if (callback) callback();
         } else {
             // More segments remain - shift rows and continue with next segment
-            if (rows) {
-                BattleUtils.shiftBattleLogRows(rows);
-            }
-
-            // Update position to start of next segment
+            BattleUtils.shiftBattleLogRows(rows);
             skipData.setPosition(segmentIndex + 1, 0);
-
-            // Continue typing the next segment
             if (skipData.renderNextChar) {
                 skipData.renderNextChar();
             }

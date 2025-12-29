@@ -413,7 +413,7 @@
 
 /* === Damage Flash === */
 .damage-flash {
-    animation: sprite-damage-flash 0.15s ease-out;
+    animation: sprite-damage-flash 0.25s ease-out;
 }
 
 @keyframes sprite-damage-flash {
@@ -421,6 +421,6 @@
         filter: none;
     }
     50% {
-        filter: brightness(1.3);
+        filter: brightness(1.15);
     }
 }

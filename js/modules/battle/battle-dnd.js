@@ -592,6 +592,8 @@ var BattleStyleDnD = (function() {
                         VNEngine.removeItem(skill.requiresItem);
                         messages.push('(Used up ' + skill.requiresItem + ')');
                     }
+                    // Set 5-turn cooldown on item usage
+                    BattleCore.setItemCooldown(5);
                 }
 
                 BattleCore.playSfx('heal');
@@ -707,6 +709,8 @@ var BattleStyleDnD = (function() {
                     VNEngine.removeItem(skill.requiresItem);
                     messages.push('(Used up ' + skill.requiresItem + ')');
                 }
+                // Set 5-turn cooldown on item usage
+                BattleCore.setItemCooldown(5);
             }
 
             BattleCore.playSfx('heal');

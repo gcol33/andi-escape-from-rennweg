@@ -3990,6 +3990,12 @@ var BattleEngine = (function() {
                 // Determine if it's a heal skill
                 var isHeal = skillDef.isHeal || !!skillDef.healAmount;
 
+                // Check if item cooldown prevents using this skill
+                var isConsumable = skillDef.consumesItem || false;
+                var itemCooldown = BattleCore.getItemCooldown();
+                var onItemCooldown = isConsumable && itemCooldown > 0;
+                var canUse = currentMana >= (skillDef.manaCost || 0) && !onItemCooldown;
+
                 hydratedSkills.push({
                     id: skillId,
                     name: skillDef.name,
@@ -4003,9 +4009,10 @@ var BattleEngine = (function() {
                     isBuff: skillDef.isBuff || false,
                     statusEffect: skillDef.statusEffect,
                     critBonus: skillDef.critBonus || 0,
-                    consumesItem: skillDef.consumesItem || false,
+                    consumesItem: isConsumable,
                     requiresItem: skillDef.requiresItem,
-                    canUse: currentMana >= (skillDef.manaCost || 0)
+                    itemCooldown: onItemCooldown ? itemCooldown : 0,
+                    canUse: canUse
                 });
             }
         }
