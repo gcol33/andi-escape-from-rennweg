@@ -1423,6 +1423,11 @@ var VNEngine = (function() {
                         shouldDisable = true;
                         labelText += ' (' + player.defendCooldown + ')';
                     }
+                    // Item button has its own cooldown
+                    if (action === 'item' && player.itemCooldown > 0) {
+                        shouldDisable = true;
+                        labelText += ' (' + player.itemCooldown + ')';
+                    }
                 }
             }
 

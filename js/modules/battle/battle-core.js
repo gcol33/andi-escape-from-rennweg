@@ -257,6 +257,7 @@ var BattleCore = (function() {
         state.player.type = config.player_type || 'physical';
         state.player.defending = false;
         state.player.defendCooldown = 0;
+        state.player.itemCooldown = 0;
         state.player.statuses = [];
         state.player.stagger = 0;
         state.player.staggerThreshold = config.player_stagger_threshold || playerDefaults.defaultStaggerThreshold;
@@ -453,6 +454,7 @@ var BattleCore = (function() {
         state.player.stagger = 0;
         state.player.defending = false;
         state.player.defendCooldown = 0;
+        state.player.itemCooldown = 0;
     }
 
     /**

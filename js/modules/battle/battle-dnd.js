@@ -594,6 +594,7 @@ var BattleStyleDnD = (function() {
                     }
                     // Set 5-turn cooldown on item usage
                     BattleCore.setItemCooldown(5);
+                    messages.push('<span class="item-cooldown-text">Items on cooldown</span> <span class="item-cooldown-number">5</span>');
                 }
 
                 BattleCore.playSfx('heal');
@@ -711,6 +712,7 @@ var BattleStyleDnD = (function() {
                 }
                 // Set 5-turn cooldown on item usage
                 BattleCore.setItemCooldown(5);
+                messages.push('<span class="item-cooldown-text">Items on cooldown</span> <span class="item-cooldown-number">5</span>');
             }
 
             BattleCore.playSfx('heal');
