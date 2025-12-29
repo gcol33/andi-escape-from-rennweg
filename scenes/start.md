@@ -5,6 +5,7 @@ chars: []
 add_items:
   - name: Granola Bar
     type: consumable
+    silent: true
 ---
 
 Your office. The familiar hum of monitors fills the air, punctuated by cooling fans cycling through their eternal duty. Colleagues learned long ago not to visit without a jacket. You grab the granola bar from your desk drawer - emergency snack for the road.

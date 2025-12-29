@@ -179,8 +179,10 @@ h1 {
     left: 0;
     width: 100%;
     height: 100%;
-    background-size: cover;
-    background-position: center;
+    /* Background mode: 'cover' fills container, '100% auto' allows scrolling */
+    background-size: var(--bg-size, cover);
+    /* Background position: use calc for scroll mode offset */
+    background-position: center var(--bg-position, center);
     background-repeat: no-repeat;
     background-color: #d3c2a8;
     z-index: var(--z-background);

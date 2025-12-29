@@ -1,8 +1,6 @@
 ---
 id: johannes_defeat
-bg: office_corridor.jpg
-chars:
-  - johannes.svg
+bg: ../char/johannes_neutral.png
 music: game_over.mp3
 ending_title: "BAD ENDING: Statistically Insignificant"
 ---

@@ -1,8 +1,6 @@
 ---
 id: DIDI
-bg: office_corridor.jpg
-chars:
-  - didi_neutral.svg
+bg: ../char/didi_neutral.png
 add_items:
   - name: Aspirin
     type: consumable

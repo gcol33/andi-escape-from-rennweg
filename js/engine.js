@@ -313,31 +313,36 @@ var VNEngine = (function() {
                     fumbleText: fumbleText
                 });
             } else {
-                // Fallback for when TextRenderer is not loaded
-                var skillLabel = skillName ? '<div class="skill-check-label">' + skillName + ' Check</div>' : '';
-                var resultClass = success ? 'dice-success' : 'dice-failure';
-                var critClass = isCrit ? ' dice-crit' : (isFumble ? ' dice-fumble' : '');
+                // Fallback for when TextRenderer is not loaded - simple inline text
+                resultText = '';
+                if (skillName) {
+                    resultText += '<strong>' + skillName + ' Check:</strong> ';
+                }
 
-                resultText = '<div class="dice-roll ' + resultClass + critClass + '">';
-                resultText += skillLabel;
                 resultText += 'You rolled a ' + diceType;
                 if (rollDescription) {
                     resultText += ' ' + rollDescription;
                 }
-                resultText += ' and got: <span class="battle-number">' + result + '</span>!';
 
-                // Add crit/fumble text
-                if (isCrit && critText) {
-                    resultText += '<div class="crit-text">' + critText + '</div>';
-                } else if (isFumble && fumbleText) {
-                    resultText += '<div class="fumble-text">' + fumbleText + '</div>';
-                } else if (isCrit) {
-                    resultText += '<div class="crit-text">CRITICAL SUCCESS!</div>';
+                // Color the number based on success/failure
+                var numberClass = 'battle-number';
+                if (isCrit) {
+                    numberClass += ' roll-crit';
                 } else if (isFumble) {
-                    resultText += '<div class="fumble-text">CRITICAL FAILURE!</div>';
+                    numberClass += ' roll-fumble';
+                } else if (success) {
+                    numberClass += ' roll-success';
+                } else {
+                    numberClass += ' roll-failure';
                 }
+                resultText += ' and got: <strong class="' + numberClass + '">' + result + '</strong>!';
 
-                resultText += '</div>';
+                // Add crit/fumble text inline
+                if (isCrit) {
+                    resultText += ' <strong class="crit-text">' + (critText || 'CRITICAL SUCCESS!') + '</strong>';
+                } else if (isFumble) {
+                    resultText += ' <strong class="fumble-text">' + (fumbleText || 'CRITICAL FAILURE!') + '</strong>';
+                }
             }
 
             // Play appropriate SFX
@@ -448,8 +453,9 @@ var VNEngine = (function() {
                 state.inventory.consumables = {};
                 // keyItems are preserved
                 // skills are preserved
-                // readBlocks are preserved (so "(read)" shows on revisited scenes)
             }
+            // Always clear read history on any reset (fresh start each run)
+            state.readBlocks = {};
 
             // Clear "new this run" tracking (always cleared on any reset)
             if (typeof inventoryManager !== 'undefined' && inventoryManager.clearNewThisRun) {
@@ -598,17 +604,12 @@ var VNEngine = (function() {
                     // Preload target background
                     var targetPath = config.assetPaths.bg + targetScene.bg;
                     var preloadImg = new Image();
-                    preloadImg.onload = function() {
-                        if (!isSequenceActive()) return;  // Abort check
 
-                        // Set new background while hidden behind black overlay
-                        bgLayer.style.backgroundImage = 'url("' + targetPath + '")';
-
-                        // Small delay to ensure background is rendered - use TimerManager
+                    // Helper to fade out overlay (used by both success and error paths)
+                    var fadeOutOverlay = function() {
                         if (typeof TimerManager !== 'undefined') {
                             TimerManager.setTimeout(function() {
                                 if (!isSequenceActive()) return;
-                                // Now fade out the black overlay to reveal the new bg
                                 fadeOverlay.style.transition = 'opacity ' + (totalFadeDuration / 1000) + 's ease-in-out';
                                 fadeOverlay.classList.remove('fade-visible');
                             }, 50, 'wake');
@@ -620,6 +621,38 @@ var VNEngine = (function() {
                             }, 50);
                         }
                     };
+
+                    preloadImg.onload = function() {
+                        if (!isSequenceActive()) return;  // Abort check
+
+                        // Set new background while hidden behind black overlay
+                        bgLayer.style.backgroundImage = 'url("' + targetPath + '")';
+                        // Apply background mode and offset from tuning
+                        var bgConfig = (typeof TUNING !== 'undefined' && TUNING.background) ? TUNING.background : {};
+                        var mode = bgConfig.mode || 'cover';
+                        if (mode === 'scroll') {
+                            var offset = bgConfig.offset || 0;
+                            bgLayer.style.setProperty('--bg-size', '100% auto');
+                            bgLayer.style.setProperty('--bg-position', '-' + offset + 'vh');
+                        } else {
+                            var anchor = bgConfig.anchor || 'center';
+                            bgLayer.style.setProperty('--bg-size', 'cover');
+                            bgLayer.style.setProperty('--bg-position', anchor);
+                        }
+                        fadeOutOverlay();
+                    };
+
+                    preloadImg.onerror = function() {
+                        if (!isSequenceActive()) return;
+                        _log.warn('Engine', 'wake_sequence: Failed to load background: ' + targetScene.bg);
+
+                        // Use fallback background if available, otherwise just fade out overlay
+                        if (config.fallbackAssets && config.fallbackAssets.bg) {
+                            bgLayer.style.backgroundImage = 'url("' + config.fallbackAssets.bg + '")';
+                        }
+                        fadeOutOverlay();
+                    };
+
                     preloadImg.src = targetPath;
                 }
 
@@ -3620,6 +3653,12 @@ var VNEngine = (function() {
         // Convert markdown bold (**text**) to HTML <strong>
         var formattedText = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 
+        // Prepend content is now included in the typewriter flow
+        // Add a line break between prepend content and main text
+        if (prependContent) {
+            formattedText = prependContent + '<br><br>' + formattedText;
+        }
+
         // Skip read tracking for wake_up scene (respawn screen never shows "(read)")
         var isRespawnScreen = state.currentSceneId === 'wake_up';
 
@@ -3635,8 +3674,8 @@ var VNEngine = (function() {
         // Update skip button visibility
         updateSkipButtonVisibility();
 
-        // Set up the container with prepend content
-        elements.storyOutput.innerHTML = prependContent + '<p class="typewriter-text"></p>';
+        // Set up the container for typewriter
+        elements.storyOutput.innerHTML = '<p class="typewriter-text"></p>';
         var textElement = elements.storyOutput.querySelector('.typewriter-text');
 
         if (alreadyRead && config.currentSpeed === 'skip') {
@@ -4224,6 +4263,18 @@ var VNEngine = (function() {
             var img = new Image();
             img.onload = function() {
                 elements.backgroundLayer.style.backgroundImage = 'url(' + path + ')';
+                // Apply background mode and offset from tuning
+                var bgConfig = (typeof TUNING !== 'undefined' && TUNING.background) ? TUNING.background : {};
+                var mode = bgConfig.mode || 'cover';
+                if (mode === 'scroll') {
+                    var offset = bgConfig.offset || 0;
+                    elements.backgroundLayer.style.setProperty('--bg-size', '100% auto');
+                    elements.backgroundLayer.style.setProperty('--bg-position', '-' + offset + 'vh');
+                } else {
+                    var anchor = bgConfig.anchor || 'center';
+                    elements.backgroundLayer.style.setProperty('--bg-size', 'cover');
+                    elements.backgroundLayer.style.setProperty('--bg-position', anchor);
+                }
             };
             img.onerror = function() {
                 _log.warn('Engine','Failed to load background: ' + filename);
@@ -4284,20 +4335,35 @@ var VNEngine = (function() {
 
         /**
          * Create image with error handling
+         * Tries PNG first, then SVG, then fallback
          */
         function createCharImage(filename, onError) {
             var img = document.createElement('img');
             img.alt = filename;
+
+            // Try PNG version first (replace .svg with .png)
+            var pngFilename = filename.replace(/\.svg$/, '.png');
+            var triedPng = false;
+
             img.onerror = function() {
-                _log.warn('Engine','Failed to load character sprite: ' + filename);
-                emitAssetError('char', filename);
-                // Use fallback image
-                if (config.fallbackAssets.char) {
-                    this.src = config.fallbackAssets.char;
-                    this.onerror = null; // Prevent infinite loop
+                if (!triedPng && pngFilename !== filename) {
+                    // PNG failed, try original SVG
+                    triedPng = true;
+                    _log.debug('Engine', 'PNG not found, trying SVG: ' + filename);
+                    this.src = config.assetPaths.char + filename;
+                } else {
+                    // Both failed, use fallback
+                    _log.warn('Engine','Failed to load character sprite: ' + filename);
+                    emitAssetError('char', filename);
+                    if (config.fallbackAssets.char) {
+                        this.src = config.fallbackAssets.char;
+                        this.onerror = null; // Prevent infinite loop
+                    }
                 }
             };
-            img.src = config.assetPaths.char + filename;
+
+            // Start with PNG version
+            img.src = config.assetPaths.char + pngFilename;
             return img;
         }
 
@@ -4686,13 +4752,16 @@ var VNEngine = (function() {
     /**
      * Add key item to player inventory (unique, no count)
      * @param {string} item - Key item name
+     * @param {boolean} silent - If true, don't show notification
      */
-    function addKeyItem(item) {
+    function addKeyItem(item, silent) {
         var isNew = state.inventory.keyItems.indexOf(item) === -1;
         if (isNew) {
             state.inventory.keyItems.push(item);
             _log.info('Engine','Added key item: ' + item);
-            showItemNotification(item, 'added', 'key');
+            if (!silent) {
+                showItemNotification(item, 'added', 'key');
+            }
             // Emit inventory event
             if (typeof eventBus !== 'undefined' && typeof InventoryEvents !== 'undefined') {
                 eventBus.emit(InventoryEvents.ITEM_ADDED, { item: item, type: 'key' });
@@ -4764,8 +4833,9 @@ var VNEngine = (function() {
      * Add consumable item to player inventory (with count)
      * @param {string} item - Consumable item name
      * @param {number} count - Number to add (default 1)
+     * @param {boolean} silent - If true, don't show notification
      */
-    function addConsumable(item, count) {
+    function addConsumable(item, count, silent) {
         count = count || 1;
         if (state.inventory.consumables[item]) {
             state.inventory.consumables[item] += count;
@@ -4773,7 +4843,9 @@ var VNEngine = (function() {
             state.inventory.consumables[item] = count;
         }
         _log.info('Engine','Added consumable: ' + item + ' x' + count);
-        showItemNotification(item + ' x' + count, 'added', 'consumable');
+        if (!silent) {
+            showItemNotification(item + ' x' + count, 'added', 'consumable');
+        }
         // Emit inventory event
         if (typeof eventBus !== 'undefined' && typeof InventoryEvents !== 'undefined') {
             eventBus.emit(InventoryEvents.ITEM_ADDED, { item: item, type: 'consumable', count: count });
@@ -4784,7 +4856,7 @@ var VNEngine = (function() {
     /**
      * Add items to player inventory (legacy support + new format)
      * @param {string[]|object[]} items - Array of item names or item objects
-     * Item object format: { name: "Item", type: "key"|"consumable", count: 1 }
+     * Item object format: { name: "Item", type: "key"|"consumable", count: 1, silent: true }
      */
     function addItems(items) {
         items.forEach(function(item) {
@@ -4794,9 +4866,9 @@ var VNEngine = (function() {
             } else if (typeof item === 'object') {
                 // New format with type
                 if (item.type === 'consumable') {
-                    addConsumable(item.name, item.count || 1);
+                    addConsumable(item.name, item.count || 1, item.silent);
                 } else {
-                    addKeyItem(item.name);
+                    addKeyItem(item.name, item.silent);
                 }
             }
         });

@@ -298,7 +298,7 @@ var TextEffects = (function() {
     }
 
     /**
-     * Format a dice result for display
+     * Format a dice result for display (inline text, no box wrapper)
      * @param {Object} rollResult - { roll, sides, isCrit, isFumble }
      * @param {Object} options - { threshold, success, skillName }
      * @returns {string} - HTML string
@@ -311,28 +311,37 @@ var TextEffects = (function() {
         var isFumble = rollResult.isFumble;
         var success = options.success;
 
-        var resultClass = success ? 'dice-success' : 'dice-failure';
-        var critClass = isCrit ? ' dice-crit' : (isFumble ? ' dice-fumble' : '');
-
-        var html = '<div class="dice-roll ' + resultClass + critClass + '">';
+        // Simple inline text format - no box wrapper
+        var html = '';
 
         if (options.skillName) {
-            html += '<div class="skill-check-label">' + options.skillName + ' Check</div>';
+            html += '<strong>' + options.skillName + ' Check:</strong> ';
         }
 
         html += 'You rolled a d' + sides;
         if (options.rollDescription) {
             html += ' ' + options.rollDescription;
         }
-        html += ' and got: <span class="battle-number">' + roll + '</span>!';
 
+        // Color the number based on success/failure
+        var numberClass = 'battle-number';
         if (isCrit) {
-            html += '<div class="crit-text">' + (options.critText || KEYWORDS.CRITICAL_SUCCESS) + '</div>';
+            numberClass += ' roll-crit';
         } else if (isFumble) {
-            html += '<div class="fumble-text">' + (options.fumbleText || KEYWORDS.CRITICAL_FAILURE) + '</div>';
+            numberClass += ' roll-fumble';
+        } else if (success) {
+            numberClass += ' roll-success';
+        } else {
+            numberClass += ' roll-failure';
         }
+        html += ' and got: <strong class="' + numberClass + '">' + roll + '</strong>!';
 
-        html += '</div>';
+        // Append crit/fumble text inline
+        if (isCrit) {
+            html += ' <strong class="crit-text">' + (options.critText || KEYWORDS.CRITICAL_SUCCESS) + '</strong>';
+        } else if (isFumble) {
+            html += ' <strong class="fumble-text">' + (options.fumbleText || KEYWORDS.CRITICAL_FAILURE) + '</strong>';
+        }
 
         return html;
     }

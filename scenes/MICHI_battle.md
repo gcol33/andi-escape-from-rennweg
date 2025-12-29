@@ -1,8 +1,6 @@
 ---
 id: MICHI_battle
-bg: hallway_fluorescent.jpg
-chars:
-  - michi_whiteboard.svg
+bg: ../char/michi_neutral.png
 music: BOSS_TIME.mp3
 actions:
   - type: start_battle

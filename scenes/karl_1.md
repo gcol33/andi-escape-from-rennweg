@@ -1,8 +1,6 @@
 ---
 id: karl_1
-bg: office_corridor.jpg
-chars:
-  - karl.svg
+bg: ../char/karl_neutral.png
 set_flags:
   - jk_seen_1
 ---

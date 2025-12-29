@@ -1,8 +1,6 @@
 ---
 id: johannes_battle
-bg: office_corridor.jpg
-chars:
-  - johannes.svg
+bg: ../char/johannes_neutral.png
 music: BOSS_TIME.mp3
 set_flags:
   - jk_seen_3

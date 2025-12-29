@@ -8,7 +8,7 @@
  */
 
 const themeConfig = {
-  "selected": "prototype",
+  "selected": "manga",
   "available": [
     "prototype",
     "70s",

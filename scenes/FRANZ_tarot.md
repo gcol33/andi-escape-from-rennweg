@@ -1,8 +1,6 @@
 ---
 id: FRANZ_tarot
-bg: stairwell_landing.jpg
-chars:
-  - franz_neutral.svg
+bg: ../char/franz_tarot.png
 music: tarot.mp3
 actions:
   - type: draw_tarot

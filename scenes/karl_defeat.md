@@ -1,8 +1,6 @@
 ---
 id: karl_defeat
-bg: office_corridor.jpg
-chars:
-  - karl.svg
+bg: ../char/karl_neutral.png
 music: game_over.mp3
 ending_title: "BAD ENDING: Return to Baseline"
 ---

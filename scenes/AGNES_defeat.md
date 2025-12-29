@@ -1,8 +1,6 @@
 ---
 id: AGNES_defeat
-bg: office_corridor.jpg
-chars:
-  - agnes_victorious.svg
+bg: ../char/agnes_robot_phase.png
 music: game_over.mp3
 ending_title: "BAD ENDING: Death by Bureaucracy"
 ---

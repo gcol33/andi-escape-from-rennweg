@@ -1,8 +1,6 @@
 ---
 id: FRANZ3_tarot_result
-bg: office_corridor.jpg
-chars:
-  - franz_neutral.svg
+bg: ../char/franz_tarot.png
 ---
 
 Franz studies your face as you absorb the card's meaning. A slight smile plays at the corner of his lips.

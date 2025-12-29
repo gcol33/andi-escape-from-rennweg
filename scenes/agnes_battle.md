@@ -1,8 +1,6 @@
 ---
 id: AGNES_battle
-bg: office_corridor.jpg
-chars:
-  - agnes_angry.svg
+bg: ../char/agnes_fight.png
 music: BOSS_TIME.mp3
 actions:
   - type: start_battle

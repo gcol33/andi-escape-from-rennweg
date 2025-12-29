@@ -226,8 +226,10 @@ h1 {
     left: 0;
     width: 100%;
     height: 100%;
-    background-size: cover;
-    background-position: center;
+    /* Background mode: 'cover' fills container, '100% auto' allows scrolling */
+    background-size: var(--bg-size, cover);
+    /* Background position: use calc for scroll mode offset */
+    background-position: center var(--bg-position, center);
     background-repeat: no-repeat;
     background-color: #d3c2a8;
     z-index: var(--z-background);
@@ -562,6 +564,32 @@ h1 {
     color: #b08b5a;
     font-weight: bold;
     margin: 10px 0;
+}
+
+/* Inline roll result styling */
+.roll-success {
+    color: #4a7c4a;
+}
+
+.roll-failure {
+    color: #8b4a4a;
+}
+
+.roll-crit {
+    color: #d4af37;
+    text-shadow: 0 0 4px rgba(212, 175, 55, 0.5);
+}
+
+.roll-fumble {
+    color: #6b2c2c;
+}
+
+.crit-text {
+    color: #d4af37;
+}
+
+.fumble-text {
+    color: #6b2c2c;
 }
 
 /* === Responsive Design === */

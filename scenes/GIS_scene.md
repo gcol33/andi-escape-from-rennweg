@@ -1,8 +1,6 @@
 ---
 id: GIS_scene
-bg: meeting_room_whiteboard.jpg
-chars:
-  - charlie_neutral.svg
+bg: ../char/charlie-jpg.png
 ---
 
 You follow Charlie to his workstation. Maps cover every surface. Topographical nightmares, satellite imagery, layers upon layers of geographic data. Charlie pulls up his code. "See? I'm trying to transform these coordinates from WGS84 to MGI, but the output keeps landing somewhere in the Atlantic Ocean."

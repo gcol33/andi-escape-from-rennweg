@@ -1,8 +1,6 @@
 ---
 id: karl_battle
-bg: office_corridor.jpg
-chars:
-  - karl.svg
+bg: ../char/karl_neutral.png
 music: BOSS_TIME.mp3
 set_flags:
   - jk_seen_3

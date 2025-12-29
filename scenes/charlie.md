@@ -1,8 +1,6 @@
 ---
 id: charlie
-bg: office_corridor.jpg
-chars:
-  - charlie_neutral.svg
+bg: ../char/charlie-jpg.png
 ---
 
 You step into the corridor. The fluorescent lights hum their familiar tune overhead. You're pacing back and forth, your usual thinking-and-walking routine, when you nearly collide with Charlie.

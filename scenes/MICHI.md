@@ -1,8 +1,6 @@
 ---
 id: MICHI
-bg: hallway_fluorescent.jpg
-chars:
-  - michi_whiteboard.svg
+bg: ../char/michi_neutral.png
 ---
 
 On the 4th floor, you find Michi standing guard by the whiteboard. The legendary whiteboard. Where all important announcements are posted. And where Michi keeps his prized possession: a professional-grade magnifying glass.

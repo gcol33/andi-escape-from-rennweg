@@ -151,6 +151,26 @@ const TUNING = {
         },
 
         // =====================================================================
+        // BACKGROUNDS
+        // =====================================================================
+
+        background: {
+            // Mode: 'cover' or 'scroll'
+            // - 'cover': image always fills container (can't scroll beyond edges)
+            // - 'scroll': image can move beyond viewport, leaving empty space
+            mode: 'cover',
+
+            // Anchor: vertical anchor point (cover mode only)
+            // 'top' = show top of image, 'center' = centered, 'bottom' = show bottom
+            anchor: 'bottom',
+
+            // Offset: how much to shift the image UP (scroll mode only)
+            // Positive values = shift up (top cut off, empty space at bottom)
+            // Use percentage of viewport height: 10 = 10vh shift
+            offset: 10
+        },
+
+        // =====================================================================
         // AUDIO
         // =====================================================================
 

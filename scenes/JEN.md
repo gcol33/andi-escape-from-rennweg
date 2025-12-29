@@ -1,8 +1,6 @@
 ---
 id: JEN
-bg: office_corridor.jpg
-chars:
-  - jen_neutral.svg
+bg: ../char/jen_nuts.png
 ---
 
 You make your way down the stairs, ready to leave Rennweg for good. Suddenly, Jen catches up to you. "Hey Andi! Before you go... want to feed the squirrels with me one last time?" She holds up a small bag of nuts, eyes sparkling with enthusiasm.

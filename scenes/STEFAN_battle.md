@@ -1,8 +1,6 @@
 ---
 id: STEFAN_battle
-bg: stairwell_landing.jpg
-chars:
-  - stefan_neutral.svg
+bg: ../char/stefan_super.png
 music: BOSS_TIME.mp3
 actions:
   - type: start_battle

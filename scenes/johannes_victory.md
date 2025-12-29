@@ -1,8 +1,6 @@
 ---
 id: johannes_victory
-bg: office_corridor.jpg
-chars:
-  - johannes.svg
+bg: ../char/johannes_neutral.png
 set_flags:
   - johannes_defeated
   - jk_battle_done

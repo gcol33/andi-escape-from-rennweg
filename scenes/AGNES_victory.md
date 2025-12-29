@@ -1,8 +1,6 @@
 ---
 id: AGNES_victory
-bg: office_corridor.jpg
-chars:
-  - agnes_surprised.svg
+bg: ../char/agnes_timesheet_annoyed.png
 music: victory.mp3
 add_items:
   - name: Break Room Snacks

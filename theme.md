@@ -1,7 +1,7 @@
 # Theme Selection
 # Mark a theme with [x] to select it
 
-prototype [x]
+prototype [ ]
 70s [ ]
 80s [ ]
 90s [ ]
@@ -12,7 +12,7 @@ finalfantasy [ ]
 gameboy [ ]
 harrypotter [ ]
 lotr [ ]
-manga [ ]
+manga [x]
 nes [ ]
 snes [ ]
 spaceopera [ ]

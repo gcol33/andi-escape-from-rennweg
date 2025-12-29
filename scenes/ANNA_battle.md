@@ -1,8 +1,6 @@
 ---
 id: ANNA_battle
-bg: office_corridor.jpg
-chars:
-  - anna_neutral.svg
+bg: ../char/anna_coffee_high.png
 music: BOSS_TIME.mp3
 actions:
   - type: start_battle
