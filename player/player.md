@@ -23,9 +23,9 @@ skills:
     name: Short Rest
     manaCost: 0
     isRest: true
-    restoreMana: 10
+    restoreMana: 2d4
     skipsTurn: true
-    description: Take a breather to restore 10 MP. Skips your turn!
+    description: Take a breather to restore 2d4 MP. Skips your turn!
 
   # Item-based skills (unlocked by collecting key items)
   - id: lighter_ignite

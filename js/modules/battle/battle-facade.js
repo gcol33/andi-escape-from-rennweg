@@ -3995,7 +3995,12 @@ var BattleEngine = (function() {
                 var isConsumable = skillDef.consumesItem || false;
                 var itemCooldown = BattleCore.getItemCooldown();
                 var onItemCooldown = isConsumable && itemCooldown > 0;
-                var canUse = currentMana >= (skillDef.manaCost || 0) && !onItemCooldown;
+
+                // Disable rest skills when at full mana
+                var isRestSkill = skillDef.isRest || false;
+                var atFullMana = isRestSkill && currentMana >= (player.maxMana || 10);
+
+                var canUse = currentMana >= (skillDef.manaCost || 0) && !onItemCooldown && !atFullMana;
 
                 hydratedSkills.push({
                     id: skillId,

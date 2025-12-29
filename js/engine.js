@@ -4146,6 +4146,20 @@ var VNEngine = (function() {
                 };
                 elements.choicesContainer.appendChild(button);
             });
+
+            // Auto-continue on single choice in skip mode
+            if (config.currentSpeed === 'skip' && availableChoices.length === 1) {
+                var singleButton = elements.choicesContainer.querySelector('button');
+                if (singleButton) {
+                    state.typewriter.autoAdvanceId = typeof TimerManager !== 'undefined'
+                        ? TimerManager.setTimeout(function() {
+                            singleButton.click();
+                        }, config.skipModeDelay, 'auto-advance')
+                        : setTimeout(function() {
+                            singleButton.click();
+                        }, config.skipModeDelay);
+                }
+            }
         } else {
             // Check if MemoryModule wants to handle scene completion (for memory chains)
             if (typeof MemoryModule !== 'undefined' && MemoryModule.onSceneComplete) {

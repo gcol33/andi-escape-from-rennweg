@@ -105,7 +105,7 @@ intents:
     minTurn: 3
     cooldown: 4
     prepTurns: 1
-    dialogue: "Let me show you TRUE network traffic..."
+    dialogue: "Let me show you TRUE network traffic... DEFEND yourself!"
     executeDialogue: "Packets incoming!"
     skill:
       name: Ethernet Barrage

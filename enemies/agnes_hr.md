@@ -66,7 +66,7 @@ intents:
     minTurn: 4
     cooldown: 5
     prepTurns: 1
-    dialogue: "Let me pull up ALL your violations..."
+    dialogue: "Let me pull up ALL your violations... Better DEFEND!"
     executeDialogue: "Violation 1... 2... 3... 4... 5!"
     skill:
       name: Policy Barrage

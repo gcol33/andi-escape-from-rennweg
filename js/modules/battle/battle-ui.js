@@ -348,6 +348,14 @@ var BattleUI = (function() {
      * Call this before starting a new typewriter message
      */
     function prepareLogForNewMessage() {
+        // Stop any ongoing typewriter to prevent race conditions when rapidly skipping
+        if (animationState.isTyping) {
+            animationState.timeouts.forEach(function(t) { clearTimeout(t); });
+            animationState.timeouts = [];
+            animationState.isTyping = false;
+            animationState.typewriterSkipData = null;
+        }
+
         var row1 = elements.battleLogRow1 || document.getElementById('battle-log-row-1');
         var row2 = elements.battleLogRow2 || document.getElementById('battle-log-row-2');
         if (!row1 || !row2) return;
@@ -844,7 +852,6 @@ var BattleUI = (function() {
         var styledElements = skipData.styledElements;
         var position = skipData.getPosition();
         var segmentIndex = position.segmentIndex;
-        var charIndex = position.charIndex;
 
         // Clear pending timeouts
         animationState.timeouts.forEach(function(t) { clearTimeout(t); });
@@ -864,81 +871,44 @@ var BattleUI = (function() {
             return true;
         }
 
+        // Skip pressed: complete current segment (one row at a time)
         var currentSegment = segments[segmentIndex];
 
-        // Clear row2 and rebuild character by character until overflow or segment end
-        // This properly handles word wrapping for long single-segment text
+        // Clear row2 and render the complete current segment
         rows.row2.innerHTML = '';
-        var i = charIndex;
-
-        while (i < currentSegment.length) {
-            var char = currentSegment[i];
-
-            // Handle styled element placeholders
-            if (char === '\x00') {
-                var placeholderEnd = currentSegment.indexOf('\x00', i + 1);
-                if (placeholderEnd !== -1) {
-                    var placeholder = currentSegment.substring(i, placeholderEnd + 1);
-                    var match = placeholder.match(/\x00STYLED(\d+)\x00/);
-                    if (match && styledElements[parseInt(match[1])]) {
-                        var styled = styledElements[parseInt(match[1])];
-                        var span = document.createElement('span');
-                        span.className = styled.className;
-                        span.textContent = styled.content;
-                        rows.row2.appendChild(span);
-                        i = placeholderEnd + 1;
+        for (var j = 0; j < currentSegment.length; j++) {
+            var ch = currentSegment[j];
+            if (ch === '\x00') {
+                var pEnd = currentSegment.indexOf('\x00', j + 1);
+                if (pEnd !== -1) {
+                    var ph = currentSegment.substring(j, pEnd + 1);
+                    var m = ph.match(/\x00STYLED(\d+)\x00/);
+                    if (m && styledElements[parseInt(m[1])]) {
+                        var st = styledElements[parseInt(m[1])];
+                        var sp = document.createElement('span');
+                        sp.className = st.className;
+                        sp.textContent = st.content;
+                        rows.row2.appendChild(sp);
+                        j = pEnd;
                         continue;
                     }
                 }
             }
-
-            // Add character
-            rows.row2.appendChild(document.createTextNode(char));
-            i++;
-
-            // At word boundaries (space), check for overflow
-            if (char === ' ' && BattleUtils.checkBattleLogOverflow && BattleUtils.checkBattleLogOverflow(rows)) {
-                // Overflow detected - do word wrap split
-                var fullText = rows.row2.textContent || '';
-                var lastSpaceIndex = fullText.lastIndexOf(' ');
-                if (lastSpaceIndex > 0) {
-                    var beforeSpace = fullText.substring(0, lastSpaceIndex);
-                    var afterSpace = fullText.substring(lastSpaceIndex + 1);
-                    rows.row1.textContent = beforeSpace;
-                    rows.row2.textContent = afterSpace;
-                }
-                // Update position and stop - wait for next skip
-                skipData.setPosition(segmentIndex, i);
-                return true;
-            }
+            rows.row2.appendChild(document.createTextNode(ch));
         }
 
-        // Completed segment without mid-segment overflow
-        // Final overflow check in case last word caused overflow
-        if (BattleUtils.checkBattleLogOverflow && BattleUtils.checkBattleLogOverflow(rows)) {
-            var fullText = rows.row2.textContent || '';
-            var lastSpaceIndex = fullText.lastIndexOf(' ');
-            if (lastSpaceIndex > 0) {
-                var beforeSpace = fullText.substring(0, lastSpaceIndex);
-                var afterSpace = fullText.substring(lastSpaceIndex + 1);
-                rows.row1.textContent = beforeSpace;
-                rows.row2.textContent = afterSpace;
-            }
-        }
-
-        // Check if we're on the last segment
-        var isLastSegment = segmentIndex >= segments.length - 1;
-
-        if (isLastSegment) {
-            // Final segment - complete the animation
+        // Check if this was the last segment
+        if (segmentIndex >= segments.length - 1) {
+            // Complete the animation
             var callback = skipData.callback;
             animationState.typewriterSkipData = null;
             animationState.isTyping = false;
             if (callback) callback();
         } else {
-            // More segments remain - shift rows and continue with next segment
+            // More segments - shift rows, update position, and continue typing
             BattleUtils.shiftBattleLogRows(rows);
             skipData.setPosition(segmentIndex + 1, 0);
+            // Restart typewriter for next segment
             if (skipData.renderNextChar) {
                 skipData.renderNextChar();
             }

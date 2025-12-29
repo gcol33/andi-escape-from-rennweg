@@ -545,7 +545,11 @@ var BattleStyleDnD = (function() {
 
         // Rest skill (Short Rest - restores mana, skips turn)
         if (skill.isRest && skill.restoreMana) {
-            var manaRestored = BattleCore.restoreMana(skill.restoreMana);
+            // Roll dice if restoreMana is a dice string (e.g., "1d6+2")
+            var manaAmount = typeof skill.restoreMana === 'string'
+                ? BattleUtils.rollDamage(skill.restoreMana, 1)
+                : skill.restoreMana;
+            var manaRestored = BattleCore.restoreMana(manaAmount);
             messages.push(player.name + ' takes a short rest... Restored <span class="regen-mp">+' + manaRestored + ' MP</span>!');
             result.manaRestored = manaRestored;
             result.skipsTurn = true;
@@ -1309,8 +1313,8 @@ var BattleStyleDnD = (function() {
             return { success: false, reason: 'unknown_skill', messages: ['Unknown skill!'] };
         }
 
-        // Handle heal/buff/summon skills by delegating to playerSkill with modifiers
-        if (skill.isHeal || skill.isBuff || skill.isSummon || (skill.healAmount && !skill.damage)) {
+        // Handle heal/buff/summon/rest skills by delegating to playerSkill with modifiers
+        if (skill.isHeal || skill.isBuff || skill.isSummon || skill.isRest || (skill.healAmount && !skill.damage)) {
             return playerSkill(skillId, modifiers);
         }
 
