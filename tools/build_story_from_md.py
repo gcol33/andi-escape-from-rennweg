@@ -531,6 +531,7 @@ def parse_scene_file(filepath):
         'remove_items': frontmatter.get('remove_items', []),
         'actions': frontmatter.get('actions', []),
         'ending_title': frontmatter.get('ending_title', None),
+        'no_restart': frontmatter.get('no_restart', False),
         'random_flavor': frontmatter.get('random_flavor', []),
         'recap': frontmatter.get('recap', None),
         'textBlocks': text_blocks,
@@ -560,6 +561,8 @@ def parse_scene_file(filepath):
         del scene['music']
     if scene['ending_title'] is None:
         del scene['ending_title']
+    if not scene['no_restart']:
+        del scene['no_restart']
     if not scene['random_flavor']:
         del scene['random_flavor']
     if scene['recap'] is None:

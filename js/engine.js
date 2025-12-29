@@ -4170,6 +4170,14 @@ var VNEngine = (function() {
 
             // Game over state - show ending overlay with restart button
             var endingOverlay = document.getElementById('ending-overlay');
+            var currentScene = story[state.currentSceneId];
+
+            // Skip overlay entirely for victory screens (no_restart flag)
+            if (currentScene && currentScene.no_restart) {
+                // True victory - just stay on the screen, no overlay
+                return;
+            }
+
             if (endingOverlay) {
                 // Add completion message
                 var completionMsg = document.createElement('p');

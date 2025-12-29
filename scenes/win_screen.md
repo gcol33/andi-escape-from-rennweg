@@ -3,6 +3,7 @@ id: win_screen
 bg: rooftop.jpg
 music: victory.mp3
 ending_title: "GOOD ENDING: The Perfect Farewell"
+no_restart: true
 ---
 
 **CONGRATULATIONS!**
