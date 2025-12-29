@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400" width="200" height="400">
+  <!-- CAT Stage 5 - HUGE, fills entire frame, menacing -->
+  <!-- Body - extends beyond frame -->
+  <ellipse cx="100" cy="350" rx="120" ry="80" fill="#1a1a1a"/>
+  <!-- Head - massive, center of frame -->
+  <ellipse cx="100" cy="160" rx="85" ry="80" fill="#1a1a1a"/>
+  <!-- Ears - extend to top -->
+  <path d="M30 100 L5 10 L60 80" fill="#1a1a1a"/>
+  <path d="M170 100 L195 10 L140 80" fill="#1a1a1a"/>
+  <!-- Inner ears -->
+  <path d="M35 95 L20 35 L55 80" fill="#2a2a2a"/>
+  <path d="M165 95 L180 35 L145 80" fill="#2a2a2a"/>
+  <!-- Eyes - enormous, all-seeing -->
+  <ellipse cx="60" cy="145" rx="25" ry="30" fill="#ffcc00"/>
+  <ellipse cx="140" cy="145" rx="25" ry="30" fill="#ffcc00"/>
+  <ellipse cx="60" cy="145" rx="8" ry="25" fill="#111"/>
+  <ellipse cx="140" cy="145" rx="8" ry="25" fill="#111"/>
+  <!-- Multiple glow rings -->
+  <ellipse cx="60" cy="145" rx="30" ry="35" fill="none" stroke="#ffcc00" stroke-width="3" opacity="0.4"/>
+  <ellipse cx="140" cy="145" rx="30" ry="35" fill="none" stroke="#ffcc00" stroke-width="3" opacity="0.4"/>
+  <ellipse cx="60" cy="145" rx="35" ry="40" fill="none" stroke="#ffcc00" stroke-width="2" opacity="0.2"/>
+  <ellipse cx="140" cy="145" rx="35" ry="40" fill="none" stroke="#ffcc00" stroke-width="2" opacity="0.2"/>
+  <!-- Nose -->
+  <path d="M100 185 L88 210 L100 218 L112 210 Z" fill="#3a3a3a"/>
+  <!-- Mouth - slight smirk -->
+  <path d="M85 230 Q100 245 115 230" stroke="#3a3a3a" stroke-width="3" fill="none"/>
+  <!-- Whiskers - long and dramatic -->
+  <line x1="45" y1="210" x2="-10" y2="190" stroke="#3a3a3a" stroke-width="3"/>
+  <line x1="40" y1="225" x2="-15" y2="230" stroke="#3a3a3a" stroke-width="3"/>
+  <line x1="38" y1="240" x2="-10" y2="265" stroke="#3a3a3a" stroke-width="3"/>
+  <line x1="155" y1="210" x2="210" y2="190" stroke="#3a3a3a" stroke-width="3"/>
+  <line x1="160" y1="225" x2="215" y2="230" stroke="#3a3a3a" stroke-width="3"/>
+  <line x1="162" y1="240" x2="210" y2="265" stroke="#3a3a3a" stroke-width="3"/>
+  <!-- Paws coming from sides - claiming space -->
+  <ellipse cx="15" cy="380" rx="40" ry="25" fill="#1a1a1a"/>
+  <ellipse cx="185" cy="380" rx="40" ry="25" fill="#1a1a1a"/>
+  <!-- Darkness creeping from edges -->
+  <rect x="0" y="0" width="15" height="400" fill="#1a1a1a" opacity="0.5"/>
+  <rect x="185" y="0" width="15" height="400" fill="#1a1a1a" opacity="0.5"/>
+</svg>

@@ -7,8 +7,8 @@ The elevator doors slide open with their familiar mechanical wheeze. You step in
 
 ### Choices
 
-- Go to rooftop (require_skills: Rooftop Discovery) → cat_scene_4
-- Go to 1st floor → floor1
-- Go to 4th floor (requires: !visited_4th_floor) → floor4
-- Visit the stairwell (requires: !met_franz) → FRANZ2_1
+- Continue (requires: !met_franz) → FRANZ_before_elevator0
+- Go to rooftop (requires: met_franz, require_skills: Rooftop Discovery) → cat_scene_4
+- Go to 1st floor (requires: met_franz) → floor1
+- Go to 4th floor (requires: met_franz, !visited_4th_floor) → floor4
 
