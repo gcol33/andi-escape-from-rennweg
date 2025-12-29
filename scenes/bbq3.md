@@ -2,8 +2,6 @@
 id: bbq3
 bg: rooftop.jpg
 music: victory.mp3
-chars:
-  - cat_5.svg
 ending_title: "GOOD ENDING: The Perfect Farewell"
 ---
 
@@ -39,5 +37,5 @@ The cat settles beside the grill, its massive form somehow fitting into the part
 
 ---
 
-Thank you for playing! And thank you, Andi, for everything.
+Thank you for playing! And thank you, Andi, for everything. Thanks for all the fish.
 
