@@ -464,8 +464,6 @@ var VNEngine = (function() {
                 // keyItems are preserved
                 // skills are preserved
             }
-            // Always clear read history on any reset (fresh start each run)
-            state.readBlocks = {};
 
             // Clear "new this run" tracking (always cleared on any reset)
             if (typeof inventoryManager !== 'undefined' && inventoryManager.clearNewThisRun) {
