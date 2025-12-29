@@ -3499,6 +3499,10 @@ var BattleEngine = (function() {
     function showDamageNumber(amount, target, type) {
         if (typeof BattleUI !== 'undefined') {
             BattleUI.showDamageNumber(amount, target, type);
+            // Flash the target when taking damage (not on miss/heal)
+            if (amount > 0 && type !== 'heal' && type !== 'miss') {
+                BattleUI.flashSprite(target);
+            }
         }
     }
 
