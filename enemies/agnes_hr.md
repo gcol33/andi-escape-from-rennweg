@@ -7,7 +7,7 @@ sprite: agnes_blocking.svg
 hp: 38
 ac: 11
 attack_bonus: 3
-damage: d6
+damage: d8
 type: physical
 stagger_threshold: 50
 

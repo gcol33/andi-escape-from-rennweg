@@ -7,7 +7,7 @@ sprite: michi_whiteboard.svg
 hp: 55
 ac: 13
 attack_bonus: 4
-damage: d8
+damage: d10
 type: physical
 stagger_threshold: 65
 ai: default

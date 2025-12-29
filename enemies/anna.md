@@ -7,7 +7,7 @@ sprite: anna_neutral.svg
 hp: 40
 ac: 12
 attack_bonus: 3
-damage: d6
+damage: d8
 type: physical
 stagger_threshold: 55
 ai: default

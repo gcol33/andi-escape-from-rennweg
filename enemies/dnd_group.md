@@ -7,7 +7,7 @@ sprite: dnd_group.svg
 hp: 50
 ac: 13
 attack_bonus: 4
-damage: d8
+damage: d10
 type: physical
 stagger_threshold: 70
 ai: default

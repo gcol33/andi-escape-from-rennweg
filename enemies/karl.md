@@ -7,7 +7,7 @@ sprite: karl.svg
 hp: 48
 ac: 10
 attack_bonus: 3
-damage: d8
+damage: d10
 type: psychic
 stagger_threshold: 55
 ai: defensive

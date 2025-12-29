@@ -7,7 +7,7 @@ sprite: stefan_neutral.svg
 hp: 110
 ac: 12
 attack_bonus: 3
-damage: d6
+damage: d8
 type: physical
 stagger_threshold: 80
 ai: aggressive
@@ -22,14 +22,14 @@ phases:
     hp_threshold: 1.0
     sprite: stefan_neutral.svg
     attack_bonus: 3
-    damage: d6
+    damage: d8
 
   - id: super
     name: Super Stefan
     hp_threshold: 0.66
     sprite: stefan_super.svg
     attack_bonus: 5
-    damage: d8
+    damage: d10
     dialogue: "You think this is my full power? HAAAAAAAA!"
     music: BOSS_TIME_INTENSE.mp3
 
@@ -38,7 +38,7 @@ phases:
     hp_threshold: 0.33
     sprite: stefan_ultra.svg
     attack_bonus: 7
-    damage: d10
+    damage: d12
     dialogue: "No one has ever pushed me this far..."
     intents_only: true
     music: BOSS_TIME_FINAL.mp3

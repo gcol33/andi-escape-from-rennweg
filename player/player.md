@@ -7,8 +7,8 @@ name: Andy
 hp: 42
 mana: 10
 ac: 11
-attack_bonus: 2
-damage: 1d6
+attack_bonus: 3
+damage: 1d8
 
 # Combat Type (for elemental interactions)
 type: physical

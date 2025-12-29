@@ -7,7 +7,7 @@ sprite: johannes.svg
 hp: 48
 ac: 11
 attack_bonus: 2
-damage: d6
+damage: d8
 type: psychic
 stagger_threshold: 50
 ai: default
