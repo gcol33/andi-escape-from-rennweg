@@ -1756,21 +1756,31 @@ var BattleUI = (function() {
     }
 
     /**
-     * Flash sprite when hit
+     * Flash sprite when hit (falls back to background if no sprite)
      * @param {string} target - 'player' or 'enemy'
      */
     function flashSprite(target) {
         var spriteLayer = document.getElementById('sprite-layer');
-        if (!spriteLayer) return;
+        var elementToFlash = null;
 
-        var sprite = target === 'enemy' ?
-            spriteLayer.querySelector('.character-sprite') :
-            spriteLayer; // For player, flash the whole layer
+        if (target === 'enemy') {
+            // Try to find character sprite first
+            if (spriteLayer) {
+                elementToFlash = spriteLayer.querySelector('.character-sprite');
+            }
+            // Fall back to background if no sprite
+            if (!elementToFlash) {
+                elementToFlash = document.getElementById('background-layer');
+            }
+        } else {
+            // For player, flash the whole sprite layer (or background as fallback)
+            elementToFlash = spriteLayer || document.getElementById('background-layer');
+        }
 
-        if (sprite) {
-            sprite.classList.add('damage-flash');
+        if (elementToFlash) {
+            elementToFlash.classList.add('damage-flash');
             setTimeout(function() {
-                sprite.classList.remove('damage-flash');
+                elementToFlash.classList.remove('damage-flash');
             }, config.effects.spriteFlash / 2); // Flash is half the attack effect duration
         }
     }
