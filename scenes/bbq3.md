@@ -2,6 +2,8 @@
 id: bbq3
 bg: rooftop.jpg
 music: victory.mp3
+chars:
+  - cat_5.svg
 ending_title: "GOOD ENDING: The Perfect Farewell"
 ---
 
@@ -18,6 +20,22 @@ The evening unfolds. Jen regales the group with elaborate squirrel theories. Lis
 ---
 
 As the fairy lights flicker on, you look around. These people made your time here special. Taught you things no university course ever could. This isn't goodbye. It's "see you around." Vienna is a small city, academia an even smaller world. And somewhere in a basement far below, the ghost of Hercules finally rests in peace.
+
+---
+
+A shadow falls across the grill. You look up. The cat is there. It is enormous now, larger than any cat has a right to be. Its golden eyes regard you with something that might be approval.
+
+---
+
+"You did it. You actually did it." The cat's voice rumbles like distant thunder. "I have watched many humans come and go from this building. Most leave broken, bitter, or simply... forgotten. But you? You leave with a smile. With friends. With a perfectly grilled Käsekrainer."
+
+---
+
+The cat settles beside the grill, its massive form somehow fitting into the party like it belongs there. Nobody else seems to notice. Or maybe they all do and simply accept it.
+
+---
+
+"I suppose I'll join you. Just this once." The cat accepts a piece of grilled meat from your spatula with surprising delicacy. "Don't let this go to your head, human. I'm only here for the food."
 
 ---
 
