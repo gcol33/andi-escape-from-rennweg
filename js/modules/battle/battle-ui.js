@@ -1788,6 +1788,9 @@ var BattleUI = (function() {
         }
 
         if (elementToFlash) {
+            // Remove class first and force reflow to restart animation
+            elementToFlash.classList.remove('damage-flash');
+            void elementToFlash.offsetWidth; // Force reflow
             elementToFlash.classList.add('damage-flash');
             setTimeout(function() {
                 elementToFlash.classList.remove('damage-flash');
