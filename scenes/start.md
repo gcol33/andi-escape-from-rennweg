@@ -1,7 +1,8 @@
 ---
 id: start
 bg: dark_office_desk.jpg
-chars: []
+chars:
+  - _placeholders/cat_1.svg
 add_items:
   - name: Granola Bar
     type: consumable
