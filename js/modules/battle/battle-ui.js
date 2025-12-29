@@ -829,7 +829,8 @@ var BattleUI = (function() {
     }
 
     /**
-     * Skip typewriter animation - instantly render remaining text
+     * Skip typewriter animation - skip to end of current row only
+     * Multiple clicks required for multi-row text (better scroll behavior)
      * @returns {boolean} True if typewriter was skipped, false if nothing to skip
      */
     function skipTypewriter() {
@@ -841,7 +842,8 @@ var BattleUI = (function() {
         var rows = skipData.rows;
         var segments = skipData.segments;
         var styledElements = skipData.styledElements;
-        var callback = skipData.callback;
+        var position = skipData.getPosition();
+        var segmentIndex = position.segmentIndex;
 
         // Clear pending timeouts
         animationState.timeouts.forEach(function(t) { clearTimeout(t); });
@@ -850,19 +852,18 @@ var BattleUI = (function() {
         // Re-verify rows are valid
         if (!rows || !rows.row2 || !rows.row2.parentNode) {
             rows = BattleUtils.getBattleLogRows();
+            skipData.rows = rows;
         }
 
-        if (rows) {
-            // Render all remaining segments instantly
-            // Clear row2 and rebuild with complete text
-            rows.row2.innerHTML = '';
+        // Check if we're on the last segment
+        var isLastSegment = segmentIndex >= segments.length - 1;
 
-            // Get all text for row2 (last segment after any shifts)
-            // For simplicity, render last segment only (previous segments already shifted)
-            var lastSegment = segments[segments.length - 1] || '';
+        if (rows && segmentIndex < segments.length) {
+            // Complete the current segment only
+            var currentSegment = segments[segmentIndex];
 
             // Replace placeholders with styled spans
-            var html = lastSegment.replace(/\x00STYLED(\d+)\x00/g, function(match, index) {
+            var html = currentSegment.replace(/\x00STYLED(\d+)\x00/g, function(match, index) {
                 var styled = styledElements[parseInt(index)];
                 if (styled) {
                     return '<span class="' + styled.className + '">' + styled.content + '</span>';
@@ -870,24 +871,11 @@ var BattleUI = (function() {
                 return '';
             });
 
+            // Render the complete current segment
             rows.row2.innerHTML = html;
 
-            // If multiple segments, put earlier ones in row1
-            if (segments.length > 1) {
-                var prevSegment = segments[segments.length - 2] || '';
-                var prevHtml = prevSegment.replace(/\x00STYLED(\d+)\x00/g, function(match, index) {
-                    var styled = styledElements[parseInt(index)];
-                    if (styled) {
-                        return '<span class="' + styled.className + '">' + styled.content + '</span>';
-                    }
-                    return '';
-                });
-                rows.row1.innerHTML = prevHtml;
-            }
-
-            // Handle overflow after rendering (in case single segment is too long)
+            // Handle overflow after rendering (in case segment is too long)
             if (BattleUtils.checkBattleLogOverflow && BattleUtils.checkBattleLogOverflow(rows)) {
-                // Split row2 at last space if possible
                 var fullText = rows.row2.textContent || '';
                 var lastSpaceIndex = fullText.lastIndexOf(' ');
                 if (lastSpaceIndex > 0) {
@@ -899,13 +887,28 @@ var BattleUI = (function() {
             }
         }
 
-        // Clear skip data
-        animationState.typewriterSkipData = null;
-        animationState.isTyping = false;
+        if (isLastSegment) {
+            // Final segment - complete the animation
+            var callback = skipData.callback;
+            animationState.typewriterSkipData = null;
+            animationState.isTyping = false;
 
-        // Call callback to complete the animation
-        if (callback) {
-            callback();
+            if (callback) {
+                callback();
+            }
+        } else {
+            // More segments remain - shift rows and continue with next segment
+            if (rows) {
+                BattleUtils.shiftBattleLogRows(rows);
+            }
+
+            // Update position to start of next segment
+            skipData.setPosition(segmentIndex + 1, 0);
+
+            // Continue typing the next segment
+            if (skipData.renderNextChar) {
+                skipData.renderNextChar();
+            }
         }
 
         return true;
@@ -1118,12 +1121,16 @@ var BattleUI = (function() {
         var segmentIndex = 0;
         var charIndex = 0;
 
-        // Store skip data for click-to-skip
+        // Store skip data for click-to-skip (includes mutable position tracking)
         animationState.isTyping = true;
         animationState.typewriterSkipData = {
             segments: segments,
             styledElements: styledElements,
             rows: rows,
+            // Mutable position - updated by renderNextChar, read by skipTypewriter
+            getPosition: function() { return { segmentIndex: segmentIndex, charIndex: charIndex }; },
+            setPosition: function(si, ci) { segmentIndex = si; charIndex = ci; },
+            renderNextChar: null, // Set below after function is defined
             callback: function() {
                 animationState.isTyping = false;
                 animationState.typewriterSkipData = null;
@@ -1271,6 +1278,9 @@ var BattleUI = (function() {
             var t = setTimeout(renderNextChar, 1000 / speed);
             animationState.timeouts.push(t);
         }
+
+        // Store reference for skip-to-row-end functionality
+        animationState.typewriterSkipData.renderNextChar = renderNextChar;
 
         renderNextChar();
     }
