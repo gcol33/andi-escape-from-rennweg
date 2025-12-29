@@ -217,4 +217,12 @@
     text-shadow: 1px 1px 0 #000;
 }
 
+/* Item cooldown text - grey/muted (same as defend) */
+.item-cooldown-text,
+.item-cooldown-number {
+    color: #888 !important;
+    font-size: var(--battle-text-size);
+    text-shadow: 1px 1px 0 #000;
+}
+
 /* Single choice button fix moved to ui-layout.css */

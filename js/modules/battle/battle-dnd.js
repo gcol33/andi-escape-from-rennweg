@@ -590,11 +590,10 @@ var BattleStyleDnD = (function() {
                 if (skill.consumesItem && skill.requiresItem) {
                     if (typeof VNEngine !== 'undefined' && VNEngine.removeItem) {
                         VNEngine.removeItem(skill.requiresItem);
-                        messages.push('(Used up ' + skill.requiresItem + ')');
                     }
                     // Set 5-turn cooldown on item usage
                     BattleCore.setItemCooldown(5);
-                    messages.push('<span class="item-cooldown-text">Items on cooldown</span> <span class="item-cooldown-number">5</span>');
+                    result.itemCooldown = 5;  // Pass to UI for display after heal roll
                 }
 
                 BattleCore.playSfx('heal');
@@ -708,11 +707,10 @@ var BattleStyleDnD = (function() {
             if (skill.consumesItem && skill.requiresItem) {
                 if (typeof VNEngine !== 'undefined' && VNEngine.removeItem) {
                     VNEngine.removeItem(skill.requiresItem);
-                    messages.push('(Used up ' + skill.requiresItem + ')');
                 }
                 // Set 5-turn cooldown on item usage
                 BattleCore.setItemCooldown(5);
-                messages.push('<span class="item-cooldown-text">Items on cooldown</span> <span class="item-cooldown-number">5</span>');
+                result.itemCooldown = 5;  // Pass to UI for display after heal roll
             }
 
             BattleCore.playSfx('heal');

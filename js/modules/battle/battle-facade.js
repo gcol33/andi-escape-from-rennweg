@@ -1110,6 +1110,7 @@ var BattleEngine = (function() {
                 hasHealAdvantage: result.hasHealAdvantage,
                 hasHealDisadvantage: result.hasHealDisadvantage,
                 healRolls: result.healRolls,
+                itemCooldown: result.itemCooldown,
                 onTextComplete: function() {
                     // Apply pending heal when text finishes (before linger)
                     applyPendingEffects(result, 'player');

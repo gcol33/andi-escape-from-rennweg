@@ -1429,6 +1429,7 @@ var BattleDiceUI = (function() {
         var healerName = options.healer || 'Enemy';
         var overheal = healRolled - healAmount;     // Amount wasted due to HP cap
         var onTextComplete = options.onTextComplete;  // Called BEFORE linger
+        var itemCooldown = options.itemCooldown || 0;  // Item cooldown to display after heal
 
         // Defensive check for container
         if (!container) {
@@ -1468,10 +1469,10 @@ var BattleDiceUI = (function() {
                 animateAdvantageHealRoll(line, healAdvResult, function(healNum) {
                     // If there's overheal, show the reduction then collapse
                     if (overheal > 0) {
-                        showOverhealCollapse(line, healNum, healRolled, overheal, healAmount, healResultCategory, callback, onTextComplete);
+                        showOverhealCollapse(line, healNum, healRolled, overheal, healAmount, healResultCategory, callback, onTextComplete, itemCooldown);
                     } else {
                         // No overheal - just show HEALED!
-                        finishHealDisplay(line, healResultCategory, callback, onTextComplete);
+                        finishHealDisplay(line, healResultCategory, callback, onTextComplete, itemCooldown);
                     }
                 });
             } else {
@@ -1501,10 +1502,10 @@ var BattleDiceUI = (function() {
 
                     // If there's overheal, show the reduction then collapse
                     if (overheal > 0) {
-                        showOverhealCollapse(line, healNum, healRolled, overheal, healAmount, healResultCategory, callback, onTextComplete);
+                        showOverhealCollapse(line, healNum, healRolled, overheal, healAmount, healResultCategory, callback, onTextComplete, itemCooldown);
                     } else {
                         // No overheal - just show HEALED!
-                        finishHealDisplay(line, healResultCategory, callback, onTextComplete);
+                        finishHealDisplay(line, healResultCategory, callback, onTextComplete, itemCooldown);
                     }
                 }, 'heal');
             }
@@ -1615,7 +1616,7 @@ var BattleDiceUI = (function() {
      * Example: 5 (-2) → 3
      * @param {function} onTextComplete - Called BEFORE linger delay (optional)
      */
-    function showOverhealCollapse(line, healNum, healRolled, overheal, finalHeal, healResultCategory, callback, onTextComplete) {
+    function showOverhealCollapse(line, healNum, healRolled, overheal, finalHeal, healResultCategory, callback, onTextComplete, itemCooldown) {
         // Show the overheal modifier
         var modSpan = document.createElement('span');
         modSpan.className = 'mod-part mod-animate-in';
@@ -1635,7 +1636,7 @@ var BattleDiceUI = (function() {
                 diceTimeout(function() {
                     healNum.classList.remove('dice-pop');
                     // Show HEALED!
-                    finishHealDisplay(line, healResultCategory, callback, onTextComplete);
+                    finishHealDisplay(line, healResultCategory, callback, onTextComplete, itemCooldown);
                 }, 200);
             }, 250);
         }, 400);
@@ -1648,7 +1649,7 @@ var BattleDiceUI = (function() {
      * @param {function} callback - Called AFTER linger delay
      * @param {function} onTextComplete - Called BEFORE linger delay (optional)
      */
-    function finishHealDisplay(line, healResultCategory, callback, onTextComplete) {
+    function finishHealDisplay(line, healResultCategory, callback, onTextComplete, itemCooldown) {
         // Add space before result
         var space = document.createTextNode(' ');
         line.appendChild(space);
@@ -1668,7 +1669,28 @@ var BattleDiceUI = (function() {
                 onTextComplete();
             }
 
-            diceTimeout(callback, config.lingerDelay);
+            // Show item cooldown if applicable (similar to defend cooldown)
+            if (itemCooldown && itemCooldown > 0) {
+                // Add cooldown label text
+                var cooldownLabel = document.createElement('span');
+                cooldownLabel.className = 'item-cooldown-text';
+                line.appendChild(cooldownLabel);
+
+                // Typewrite cooldown text
+                typewriter(cooldownLabel, ' Cooldown ', function() {
+                    // Add cooldown number
+                    var cooldownNum = document.createElement('span');
+                    cooldownNum.className = 'item-cooldown-number';
+                    line.appendChild(cooldownNum);
+
+                    // Typewrite the number
+                    typewriter(cooldownNum, String(itemCooldown), function() {
+                        diceTimeout(callback, config.lingerDelay);
+                    });
+                });
+            } else {
+                diceTimeout(callback, config.lingerDelay);
+            }
         });
     }
 
