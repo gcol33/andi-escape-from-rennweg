@@ -2,7 +2,6 @@
 id: bbq3
 bg: rooftop.jpg
 music: victory.mp3
-ending_title: "GOOD ENDING: The Perfect Farewell"
 ---
 
 You step up to the grill. Charcoal from Billa? Check. Lighter from the smokers' corner? Check. Beer from the D&D group? Check. You arrange the charcoal with the precision of a coder arranging data structures.
@@ -38,4 +37,8 @@ The cat settles beside the grill, its massive form somehow fitting into the part
 ---
 
 Thank you for playing! And thank you, Andi, for everything. Thanks for all the fish.
+
+### Choices
+
+- Continue → win_screen
 
