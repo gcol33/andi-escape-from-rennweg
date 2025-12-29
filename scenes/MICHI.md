@@ -11,6 +11,7 @@ On the 4th floor, you find Michi standing guard by the whiteboard. The legendary
 
 ### Choices
 
-- Face Michi → MICHI_battle
-- Offer Coffee (uses: Coffee Mug) → MICHI_victory
+- Continue (requires: michi_defeated) → EMMA
+- Face Michi (requires: !michi_defeated) → MICHI_battle
+- Offer Coffee (requires: !michi_defeated, uses: Coffee Mug) → MICHI_battle_coffee
 

@@ -15,5 +15,6 @@ You groan internally. The timesheets. You'd been putting them off for weeks. You
 
 ### Choices
 
-- Face Agnes → AGNES_battle
-- Offer Coffee (uses: Coffee Mug) → AGNES_victory
+- Continue (requires: agnes_defeated) → stairs_1
+- Face Agnes (requires: !agnes_defeated) → AGNES_battle
+- Offer Coffee (requires: !agnes_defeated, uses: Coffee Mug) → AGNES_battle_coffee

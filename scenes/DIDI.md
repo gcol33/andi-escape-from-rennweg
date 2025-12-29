@@ -18,4 +18,5 @@ You duck into Didi's office to say goodbye. You notice a bottle of aspirin on hi
 
 ### Choices
 
-- Head down the corridor → AGNES
+- Head down the corridor (requires: agnes_defeated) → AGNES_rematch
+- Head down the corridor (requires: !agnes_defeated) → AGNES

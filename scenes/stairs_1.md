@@ -11,6 +11,7 @@ You could talk to any of them before continuing.
 
 ### Choices
 
-- Talk to the person by the window → STEFAN
+- Talk to the person by the window (requires: stefan_defeated) → STEFAN_rematch
+- Talk to the person by the window (requires: !stefan_defeated) → STEFAN
 - Follow whoever's going to the basement → WOLFGANG
 - Approach the person in the corner → FRANZ_1

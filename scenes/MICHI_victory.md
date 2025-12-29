@@ -2,6 +2,8 @@
 id: MICHI_victory
 bg: hallway_fluorescent.jpg
 music: victory.mp3
+set_flags:
+  - michi_defeated
 add_items:
   - name: Magnifying Glass
     type: key

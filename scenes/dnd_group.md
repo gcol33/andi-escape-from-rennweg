@@ -11,6 +11,7 @@ Deep in the basement, you find them: the legendary D&D group. A circle of foldin
 
 ### Choices
 
-- Fight the D&D group → dnd_group_battle
-- Bribe with Coffee (uses: Coffee Mug) → dnd_group_victory
+- Continue (requires: dnd_group_defeated) → stairs_0
+- Fight the D&D group (requires: !dnd_group_defeated) → dnd_group_battle
+- Bribe with Coffee (requires: !dnd_group_defeated, uses: Coffee Mug) → dnd_group_battle_coffee
 

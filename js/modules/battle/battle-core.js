@@ -293,11 +293,16 @@ var BattleCore = (function() {
             }
         }
 
+        // Calculate base HP, with optional modifier from config (e.g., coffee debuff)
+        var baseHP = enemy.hp || enemyDefaults.defaultHP;
+        var hpModifier = config.enemy_hp_modifier || 1.0;
+        var startingHP = Math.floor(baseHP * hpModifier);
+
         state.enemy = {
             id: enemy.id || null,
             name: enemy.name || 'Enemy',
-            hp: enemy.hp || enemyDefaults.defaultHP,
-            maxHP: enemy.hp || enemyDefaults.defaultHP,
+            hp: startingHP,
+            maxHP: baseHP,  // Max HP stays full for display purposes
             mana: enemy.mana || enemyDefaults.defaultMaxMana,
             maxMana: enemy.mana || enemyDefaults.defaultMaxMana,
             ac: enemy.ac || enemyDefaults.defaultAC,

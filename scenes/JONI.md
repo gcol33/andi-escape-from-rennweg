@@ -15,5 +15,6 @@ You nod sympathetically. Sometimes you need someone who properly "grantelt" to b
 
 ### Choices
 
-- Visit another colleague → ANNA
+- Visit another colleague (requires: anna_defeated) → ANNA_rematch
+- Visit another colleague (requires: !anna_defeated) → ANNA
 - Go to the smokers' corner → smoking

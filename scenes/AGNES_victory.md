@@ -2,6 +2,8 @@
 id: AGNES_victory
 bg: ../char/agnes_timesheet_annoyed.png
 music: victory.mp3
+set_flags:
+  - agnes_defeated
 add_items:
   - name: Break Room Snacks
     type: consumable

@@ -2,6 +2,8 @@
 id: STEFAN_victory
 bg: stairwell_landing.jpg
 music: victory.mp3
+set_flags:
+  - stefan_defeated
 ---
 
 Stefan catches his breath, leaning against the stairwell railing. "Okay, okay... I yield! Maybe Hercules was as much my fault as yours. We both let that project die." He extends a hand. "No hard feelings?"

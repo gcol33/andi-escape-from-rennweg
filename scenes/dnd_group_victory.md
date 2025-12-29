@@ -2,6 +2,8 @@
 id: dnd_group_victory
 bg: back_stairwell_dim.jpg
 music: victory.mp3
+set_flags:
+  - dnd_group_defeated
 add_items:
   - name: Beer
     type: key

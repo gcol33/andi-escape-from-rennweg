@@ -11,4 +11,5 @@ She gives you a warm smile, the kind that makes you feel like you're part of som
 
 ### Choices
 
-- Head down the corridor → AGNES
+- Head down the corridor (requires: agnes_defeated) → AGNES_rematch
+- Head down the corridor (requires: !agnes_defeated) → AGNES
