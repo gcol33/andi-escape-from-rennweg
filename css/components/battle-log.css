@@ -58,7 +58,10 @@
 .battle-log-row {
     display: block;
     min-height: 1.6em;  /* Match line-height for consistent height */
+    max-height: 1.6em;  /* Enforce single line height */
     line-height: 1.6;
+    white-space: nowrap;  /* Prevent CSS line wrapping - let JS handle overflow */
+    overflow: hidden;     /* Hide overflowing text until JS splits it */
 }
 
 /* Previous line (row1) - slightly dimmed */

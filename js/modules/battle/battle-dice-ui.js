@@ -960,6 +960,9 @@ var BattleDiceUI = (function() {
             }
 
             function showHitMiss() {
+                // Ensure dice shows final attack total (with bonuses) for all attackers
+                attackNum.textContent = finalAttackTotal;
+
                 // Add space before result
                 var space = document.createTextNode(' ');
                 line.appendChild(space);

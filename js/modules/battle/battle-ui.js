@@ -1110,10 +1110,10 @@ var BattleUI = (function() {
         var textWithNewlines = text.replace(/<br\s*\/?>/gi, '\n');
 
         // Preserve styled elements by converting them to placeholders
-        // Matches <span class="roll-...">content</span> and stores for later restoration
+        // Matches <span class="...">content</span> for roll results, hints, and keywords
         var styledElements = [];
         var textWithPlaceholders = textWithNewlines.replace(
-            /<span\s+class="(roll-[^"]+)"[^>]*>([^<]+)<\/span>/gi,
+            /<span\s+class="(roll-[^"]+|defend-hint|concentrate-hint|dialogue-keyword)"[^>]*>([^<]+)<\/span>/gi,
             function(_match, className, content) {
                 var placeholder = '\x00STYLED' + styledElements.length + '\x00';
                 styledElements.push({ className: className, content: content });

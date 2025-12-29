@@ -442,7 +442,7 @@ const enemies = {
         "cooldown": 5,
         "prepTurns": 1,
         "dialogue": "Let me pull up ALL your violations... Better DEFEND!",
-        "executeDialogue": "Violation 1... 2... 3... 4... 5!",
+        "executeDialogue": "DEFEND! Violation 5... 4... 3... 2... 1!",
         "skill": {
           "name": "Policy Barrage",
           "damage": "d4",
