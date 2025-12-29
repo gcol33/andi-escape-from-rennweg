@@ -54,12 +54,6 @@
                 "You remember now. This is yours to keep."
             ]
         },
-        'Coffee Mug': {
-            text: [
-                "Warmth in ceramic. The kitchen chaos fading behind you. A moment of peace.",
-                "You remember now. This is yours to keep."
-            ]
-        },
         // Skills
         'Smile': {
             text: [
