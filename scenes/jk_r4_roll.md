@@ -6,6 +6,7 @@ actions:
     threshold: 2
     success_target: johannes_check
     failure_target: karl_check
+    hidden: true
 ---
 
 You hear someone clearing their throat...

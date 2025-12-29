@@ -2,6 +2,8 @@
 id: jk_return
 ---
 
+You continue on your way through the building.
+
 ### Choices
 
 - Continue (requires: jk_return_lisa) → LISA_scene

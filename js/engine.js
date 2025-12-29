@@ -345,6 +345,16 @@ var VNEngine = (function() {
                 }
             }
 
+            // Hidden rolls skip display and SFX - just navigate directly
+            if (action.hidden) {
+                if (success) {
+                    loadScene(successTarget);
+                } else {
+                    loadScene(failureTarget);
+                }
+                return;
+            }
+
             // Play appropriate SFX
             if (isCrit) {
                 playSfx('success.ogg');

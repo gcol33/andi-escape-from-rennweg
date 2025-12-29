@@ -1,88 +1,125 @@
 # Missing Assets
 
 ## Summary
-- **Available character PNGs:** 41
-- **Available background PNGs:** 5 + black.svg (restored)
-- **Missing backgrounds:** 10
-- **Missing characters:** 9
+- **Available character PNGs:** 46
+- **Available background PNGs:** 5 + 2 utility SVGs
+- **Missing backgrounds:** 10 (all .jpg files)
+- **Missing enemy sprites:** 7 (all .svg, but placeholders exist)
+- **Missing scene characters:** cat_1-5.svg (placeholders exist)
 
 ---
 
 ## MISSING BACKGROUNDS (10 total)
 
-### CRITICAL - Game Start/Core
-| Background | Used In | Scenes |
-|------------|---------|--------|
-| **dark_office_desk.jpg** | First scene + office | start, office, squirrel_police_ending |
-| **hallway_fluorescent.jpg** | Elevator/floor navigation | floor0, floor4, elevator0, elevator1, MICHI_victory + 3 more |
-| **stairwell_landing.jpg** | Stair scenes | stairs_0, stairs_1, cat_scene_3, STEFAN_victory, STEFAN_defeat |
+All referenced backgrounds are .jpg files that don't exist. Only .png backgrounds are available.
 
-### HIGH - Multiple Scenes (7+)
-| Background | Used In | Scenes |
-|------------|---------|--------|
-| **rooftop.jpg** | BBQ endings | rooftop, bbq1-3, 7 BBQ endings |
-| **sunny_street_freedom.jpg** | Good endings | out1, out2, billa, smoking, squirrel_good, endings (8+) |
-| **meeting_room_whiteboard.jpg** | Quiz/GIS | quiz_excursion, quiz_excursion2, GIS_scene, GIS_ending, quiz_fails |
-| **back_stairwell_dim.jpg** | Cellar/DND | cellar, dnd_group, dnd_group_battle/victory/defeat |
+### CRITICAL - Game Start/Core
+| Background | Status | Notes |
+|------------|--------|-------|
+| **dark_office_desk.jpg** | MISSING | First scene - start |
+| **hallway_fluorescent.jpg** | MISSING | Elevator/floor navigation (8 scenes) |
+| **stairwell_landing.jpg** | MISSING | Stair scenes (5 scenes) |
+
+### HIGH - Multiple Scenes
+| Background | Status | Notes |
+|------------|--------|-------|
+| **rooftop.jpg** | MISSING | BBQ endings (10+ scenes) |
+| **sunny_street_freedom.jpg** | MISSING | Good endings (8+ scenes) |
+| **meeting_room_whiteboard.jpg** | MISSING | Quiz/GIS (6 scenes) |
+| **back_stairwell_dim.jpg** | MISSING | Cellar/DND (5 scenes) |
+| **office_corridor.jpg** | MISSING | office_corridor.png exists but wrong extension |
 
 ### MEDIUM - Few Scenes
-| Background | Used In | Scenes |
-|------------|---------|--------|
-| **office_kitchen.jpg** | Kitchen scenes | kitchen, coffee_end |
-| **hallway_dim.jpg** | Cat chase | cat_scene_2 |
-| **stairwell_escape.jpg** | Cat chase | cat_scene_4 |
+| Background | Status | Notes |
+|------------|--------|-------|
+| **office_kitchen.jpg** | MISSING | Kitchen scenes (2 scenes) |
+| **hallway_dim.jpg** | MISSING | Cat chase (1 scene) |
+| **stairwell_escape.jpg** | MISSING | Cat chase (1 scene) |
+
+### Available Backgrounds
+```
+4th_floor.png
+black.svg (utility - transitions)
+coffee_machine.png
+elevator_path.png
+fallback.svg (utility - fallback)
+office_corridor.png
+office_corridor_stairs.png
+```
 
 ---
 
-## MISSING CHARACTERS (12 total)
+## MISSING ENEMY SPRITES (7 total)
 
-### HIGH - Main Characters
-| Character | Used In |
-|-----------|---------|
-| **charlie_neutral.svg** | charlie, GIS_scene, GIS_ending |
-| **jen_neutral.svg** | JEN |
-| **moritz_neutral.svg** | MORITZ_excursion |
+All enemy sprites reference .svg files. Placeholders exist in `assets/char/_placeholders/`.
 
-### MEDIUM - Battle Variants
-| Character | Used In |
-|-----------|---------|
-| ~~agnes_surprised.svg~~ | ~~AGNES_victory~~ → using agnes_timesheet_annoyed.png |
-| ~~agnes_victorious.svg~~ | ~~AGNES_defeat~~ → using agnes_robot_phase.png |
-| ~~anna_neutral.svg~~ | ~~ANNA_battle~~ → using anna_coffee_high.png |
-| **dnd_group.svg** | dnd_group_battle |
+| Enemy Sprite | Placeholder | Real PNG Alternative |
+|--------------|-------------|---------------------|
+| agnes_blocking.svg | YES | agnes_fight.png, agnes_neutral.png |
+| anna_neutral.svg | YES | anna_coffee_high.png |
+| dnd_group.svg | YES | dnd_group.png |
+| johannes.svg | YES | johannes_neutral.png |
+| karl.svg | YES | karl_neutral.png |
+| michi_whiteboard.svg | YES | michi_neutral.png |
+| stefan_neutral.svg | YES | stefan_arms_crossed.png, stefan_hi.png |
 
-### LOW - Cat Sprites (Endings)
-| Character | Used In |
-|-----------|---------|
-| **cat_1.svg** | cat_scene_1 |
-| **cat_2.svg** | cat_scene_2 |
-| **cat_3.svg** | cat_scene_3 |
-| **cat_4.svg** | cat_scene_4 |
-| **cat_5.svg** | 7+ BBQ endings |
+### Stefan Phase Sprites (additional)
+| Phase Sprite | Placeholder | Real PNG |
+|--------------|-------------|----------|
+| stefan_super.svg | ? | stefan_super.png |
+| stefan_ultra.svg | ? | stefan_ultra.png |
 
 ---
 
-## AVAILABLE ASSETS
+## MISSING SCENE CHARACTERS (5 total)
 
-### Character PNGs (41 files)
+Cat sprites for chase/ending scenes. Placeholders exist.
+
+| Character | Placeholder | Scenes |
+|-----------|-------------|--------|
+| cat_1.svg | YES | cat_scene_1 |
+| cat_2.svg | YES | cat_scene_2 |
+| cat_3.svg | YES | cat_scene_3 |
+| cat_4.svg | YES | cat_scene_4 |
+| cat_5.svg | YES | 7+ BBQ endings |
+
+---
+
+## AVAILABLE CHARACTER PNGs (46 files)
+
 ```
-adrian_smiling, agnes_fight, agnes_fight2, agnes_neutral, agnes_robot_phase,
-agnes_timesheet_annoyed, agnes_timesheet_looking_down, anna_coffee, anna_coffee_high,
-didi_neutral, emma_happy_at_desk, emma_hello, emma_notes, emma_run, emma_wave,
-emma_working, franz_chicken, franz_tarot, jacqueline_neutral, johannes_neutral,
-joni_smoking, karl_neutral, lisa_questioning, lisa_searching, lisa_searching2,
-lisa_searching_questioning, lisa_shrug, manuela_annoyed_with_code, manuela_coca_machine,
-manuela_desk, manuela_pray, manuela_showing_clipper, michi_neutral, siegrun_pray,
-siegrun_thumbs_up, stefan_arms_crossed, stefan_get_out, stefan_hi, stefan_super,
-stefan_ultra, wolfgang_neutral
+adrian_smiling.png       agnes_fight.png          agnes_fight2.png
+agnes_neutral.png        agnes_robot_phase.png    agnes_timesheet_annoyed.png
+agnes_timesheet_looking_down.png                  anna_coffee.png
+anna_coffee_high.png     charlie-jpg.png          didi_neutral.png
+dnd_group.png            emma_happy_at_desk.png   emma_hello.png
+emma_notes.png           emma_run.png             emma_wave.png
+emma_working.png         franz_chicken.png        franz_tarot.png
+jacqueline_neutral.png   jen_cop.png              jen_nuts.png
+johannes_neutral.png     joni_smoking.png         karl_neutral.png
+lisa_questioning.png     lisa_searching.png       lisa_searching2.png
+lisa_searching_questioning.png                    lisa_shrug.png
+manuela_annoyed_with_code.png                     manuela_coca_machine.png
+manuela_desk.png         manuela_pray.png         manuela_showing_clipper.png
+michi_neutral.png        moritz_excursion.png     siegrun_pray.png
+siegrun_thumbs_up.png    stefan_arms_crossed.png  stefan_get_out.png
+stefan_hi.png            stefan_super.png         stefan_ultra.png
+wolfgang_neutral.png
 ```
 
-### Background PNGs (5 files) + Utility
-```
-4th_floor.png, coffee_machine.png, elevator_path.png,
-office_corridor.png, office_corridor_stairs.png
-black.svg (restored - for transitions)
-```
+---
+
+## RECOMMENDED FIXES
+
+### Option 1: Update scene/enemy references to use .png
+Change all `.jpg` background references to `.png` and `.svg` sprite references to `.png`.
+
+### Option 2: Generate missing assets
+Use ChatGPT/DALL-E to generate the missing .jpg backgrounds.
+
+### Option 3: Rename existing assets
+- Rename `office_corridor.png` → `office_corridor.jpg`
+- Or update scenes to reference `.png` versions
 
 ---
 
@@ -92,7 +129,7 @@ black.svg (restored - for transitions)
 ```
 An office desk from the perspective of someone sitting at it. Multiple computer monitors glowing with code/terminal windows. Dark room lit mainly by screen glow. Cooling fans visible. Server room vibes - cold and techy.
 
-Style: Detailed pencil sketch / graphite drawing. Grayscale with soft tonal gradients. High detail. Monitors cast soft light.
+Style: Detailed pencil sketch / graphite drawing. Grayscale with soft tonal gradients.
 ```
 
 ### rooftop (BBQ scenes - 10+ uses)
@@ -121,48 +158,6 @@ Style: Detailed pencil sketch / graphite drawing. Grayscale. Cold, institutional
 A stairwell landing in an office building. Concrete stairs, metal railing. Window letting in afternoon light. Fire extinguisher on wall.
 
 Style: Detailed pencil sketch / graphite drawing. Grayscale. Dramatic lighting from window.
-```
-
-### meeting_room_whiteboard (Quiz/GIS - 6 uses)
-```
-A meeting room with a large whiteboard. Conference table, office chairs. Projector screen. Academic/professional setting.
-
-Style: Detailed pencil sketch / graphite drawing. Grayscale. Institutional but welcoming.
-```
-
-### back_stairwell_dim (Cellar/DND - 5 uses)
-```
-A dim basement stairwell. Concrete walls, exposed pipes. Single bare bulb lighting. Old server racks or filing cabinets visible. Slightly spooky.
-
-Style: Detailed pencil sketch / graphite drawing. Grayscale. Low-key, mysterious lighting.
-```
-
----
-
-## ChatGPT Prompts for Missing Characters
-
-### Charlie (GIS expert)
-```
-[Attach reference photo + office_corridor.png]
-Place this person in the office corridor. Standing near a computer or map display, friendly expression. Professional casual attire.
-
-Style: Detailed pencil sketch / graphite drawing. Grayscale. Realistic proportions, high detail.
-```
-
-### Jen (squirrel enthusiast)
-```
-[Attach reference photo + office_corridor.png]
-Place this person in the office corridor. Enthusiastic expression, gesturing while explaining something about squirrels. Casual academic attire.
-
-Style: Detailed pencil sketch / graphite drawing. Grayscale. Realistic proportions, high detail.
-```
-
-### Moritz (field excursion leader)
-```
-[Attach reference photo + outdoor setting]
-This person outdoors in a meadow/hillside. Dressed for fieldwork, holding binoculars or plant guide. Teaching pose.
-
-Style: Detailed pencil sketch / graphite drawing. Grayscale. Realistic proportions, high detail.
 ```
 
 ---

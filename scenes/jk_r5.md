@@ -4,7 +4,7 @@ set_flags:
   - jk_return_michi
 ---
 
-...
+You head toward the computing center.
 
 ### Choices
 

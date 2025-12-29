@@ -4,7 +4,7 @@ set_flags:
   - jk_return_dnd
 ---
 
-...
+You descend to the basement.
 
 ### Choices
 
