@@ -8,6 +8,5 @@ You encounter Siegrun in the corridor. She looks at you with a mix of fondness a
 ### Choices
 
 - Reminisce about the Gesäuse → SIEGRUN_excursion
-- Visit the stairwell (requires: !met_franz) → FRANZ2_1
 - Take the elevator → elevator1
 

@@ -16,6 +16,5 @@ You spot Jacqueline struggling with a large stack of boxes. She's visibly pregna
 ### Choices
 
 - Leave the building → ending_early_exit
-- Visit the stairwell (requires: !met_franz) → FRANZ2_2
 - Take the elevator → elevator0
 

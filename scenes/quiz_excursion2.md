@@ -3,24 +3,24 @@ id: quiz_excursion2
 bg: gate_exit.png
 actions:
   - type: start_quiz
-    time_per_question: 12
+    time_per_question: 15
     questions:
       - question: "What type of vegetation did you survey at Haindlkarhütte?"
         answers:
           - text: "Alpine meadows and scree vegetation"
             correct: true
           - text: "Tropical rainforest"
-          - text: "Desert scrubland"
+          - text: "Underwater coral reef"
       - question: "What special food sustained you during the climb?"
         answers:
-          - text: "A Leberkässemmel"
+          - text: "McDonald's drive-thru"
           - text: "Astronaut food tube pasta"
             correct: true
-          - text: "Energy bars"
+          - text: "Five-star Michelin dinner"
       - question: "How did the cows behave during your surveys?"
         answers:
-          - text: "Aggressively"
-          - text: "They ran away"
+          - text: "They attacked with laser eyes"
+          - text: "They filed a complaint"
           - text: "Peacefully"
             correct: true
     win_target: quiz_excursion2_win

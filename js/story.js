@@ -304,8 +304,10 @@ const story = {
     "music": "game_over.mp3",
     "ending_title": "BAD ENDING: Mushroom Tea Incident",
     "textBlocks": [
-      "The hallucinations overwhelm you. Everything goes dark. You wake up a week later in hospital. Apparently, you'd been found unconscious on Anna's office floor, mumbling something about Coipus.",
-      "The doctors say you'll make a full recovery, but you missed your first week at Boltzmanngasse. The physics institute is not impressed by your excuse."
+      "You take a sip. After a few minutes, you feel lightheaded. The room starts to wobble. Anna's monitor begins growing fur. Is that... whiskers?",
+      "You look at Anna. She's sprouting whiskers too. Her teeth are getting larger. Her nose is twitching. She looks suspiciously like a Coipu. A giant South American rodent is offering you tea. This seems wrong somehow.",
+      "\"Oh,\" Anna says, her voice echoing strangely. \"Did I mention I'm experimenting with mushroom teas? Is it working?\" Everything goes dark.",
+      "You wake up a week later in hospital. Apparently, you'd been found unconscious on Anna's office floor, mumbling something about Coipus. The doctors say you'll make a full recovery, but you missed your first week at Boltzmanngasse. The physics institute is not impressed by your excuse."
     ],
     "choices": []
   },
@@ -674,7 +676,7 @@ const story = {
   },
   "coffee_end": {
     "id": "coffee_end",
-    "bg": "kitchen.png",
+    "bg": "coffee_high.png",
     "ending_title": "BAD ENDING: Coffee Ascension",
     "textBlocks": [
       "You drink the suspicious coffee. It tastes like someone dissolved a battery in lukewarm water and added despair. For a moment, nothing happens. Then everything happens.",
@@ -892,37 +894,39 @@ const story = {
   "elevator0": {
     "id": "elevator0",
     "bg": "elevator_path.png",
+    "set_flags": [
+      "franz_return_elevator0"
+    ],
+    "clear_flags": [
+      "franz_return_elevator1",
+      "franz_return_stairs"
+    ],
+    "actions": [
+      {
+        "type": "goto",
+        "target": "FRANZ_1",
+        "requires": "!met_franz"
+      }
+    ],
     "textBlocks": [
       "The elevator doors slide open with their familiar mechanical wheeze. You step inside the tiny metal box that has carried you between floors countless times over the years. The buttons glow softly in the dim light. Where to?"
     ],
     "choices": [
       {
-        "label": "Continue",
-        "target": "FRANZ_before_elevator0",
-        "require_flags": [
-          "!met_franz"
-        ]
-      },
-      {
         "label": "Go to rooftop",
         "target": "cat_scene_4",
-        "require_flags": [
-          "met_franz",
-          "require_skills: Rooftop Discovery"
+        "require_skills": [
+          "Rooftop Discovery"
         ]
       },
       {
         "label": "Go to 1st floor",
-        "target": "floor1",
-        "require_flags": [
-          "met_franz"
-        ]
+        "target": "floor1"
       },
       {
         "label": "Go to 4th floor",
         "target": "floor4",
         "require_flags": [
-          "met_franz",
           "!visited_4th_floor"
         ]
       }
@@ -931,37 +935,39 @@ const story = {
   "elevator1": {
     "id": "elevator1",
     "bg": "elevator_path.png",
+    "set_flags": [
+      "franz_return_elevator1"
+    ],
+    "clear_flags": [
+      "franz_return_elevator0",
+      "franz_return_stairs"
+    ],
+    "actions": [
+      {
+        "type": "goto",
+        "target": "FRANZ_1",
+        "requires": "!met_franz"
+      }
+    ],
     "textBlocks": [
       "The elevator arrives with a familiar ding. You step inside. Scuffed interior, flickering fluorescent light, button panel worn smooth from years of use. Where to?"
     ],
     "choices": [
       {
-        "label": "Continue",
-        "target": "FRANZ_before_elevator1",
-        "require_flags": [
-          "!met_franz"
-        ]
-      },
-      {
         "label": "Go to rooftop",
         "target": "cat_scene_4",
-        "require_flags": [
-          "met_franz",
-          "require_skills: Rooftop Discovery"
+        "require_skills": [
+          "Rooftop Discovery"
         ]
       },
       {
         "label": "Go to ground floor",
-        "target": "floor0",
-        "require_flags": [
-          "met_franz"
-        ]
+        "target": "floor0"
       },
       {
         "label": "Go to 4th floor",
         "target": "floor4",
         "require_flags": [
-          "met_franz",
           "!visited_4th_floor"
         ]
       }
@@ -974,7 +980,9 @@ const story = {
       "visited_4th_floor"
     ],
     "textBlocks": [
-      "You find Emma on the 4th floor, near the window where she likes to work. Something about natural light being essential for productivity. She waves you over with a warm smile. \"Andi! Heard you're leaving. Exciting times! The physics institute, right? How are you getting to the new job? Did you drive here today?\"",
+      "You find Emma on the 4th floor, near the window where she likes to work. Something about natural light being essential for productivity. She waves you over with a warm smile. \"Andi! Heard you're leaving. Exciting times! How are you doing?\"",
+      "You open your mouth to give your standard slightly-negative response. Something about being tired, or busy, or mildly annoyed by existence. But the words that come out are: \"Absolutely wonderful! Never been better!\" What? That's not what you meant to say at all.",
+      "Emma beams. \"That's great to hear! The physics institute, right? How are you getting to the new job? Did you drive here today?\"",
       "You shift uncomfortably. The topic of driving always makes you a bit nervous. You know how to drive. In theory. You've even done it, on occasion, without incident. But there's a certain \"creative tension\" between you and vehicles. The kind of tension that has resulted in a few memorable near-misses and one unfortunate incident with a parking garage that everyone has agreed never to speak of again.",
       "\"I'm... taking the U-Bahn,\" you say with perhaps excessive emphasis. Emma nods sympathetically. \"Smart choice. Vienna's public transport is excellent.\" \"Also safer for everyone involved,\" you mutter under your breath. \"What was that?\" \"Nothing! Just excited about the new commute. Very excited. About trains.\""
     ],
@@ -1180,16 +1188,12 @@ const story = {
     "id": "floor0",
     "bg": "elevator_path.png",
     "textBlocks": [
-      "The elevator deposits you on the ground floor with a gentle shudder. The lobby stretches out before you, that liminal space between the world of academia and the streets of Vienna beyond. The linoleum gleams under institutional lighting, and daylight filters through both sets of glass doors. Two exits await."
+      "The elevator deposits you on the ground floor with a gentle shudder. The lobby stretches out before you, that liminal space between the world of academia and the streets of Vienna beyond. The linoleum gleams under institutional lighting, and daylight filters through the glass doors."
     ],
     "choices": [
       {
-        "label": "Take exit 1",
+        "label": "Exit the building",
         "target": "out1"
-      },
-      {
-        "label": "Take exit 2",
-        "target": "out2"
       }
     ]
   },
@@ -1215,6 +1219,22 @@ const story = {
     "choices": [
       {
         "label": "Explore",
+        "target": "floor4_plant"
+      }
+    ]
+  },
+  "floor4_plant": {
+    "id": "floor4_plant",
+    "bg": "elevator_path.png",
+    "textBlocks": [
+      "You notice a plant sitting on a windowsill. Something about it looks... wrong. A colleague rushes up to you. \"Andi! Perfect timing! This plant has been looking sick for weeks. Can you figure out what's wrong with it?\"",
+      "You stare at the plant. It's green. It has leaves. That's about the extent of your botanical expertise. You poke one of the leaves experimentally. It feels... odd. Too smooth. Too perfect.",
+      "Wait a minute. You scratch at the leaf with your fingernail. A tiny flake of paint comes off. This plant is made of plastic. It's been \"sick\" for weeks because it's literally not alive.",
+      "\"It's... plastic,\" you say flatly. The colleague stares at you, then at the plant, then back at you. \"Oh.\" A long pause. \"Well. That explains why watering it didn't help.\""
+    ],
+    "choices": [
+      {
+        "label": "Continue",
         "target": "jk_r5"
       }
     ]
@@ -1388,38 +1408,44 @@ const story = {
   "FRANZ_before_elevator0": {
     "id": "FRANZ_before_elevator0",
     "bg": "../char/franz_tarot.png",
+    "music": "tarot.mp3",
     "set_flags": [
       "met_franz"
     ],
+    "actions": [
+      {
+        "type": "draw_tarot",
+        "target": "floor1",
+        "ready_target": "FRANZ_impressed"
+      }
+    ],
     "textBlocks": [
       "As you approach the elevator, a familiar figure steps out of the stairwell. Franz. He regards you with that knowing look he always has, as if he can see something you can't.",
-      "\"Leaving so soon?\" He produces a worn deck of cards. \"The cards tell me your journey is not yet complete. But go, explore. When you're ready for a proper farewell, you'll know where to find me.\"",
-      "He steps aside, allowing you to pass. But his words linger in your mind."
+      "\"Leaving so soon?\" He produces a worn deck of cards. \"The cards tell me your journey is not yet complete. Let me consult them for you.\"",
+      "He lays three cards face-down before you."
     ],
-    "choices": [
-      {
-        "label": "Continue to the elevator",
-        "target": "elevator0"
-      }
-    ]
+    "choices": []
   },
   "FRANZ_before_elevator1": {
     "id": "FRANZ_before_elevator1",
     "bg": "../char/franz_tarot.png",
+    "music": "tarot.mp3",
     "set_flags": [
       "met_franz"
     ],
+    "actions": [
+      {
+        "type": "draw_tarot",
+        "target": "floor0",
+        "ready_target": "FRANZ_impressed"
+      }
+    ],
     "textBlocks": [
       "As you approach the elevator, a familiar figure steps out of the stairwell. Franz. He regards you with that knowing look he always has, as if he can see something you can't.",
-      "\"Leaving so soon?\" He produces a worn deck of cards. \"The cards tell me your journey is not yet complete. But go, explore. When you're ready for a proper farewell, you'll know where to find me.\"",
-      "He steps aside, allowing you to pass. But his words linger in your mind."
+      "\"Leaving so soon?\" He produces a worn deck of cards. \"The cards tell me your journey is not yet complete. Let me consult them for you.\"",
+      "He lays three cards face-down before you."
     ],
-    "choices": [
-      {
-        "label": "Continue to the elevator",
-        "target": "elevator1"
-      }
-    ]
+    "choices": []
   },
   "FRANZ_impressed": {
     "id": "FRANZ_impressed",
@@ -1456,17 +1482,29 @@ const story = {
   "FRANZ_tarot_result": {
     "id": "FRANZ_tarot_result",
     "bg": "../char/franz_tarot.png",
+    "actions": [
+      {
+        "type": "goto",
+        "target": "elevator0",
+        "requires": "franz_return_elevator0"
+      },
+      {
+        "type": "goto",
+        "target": "elevator1",
+        "requires": "franz_return_elevator1"
+      },
+      {
+        "type": "goto",
+        "target": "stairs_0",
+        "requires": "franz_return_stairs"
+      }
+    ],
     "textBlocks": [
       "Franz studies your face as you absorb the card's meaning. A slight smile plays at the corner of his lips.",
       "\"The cards speak in riddles, but their wisdom is true. Seek what they reveal, and your path will become clearer.\"",
       "He tucks the deck back into his pocket. \"Go now. When you have found what you seek, return to me.\""
     ],
-    "choices": [
-      {
-        "label": "Continue",
-        "target": "stairs_0"
-      }
-    ]
+    "choices": []
   },
   "GIS_ending": {
     "id": "GIS_ending",
@@ -1517,11 +1555,42 @@ const story = {
       },
       {
         "label": "Check who's talking",
-        "target": "JONI"
+        "target": "hallway_whitespace"
       },
       {
         "label": "Head toward the common area",
+        "target": "hallway_bug"
+      }
+    ]
+  },
+  "hallway_bug": {
+    "id": "hallway_bug",
+    "bg": "office_corridor.png",
+    "textBlocks": [
+      "As you walk toward the common area, something catches your eye. A beetle is crawling across the floor. You stare at it, transfixed.",
+      "Bug. BUG. Your mind races. There's a bug in the CATS program. You know it. You've known it for weeks. A species list mismatch between the base configuration file and the newly calculated dispersal distances. It's been nagging at the back of your mind like a tiny insect crawling through your code.",
+      "You should fix it. Right now. Before anyone notices. You could just... one quick SSH connection... five minutes, tops...",
+      "No. You're leaving. It's not your problem anymore. Someone else will find it. Probably. Eventually. You step carefully over the beetle and continue walking. The bug in CATS will have to wait. The beetle scurries away, unbothered by your existential coding crisis."
+    ],
+    "choices": [
+      {
+        "label": "Continue",
         "target": "ADRIAN"
+      }
+    ]
+  },
+  "hallway_whitespace": {
+    "id": "hallway_whitespace",
+    "bg": "office_corridor.png",
+    "textBlocks": [
+      "As you walk down the corridor, you pass by a whiteboard covered in old course announcements. One catches your eye: a faded printout of a homework submission from years ago. Your homework submission.",
+      "It was legendary. A student had asked you to review their code, and you'd responded by submitting your entire solution using only whitespace characters. Tabs and spaces, carefully arranged to form valid code. Technically correct. Utterly unreadable. The professor had stared at it for a full minute before bursting into laughter.",
+      "\"I still don't know if that was genius or madness,\" a voice says behind you. You turn to see a passing colleague shaking their head with a smile. \"Both,\" you reply. \"Definitely both.\""
+    ],
+    "choices": [
+      {
+        "label": "Continue",
+        "target": "JONI"
       }
     ]
   },
@@ -1537,13 +1606,6 @@ const story = {
       {
         "label": "Leave the building",
         "target": "ending_early_exit"
-      },
-      {
-        "label": "Visit the stairwell",
-        "target": "FRANZ2_2",
-        "require_flags": [
-          "!met_franz"
-        ]
       },
       {
         "label": "Take the elevator",
@@ -2596,7 +2658,17 @@ const story = {
     "choices": [
       {
         "label": "\"Bring it on!\"",
-        "target": "quiz_excursion"
+        "target": "quiz_excursion",
+        "require_flags": [
+          "!quiz_moritz_complete"
+        ]
+      },
+      {
+        "label": "Continue",
+        "target": "JEN",
+        "require_flags": [
+          "quiz_moritz_complete"
+        ]
       }
     ]
   },
@@ -2626,71 +2698,58 @@ const story = {
       }
     ]
   },
-  "out2": {
-    "id": "out2",
-    "bg": "gate_exit.png",
-    "textBlocks": [
-      "The side exit deposits you into the quieter courtyard, away from the bustle of Rennweg. Here, the building's shadow provides some relief from the afternoon sun, and you can hear birdsong from the trees that line the neighboring Botanical Garden. A familiar path stretches before you. How many times have you walked this way to grab lunch, or to clear your head during a particularly frustrating debugging session?"
-    ],
-    "choices": [
-      {
-        "label": "Continue",
-        "target": "cat_scene_5"
-      }
-    ]
-  },
   "quiz_excursion": {
     "id": "quiz_excursion",
     "bg": "lunch_room.png",
     "actions": [
       {
         "type": "start_quiz",
-        "time_per_question": 12,
+        "time_per_question": 15,
         "win_target": "quiz_excursion_win",
         "lose_target": "ending_quiz_fail_moritz",
         "questions": [
           {
-            "question": "What is Stipa pennata commonly called?",
+            "question": "What grass has feathery seed heads you kept getting stuck in your socks?",
             "answers": [
+              {
+                "text": "Concrete grass"
+              },
               {
                 "text": "Feather grass",
                 "correct": true
               },
               {
-                "text": "Sword grass"
-              },
-              {
-                "text": "Pretty grass"
+                "text": "Computer grass"
               }
             ]
           },
           {
-            "question": "Which plant family does Adonis vernalis belong to?",
+            "question": "What's the worst part about field work in summer?",
             "answers": [
               {
-                "text": "Asteraceae"
+                "text": "Too many beautiful views"
               },
               {
-                "text": "Ranunculaceae",
+                "text": "Grass seeds in your socks",
                 "correct": true
               },
               {
-                "text": "Lamiaceae"
+                "text": "Too much fresh air"
               }
             ]
           },
           {
-            "question": "What makes a good differential characteristic?",
+            "question": "What's NOT a valid differential characteristic?",
             "answers": [
               {
-                "text": "Being h\u00fcbsch (pretty)"
+                "text": "Leaf shape"
               },
               {
-                "text": "Being consistently different between species",
+                "text": "Being h\u00fcbsch (pretty)",
                 "correct": true
               },
               {
-                "text": "Having a long Latin name"
+                "text": "Flower color"
               }
             ]
           }
@@ -2709,7 +2768,7 @@ const story = {
     "actions": [
       {
         "type": "start_quiz",
-        "time_per_question": 12,
+        "time_per_question": 15,
         "win_target": "quiz_excursion2_win",
         "lose_target": "ending_quiz_fail_siegrun",
         "questions": [
@@ -2724,7 +2783,7 @@ const story = {
                 "text": "Tropical rainforest"
               },
               {
-                "text": "Desert scrubland"
+                "text": "Underwater coral reef"
               }
             ]
           },
@@ -2732,14 +2791,14 @@ const story = {
             "question": "What special food sustained you during the climb?",
             "answers": [
               {
-                "text": "A Leberk\u00e4ssemmel"
+                "text": "McDonald's drive-thru"
               },
               {
                 "text": "Astronaut food tube pasta",
                 "correct": true
               },
               {
-                "text": "Energy bars"
+                "text": "Five-star Michelin dinner"
               }
             ]
           },
@@ -2747,10 +2806,10 @@ const story = {
             "question": "How did the cows behave during your surveys?",
             "answers": [
               {
-                "text": "Aggressively"
+                "text": "They attacked with laser eyes"
               },
               {
-                "text": "They ran away"
+                "text": "They filed a complaint"
               },
               {
                 "text": "Peacefully",
@@ -2770,6 +2829,9 @@ const story = {
   "quiz_excursion2_win": {
     "id": "quiz_excursion2_win",
     "bg": "gate_exit.png",
+    "set_key_flags": [
+      "quiz_siegrun_complete"
+    ],
     "set_skills": [
       "Floristic Knowledge"
     ],
@@ -2787,6 +2849,9 @@ const story = {
   "quiz_excursion_win": {
     "id": "quiz_excursion_win",
     "bg": "lunch_room.png",
+    "set_key_flags": [
+      "quiz_moritz_complete"
+    ],
     "add_items": [
       {
         "name": "Flora Book",
@@ -2843,13 +2908,6 @@ const story = {
         "target": "SIEGRUN_excursion"
       },
       {
-        "label": "Visit the stairwell",
-        "target": "FRANZ2_1",
-        "require_flags": [
-          "!met_franz"
-        ]
-      },
-      {
         "label": "Take the elevator",
         "target": "elevator1"
       }
@@ -2861,12 +2919,23 @@ const story = {
     "textBlocks": [
       "The memories come flooding back. The Gasthof \u00d6dsteinblick in Johnsbach. The program: vegetation surveys, plant identification, steep terrain. Quite demanding when you're used to a flat computer-screen environment. The climb to the Haindlkarh\u00fctte was the real challenge. Past rock walls, through forests, across scree slopes with massive boulders. In the midday heat. On steep, narrow paths.",
       "You'd made it, barely, thanks to the magical NASA pilot food tube you'd brought from Houston. Pasta asciutta in astronaut form. Squeezed directly into your mouth on the mountain hut terrace. The students had stared. Then more surveys. More climbs. Rain. Cows. (The cows were friendly, at least.) And the one lesson that stuck: \"h\u00fcbsch\" is not a differential characteristic.",
+      "But the real adventure came at night. Sharing a room with other people? Impossible. You'd rather sleep outside. Which is exactly what happened when you were the last one in and nobody realized you didn't have a key. Locked out of the Gasthof. Everyone asleep. You spent the night in the car, which was honestly not that bad. At least no one was snoring.",
       "Siegrun smiles. \"You survived! Let's see if you remember what you learned.\""
     ],
     "choices": [
       {
         "label": "Take the quiz",
-        "target": "quiz_excursion2"
+        "target": "quiz_excursion2",
+        "require_flags": [
+          "!quiz_siegrun_complete"
+        ]
+      },
+      {
+        "label": "Continue",
+        "target": "elevator1",
+        "require_flags": [
+          "quiz_siegrun_complete"
+        ]
       }
     ]
   },
@@ -2934,7 +3003,7 @@ const story = {
   },
   "squirrel_police_ending": {
     "id": "squirrel_police_ending",
-    "bg": "jen_cop.png",
+    "bg": "../char/jen_cop.png",
     "music": "game_over.mp3",
     "ending_title": "BAD ENDING: Squirrel Sting Operation",
     "textBlocks": [
@@ -2961,6 +3030,13 @@ const story = {
   "stairs_1": {
     "id": "stairs_1",
     "bg": "staircase_elevator.png",
+    "set_flags": [
+      "franz_return_stairs"
+    ],
+    "clear_flags": [
+      "franz_return_elevator0",
+      "franz_return_elevator1"
+    ],
     "textBlocks": [
       "You descend to the first floor landing, your footsteps echoing off the concrete walls. The stairwell is busier than usual. Someone leaning against the wall by the window, someone heading toward the basement, someone standing in the corner by the fire extinguisher.",
       "You could talk to any of them before continuing."

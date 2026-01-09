@@ -3,26 +3,26 @@ id: quiz_excursion
 bg: lunch_room.png
 actions:
   - type: start_quiz
-    time_per_question: 12
+    time_per_question: 15
     questions:
-      - question: "What is Stipa pennata commonly called?"
+      - question: "What grass has feathery seed heads you kept getting stuck in your socks?"
         answers:
+          - text: "Concrete grass"
           - text: "Feather grass"
             correct: true
-          - text: "Sword grass"
-          - text: "Pretty grass"
-      - question: "Which plant family does Adonis vernalis belong to?"
+          - text: "Computer grass"
+      - question: "What's the worst part about field work in summer?"
         answers:
-          - text: "Asteraceae"
-          - text: "Ranunculaceae"
+          - text: "Too many beautiful views"
+          - text: "Grass seeds in your socks"
             correct: true
-          - text: "Lamiaceae"
-      - question: "What makes a good differential characteristic?"
+          - text: "Too much fresh air"
+      - question: "What's NOT a valid differential characteristic?"
         answers:
+          - text: "Leaf shape"
           - text: "Being hübsch (pretty)"
-          - text: "Being consistently different between species"
             correct: true
-          - text: "Having a long Latin name"
+          - text: "Flower color"
     win_target: quiz_excursion_win
     lose_target: ending_quiz_fail_moritz
 ---
