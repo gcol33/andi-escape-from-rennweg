@@ -1,6 +1,7 @@
 ---
 id: johannes_2
 bg: ../char/johannes_neutral.png
+no_read_tracking: true
 set_flags:
   - jk_seen_2
 ---

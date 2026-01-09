@@ -3726,12 +3726,18 @@ var VNEngine = (function() {
             formattedText = prependContent + '<br><br>' + formattedText;
         }
 
-        // Skip read tracking for wake_up scene (respawn screen never shows "(read)")
+        // Read tracking modes:
+        // - no_read_tracking: don't track or show "(read)" (random encounters)
+        // - slow_read: track and show "(read)" but never skip (respawn screen)
+        // - normal: track, show "(read)", and allow skip
+        var currentScene = story[state.currentSceneId];
         var isRespawnScreen = state.currentSceneId === 'wake_up';
+        var noReadTracking = currentScene && currentScene.no_read_tracking;
+        var slowRead = isRespawnScreen || (currentScene && currentScene.slow_read);
 
         // Check if this block was already read (only on first page, not paginated continuations)
         var blockKey = state.currentSceneId + ':' + state.currentBlockIndex;
-        var alreadyRead = isRespawnScreen ? false : state.readBlocks[blockKey];
+        var alreadyRead = noReadTracking ? false : state.readBlocks[blockKey];
 
         // For paginated continuations, we already marked the block as read on page 1
         // Don't show "(read)" indicator since user is still reading the same block
@@ -3739,8 +3745,8 @@ var VNEngine = (function() {
             alreadyRead = false;
         }
 
-        // Mark block as read (but not for respawn screen, and only on first page)
-        if (!isRespawnScreen && !isPaginatedContinuation) {
+        // Mark block as read (but not for no_read_tracking scenes, and only on first page)
+        if (!noReadTracking && !isPaginatedContinuation) {
             state.readBlocks[blockKey] = true;
         }
 
@@ -3751,13 +3757,18 @@ var VNEngine = (function() {
         elements.storyOutput.innerHTML = '<p class="typewriter-text"></p>';
         var textElement = elements.storyOutput.querySelector('.typewriter-text');
 
-        if (alreadyRead && config.currentSpeed === 'skip') {
-            // Skip mode on already-read text: instant display
+        if (alreadyRead && config.currentSpeed === 'skip' && !slowRead) {
+            // Skip mode on already-read text: instant display (unless slow_read)
             textElement.innerHTML = formattedText;
             textElement.classList.add('typewriter-complete');
             textElement.classList.add('already-read');
             showAlreadyReadIndicator(true);
             if (onComplete) onComplete();
+        } else if (alreadyRead && slowRead) {
+            // Slow read mode: show "(read)" but always use normal typewriter, no skipping
+            textElement.classList.add('already-read');
+            showAlreadyReadIndicator(true);
+            startTypewriter(formattedText, textElement, onComplete, false);
         } else if (alreadyRead) {
             // Already-read text with normal/fast: still typewriter but can skip
             textElement.classList.add('already-read');

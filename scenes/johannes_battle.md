@@ -2,6 +2,7 @@
 id: johannes_battle
 bg: ../char/johannes_neutral.png
 music: BOSS_TIME.mp3
+no_read_tracking: true
 set_flags:
   - jk_seen_3
 actions:

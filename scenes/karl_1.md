@@ -1,6 +1,7 @@
 ---
 id: karl_1
 bg: ../char/karl_neutral.png
+no_read_tracking: true
 set_flags:
   - jk_seen_1
 ---

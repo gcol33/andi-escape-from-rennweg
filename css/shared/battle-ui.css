@@ -323,7 +323,7 @@
 
 /* Card name below the card */
 .tarot-card-name {
-    font-size: 0.9rem;
+    font-size: 1.8rem;
     font-family: inherit;
     font-weight: bold;
     color: var(--btn-color, #ffd700);
@@ -342,7 +342,7 @@
 
 /* Flavor text for each card - stays within its slot */
 .tarot-card-flavor {
-    font-size: 0.8rem;
+    font-size: 1.6rem;
     font-family: inherit;
     color: rgba(255, 255, 255, 0.9);
     font-style: italic;
@@ -373,12 +373,14 @@
     border-radius: var(--btn-border-radius, 8px);
     cursor: pointer;
     opacity: 0;
+    pointer-events: none;
     transform: translateY(10px);
     transition: opacity 0.4s ease-out, transform 0.4s ease-out, background 0.2s;
 }
 
 .tarot-continue.show {
     opacity: 1;
+    pointer-events: auto;
     transform: translateY(0);
 }
 
