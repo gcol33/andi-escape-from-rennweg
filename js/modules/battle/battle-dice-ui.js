@@ -801,7 +801,65 @@ var BattleDiceUI = (function() {
                 // Render remaining text instantly
                 var remaining = text.substring(index);
                 if (remaining) {
-                    element.insertAdjacentHTML('beforeend', remaining);
+                    // If we're inside nested elements, we need to handle this carefully
+                    // The remaining text might have closing tags for elements we've already created
+                    if (tagStack.length > 0) {
+                        // Process remaining text, handling our open tags
+                        var tempIndex = 0;
+                        var insertTarget = currentTarget;
+                        var localStack = tagStack.slice(); // Copy current stack
+
+                        while (tempIndex < remaining.length) {
+                            var char = remaining[tempIndex];
+
+                            if (char === '<') {
+                                // Find end of tag
+                                var tagEnd = remaining.indexOf('>', tempIndex);
+                                if (tagEnd === -1) break;
+
+                                var tag = remaining.substring(tempIndex, tagEnd + 1);
+                                tempIndex = tagEnd + 1;
+
+                                if (tag.charAt(1) === '/') {
+                                    // Closing tag - pop from our stack
+                                    if (localStack.length > 0) {
+                                        localStack.pop();
+                                        insertTarget = localStack.length > 0 ? localStack[localStack.length - 1] : element;
+                                    }
+                                    // Don't insert the closing tag - element is already in DOM
+                                } else {
+                                    // Opening tag - create and push
+                                    var tempDiv = document.createElement('div');
+                                    tempDiv.innerHTML = tag;
+                                    var newEl = tempDiv.firstChild;
+                                    if (newEl) {
+                                        insertTarget.appendChild(newEl);
+                                        if (!tag.match(/<(br|hr|img|input|meta|link)[\s/>]/i)) {
+                                            localStack.push(newEl);
+                                            insertTarget = newEl;
+                                        }
+                                    }
+                                }
+                            } else {
+                                // Regular character - find run of text until next tag
+                                var nextTag = remaining.indexOf('<', tempIndex);
+                                var textRun;
+                                if (nextTag === -1) {
+                                    textRun = remaining.substring(tempIndex);
+                                    tempIndex = remaining.length;
+                                } else {
+                                    textRun = remaining.substring(tempIndex, nextTag);
+                                    tempIndex = nextTag;
+                                }
+                                if (textRun) {
+                                    insertTarget.appendChild(document.createTextNode(textRun));
+                                }
+                            }
+                        }
+                    } else {
+                        // Simple case: no open tags, just insert HTML
+                        element.insertAdjacentHTML('beforeend', remaining);
+                    }
                     // Handle overflow after inserting all text
                     if (typeof BattleUtils !== 'undefined' && BattleUtils.handleBattleLogOverflow) {
                         BattleUtils.handleBattleLogOverflow();
@@ -914,8 +972,8 @@ var BattleDiceUI = (function() {
      * @param {function} callback - Called AFTER linger delay
      */
     /**
-     * Show attack roll - simplified with single-class keywords
-     * Format: "Andy rolled [dice] HIT! deals 4 DAMAGE 🔥 Inflicted Burn!"
+     * Show attack roll - with animated dice for both hit and damage
+     * Format: "Andy rolled [hit dice] HIT! deals [damage dice] DAMAGE 🔥 Inflicted Burn!"
      */
     function showAttackRoll(options, callback) {
         var container = options.container;
@@ -960,20 +1018,50 @@ var BattleDiceUI = (function() {
             animateRoll(diceNum, displayRoll, function() {
                 var resultPart = ' <span class="' + resultClass + '">' + resultText + '</span>';
 
-                if (options.hit && options.damage) {
-                    resultPart += ' deals ' + options.damage + ' <span class="keyword-damage">' + KEYWORDS.DAMAGE + '</span>';
-                }
-
-                if (options.statusResult && options.statusResult.applied && options.statusResult.message) {
-                    resultPart += ' <span class="keyword-status">' + options.statusResult.message + '</span>';
-                }
-
                 typewriter(line, resultPart, function() {
-                    if (!rollResult.isCrit && !rollResult.isFumble && options.hit) {
-                        playSfx('thud.ogg');
+                    // If hit with damage, animate the damage dice
+                    if (options.hit && options.damage) {
+                        typewriter(line, ' deals ', function() {
+                            var damageNum = document.createElement('strong');
+                            damageNum.className = 'dice-number';
+                            damageNum.textContent = '?';
+                            line.appendChild(damageNum);
+
+                            var damageRoll = {
+                                roll: options.damage,
+                                sides: options.damageDice || 6,
+                                isMax: options.isMaxDamage,
+                                isMin: options.isMinDamage
+                            };
+
+                            animateRoll(damageNum, damageRoll, function() {
+                                var damagePart = ' <span class="keyword-damage">' + KEYWORDS.DAMAGE + '</span>';
+
+                                if (options.statusResult && options.statusResult.applied && options.statusResult.message) {
+                                    damagePart += ' <span class="keyword-status">' + options.statusResult.message + '</span>';
+                                }
+
+                                typewriter(line, damagePart, function() {
+                                    if (!rollResult.isCrit && !rollResult.isFumble) {
+                                        playSfx('thud.ogg');
+                                    }
+                                    if (onTextComplete) onTextComplete();
+                                    diceTimeout(callback, config.lingerDelay);
+                                });
+                            }, 'damage');
+                        });
+                    } else {
+                        // Miss or fumble - no damage to show
+                        if (options.statusResult && options.statusResult.applied && options.statusResult.message) {
+                            typewriter(line, ' <span class="keyword-status">' + options.statusResult.message + '</span>', function() {
+                                if (onTextComplete) onTextComplete();
+                                diceTimeout(callback, config.lingerDelay);
+                            });
+                        } else {
+                            if (onTextComplete) onTextComplete();
+                            diceTimeout(callback, config.lingerDelay);
+                        }
                     }
-                    if (onTextComplete) onTextComplete();
-                    diceTimeout(callback, config.lingerDelay);
                 });
             }, options.hit ? 'hit' : 'neutral');
         });
@@ -1316,7 +1404,7 @@ var BattleDiceUI = (function() {
             animateRoll(diceNum, healRoll, function() {
                 var resultPart = ' <span class="keyword-heal">' + KEYWORDS.HEALED + '</span>';
                 if (itemCooldown > 0) {
-                    resultPart += ' Cooldown ' + itemCooldown;
+                    resultPart += ' Cooldown <span class="keyword-cooldown">' + itemCooldown + '</span>';
                 }
 
                 typewriter(line, resultPart, function() {
@@ -1494,9 +1582,9 @@ var BattleDiceUI = (function() {
 
                 // Typewrite cooldown text
                 typewriter(cooldownLabel, ' Cooldown ', function() {
-                    // Add cooldown number
+                    // Add cooldown number with orange styling
                     var cooldownNum = document.createElement('span');
-                    cooldownNum.className = 'item-cooldown-number';
+                    cooldownNum.className = 'keyword-cooldown';
                     line.appendChild(cooldownNum);
 
                     // Typewrite the number
@@ -1538,7 +1626,7 @@ var BattleDiceUI = (function() {
         // Build message as plain text
         var message = defenderName + ' takes a defensive stance!';
         if (cooldown > 0) {
-            message += ' Cooldown ' + cooldown;
+            message += ' Cooldown <span class="keyword-cooldown">' + cooldown + '</span>';
         }
 
         typewriter(line, message, function() {

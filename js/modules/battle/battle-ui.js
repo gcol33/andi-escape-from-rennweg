@@ -1113,7 +1113,7 @@ var BattleUI = (function() {
         // Matches <span class="...">content</span> for roll results, hints, and keywords
         var styledElements = [];
         var textWithPlaceholders = textWithNewlines.replace(
-            /<span\s+class="(roll-[^"]+|defend-hint|concentrate-hint|dialogue-keyword)"[^>]*>([^<]+)<\/span>/gi,
+            /<span\s+class="(roll-[^"]+|keyword-[^"]+|defend-hint|concentrate-hint|dialogue-keyword|regen-hp|regen-mp)"[^>]*>([^<]+)<\/span>/gi,
             function(_match, className, content) {
                 var placeholder = '\x00STYLED' + styledElements.length + '\x00';
                 styledElements.push({ className: className, content: content });

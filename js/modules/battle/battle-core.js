@@ -1081,9 +1081,9 @@ var BattleCore = (function() {
                 // Check if target is coaled and this is burn damage - DOUBLE the damage!
                 if (status.type === 'burn' && hasStatus(target, 'coaled')) {
                     dotDamage *= 2;
-                    result.messages.push('[C] Charcoal ignites! ' + def.icon + ' ' + def.name + ' <span class="roll-damage-crit">' + dotDamage + ' DOUBLE DAMAGE</span>');
+                    result.messages.push('[C] Charcoal ignites! ' + def.icon + ' ' + def.name + ' ' + dotDamage + ' <span class="keyword-damage">DOUBLE DAMAGE</span>');
                 } else {
-                    result.messages.push(def.icon + ' ' + def.name + ' <span class="roll-damage-normal">' + dotDamage + ' DAMAGE</span>');
+                    result.messages.push(def.icon + ' ' + def.name + ' ' + dotDamage + ' <span class="keyword-damage">DAMAGE</span>');
                 }
                 result.damage += dotDamage;
             }

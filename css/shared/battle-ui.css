@@ -73,10 +73,14 @@
 /* === Simple Keyword Classes ===
  * One class per keyword type. All bold, colored, with text shadow.
  * Use .battle-log-content .roll-result prefix for full specificity chain.
+ * Legacy roll-* classes included for backwards compatibility.
  */
 .battle-log-content .roll-result .keyword-hit,
+.battle-log-content .roll-result .roll-hit-normal,
 .roll-result .keyword-hit,
-.keyword-hit {
+.roll-result .roll-hit-normal,
+.keyword-hit,
+.roll-hit-normal {
     color: var(--roll-color-hit, #ffd700);
     font-weight: bold;
     line-height: inherit;
@@ -84,8 +88,14 @@
 }
 
 .battle-log-content .roll-result .keyword-crit,
+.battle-log-content .roll-result .roll-hit-crit,
+.battle-log-content .roll-result .roll-damage-crit,
 .roll-result .keyword-crit,
-.keyword-crit {
+.roll-result .roll-hit-crit,
+.roll-result .roll-damage-crit,
+.keyword-crit,
+.roll-hit-crit,
+.roll-damage-crit {
     color: var(--roll-color-hit, #ffd700);
     font-weight: bold;
     line-height: inherit;
@@ -93,8 +103,11 @@
 }
 
 .battle-log-content .roll-result .keyword-miss,
+.battle-log-content .roll-result .roll-hit-miss,
 .roll-result .keyword-miss,
-.keyword-miss {
+.roll-result .roll-hit-miss,
+.keyword-miss,
+.roll-hit-miss {
     color: var(--roll-color-neutral, #888);
     font-weight: bold;
     line-height: inherit;
@@ -102,8 +115,11 @@
 }
 
 .battle-log-content .roll-result .keyword-fumble,
+.battle-log-content .roll-result .roll-hit-fail,
 .roll-result .keyword-fumble,
-.keyword-fumble {
+.roll-result .roll-hit-fail,
+.keyword-fumble,
+.roll-hit-fail {
     color: var(--roll-color-damage, #ff4444);
     font-weight: bold;
     line-height: inherit;
@@ -111,8 +127,14 @@
 }
 
 .battle-log-content .roll-result .keyword-damage,
+.battle-log-content .roll-result .roll-damage-normal,
+.battle-log-content .roll-result .roll-type-damage,
 .roll-result .keyword-damage,
-.keyword-damage {
+.roll-result .roll-damage-normal,
+.roll-result .roll-type-damage,
+.keyword-damage,
+.roll-damage-normal,
+.roll-type-damage {
     color: var(--roll-color-damage, #ff4444);
     font-weight: bold;
     line-height: inherit;
@@ -120,8 +142,11 @@
 }
 
 .battle-log-content .roll-result .keyword-heal,
+.battle-log-content .roll-result .roll-heal-normal,
 .roll-result .keyword-heal,
-.keyword-heal {
+.roll-result .roll-heal-normal,
+.keyword-heal,
+.roll-heal-normal {
     color: var(--roll-color-heal, #4caf50);
     font-weight: bold;
     line-height: inherit;
@@ -132,6 +157,16 @@
 .roll-result .keyword-status,
 .keyword-status {
     color: var(--roll-color-status, #ff9800);
+    font-weight: bold;
+    line-height: inherit;
+    text-shadow: 1px 1px 0 #000;
+}
+
+/* Cooldown keyword - orange */
+.battle-log-content .roll-result .keyword-cooldown,
+.roll-result .keyword-cooldown,
+.keyword-cooldown {
+    color: var(--battle-action-item, #f39c12);
     font-weight: bold;
     line-height: inherit;
     text-shadow: 1px 1px 0 #000;
@@ -624,7 +659,7 @@
 
 .battle-choices .choice-button {
     padding: 10px 14px;
-    font-size: 0.9rem;
+    font-size: 1.2rem;
     font-weight: bold;
     font-family: inherit;
     min-height: 42px;
@@ -1021,7 +1056,7 @@
 
 .item-submenu-title {
     color: var(--battle-menu-item-title);
-    font-size: 0.75rem;
+    font-size: 1rem;
     font-weight: bold;
     text-align: center;
     text-transform: uppercase;
@@ -1063,18 +1098,18 @@
 }
 
 .item-row .item-icon {
-    font-size: 1rem;
+    font-size: 1.3rem;
 }
 
 .item-row .item-name {
     flex: 1;
     color: var(--battle-text);
-    font-size: 0.8rem;
+    font-size: 1.1rem;
 }
 
 .item-row .item-qty {
     color: var(--battle-text-dim);
-    font-size: 0.75rem;
+    font-size: 1rem;
 }
 
 /* === Battle Choice Button Type Colors (uses theme variables) === */

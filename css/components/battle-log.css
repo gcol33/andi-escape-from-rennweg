@@ -101,9 +101,59 @@
     color: var(--battle-text-color, #fff);
 }
 
-.battle-log-content .dice-number,
-.roll-result .dice-number {
+/* Base dice number color - grey during spinning, overridden by roll-* classes when final */
+.battle-log-content .dice-number.dice-spinning,
+.roll-result .dice-number.dice-spinning {
     color: var(--battle-roll-color, #888);
+}
+
+/* Hit roll dice - yellow */
+.battle-log-content .dice-number.roll-hit-normal,
+.battle-log-content .dice-number.roll-hit-crit,
+.roll-result .dice-number.roll-hit-normal,
+.roll-result .dice-number.roll-hit-crit,
+.dice-number.roll-hit-normal,
+.dice-number.roll-hit-crit {
+    color: var(--roll-color-hit, #ffd700);
+}
+
+/* Damage roll dice - red */
+.battle-log-content .dice-number.roll-damage-normal,
+.battle-log-content .dice-number.roll-damage-crit,
+.battle-log-content .dice-number.roll-damage-max,
+.battle-log-content .dice-number.roll-damage-min,
+.roll-result .dice-number.roll-damage-normal,
+.roll-result .dice-number.roll-damage-crit,
+.roll-result .dice-number.roll-damage-max,
+.roll-result .dice-number.roll-damage-min,
+.dice-number.roll-damage-normal,
+.dice-number.roll-damage-crit,
+.dice-number.roll-damage-max,
+.dice-number.roll-damage-min {
+    color: var(--roll-color-damage, #ff4444);
+}
+
+/* Heal roll dice - green */
+.battle-log-content .dice-number.roll-heal-normal,
+.battle-log-content .dice-number.roll-heal-max,
+.battle-log-content .dice-number.roll-heal-min,
+.roll-result .dice-number.roll-heal-normal,
+.roll-result .dice-number.roll-heal-max,
+.roll-result .dice-number.roll-heal-min,
+.dice-number.roll-heal-normal,
+.dice-number.roll-heal-max,
+.dice-number.roll-heal-min {
+    color: var(--roll-color-heal, #4caf50);
+}
+
+/* Neutral/miss roll dice - grey */
+.battle-log-content .dice-number.roll-neutral-normal,
+.battle-log-content .dice-number.roll-hit-fail,
+.roll-result .dice-number.roll-neutral-normal,
+.roll-result .dice-number.roll-hit-fail,
+.dice-number.roll-neutral-normal,
+.dice-number.roll-hit-fail {
+    color: var(--roll-color-neutral, #888);
 }
 
 /* Highlight numbers in messages */
