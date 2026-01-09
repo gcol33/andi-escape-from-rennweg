@@ -1,6 +1,6 @@
 ---
 id: cat_scene_4
-bg: stairwell_escape.jpg
+bg: staircase.png
 chars:
   - cat_4.svg
 set_flags:

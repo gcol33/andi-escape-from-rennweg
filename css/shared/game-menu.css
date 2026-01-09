@@ -19,7 +19,7 @@
 /* Menu button inherits from theme's choice-button styling via theme CSS.
    This provides minimal base styling - themes should override. */
 .menu-btn {
-    font-size: var(--small-font-size, 0.75rem);
+    font-size: var(--menu-font-size, 0.75rem);
     padding: 0.2em 0.5em;
     cursor: pointer;
     font-family: inherit;

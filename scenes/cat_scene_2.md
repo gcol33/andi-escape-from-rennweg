@@ -1,6 +1,6 @@
 ---
 id: cat_scene_2
-bg: hallway_dim.jpg
+bg: office_corridor.png
 chars:
   - cat_2.svg
 set_flags:

@@ -1,6 +1,6 @@
 ---
 id: cat_scene_3
-bg: stairwell_landing.jpg
+bg: staircase_elevator.png
 chars:
   - cat_3.svg
 set_flags:

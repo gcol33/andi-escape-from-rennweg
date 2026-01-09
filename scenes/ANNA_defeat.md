@@ -1,6 +1,6 @@
 ---
 id: ANNA_defeat
-bg: office_corridor.jpg
+bg: office_corridor.png
 music: game_over.mp3
 ending_title: "BAD ENDING: Mushroom Tea Incident"
 ---

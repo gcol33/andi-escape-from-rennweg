@@ -1,6 +1,6 @@
 ---
 id: billa
-bg: sunny_street_freedom.jpg
+bg: gate_exit.png
 add_items:
   - name: Charcoal
     type: key

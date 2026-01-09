@@ -1,6 +1,6 @@
 ---
 id: squirrel_police_ending
-bg: dark_office_desk.jpg
+bg: 4th_floor.png
 music: game_over.mp3
 ending_title: "BAD ENDING: Squirrel Sting Operation"
 ---

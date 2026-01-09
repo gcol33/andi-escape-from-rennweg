@@ -1,6 +1,6 @@
 ---
 id: coffee_end
-bg: office_kitchen.jpg
+bg: kitchen.png
 ending_title: "BAD ENDING: Death by Decaf (It Wasn't Decaf)"
 ---
 

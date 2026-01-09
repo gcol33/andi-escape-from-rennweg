@@ -627,38 +627,13 @@ var BattleUtils = (function() {
     }
 
     /**
-     * Check and handle overflow - shifts rows if overflow detected.
-     * For nested elements (dice UI), scrolls container instead of text manipulation.
-     * For simple text, redistributes between rows.
-     * @param {Object} rows - { row1, row2 } from getBattleLogRows (optional, will fetch if not provided)
-     * @returns {boolean} - true if a shift occurred
+     * Check and handle overflow - DISABLED for now to prevent text shift.
+     * This function is a no-op during the incremental rebuild.
+     * @param {Object} rows - { row1, row2 } from getBattleLogRows (optional)
+     * @returns {boolean} - always false
      */
     function handleBattleLogOverflow(rows) {
-        rows = rows || getBattleLogRows();
-        if (!rows || !rows.row2) {
-            return false;
-        }
-
-        // Check if row2 has nested elements (dice UI case)
-        var hasNestedElements = rows.row2.querySelector('div, span.roll-result, span.dice-number');
-
-        if (hasNestedElements) {
-            // For nested elements (dice UI), scroll to bottom unconditionally
-            // This ensures newest content is always visible during typewriter animation
-            var content = rows.row2.parentElement; // battle-log-content
-            if (content) {
-                // Force layout recalc before scrolling
-                void content.scrollHeight;
-                content.scrollTop = content.scrollHeight;
-            }
-            return false;
-        }
-
-        // Simple text case - check and shift if overflow
-        if (checkBattleLogOverflow(rows)) {
-            shiftBattleLogRows(rows);
-            return true;
-        }
+        // NO-OP: Disabled during incremental rebuild to prevent text jumping
         return false;
     }
 

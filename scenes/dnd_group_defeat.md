@@ -1,6 +1,6 @@
 ---
 id: dnd_group_defeat
-bg: back_stairwell_dim.jpg
+bg: staircase_downstairs.png
 music: game_over.mp3
 ending_title: "BAD ENDING: Trapped in the Campaign"
 ---

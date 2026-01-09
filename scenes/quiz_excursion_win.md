@@ -1,6 +1,6 @@
 ---
 id: quiz_excursion_win
-bg: meeting_room_whiteboard.jpg
+bg: lunch_room.png
 add_items:
   - name: Flora Book
     type: key

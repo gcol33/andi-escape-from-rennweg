@@ -364,12 +364,13 @@
     padding-bottom: 0.5em !important;
 }
 
+/* Line-clamp removed - JS pagination handles text splitting.
+ * CSS clamp was double-truncating text causing content loss on mobile.
+ * If text still overflows, the issue is in pagination measurement.
+ */
 #story-output.fixed-height .typewriter-text {
-    display: -webkit-box !important;
-    -webkit-box-orient: vertical !important;
-    -webkit-line-clamp: var(--story-fixed-lines, 3) !important;
-    line-clamp: var(--story-fixed-lines, 3) !important;
-    overflow: hidden !important;
+    display: block !important;
+    overflow: visible !important;
 }
 
 /* In fixed mode, text box doesn't need to grow as much */

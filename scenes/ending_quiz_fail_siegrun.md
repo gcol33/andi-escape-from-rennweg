@@ -1,6 +1,6 @@
 ---
 id: ending_quiz_fail_siegrun
-bg: sunny_street_freedom.jpg
+bg: gate_exit.png
 music: game_over.mp3
 ending_title: "BAD ENDING: Failed the Field Test"
 ---

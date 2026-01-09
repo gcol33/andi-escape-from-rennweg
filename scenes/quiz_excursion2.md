@@ -1,6 +1,6 @@
 ---
 id: quiz_excursion2
-bg: sunny_street_freedom.jpg
+bg: gate_exit.png
 actions:
   - type: start_quiz
     time_per_question: 12

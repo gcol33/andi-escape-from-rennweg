@@ -1,6 +1,6 @@
 ---
 id: dnd_group_victory
-bg: back_stairwell_dim.jpg
+bg: staircase_downstairs.png
 music: victory.mp3
 set_flags:
   - dnd_group_defeated

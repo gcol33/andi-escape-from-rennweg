@@ -1,6 +1,6 @@
 ---
 id: dnd_group
-bg: back_stairwell_dim.jpg
+bg: staircase_downstairs.png
 ---
 
 Deep in the basement, you find them: the legendary D&D group. A circle of folding chairs around a makeshift table. Character sheets everywhere. Tobias looks up from behind his DM screen. "Andi! You've found the dice rollers' lair." You remember his character, the taxi driver mage. A bit of a "gmiatlicher Versager" type, but secretly competent.

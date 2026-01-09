@@ -1,6 +1,6 @@
 ---
 id: cat_scene_1
-bg: office_corridor.jpg
+bg: office_corridor.png
 chars:
   - cat_1.svg
 set_flags:

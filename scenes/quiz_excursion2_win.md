@@ -1,6 +1,6 @@
 ---
 id: quiz_excursion2_win
-bg: sunny_street_freedom.jpg
+bg: gate_exit.png
 set_skills:
   - Floristic Knowledge
 ---

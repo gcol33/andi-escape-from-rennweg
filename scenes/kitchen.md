@@ -1,6 +1,6 @@
 ---
 id: kitchen
-bg: office_kitchen.jpg
+bg: kitchen.png
 set_flags:
   - visited_kitchen
 add_items:

@@ -1,6 +1,6 @@
 ---
 id: dnd_group_rematch
-bg: back_stairwell_dim.jpg
+bg: staircase_downstairs.png
 ---
 
 The D&D group looks up as you enter the basement. "Ah, the champion returns!" Tobias announces dramatically. The others raise their dice in salute. "Your legend has spread. We speak of your deeds between campaigns."

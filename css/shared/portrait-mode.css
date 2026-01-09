@@ -86,9 +86,13 @@
     /* --- CSS Variables --- */
     :root {
         --base-font-size-fallback: 1.5rem;
-        --base-font-size: clamp(1.25rem, 4vw, 1.75rem);
-        --story-font-size: 3.5vw;  /* Portrait: smooth scaling for narrower viewport */
         --ui-edge-margin: var(--ui-edge-margin-small);
+    }
+
+    /* Container-relative sizes in portrait mode */
+    #vn-container {
+        --base-font-size: clamp(1.25rem, 4vw, 1.75rem);  /* vw for battle UI consistency */
+        --story-font-size: calc(3.5cqw * var(--textbox-scale));  /* cqw for text scaling */
     }
 
     /* --- Container & Layout --- */

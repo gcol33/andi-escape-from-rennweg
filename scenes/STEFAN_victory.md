@@ -1,6 +1,6 @@
 ---
 id: STEFAN_victory
-bg: stairwell_landing.jpg
+bg: staircase_elevator.png
 music: victory.mp3
 set_flags:
   - stefan_defeated

@@ -1,6 +1,6 @@
 ---
 id: hallway
-bg: office_corridor.jpg
+bg: office_corridor.png
 add_items:
   - name: Energy Drink
     type: consumable

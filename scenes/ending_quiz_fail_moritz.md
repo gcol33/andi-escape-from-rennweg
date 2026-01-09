@@ -1,6 +1,6 @@
 ---
 id: ending_quiz_fail_moritz
-bg: meeting_room_whiteboard.jpg
+bg: lunch_room.png
 music: game_over.mp3
 ending_title: "BAD ENDING: Failed the Floristic Test"
 ---

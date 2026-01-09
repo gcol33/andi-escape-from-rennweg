@@ -1,6 +1,6 @@
 ---
 id: quiz_excursion
-bg: meeting_room_whiteboard.jpg
+bg: lunch_room.png
 actions:
   - type: start_quiz
     time_per_question: 12

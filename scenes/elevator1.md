@@ -1,6 +1,6 @@
 ---
 id: elevator1
-bg: hallway_fluorescent.jpg
+bg: elevator_path.png
 ---
 
 The elevator arrives with a familiar ding. You step inside. Scuffed interior, flickering fluorescent light, button panel worn smooth from years of use. Where to?

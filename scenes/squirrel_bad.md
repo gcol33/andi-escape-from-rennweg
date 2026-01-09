@@ -1,6 +1,6 @@
 ---
 id: squirrel_bad
-bg: office_corridor.jpg
+bg: office_corridor.png
 ---
 
 You pull out your own snacks from your bag. Chips, chocolate, leftover pizza from some forgotten lunch meeting. "Oh, you brought your own food to feed them? That's so sweet!" Jen says, her eyes sparkling with what you assume is enthusiasm. You start tossing pizza crusts to the squirrels. They love it. A little TOO much.

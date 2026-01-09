@@ -891,243 +891,62 @@ var BattleDiceUI = (function() {
      * @param {Object} options - { container, attacker, rollResult, hit, damage, ..., onTextComplete }
      * @param {function} callback - Called AFTER linger delay
      */
+    /**
+     * Show attack roll - STEP 2: Plain text with styled keywords
+     * Format: "Andy rolled 18 <span class=hit>HIT!</span> deals 4 <span class=damage>DAMAGE</span>"
+     */
     function showAttackRoll(options, callback) {
         var container = options.container;
         var rollResult = options.rollResult;
-        var isPlayer = options.isPlayer !== false;
-        var onTextComplete = options.onTextComplete;  // Called BEFORE linger
+        var onTextComplete = options.onTextComplete;
 
         // Single line for everything
         var line = document.createElement('div');
         line.className = 'roll-result';
         container.appendChild(line);
 
-        // Phase 1: Type attacker name
-        typewriter(line, options.attacker + ' rolled ', function() {
-            // Get AC for determining when roll "hits"
-            var defenderAC = options.defenderAC || 10;
+        // Build the full message with styled keywords
+        var attackTotal = options.attackTotal || rollResult.roll;
 
-            // For attack rolls, start neutral (grey) - only turn yellow when we know it hits
-            // Exception: crits (nat 20) always hit, fumbles (nat 1) always miss
-            var initialRollType = 'neutral';
+        // Determine result text and class
+        var resultText, resultClass;
+        if (rollResult.isCrit) {
+            resultText = 'CRITICAL HIT!';
+            resultClass = getRollClass('hit', 'crit');
+        } else if (rollResult.isFumble) {
+            resultText = 'FUMBLE!';
+            resultClass = getRollClass('hit', 'fail');
+        } else if (options.hit) {
+            resultText = 'HIT!';
+            resultClass = getRollClass('hit', 'normal');
+        } else {
+            resultText = 'MISS!';
+            resultClass = getRollClass('neutral', 'normal');
+        }
+
+        // Build message with HTML spans for styled keywords
+        var message = options.attacker + ' rolled ' + attackTotal + ' ';
+        message += '<span class="roll-result-text ' + resultClass + '">' + resultText + '</span>';
+
+        // Add damage if hit
+        if (options.hit && options.damage) {
+            message += ' deals ' + options.damage + ' ';
+            message += '<span class="damage-text roll-type-damage">' + KEYWORDS.DAMAGE + '</span>';
+        }
+
+        // Typewrite the message (typewriter handles HTML tags)
+        typewriter(line, message, function() {
+            // Play sound based on result
             if (rollResult.isCrit) {
-                initialRollType = 'hit';  // Nat 20 always hits - show yellow immediately
+                playSfx('success.ogg');
             } else if (rollResult.isFumble) {
-                initialRollType = 'neutral';  // Nat 1 always misses - stays grey
-            } else if (rollResult.roll >= defenderAC) {
-                initialRollType = 'hit';  // Base roll alone beats AC - show yellow
-            }
-            // Otherwise stays neutral/grey until bonuses push it over
-
-            // Variable to track the winning dice element (for modifier collapse later)
-            var attackNum;
-
-            // Animate the d20 roll
-            if (rollResult.advantage || rollResult.disadvantage) {
-                // Pass hit info so winner color depends on whether attack hits
-                animateAdvantageRoll(line, rollResult, function(winnerElement) {
-                    attackNum = winnerElement;
-                    afterAttackRoll();
-                }, {
-                    defenderAC: defenderAC,
-                    hit: options.hit
-                });
-            } else {
-                // Create dice element for single attack roll
-                attackNum = document.createElement('strong');
-                attackNum.className = 'dice-number';
-                attackNum.textContent = '?';
-                line.appendChild(attackNum);
-                animateRoll(attackNum, rollResult, afterAttackRoll, initialRollType);
+                playSfx('fail.ogg');
+            } else if (options.hit) {
+                playSfx('thud.ogg');
             }
 
-            function afterAttackRoll() {
-                var attackModifiers = options.attackModifiers || [];
-                // options.attackTotal is the authoritative value from battle-dnd.js
-                var finalAttackTotal = options.attackTotal;
-
-                if (isPlayer && attackModifiers.length > 0) {
-                    // Show ALL modifiers first, then collapse them one by one
-                    // Pass AC so we can turn yellow when bonuses push us over
-                    showAllThenCollapseWithAC(line, attackNum, rollResult.roll, attackModifiers, defenderAC, rollResult, function(collapsedTotal) {
-                        // Safety: ensure displayed value matches actual attack total
-                        attackNum.textContent = finalAttackTotal;
-                        showHitMiss();
-                    });
-                } else {
-                    showHitMiss();
-                }
-            }
-
-            function showHitMiss() {
-                // Ensure dice shows final attack total (with bonuses) for all attackers
-                attackNum.textContent = finalAttackTotal;
-
-                // Add space before result
-                var space = document.createTextNode(' ');
-                line.appendChild(space);
-
-                // Determine result text and unified roll class
-                var resultText, rollClass, diceRollClass;
-                if (rollResult.isCrit) {
-                    resultText = KEYWORDS.CRITICAL_HIT;
-                    rollClass = getRollClass('hit', 'crit');
-                    diceRollClass = getRollClass('hit', 'crit');
-                } else if (rollResult.isFumble) {
-                    resultText = KEYWORDS.FUMBLE;
-                    rollClass = getRollClass('hit', 'fail');  // Fumble uses grey + fail emphasis
-                    diceRollClass = getRollClass('hit', 'fail');
-                } else if (options.hit) {
-                    resultText = KEYWORDS.HIT;
-                    rollClass = getRollClass('hit', 'normal');
-                    diceRollClass = getRollClass('hit', 'normal');
-                } else {
-                    resultText = KEYWORDS.MISS;
-                    rollClass = getRollClass('neutral', 'normal');  // Miss is neutral/grey
-                    diceRollClass = getRollClass('neutral', 'normal');  // Dice should also be grey for miss
-                }
-
-                // Update the attack dice color to match hit/miss outcome
-                // Remove any existing roll classes and apply the correct one
-                attackNum.className = attackNum.className.replace(/roll-\w+-\w+/g, '');
-                attackNum.classList.add(diceRollClass);
-
-                var resultSpan = document.createElement('span');
-                resultSpan.className = 'roll-result-text ' + rollClass;
-                line.appendChild(resultSpan);
-
-                // Typewrite the result text, then continue
-                typewriter(resultSpan, resultText, function() {
-                    // Play sound after text finishes
-                    if (rollResult.isCrit) {
-                        playSfx('success.ogg');
-                    } else if (rollResult.isFumble) {
-                        playSfx('fail.ogg');
-                    } else if (options.hit) {
-                        playSfx('thud.ogg');
-                    }
-
-                    if (!options.hit) {
-                        // Miss - call onTextComplete before linger
-                        if (onTextComplete) onTextComplete();
-                        diceTimeout(callback, config.lingerDelay);
-                        return;
-                    }
-
-                    // Continue with damage on same line
-                    diceTimeout(showDamage, 400);
-                });
-            }
-
-            function showDamage() {
-                // Add " deals " text
-                typewriter(line, ' deals ', function() {
-                    // IMPORTANT: Use final damage value for consistency
-                    // options.damage is the authoritative value from battle-dnd.js
-                    var finalDamage = options.damage;
-                    var baseDamageRoll = options.baseDamageRoll || finalDamage;
-                    var damageModifiers = options.damageModifiers || [];
-
-                    // Check if damage has advantage/disadvantage
-                    var hasDamageAdvantage = options.damageAdvantage && options.damageRolls;
-                    var hasDamageDisadvantage = options.damageDisadvantage && options.damageRolls;
-
-                    // If no modifiers to show, animate directly to final damage
-                    // Show modifiers for player attacks OR for enemy attacks with defend reduction
-                    var hasCollapsibleModifiers = damageModifiers.length > 0;
-                    var displayRoll = hasCollapsibleModifiers ? baseDamageRoll : finalDamage;
-
-                    // Determine damage result category
-                    var damageResultCategory = 'normal';
-                    if (rollResult.isCrit) {
-                        damageResultCategory = 'crit';
-                    } else if (options.isMaxDamage) {
-                        damageResultCategory = 'max';
-                    } else if (options.isMinDamage) {
-                        damageResultCategory = 'min';
-                    }
-
-                    // Shorter spin for damage
-                    var originalDuration = config.spinDuration;
-                    config.spinDuration = 1000;
-
-                    if (hasDamageAdvantage || hasDamageDisadvantage) {
-                        // Show two damage dice for advantage/disadvantage
-                        var damageAdvResult = {
-                            roll: displayRoll,
-                            rolls: options.damageRolls,
-                            sides: 6,
-                            advantage: hasDamageAdvantage,
-                            disadvantage: hasDamageDisadvantage,
-                            isCrit: rollResult.isCrit,
-                            isMax: options.isMaxDamage === true,
-                            isMin: options.isMinDamage === true
-                        };
-
-                        animateAdvantageDamageRoll(line, damageAdvResult, function(damageNum) {
-                            config.spinDuration = originalDuration;
-
-                            if (hasCollapsibleModifiers) {
-                                showAllThenCollapse(line, damageNum, baseDamageRoll, damageModifiers, function(collapsedTotal) {
-                                    damageNum.textContent = finalDamage;
-                                    showDamageText(damageResultCategory);
-                                });
-                            } else {
-                                showDamageText(damageResultCategory);
-                            }
-                        });
-                    } else {
-                        // Single damage die (normal roll)
-                        var damageNum = document.createElement('strong');
-                        damageNum.className = 'dice-number damage-dice';
-                        damageNum.textContent = '?';
-                        line.appendChild(damageNum);
-
-                        var damageRollResult = {
-                            roll: displayRoll,
-                            sides: 6,
-                            isCrit: rollResult.isCrit,
-                            isFumble: false,
-                            isMax: options.isMaxDamage === true,
-                            isMin: options.isMinDamage === true
-                        };
-
-                        // Pass 'damage' as roll type for unified styling
-                        animateRoll(damageNum, damageRollResult, function() {
-                            config.spinDuration = originalDuration;
-
-                            if (hasCollapsibleModifiers) {
-                                // Collapse modifiers, ensuring final value equals options.damage
-                                showAllThenCollapse(line, damageNum, baseDamageRoll, damageModifiers, function(collapsedTotal) {
-                                    // Safety: ensure displayed value matches actual damage
-                                    damageNum.textContent = finalDamage;
-                                    showDamageText(damageResultCategory);
-                                });
-                            } else {
-                                // No modifiers - value already shows finalDamage
-                                showDamageText(damageResultCategory);
-                            }
-                        }, 'damage');
-                    }
-                });
-            }
-
-            function showDamageText(damageResultCategory) {
-                var space = document.createTextNode(' ');
-                line.appendChild(space);
-
-                var damageText = document.createElement('span');
-                // Just red color for text, no special outline/glow
-                damageText.className = 'damage-text roll-type-damage';
-                line.appendChild(damageText);
-
-                // Typewrite "DAMAGE" letter-by-letter
-                typewriter(damageText, KEYWORDS.DAMAGE, function() {
-                    // Call onTextComplete before linger (so effects apply when text finishes)
-                    if (onTextComplete) onTextComplete();
-                    diceTimeout(callback, config.lingerDelay);
-                });
-            }
+            if (onTextComplete) onTextComplete();
+            diceTimeout(callback, config.lingerDelay);
         });
     }
 
@@ -1425,14 +1244,16 @@ var BattleDiceUI = (function() {
      * @param {Object} options - { container, healAmount, healRolled, healer, isMaxHeal, isMinHeal, hasHealAdvantage, hasHealDisadvantage, healRolls, onTextComplete }
      * @param {function} callback - Called AFTER linger delay
      */
+    /**
+     * Show heal roll - STEP 2: Plain text with styled keywords
+     * Format: "Andy rolled 5 <span class=heal>HEALED!</span>"
+     */
     function showHealRoll(options, callback) {
         var container = options.container;
-        var healAmount = options.healAmount;        // Actual heal (after HP cap)
-        var healRolled = options.healRolled || healAmount;  // Rolled amount (before cap)
+        var healAmount = options.healAmount;
         var healerName = options.healer || 'Enemy';
-        var overheal = healRolled - healAmount;     // Amount wasted due to HP cap
-        var onTextComplete = options.onTextComplete;  // Called BEFORE linger
-        var itemCooldown = options.itemCooldown || 0;  // Item cooldown to display after heal
+        var onTextComplete = options.onTextComplete;
+        var itemCooldown = options.itemCooldown || 0;
 
         // Defensive check for container
         if (!container) {
@@ -1447,71 +1268,17 @@ var BattleDiceUI = (function() {
         line.className = 'roll-result heal-roll';
         container.appendChild(line);
 
-        // Determine heal result category
-        var healResultCategory = 'normal';
-        if (options.isMaxHeal) {
-            healResultCategory = 'max';
-        } else if (options.isMinHeal) {
-            healResultCategory = 'min';
+        // Build message with styled keyword
+        var message = healerName + ' rolled ' + healAmount + ' ';
+        message += '<span class="roll-result-text roll-type-heal">' + KEYWORDS.HEALED + '</span>';
+        if (itemCooldown > 0) {
+            message += ' Cooldown ' + itemCooldown;
         }
 
-        // Phase 1: Type healer name
-        typewriter(line, healerName + ' rolled ', function() {
-            // Check for advantage/disadvantage heal roll
-            if ((options.hasHealAdvantage || options.hasHealDisadvantage) && options.healRolls && options.healRolls.length === 2) {
-                // Show advantage animation for heal (2 dice, winner pops up green)
-                var healAdvResult = {
-                    rolls: options.healRolls,
-                    total: healRolled,
-                    advantage: options.hasHealAdvantage,
-                    disadvantage: options.hasHealDisadvantage,
-                    isMaxHeal: options.isMaxHeal,
-                    isMinHeal: options.isMinHeal
-                };
-
-                animateAdvantageHealRoll(line, healAdvResult, function(healNum) {
-                    // If there's overheal, show the reduction then collapse
-                    if (overheal > 0) {
-                        showOverhealCollapse(line, healNum, healRolled, overheal, healAmount, healResultCategory, callback, onTextComplete, itemCooldown);
-                    } else {
-                        // No overheal - just show HEALED!
-                        finishHealDisplay(line, healResultCategory, callback, onTextComplete, itemCooldown);
-                    }
-                });
-            } else {
-                // Normal single dice roll
-                var healNum = document.createElement('strong');
-                healNum.className = 'dice-number';
-                healNum.textContent = '?';
-                line.appendChild(healNum);
-
-                // Create roll result for animation - show the ROLLED amount first
-                var healRollResult = {
-                    roll: healRolled,
-                    sides: 6,
-                    isCrit: false,
-                    isFumble: false,
-                    isMax: options.isMaxHeal && overheal === 0,  // Only show max if no overheal
-                    isMin: options.isMinHeal
-                };
-
-                // Shorter spin for heal
-                var originalDuration = config.spinDuration;
-                config.spinDuration = 1000;
-
-                // Pass 'heal' as roll type for unified styling (green base color)
-                animateRoll(healNum, healRollResult, function() {
-                    config.spinDuration = originalDuration;
-
-                    // If there's overheal, show the reduction then collapse
-                    if (overheal > 0) {
-                        showOverhealCollapse(line, healNum, healRolled, overheal, healAmount, healResultCategory, callback, onTextComplete, itemCooldown);
-                    } else {
-                        // No overheal - just show HEALED!
-                        finishHealDisplay(line, healResultCategory, callback, onTextComplete, itemCooldown);
-                    }
-                }, 'heal');
-            }
+        typewriter(line, message, function() {
+            playSfx('heal.ogg');
+            if (onTextComplete) onTextComplete();
+            diceTimeout(callback, config.lingerDelay);
         });
     }
 
@@ -1708,6 +1475,10 @@ var BattleDiceUI = (function() {
      * @param {Object} options - { container, defender, cooldown }
      * @param {function} callback
      */
+    /**
+     * Show defend roll - STEP 1: Plain text only
+     * Format: "Andy takes a defensive stance! Cooldown 2"
+     */
     function showDefendRoll(options, callback) {
         var container = options.container;
         var defenderName = options.defender || 'Player';
@@ -1718,31 +1489,14 @@ var BattleDiceUI = (function() {
         line.className = 'roll-result defend-roll';
         container.appendChild(line);
 
-        // Defend flavor text
-        var introText = defenderName + ' takes a defensive stance!';
+        // Build message as plain text
+        var message = defenderName + ' takes a defensive stance!';
+        if (cooldown > 0) {
+            message += ' Cooldown ' + cooldown;
+        }
 
-        typewriter(line, introText, function() {
-            if (cooldown > 0) {
-                // Add cooldown label text
-                var cooldownLabel = document.createElement('span');
-                cooldownLabel.className = 'defend-cooldown-text';
-                line.appendChild(cooldownLabel);
-
-                // Typewrite cooldown text
-                typewriter(cooldownLabel, ' Cooldown ', function() {
-                    // Add cooldown number
-                    var cooldownNum = document.createElement('span');
-                    cooldownNum.className = 'defend-cooldown-number';
-                    line.appendChild(cooldownNum);
-
-                    // Typewrite the number
-                    typewriter(cooldownNum, String(cooldown), function() {
-                        diceTimeout(callback, config.lingerDelay);
-                    });
-                });
-            } else {
-                diceTimeout(callback, config.lingerDelay);
-            }
+        typewriter(line, message, function() {
+            diceTimeout(callback, config.lingerDelay);
         });
     }
 
@@ -1762,10 +1516,13 @@ var BattleDiceUI = (function() {
      * @param {string} options.damageText - Text after damage (default "DAMAGE")
      * @param {function} callback - Called when animation completes
      */
+    /**
+     * Show simple damage roll - STEP 2: Plain text with styled keywords
+     * Format: "Andi hits themselves! 3 <span class=damage>DAMAGE</span>"
+     */
     function showSimpleDamageRoll(options, callback) {
         var container = options.container;
         var damage = options.damage;
-        var sides = options.sides || 5;
         var damageText = options.damageText || KEYWORDS.DAMAGE;
         var onTextComplete = options.onTextComplete;
 
@@ -1775,44 +1532,15 @@ var BattleDiceUI = (function() {
         line.className = 'roll-result';
         container.appendChild(line);
 
-        // Phase 1: Type the intro text
-        typewriter(line, options.text, function() {
-            // Phase 2: Create and animate the damage dice
-            var damageNum = document.createElement('strong');
-            damageNum.className = 'dice-number';
-            damageNum.textContent = '?';
-            line.appendChild(damageNum);
+        // Build message with styled keyword
+        var message = options.text + damage + ' ';
+        message += '<span class="damage-text roll-type-damage">' + damageText + '</span>';
 
-            // Shorter spin for simple damage rolls
-            var originalDuration = config.spinDuration;
-            config.spinDuration = 800;
-
-            animateRoll(damageNum, {
-                roll: damage,
-                sides: sides,
-                isCrit: false,
-                isFumble: false,
-                isMax: damage === sides,
-                isMin: damage === 1
-            }, function() {
-                config.spinDuration = originalDuration;
-
-                // Phase 3: Add damage text with typewriter
-                var textSpan = document.createElement('span');
-                textSpan.className = 'damage-text roll-type-damage';
-                line.appendChild(textSpan);
-
-                // Typewrite the damage text (e.g., " DAMAGE")
-                typewriter(textSpan, ' ' + damageText, function() {
-                    // Call onTextComplete before linger (for applying effects)
-                    if (onTextComplete) onTextComplete();
-
-                    // Linger then callback
-                    diceTimeout(function() {
-                        if (callback) callback();
-                    }, config.lingerDelay);
-                });
-            }, 'damage');
+        typewriter(line, message, function() {
+            if (onTextComplete) onTextComplete();
+            diceTimeout(function() {
+                if (callback) callback();
+            }, config.lingerDelay);
         });
     }
 

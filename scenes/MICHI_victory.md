@@ -1,6 +1,6 @@
 ---
 id: MICHI_victory
-bg: hallway_fluorescent.jpg
+bg: elevator_path.png
 music: victory.mp3
 set_flags:
   - michi_defeated

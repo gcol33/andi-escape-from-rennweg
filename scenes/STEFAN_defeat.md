@@ -1,6 +1,6 @@
 ---
 id: STEFAN_defeat
-bg: stairwell_landing.jpg
+bg: staircase_elevator.png
 music: game_over.mp3
 ending_title: "BAD ENDING: Haunted by Hardware"
 ---

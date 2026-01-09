@@ -20,17 +20,55 @@
     --z-modal: 1000;         /* Password screen, popups */
 }
 
-/* === Typography === */
+/* === Textbox Scale ===
+ * Single tuning point for all text box UI elements.
+ * All sizes use cqw (container query width) for consistent scaling.
+ * Adjust --textbox-scale to resize everything proportionally.
+ *
+ * NOTE: cqw units must be computed INSIDE #vn-container (the container query context).
+ * Variables defined on :root use vw as fallback since :root has no container.
+ */
 :root {
-    /* Base font size - responsive with min/max bounds (+20%) */
-    --base-font-size-fallback: 1.35rem;  /* ~22px */
-    --base-font-size: clamp(1.2rem, 1.7vw, 1.8rem);  /* 19px-29px */
+    /* MASTER TUNING: Adjust this single value to scale all textbox UI */
+    --textbox-scale: 1.18;  /* 1 = default, 0.8 = 20% smaller, 1.2 = 20% larger */
 
-    /* Story text sizing - scales with viewport for consistent line wrapping */
-    /* Compact sizing for 25-30% text box height */
-    --story-font-size-fallback: 0.7rem;  /* Fallback for older browsers */
-    --story-font-size: 1.15vw;  /* Compact: ~9px at 800px, ~12px at 1000px */
+    /* Fallback values (used before container context is established) */
+    --story-font-size-fallback: 0.85rem;
+    --base-font-size-fallback: 1.35rem;
     --story-line-height: 1.5;
+
+    /* 5) Text box container height (% of game container) */
+    --textbox-max-height: 50%;
+    --textbox-max-height-ending: 60%;
+}
+
+/* Container-relative sizes - computed inside the query container
+ * container-type: inline-size makes this a container query context
+ * so cqw units scale relative to #vn-container width, not viewport */
+#vn-container {
+    container-type: inline-size;
+    container-name: game;
+
+    /* 1) Story text */
+    --story-font-size-base: 1.3cqw;
+    --story-font-size: calc(var(--story-font-size-base) * var(--textbox-scale));
+
+    /* 2) Choice/Continue buttons */
+    --choice-font-size-base: 1.2cqw;
+    --choice-font-size: calc(var(--choice-font-size-base) * var(--textbox-scale));
+    --continue-font-size: var(--choice-font-size);
+
+    /* 3) Speed/Volume control buttons */
+    --control-font-size-base: 1.1cqw;
+    --control-font-size: calc(var(--control-font-size-base) * var(--textbox-scale));
+
+    /* 4) Menu button */
+    --menu-font-size-base: 1.1cqw;
+    --menu-font-size: calc(var(--menu-font-size-base) * var(--textbox-scale));
+
+    /* 5) Base font size (used by battle UI, etc.)
+     * Uses vw not cqw - battle UI should scale with viewport, not container */
+    --base-font-size: clamp(1.2rem, 1.7vw, 1.8rem);
 
     /* Fixed-height text box mode
      * --story-fixed-height is set by JS at runtime via measureTextHeight()
@@ -48,14 +86,10 @@
      */
     --text-button-gap: 0.25rem;  /* 4px - minimal separation */
 
-    /* UI element sizing - controls stay readable */
-    --button-font-size: 0.76rem;
+    /* UI element sizing - legacy, kept for compatibility */
+    --button-font-size: var(--control-font-size);
     --small-font-size: 0.75rem;
     --label-font-size: 0.72rem;
-
-    /* Choice/continue button sizing - compact for 25-30% text box */
-    --choice-font-size: 0.7rem;
-    --continue-font-size: 0.7rem;
 
     /* Spacing - using rem for scalability (1rem = 16px at default) */
     --spacing-xs: 0.25rem;   /* 4px */
@@ -152,8 +186,9 @@
     --stats-panel-width: 17.5rem;
     --stats-panel-width-mobile: 8.75rem;
 
-    /* Battle log height (used for bottom positioning) */
-    --battle-log-height: 9rem;  /* Compact button layout */
+    /* Battle log height (used for bottom positioning)
+       Default: 2 lines * 2.2rem = 4.4rem + 4.5rem + 1rem = 9.9rem */
+    --battle-log-height: 10rem;
 
     /* Button area reserved height - fixed for rows of buttons */
     /* 2 rows × ~1.6em button height + gap + padding = ~4em */
@@ -163,12 +198,6 @@
 
 /* === Battle Panel Colors === */
 :root {
-    /* Battle log panel height - dynamically calculated in JS based on:
-       - battleLogMaxLines * battleLogLineHeight (log content)
-       - ~4.5rem (battle choices - 2 rows of compact buttons + gap)
-       - 1rem (panel padding)
-       Default: 2 lines * 2.2rem = 4.4rem + 4.5rem + 1rem = 9.9rem */
-    --battle-log-height: 10rem;
 
     --battle-hp-high: #4caf50;
     --battle-hp-medium: #ff9800;
@@ -207,8 +236,9 @@
 /* === Theme-Specific Overrides === */
 
 /* Pixel font themes need smaller base sizes */
-.theme-nes,
-.theme-snes {
+/* Note: These selectors require theme classes on container or children */
+#vn-container.theme-nes,
+#vn-container.theme-snes {
     --base-font-size-fallback: 1rem;  /* 16px */
-    --base-font-size: clamp(0.875rem, 1.15vw, 1.125rem);  /* 14px-18px */
+    --base-font-size: clamp(0.875rem, 1.15vw, 1.125rem);  /* 14px-18px, viewport-relative */
 }

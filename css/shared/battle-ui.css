@@ -1065,7 +1065,7 @@
 .dice-number {
     display: inline-block;
     font-size: var(--battle-special-size);
-    line-height: 1;
+    line-height: inherit;  /* Inherit from parent to prevent layout shifts */
     vertical-align: baseline;
     transition: transform 0.1s ease-out;
     /* Prevent faux-bold and white outline artifacts */
@@ -1138,7 +1138,7 @@
     display: inline;
     opacity: 0;
     font-size: var(--battle-special-size);
-    line-height: 1;
+    line-height: inherit;  /* Inherit from parent to prevent layout shifts */
     vertical-align: baseline;
     color: var(--battle-number-color);  /* Modifier values are yellow (e.g., "+ 3") */
 }
@@ -1226,7 +1226,7 @@
     display: inline;
     font-weight: normal;
     font-size: var(--battle-text-size);
-    line-height: 1;
+    line-height: inherit;  /* Inherit from parent to prevent layout shifts */
     vertical-align: baseline;
     -webkit-text-stroke: 0;
 }

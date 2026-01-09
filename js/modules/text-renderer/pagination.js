@@ -94,7 +94,9 @@ var Pagination = (function() {
             maxHeight = measurer.offsetHeight;
         }
 
-        return maxHeight;
+        // Apply safety margin (5%) to account for font rendering differences
+        // between measurer and actual display, especially on mobile
+        return maxHeight * 0.95;
     }
 
     /**

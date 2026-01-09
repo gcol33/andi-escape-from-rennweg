@@ -1,5 +1,6 @@
 ---
 id: jk_return
+bg: office_corridor.png
 ---
 
 You continue on your way through the building.

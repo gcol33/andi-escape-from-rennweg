@@ -1,6 +1,6 @@
 ---
 id: MICHI_defeat
-bg: hallway_fluorescent.jpg
+bg: elevator_path.png
 music: game_over.mp3
 ending_title: "BAD ENDING: Whiteboard Warrior's Triumph"
 ---

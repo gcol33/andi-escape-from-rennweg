@@ -1,6 +1,6 @@
 ---
 id: ending_early_exit
-bg: sunny_street_freedom.jpg
+bg: gate_exit.png
 music: game_over.mp3
 chars:
   - cat_5.svg

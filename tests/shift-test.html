@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Battle Log Shift Test</title>
+    <!-- Load the real CSS files -->
+    <link rel="stylesheet" href="../css/shared/variables.css">
+    <link rel="stylesheet" href="../css/shared/roll-system.css">
+    <link rel="stylesheet" href="../css/shared/battle-ui.css">
+    <link rel="stylesheet" href="../css/components/battle-log.css">
+    <style>
+        body {
+            background: #222;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        #vn-container {
+            width: 1280px;
+            height: 720px;
+            position: relative;
+            background: #333;
+            font-size: 23px; /* Simulates the game's scaling */
+        }
+        .controls {
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            margin-right: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #position-log {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.9);
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            width: 400px;
+        }
+        .shift-detected {
+            color: #f44;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <button onclick="typeAttackRoll()">Type Attack Roll</button>
+        <button onclick="typeWithDiceRoll()">Type With Dice Spin</button>
+        <button onclick="clearRows()">Clear Rows</button>
+        <button onclick="shiftRows()">Shift Rows (row2→row1)</button>
+        <button onclick="reset()">Reset All</button>
+    </div>
+
+    <div id="vn-container">
+        <!-- Battle log panel - exact structure from real game -->
+        <div class="battle-log-panel anchor anchor--bottom-flush" style="position: absolute; bottom: 0; left: 0; right: 0;">
+            <div id="battle-log-content" class="battle-log-content">
+                <div id="battle-log-row-1" class="battle-log-row"></div>
+                <div id="battle-log-row-2" class="battle-log-row"></div>
+            </div>
+            <div class="battle-choices">
+                <button class="choice-button">Attack</button>
+                <button class="choice-button">Skills</button>
+                <button class="choice-button">Defend</button>
+                <button class="choice-button">Items</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="position-log"></div>
+
+    <script>
+        const row1 = document.getElementById('battle-log-row-1');
+        const row2 = document.getElementById('battle-log-row-2');
+        const log = document.getElementById('position-log');
+
+        let basePositions = null;
+        let monitoring = false;
+        let logEntries = [];
+
+        function logPosition(label) {
+            const rect1 = row1.getBoundingClientRect();
+            const rect2 = row2.getBoundingClientRect();
+
+            if (!basePositions) {
+                basePositions = { row1Top: rect1.top, row2Top: rect2.top };
+            }
+
+            const shift1 = rect1.top - basePositions.row1Top;
+            const shift2 = rect2.top - basePositions.row2Top;
+            const hasShift = Math.abs(shift1) > 0.1 || Math.abs(shift2) > 0.1;
+
+            const entry = `[${label}] row1: ${rect1.top.toFixed(2)} (shift: ${shift1.toFixed(2)}), row2: ${rect2.top.toFixed(2)} (shift: ${shift2.toFixed(2)})`;
+
+            if (hasShift) {
+                logEntries.push(`<span class="shift-detected">${entry} &lt;&lt; SHIFT!</span>`);
+                // Update base after shift detected
+                basePositions = { row1Top: rect1.top, row2Top: rect2.top };
+            } else {
+                logEntries.push(entry);
+            }
+
+            log.innerHTML = logEntries.join('<br>');
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function startMonitoring() {
+            if (monitoring) return;
+            monitoring = true;
+
+            function monitor() {
+                if (!monitoring) return;
+                logPosition('frame');
+                requestAnimationFrame(monitor);
+            }
+            requestAnimationFrame(monitor);
+        }
+
+        function stopMonitoring() {
+            monitoring = false;
+        }
+
+        // Type "Andy rolled 18 HIT, 4 DAMAGE" character by character
+        async function typeAttackRoll() {
+            logEntries = [];
+            basePositions = null;
+            row2.innerHTML = '';
+
+            logPosition('START');
+
+            // Type "Andy rolled "
+            const text1 = 'Andy rolled ';
+            for (let char of text1) {
+                row2.appendChild(document.createTextNode(char));
+                logPosition(`char: "${char}"`);
+                await delay(30);
+            }
+
+            // Add dice number
+            const num = document.createElement('strong');
+            num.className = 'dice-number roll-hit-normal';
+            num.textContent = '18';
+            row2.appendChild(num);
+            logPosition('dice: 18');
+            await delay(100);
+
+            // Add space
+            row2.appendChild(document.createTextNode(' '));
+            logPosition('space');
+            await delay(30);
+
+            // Add HIT span character by character
+            const hit = document.createElement('span');
+            hit.className = 'roll-hit-normal';
+            row2.appendChild(hit);
+            logPosition('HIT span created');
+
+            for (let char of 'HIT') {
+                hit.textContent += char;
+                logPosition(`HIT: "${hit.textContent}"`);
+                await delay(30);
+            }
+
+            // Add ", "
+            row2.appendChild(document.createTextNode(', '));
+            logPosition('comma space');
+            await delay(30);
+
+            // Add damage number
+            const dmgNum = document.createElement('strong');
+            dmgNum.className = 'dice-number roll-damage-normal';
+            dmgNum.textContent = '4';
+            row2.appendChild(dmgNum);
+            logPosition('damage: 4');
+            await delay(100);
+
+            // Add space
+            row2.appendChild(document.createTextNode(' '));
+            logPosition('space before DAMAGE');
+            await delay(30);
+
+            // Add DAMAGE span character by character
+            const dmg = document.createElement('span');
+            dmg.className = 'damage-text roll-type-damage';
+            row2.appendChild(dmg);
+            logPosition('DAMAGE span created');
+
+            for (let char of 'DAMAGE') {
+                dmg.textContent += char;
+                logPosition(`DAMAGE: "${dmg.textContent}"`);
+                await delay(30);
+            }
+
+            logPosition('COMPLETE');
+
+            // Now simulate what happens after - shift rows
+            await delay(500);
+            logPosition('Before shift');
+            shiftRows();
+            logPosition('After shift');
+        }
+
+        function clearRows() {
+            row1.innerHTML = '';
+            row2.innerHTML = '';
+            basePositions = null;
+            logPosition('CLEARED');
+        }
+
+        function shiftRows() {
+            row1.innerHTML = row2.innerHTML;
+            row2.innerHTML = '';
+            logPosition('SHIFTED');
+        }
+
+        function reset() {
+            clearRows();
+            logEntries = [];
+            log.innerHTML = '';
+            basePositions = null;
+        }
+
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Initial position log
+        logPosition('INIT');
+    </script>
+</body>
+</html>

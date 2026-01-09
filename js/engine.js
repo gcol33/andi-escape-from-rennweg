@@ -3540,6 +3540,7 @@ var VNEngine = (function() {
             elements.choicesContainer.innerHTML = '';
 
             var textToRender = state.pagination.pages[state.pagination.currentPage];
+            // Pass true for isPaginatedContinuation to prevent showing "(read)" indicator
             renderText(textToRender, '', function() {
                 var scene = story[state.currentSceneId];
                 var textBlocks = state.processedTextBlocks || scene.textBlocks || [];
@@ -3576,7 +3577,7 @@ var VNEngine = (function() {
                             : setTimeout(advanceTextBlock, config.skipModeDelay);
                     }
                 }
-            });
+            }, true);
             return;
         }
 
@@ -3660,7 +3661,7 @@ var VNEngine = (function() {
         choicesContainer.style.display = 'flex';
     }
 
-    function renderText(text, prependContent, onComplete) {
+    function renderText(text, prependContent, onComplete, isPaginatedContinuation) {
         prependContent = prependContent || '';
 
         // Convert markdown bold (**text**) to HTML <strong>
@@ -3675,12 +3676,18 @@ var VNEngine = (function() {
         // Skip read tracking for wake_up scene (respawn screen never shows "(read)")
         var isRespawnScreen = state.currentSceneId === 'wake_up';
 
-        // Check if this block was already read
+        // Check if this block was already read (only on first page, not paginated continuations)
         var blockKey = state.currentSceneId + ':' + state.currentBlockIndex;
         var alreadyRead = isRespawnScreen ? false : state.readBlocks[blockKey];
 
-        // Mark block as read (but not for respawn screen)
-        if (!isRespawnScreen) {
+        // For paginated continuations, we already marked the block as read on page 1
+        // Don't show "(read)" indicator since user is still reading the same block
+        if (isPaginatedContinuation) {
+            alreadyRead = false;
+        }
+
+        // Mark block as read (but not for respawn screen, and only on first page)
+        if (!isRespawnScreen && !isPaginatedContinuation) {
             state.readBlocks[blockKey] = true;
         }
 

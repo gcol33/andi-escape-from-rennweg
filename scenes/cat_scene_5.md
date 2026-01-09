@@ -1,6 +1,6 @@
 ---
 id: cat_scene_5
-bg: sunny_street_freedom.jpg
+bg: gate_exit.png
 chars:
   - cat_5.svg
 set_flags:

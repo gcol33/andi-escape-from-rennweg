@@ -1,6 +1,6 @@
 ---
 id: squirrel_good
-bg: sunny_street_freedom.jpg
+bg: gate_exit.png
 set_skills:
   - Rooftop Discovery
 ---
