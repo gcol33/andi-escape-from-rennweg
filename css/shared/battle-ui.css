@@ -640,7 +640,7 @@
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr 1fr;
     padding: 0.25rem 0.25rem 0;  /* Minimal padding, none at bottom */
-    margin-top: 0.75em;  /* Space between log text and buttons */
+    margin-top: 0.4em;  /* Space between log text and buttons */
     height: auto;  /* Let content determine height */
 }
 

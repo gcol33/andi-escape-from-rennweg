@@ -32,8 +32,8 @@
 
 /* === Log Content Area === */
 .battle-log-content {
-    /* Height: 2 rows × 1.8em line-height = 3.6em content + 0.8em padding = 4.4em */
-    height: 4.4em;  /* 2 lines at 1.8 line-height + vertical padding */
+    /* Height: 2 rows × 1.8em line-height = 3.6em */
+    height: 3.6em;  /* 2 lines at 1.8 line-height */
     box-sizing: border-box;
     overflow-y: auto;
     overflow-x: hidden;

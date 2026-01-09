@@ -188,7 +188,7 @@
 
     /* Battle log height (used for bottom positioning)
        Empirically tuned to position player stats panel above battle log */
-    --battle-log-height: 16em;
+    --battle-log-height: 14.35em;
 
     /* Button area reserved height - fixed for rows of buttons */
     /* 2 rows × ~1.6em button height + gap + padding = ~4em */
