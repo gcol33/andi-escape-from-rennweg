@@ -1,7 +1,7 @@
 ---
 id: coffee_end
 bg: kitchen.png
-ending_title: "BAD ENDING: Death by Decaf (It Wasn't Decaf)"
+ending_title: "BAD ENDING: Coffee Ascension"
 ---
 
 You drink the suspicious coffee. It tastes like someone dissolved a battery in lukewarm water and added despair. For a moment, nothing happens. Then everything happens.
