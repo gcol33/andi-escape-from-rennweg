@@ -316,7 +316,7 @@ const TUNING = {
 
             // Battle log sizing
             battleLogMaxLines: 2,           // Number of fixed rows in battle log
-            battleLogLineHeight: 1.6,       // Line-height multiplier for each fixed row
+            battleLogLineHeight: 1.8,       // Line-height multiplier for each fixed row
             battleLogPadding: 0.5,          // Total vertical padding in rem (0.25 top + 0.25 bottom)
             battleLogRowGap: 0.2,           // Gap between rows in rem
             battleLogScrollThreshold: 5,    // Deprecated - fixed rows don't scroll

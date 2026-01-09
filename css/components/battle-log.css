@@ -32,16 +32,14 @@
 
 /* === Log Content Area === */
 .battle-log-content {
-    /* Height set by JS measurement for accurate scaling */
-    /* Fallback uses em which scales with font-size */
-    height: 3.5em;  /* Fallback: ~2 lines at 1.6 line-height + padding */
-    height: var(--battle-log-measured-height, 3.5em);  /* JS-measured exact height */
+    /* Height: 2 rows × 1.8em line-height = 3.6em content + 0.8em padding = 4.4em */
+    height: 4.4em;  /* 2 lines at 1.8 line-height + vertical padding */
     box-sizing: border-box;
     overflow-y: auto;
     overflow-x: hidden;
     padding: 0.4em 0.8em;
     font-size: var(--battle-text-size, 1.1rem);
-    line-height: 1.6;  /* Must match TUNING.ui.battleLogLineHeight */
+    line-height: 1.8;  /* Must match TUNING.ui.battleLogLineHeight */
     color: var(--battle-text-color, #fff);
     flex-shrink: 0;
     /* Hide scrollbar */
@@ -58,9 +56,9 @@
 /* === Row Containers === */
 .battle-log-row {
     display: block;
-    min-height: 1.6em;  /* Match line-height for consistent height */
-    max-height: 1.6em;  /* Enforce single line height */
-    line-height: 1.6;
+    min-height: 1.8em;  /* Slightly taller to show descenders (y, g, p) */
+    max-height: 1.8em;  /* Enforce single line height */
+    line-height: 1.8;   /* Match height for proper vertical centering */
     white-space: nowrap;  /* Prevent CSS line wrapping - let JS handle overflow */
     overflow: hidden;     /* Hide overflowing text until JS splits it */
 }
@@ -154,8 +152,9 @@
 .roll-result .dice-number.roll-neutral-normal,
 .roll-result .dice-number.roll-hit-fail,
 .dice-number.roll-neutral-normal,
-.dice-number.roll-hit-fail {
-    color: var(--roll-color-neutral, #888);
+.dice-number.roll-hit-fail,
+.roll-hit-fail {
+    color: var(--roll-color-neutral, #888) !important;
 }
 
 /* Highlight numbers in messages */

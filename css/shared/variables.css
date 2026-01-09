@@ -187,8 +187,8 @@
     --stats-panel-width-mobile: 8.75rem;
 
     /* Battle log height (used for bottom positioning)
-       Log content (~3.5em) + battle choices grid (~8em) + padding = ~13em */
-    --battle-log-height: 13em;
+       Empirically tuned to position player stats panel above battle log */
+    --battle-log-height: 16em;
 
     /* Button area reserved height - fixed for rows of buttons */
     /* 2 rows × ~1.6em button height + gap + padding = ~4em */

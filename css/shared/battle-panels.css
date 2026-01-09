@@ -28,7 +28,8 @@
 
 .battle-stats-panel.player-stats {
     /* Override bottom position to account for battle log panel */
-    bottom: calc(var(--battle-log-height) + 0.625rem);
+    /* Use --space-md (0.75rem) to match enemy stats gap from top */
+    bottom: calc(var(--battle-log-height) + var(--space-md, 0.75rem));
     /* left comes from .anchor--bottom-left */
 }
 
