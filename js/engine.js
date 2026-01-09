@@ -3395,6 +3395,15 @@ var VNEngine = (function() {
     function renderScene(scene, prependContent, entrySfx) {
         prependContent = prependContent || '';
 
+        // Gate scenes: no text blocks + only goto actions = execute immediately without rendering
+        var textBlocks = scene.textBlocks || [];
+        var hasOnlyGotoActions = scene.actions && scene.actions.length > 0 &&
+            scene.actions.every(function(a) { return a.type === 'goto'; });
+        if (textBlocks.length === 0 && hasOnlyGotoActions) {
+            executeActions();
+            return;
+        }
+
         // Update background if specified
         if (scene.bg) {
             setBackground(scene.bg);
@@ -3474,14 +3483,6 @@ var VNEngine = (function() {
 
         // Use processed text blocks (auto-split for non-ending scenes)
         var textBlocks = state.processedTextBlocks || scene.textBlocks || [];
-
-        // Gate scenes: no text blocks + only goto actions = execute immediately without rendering
-        var hasOnlyGotoActions = scene.actions && scene.actions.length > 0 &&
-            scene.actions.every(function(a) { return a.type === 'goto'; });
-        if (textBlocks.length === 0 && hasOnlyGotoActions) {
-            executeActions();
-            return;
-        }
         var currentText = textBlocks[state.currentBlockIndex] || '';
         var isLastBlock = state.currentBlockIndex >= textBlocks.length - 1;
 
