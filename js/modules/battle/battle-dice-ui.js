@@ -787,6 +787,8 @@ var BattleDiceUI = (function() {
         var isTag = false;
         var tagBuffer = '';
         var completed = false;
+        var currentTarget = element;  // Track where to insert characters
+        var tagStack = [];            // Stack of open elements
 
         // Create animation entry for click-to-skip
         var animation = {
@@ -837,7 +839,27 @@ var BattleDiceUI = (function() {
                 tagBuffer += char;
                 if (char === '>') {
                     isTag = false;
-                    element.insertAdjacentHTML('beforeend', tagBuffer);
+                    // Check if closing tag
+                    if (tagBuffer.charAt(1) === '/') {
+                        // Closing tag - pop from stack and go back to parent
+                        if (tagStack.length > 0) {
+                            tagStack.pop();
+                            currentTarget = tagStack.length > 0 ? tagStack[tagStack.length - 1] : element;
+                        }
+                    } else {
+                        // Opening tag - create element and push to stack
+                        var tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = tagBuffer;
+                        var newElement = tempDiv.firstChild;
+                        if (newElement) {
+                            currentTarget.appendChild(newElement);
+                            // Only push non-self-closing tags
+                            if (!tagBuffer.match(/<(br|hr|img|input|meta|link)[\s/>]/i)) {
+                                tagStack.push(newElement);
+                                currentTarget = newElement;
+                            }
+                        }
+                    }
                     tagBuffer = '';
                 }
                 index++;
@@ -855,7 +877,7 @@ var BattleDiceUI = (function() {
                 }
             }
 
-            element.appendChild(document.createTextNode(char));
+            currentTarget.appendChild(document.createTextNode(char));
             index++;
 
             // Check for overflow in parent row and shift if needed
@@ -892,61 +914,68 @@ var BattleDiceUI = (function() {
      * @param {function} callback - Called AFTER linger delay
      */
     /**
-     * Show attack roll - STEP 2: Plain text with styled keywords
-     * Format: "Andy rolled 18 <span class=hit>HIT!</span> deals 4 <span class=damage>DAMAGE</span>"
+     * Show attack roll - simplified with single-class keywords
+     * Format: "Andy rolled [dice] HIT! deals 4 DAMAGE 🔥 Inflicted Burn!"
      */
     function showAttackRoll(options, callback) {
         var container = options.container;
         var rollResult = options.rollResult;
         var onTextComplete = options.onTextComplete;
 
-        // Single line for everything
         var line = document.createElement('div');
         line.className = 'roll-result';
         container.appendChild(line);
 
-        // Build the full message with styled keywords
         var attackTotal = options.attackTotal || rollResult.roll;
 
-        // Determine result text and class
+        // Simple keyword classes - one class per keyword type
         var resultText, resultClass;
         if (rollResult.isCrit) {
             resultText = 'CRITICAL HIT!';
-            resultClass = getRollClass('hit', 'crit');
+            resultClass = 'keyword-crit';
         } else if (rollResult.isFumble) {
             resultText = 'FUMBLE!';
-            resultClass = getRollClass('hit', 'fail');
+            resultClass = 'keyword-fumble';
         } else if (options.hit) {
             resultText = 'HIT!';
-            resultClass = getRollClass('hit', 'normal');
+            resultClass = 'keyword-hit';
         } else {
             resultText = 'MISS!';
-            resultClass = getRollClass('neutral', 'normal');
+            resultClass = 'keyword-miss';
         }
 
-        // Build message with HTML spans for styled keywords
-        var message = options.attacker + ' rolled ' + attackTotal + ' ';
-        message += '<span class="roll-result-text ' + resultClass + '">' + resultText + '</span>';
+        typewriter(line, options.attacker + ' rolled ', function() {
+            var diceNum = document.createElement('strong');
+            diceNum.className = 'dice-number';
+            diceNum.textContent = '?';
+            line.appendChild(diceNum);
 
-        // Add damage if hit
-        if (options.hit && options.damage) {
-            message += ' deals ' + options.damage + ' ';
-            message += '<span class="damage-text roll-type-damage">' + KEYWORDS.DAMAGE + '</span>';
-        }
+            var displayRoll = {
+                roll: attackTotal,
+                sides: 20,
+                isCrit: rollResult.isCrit,
+                isFumble: rollResult.isFumble
+            };
 
-        // Typewrite the message (typewriter handles HTML tags)
-        typewriter(line, message, function() {
-            // Play sound based on result
-            if (rollResult.isCrit) {
-                playSfx('success.ogg');
-            } else if (rollResult.isFumble) {
-                playSfx('fail.ogg');
-            } else if (options.hit) {
-                playSfx('thud.ogg');
-            }
+            animateRoll(diceNum, displayRoll, function() {
+                var resultPart = ' <span class="' + resultClass + '">' + resultText + '</span>';
 
-            if (onTextComplete) onTextComplete();
-            diceTimeout(callback, config.lingerDelay);
+                if (options.hit && options.damage) {
+                    resultPart += ' deals ' + options.damage + ' <span class="keyword-damage">' + KEYWORDS.DAMAGE + '</span>';
+                }
+
+                if (options.statusResult && options.statusResult.applied && options.statusResult.message) {
+                    resultPart += ' <span class="keyword-status">' + options.statusResult.message + '</span>';
+                }
+
+                typewriter(line, resultPart, function() {
+                    if (!rollResult.isCrit && !rollResult.isFumble && options.hit) {
+                        playSfx('thud.ogg');
+                    }
+                    if (onTextComplete) onTextComplete();
+                    diceTimeout(callback, config.lingerDelay);
+                });
+            }, options.hit ? 'hit' : 'neutral');
         });
     }
 
@@ -1245,8 +1274,8 @@ var BattleDiceUI = (function() {
      * @param {function} callback - Called AFTER linger delay
      */
     /**
-     * Show heal roll - STEP 2: Plain text with styled keywords
-     * Format: "Andy rolled 5 <span class=heal>HEALED!</span>"
+     * Show heal roll - STEP 3: Plain text with styled keywords + dice spin animation
+     * Format: "Andy rolled [spinning dice -> 5] <span class=heal>HEALED!</span>"
      */
     function showHealRoll(options, callback) {
         var container = options.container;
@@ -1268,17 +1297,34 @@ var BattleDiceUI = (function() {
         line.className = 'roll-result heal-roll';
         container.appendChild(line);
 
-        // Build message with styled keyword
-        var message = healerName + ' rolled ' + healAmount + ' ';
-        message += '<span class="roll-result-text roll-type-heal">' + KEYWORDS.HEALED + '</span>';
-        if (itemCooldown > 0) {
-            message += ' Cooldown ' + itemCooldown;
-        }
+        // Step 1: Type "Andy rolled "
+        typewriter(line, healerName + ' rolled ', function() {
+            // Step 2: Create dice element and animate spin
+            var diceNum = document.createElement('strong');
+            diceNum.className = 'dice-number';
+            diceNum.textContent = '?';
+            line.appendChild(diceNum);
 
-        typewriter(line, message, function() {
-            playSfx('heal.ogg');
-            if (onTextComplete) onTextComplete();
-            diceTimeout(callback, config.lingerDelay);
+            // Heal rolls use smaller dice (d6, d8, etc.) - detect from heal amount
+            var healRoll = {
+                roll: healAmount,
+                sides: 8,  // Most heals are d6+mod or d8
+                isMax: options.isMaxHeal,
+                isMin: options.isMinHeal
+            };
+
+            animateRoll(diceNum, healRoll, function() {
+                var resultPart = ' <span class="keyword-heal">' + KEYWORDS.HEALED + '</span>';
+                if (itemCooldown > 0) {
+                    resultPart += ' Cooldown ' + itemCooldown;
+                }
+
+                typewriter(line, resultPart, function() {
+                    playSfx('heal.ogg');
+                    if (onTextComplete) onTextComplete();
+                    diceTimeout(callback, config.lingerDelay);
+                });
+            }, 'heal');
         });
     }
 
@@ -1517,14 +1563,15 @@ var BattleDiceUI = (function() {
      * @param {function} callback - Called when animation completes
      */
     /**
-     * Show simple damage roll - STEP 2: Plain text with styled keywords
-     * Format: "Andi hits themselves! 3 <span class=damage>DAMAGE</span>"
+     * Show simple damage roll - STEP 3: Plain text with styled keywords + dice spin animation
+     * Format: "Andi hits themselves! [spinning dice -> 3] <span class=damage>DAMAGE</span>"
      */
     function showSimpleDamageRoll(options, callback) {
         var container = options.container;
         var damage = options.damage;
         var damageText = options.damageText || KEYWORDS.DAMAGE;
         var onTextComplete = options.onTextComplete;
+        var sides = options.sides || 6;
 
         // Clear container and create roll result line
         container.innerHTML = '';
@@ -1532,15 +1579,29 @@ var BattleDiceUI = (function() {
         line.className = 'roll-result';
         container.appendChild(line);
 
-        // Build message with styled keyword
-        var message = options.text + damage + ' ';
-        message += '<span class="damage-text roll-type-damage">' + damageText + '</span>';
+        // Step 1: Type the text prefix (e.g., "Andi hits themselves! ")
+        typewriter(line, options.text, function() {
+            // Step 2: Create dice element and animate spin
+            var diceNum = document.createElement('strong');
+            diceNum.className = 'dice-number';
+            diceNum.textContent = '?';
+            line.appendChild(diceNum);
 
-        typewriter(line, message, function() {
-            if (onTextComplete) onTextComplete();
-            diceTimeout(function() {
-                if (callback) callback();
-            }, config.lingerDelay);
+            var damageRoll = {
+                roll: damage,
+                sides: sides
+            };
+
+            animateRoll(diceNum, damageRoll, function() {
+                var resultPart = ' <span class="keyword-damage">' + damageText + '</span>';
+
+                typewriter(line, resultPart, function() {
+                    if (onTextComplete) onTextComplete();
+                    diceTimeout(function() {
+                        if (callback) callback();
+                    }, config.lingerDelay);
+                });
+            }, 'damage');
         });
     }
 

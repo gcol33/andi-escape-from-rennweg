@@ -113,7 +113,7 @@
 
     /* === Battle Text Tuning === */
     /* Unified battle text size - same for numbers and labels */
-    --battle-text-size: 0.95rem;
+    --battle-text-size: 1.3rem;
     --battle-text-color: #fff;
 
     /* Special battle text - NOW UNIFIED with battle-text-size */
@@ -121,8 +121,8 @@
 
     /* === Battle Panel Sizing === */
     /* Themes can override for pixel fonts that need more/less space */
-    --battle-panel-width: 12rem;
-    --battle-panel-font-size: 0.55rem;
+    --battle-panel-width: 16rem;
+    --battle-panel-font-size: 0.85rem;
 }
 
 /* === Roll Color System ===
@@ -187,8 +187,8 @@
     --stats-panel-width-mobile: 8.75rem;
 
     /* Battle log height (used for bottom positioning)
-       Default: 2 lines * 2.2rem = 4.4rem + 4.5rem + 1rem = 9.9rem */
-    --battle-log-height: 10rem;
+       Log content (~3.5em) + battle choices grid (~8em) + padding = ~13em */
+    --battle-log-height: 13em;
 
     /* Button area reserved height - fixed for rows of buttons */
     /* 2 rows × ~1.6em button height + gap + padding = ~4em */

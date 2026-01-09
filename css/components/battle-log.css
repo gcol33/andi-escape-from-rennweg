@@ -17,11 +17,10 @@
 /* === Log Panel Container === */
 .battle-log-panel {
     /* Positioning via .anchor.anchor--bottom-flush */
-    /* Height set via --battle-log-height CSS variable */
-    height: var(--battle-log-height, 12rem);
+    /* Height: auto to fit content, not fixed */
     background: rgba(0, 0, 0, 0.85);
-    border-top: 0.1875rem solid rgba(255, 255, 255, 0.3);
-    padding: var(--spacing-sm, 0.5rem) var(--spacing-md, 0.75rem) 0.25rem;
+    border-top: 0.1875em solid rgba(255, 255, 255, 0.3);
+    padding: 0.5em 0.75em 0.75em;  /* Extra bottom padding to keep buttons inside */
     box-sizing: border-box;
     /* Flex layout for content + choices */
     display: flex;
@@ -33,13 +32,13 @@
 
 /* === Log Content Area === */
 .battle-log-content {
-    /* Height for ~2 lines of text (set via JS --battle-log-content-height) */
-    height: var(--battle-log-content-height, 4.8rem);
+    /* Height for ~2 lines of text */
+    height: 3.5em;  /* ~2 lines at 1.6 line-height + padding */
     box-sizing: border-box;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 0.5rem 1rem;
-    font-size: var(--battle-text-size, 0.95rem);
+    padding: 0.4em 0.8em;
+    font-size: var(--battle-text-size, 1.1rem);
     line-height: 1.6;  /* Must match TUNING.ui.battleLogLineHeight */
     color: var(--battle-text-color, #fff);
     flex-shrink: 0;

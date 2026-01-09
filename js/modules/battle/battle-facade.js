@@ -2737,11 +2737,8 @@ var BattleEngine = (function() {
             messages = messages.concat(result.messages || []);
         }
 
-        // For attacks, extract and add status effect messages (they're not shown in attack roll)
-        // Status messages contain icons like 🩸, ⚔️, 🛡️, etc. and usually start with status icon
-        if (result.attackResult && result.attackResult.statusResult && result.attackResult.statusResult.applied) {
-            messages.push(result.attackResult.statusResult.message);
-        }
+        // Status effect messages are now shown inline in the attack roll display
+        // No need to add them separately to messages array
 
         // If effects weren't already applied (via onTextComplete), apply them now
         if (!options.effectsApplied) {
@@ -3359,6 +3356,7 @@ var BattleEngine = (function() {
             damageAdvantage: attackResult.hasDamageAdvantage,
             damageDisadvantage: attackResult.hasDamageDisadvantage,
             damageRolls: attackResult.damageRolls,
+            statusResult: attackResult.statusResult,  // Pass status effect for inline display
             onTextComplete: options.onTextComplete
         }, callback);
     }

@@ -70,6 +70,73 @@
     text-shadow: 1px 1px 0 #000;
 }
 
+/* === Simple Keyword Classes ===
+ * One class per keyword type. All bold, colored, with text shadow.
+ * Use .battle-log-content .roll-result prefix for full specificity chain.
+ */
+.battle-log-content .roll-result .keyword-hit,
+.roll-result .keyword-hit,
+.keyword-hit {
+    color: var(--roll-color-hit, #ffd700);
+    font-weight: bold;
+    line-height: inherit;
+    text-shadow: 1px 1px 0 #000;
+}
+
+.battle-log-content .roll-result .keyword-crit,
+.roll-result .keyword-crit,
+.keyword-crit {
+    color: var(--roll-color-hit, #ffd700);
+    font-weight: bold;
+    line-height: inherit;
+    text-shadow: 0 0 8px rgba(255, 140, 0, 0.8), 0 0 16px rgba(255, 140, 0, 0.5);
+}
+
+.battle-log-content .roll-result .keyword-miss,
+.roll-result .keyword-miss,
+.keyword-miss {
+    color: var(--roll-color-neutral, #888);
+    font-weight: bold;
+    line-height: inherit;
+    text-shadow: 1px 1px 0 #000;
+}
+
+.battle-log-content .roll-result .keyword-fumble,
+.roll-result .keyword-fumble,
+.keyword-fumble {
+    color: var(--roll-color-damage, #ff4444);
+    font-weight: bold;
+    line-height: inherit;
+    text-shadow: 0 0 8px rgba(255, 0, 0, 0.6);
+}
+
+.battle-log-content .roll-result .keyword-damage,
+.roll-result .keyword-damage,
+.keyword-damage {
+    color: var(--roll-color-damage, #ff4444);
+    font-weight: bold;
+    line-height: inherit;
+    text-shadow: 1px 1px 0 #000;
+}
+
+.battle-log-content .roll-result .keyword-heal,
+.roll-result .keyword-heal,
+.keyword-heal {
+    color: var(--roll-color-heal, #4caf50);
+    font-weight: bold;
+    line-height: inherit;
+    text-shadow: 1px 1px 0 #000;
+}
+
+.battle-log-content .roll-result .keyword-status,
+.roll-result .keyword-status,
+.keyword-status {
+    color: var(--roll-color-status, #ff9800);
+    font-weight: bold;
+    line-height: inherit;
+    text-shadow: 1px 1px 0 #000;
+}
+
 /* === Tarot Card Styles === */
 
 /* Full-screen tarot overlay - covers entire VN container */
