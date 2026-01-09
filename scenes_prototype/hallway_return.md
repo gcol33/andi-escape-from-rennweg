@@ -12,7 +12,7 @@ As you turn the corner, you nearly walk straight into Agnes from HR. She's stand
 
 She holds a single, thick manila envelope and smiles a very thin smile.
 
-"Andy. Perfect timing. Just a quick document I need you to sign before you are officially off the premises. Standard exit protocol."
+"Andi. Perfect timing. Just a quick document I need you to sign before you are officially off the premises. Standard exit protocol."
 
 ### Choices
 

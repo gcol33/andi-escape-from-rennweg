@@ -1,7 +1,7 @@
 ---
 # Player Configuration
 # Max name length: 12 characters
-name: Andy
+name: Andi
 
 # Base Stats
 hp: 42

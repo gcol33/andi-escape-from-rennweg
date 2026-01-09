@@ -160,11 +160,11 @@ async function runScrollTests() {
         });
 
         // Simulate typewriter effect with styled elements
-        console.log('  Typing "Andy rolled 18 " character by character...');
+        console.log('  Typing "Andi rolled 18 " character by character...');
         await page.evaluate(() => {
             return new Promise(resolve => {
                 const row2 = document.getElementById('battle-log-row-2');
-                const text = 'Andy rolled 18 ';
+                const text = 'Andi rolled 18 ';
                 let i = 0;
 
                 const typeChar = () => {
@@ -360,7 +360,7 @@ async function runScrollTests() {
                 row2.innerHTML = '';
 
                 // Type new message
-                row2.textContent = `Message ${msgNum + 1}: Andy rolled 15 `;
+                row2.textContent = `Message ${msgNum + 1}: Andi rolled 15 `;
                 const span = document.createElement('span');
                 span.className = 'roll-hit-normal';
                 span.textContent = 'HIT';

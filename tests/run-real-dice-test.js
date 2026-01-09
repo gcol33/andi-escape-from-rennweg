@@ -56,7 +56,7 @@ async function runRealDiceTest() {
 
             // Create mock player and enemy for battle UI
             const mockPlayer = {
-                name: 'Andy',
+                name: 'Andi',
                 hp: 50,
                 maxHp: 50,
                 mana: 20,
@@ -167,7 +167,7 @@ async function runRealDiceTest() {
                 // Simulate a successful attack roll
                 BattleDiceUI.showAttackRoll({
                     container: row2,  // Required!
-                    attacker: 'Andy',
+                    attacker: 'Andi',
                     rollResult: {
                         roll: 18,
                         total: 20,

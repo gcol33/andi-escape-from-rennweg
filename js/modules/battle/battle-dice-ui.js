@@ -973,7 +973,7 @@ var BattleDiceUI = (function() {
      */
     /**
      * Show attack roll - with animated dice for both hit and damage
-     * Format: "Andy rolled [hit dice] HIT! deals [damage dice] DAMAGE 🔥 Inflicted Burn!"
+     * Format: "Andi rolled [hit dice] HIT! deals [damage dice] DAMAGE 🔥 Inflicted Burn!"
      */
     function showAttackRoll(options, callback) {
         var container = options.container;
@@ -1363,7 +1363,7 @@ var BattleDiceUI = (function() {
      */
     /**
      * Show heal roll - STEP 3: Plain text with styled keywords + dice spin animation
-     * Format: "Andy rolled [spinning dice -> 5] <span class=heal>HEALED!</span>"
+     * Format: "Andi rolled [spinning dice -> 5] <span class=heal>HEALED!</span>"
      */
     function showHealRoll(options, callback) {
         var container = options.container;
@@ -1385,7 +1385,7 @@ var BattleDiceUI = (function() {
         line.className = 'roll-result heal-roll';
         container.appendChild(line);
 
-        // Step 1: Type "Andy rolled "
+        // Step 1: Type "Andi rolled "
         typewriter(line, healerName + ' rolled ', function() {
             // Step 2: Create dice element and animate spin
             var diceNum = document.createElement('strong');
@@ -1611,7 +1611,7 @@ var BattleDiceUI = (function() {
      */
     /**
      * Show defend roll - STEP 1: Plain text only
-     * Format: "Andy takes a defensive stance! Cooldown 2"
+     * Format: "Andi takes a defensive stance! Cooldown 2"
      */
     function showDefendRoll(options, callback) {
         var container = options.container;

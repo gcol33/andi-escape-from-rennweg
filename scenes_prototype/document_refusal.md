@@ -8,7 +8,7 @@ chars:
 
 You politely refuse to sign. Agnes's smile vanishes, replaced by an expression of cold, professional disapproval.
 
-"I was hoping you'd cooperate, Andy. But if you insist on doing this the hard way..."
+"I was hoping you'd cooperate, Andi. But if you insist on doing this the hard way..."
 
 ---
 

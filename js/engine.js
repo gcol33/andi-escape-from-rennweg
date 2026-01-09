@@ -3395,11 +3395,14 @@ var VNEngine = (function() {
     function renderScene(scene, prependContent, entrySfx) {
         prependContent = prependContent || '';
 
-        // Gate scenes: no text blocks + only goto actions = execute immediately without rendering
+        // Gate scenes: no text blocks + only instant actions = execute immediately without rendering
+        // Instant actions: goto, hidden roll_dice
         var textBlocks = scene.textBlocks || [];
-        var hasOnlyGotoActions = scene.actions && scene.actions.length > 0 &&
-            scene.actions.every(function(a) { return a.type === 'goto'; });
-        if (textBlocks.length === 0 && hasOnlyGotoActions) {
+        var hasOnlyInstantActions = scene.actions && scene.actions.length > 0 &&
+            scene.actions.every(function(a) {
+                return a.type === 'goto' || (a.type === 'roll_dice' && a.hidden);
+            });
+        if (textBlocks.length === 0 && hasOnlyInstantActions) {
             executeActions();
             return;
         }

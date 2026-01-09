@@ -15,5 +15,5 @@ Five solid minutes of chaos. Diving behind boxes. Scrambling over chairs. Finall
 
 ### Choices
 
-- Go to hallway → cat_scene_2
+- Head toward the common area → ADRIAN
 - Join a field excursion → MORITZ_excursion

@@ -2,7 +2,7 @@
  * Battle Log Shift Diagnosis Test
  *
  * Simulates EXACTLY what happens during a battle roll:
- * "Andy rolled 18 HIT, 4 DAMAGE"
+ * "Andi rolled 18 HIT, 4 DAMAGE"
  *
  * Monitors for sub-pixel shifts at every step.
  */
@@ -104,12 +104,12 @@ async function runShiftDiagnosis() {
         console.log('Recording positions at each step...\n');
         await page.evaluate(() => window.recordPosition('INITIAL (empty)'));
 
-        // Step 1: Type "Andy rolled " into row2
-        console.log('Step 1: Typing "Andy rolled " into row2...');
+        // Step 1: Type "Andi rolled " into row2
+        console.log('Step 1: Typing "Andi rolled " into row2...');
         await page.evaluate(() => {
             const row2 = document.getElementById('battle-log-row-2');
-            row2.textContent = 'Andy rolled ';
-            window.recordPosition('After "Andy rolled "');
+            row2.textContent = 'Andi rolled ';
+            window.recordPosition('After "Andi rolled "');
         });
         await delay(100);
 

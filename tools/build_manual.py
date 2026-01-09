@@ -40,7 +40,7 @@ def get_introduction():
         <div class="win-buttons"><span>−</span><span>□</span><span>×</span></div>
     </div>
     <div class="win-content">
-        <p>For Andy's farewell we're making a <strong>visual novel</strong> (VN). It's an interactive story where players read text and make choices that affect what happens next.</p>
+        <p>For Andi's farewell we're making a <strong>visual novel</strong> (VN). It's an interactive story where players read text and make choices that affect what happens next.</p>
 
         <div class="concept-diagram">
             <div class="concept-box">
@@ -526,14 +526,14 @@ in the doorway.
 
 ---
 
-"Hello, Andy..."</pre>
+"Hello, Andi..."</pre>
                     </div>
                     <div class="compare-box bad">
                         <h4>❌ AVOID</h4>
                         <pre>The door creaks open and
 a shadowy figure stands
 in the doorway and they
-say "Hello, Andy" in a
+say "Hello, Andi" in a
 creepy voice and you
 feel scared and...</pre>
                     </div>
@@ -2259,7 +2259,7 @@ def build_manual():
         </section>
 
         <footer class="manual-footer">
-            <p>🎮 <strong>ANDI VN</strong> — A Visual Novel for Andy's PhD Farewell</p>
+            <p>🎮 <strong>ANDI VN</strong> — A Visual Novel for Andi's PhD Farewell</p>
             <p>Manual generated {datetime.now().strftime("%Y-%m-%d %H:%M")}</p>
         </footer>
 

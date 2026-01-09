@@ -225,26 +225,26 @@
         // Message templates
         const messages = {
             attack: [
-                'Andy attacks! <span class="roll-hit">Roll: 18</span> HIT! <span class="roll-damage-normal">12 DAMAGE</span>!',
-                'Andy swings his sword! <span class="roll-hit">Roll: 15</span> HIT! <span class="roll-damage-normal">8 DAMAGE</span>!',
-                'Andy strikes! <span class="roll-hit">CRITICAL HIT!</span> <span class="roll-damage-normal">24 DAMAGE</span>!'
+                'Andi attacks! <span class="roll-hit">Roll: 18</span> HIT! <span class="roll-damage-normal">12 DAMAGE</span>!',
+                'Andi swings his sword! <span class="roll-hit">Roll: 15</span> HIT! <span class="roll-damage-normal">8 DAMAGE</span>!',
+                'Andi strikes! <span class="roll-hit">CRITICAL HIT!</span> <span class="roll-damage-normal">24 DAMAGE</span>!'
             ],
             defend: [
-                'Andy defends! Recovered <span class="roll-hit">+3 MP</span>! (Cooldown: 2)',
-                'Andy takes a defensive stance! Recovered <span class="roll-hit">+5 MP</span>! (Cooldown: 2)'
+                'Andi defends! Recovered <span class="roll-hit">+3 MP</span>! (Cooldown: 2)',
+                'Andi takes a defensive stance! Recovered <span class="roll-hit">+5 MP</span>! (Cooldown: 2)'
             ],
             skill: [
-                'Andy uses Fire Bolt! <span class="roll-hit">Roll: 16</span> HIT! <span class="roll-damage-normal">15 DAMAGE</span>!',
-                'Andy casts Healing Light! Recovered <span style="color:#4caf50;font-weight:bold">12 HP</span>!'
+                'Andi uses Fire Bolt! <span class="roll-hit">Roll: 16</span> HIT! <span class="roll-damage-normal">15 DAMAGE</span>!',
+                'Andi casts Healing Light! Recovered <span style="color:#4caf50;font-weight:bold">12 HP</span>!'
             ],
             enemy: [
-                'Coffee Machine attacks! <span class="roll-hit">Roll: 14</span> HIT! Andy takes <span class="roll-damage-normal">6 DAMAGE</span>!',
-                'Coffee Machine uses Steam Blast! <span class="roll-hit">Roll: 19</span> HIT! Andy takes <span class="roll-damage-normal">10 DAMAGE</span>!'
+                'Coffee Machine attacks! <span class="roll-hit">Roll: 14</span> HIT! Andi takes <span class="roll-damage-normal">6 DAMAGE</span>!',
+                'Coffee Machine uses Steam Blast! <span class="roll-hit">Roll: 19</span> HIT! Andi takes <span class="roll-damage-normal">10 DAMAGE</span>!'
             ],
             defendQTE: [
-                'Coffee Machine uses Attack!<br>Andy braces himself!',
-                'PARRY! Andy reflects <span class="roll-damage-normal">4 DAMAGE</span>!',
-                'DODGE! Andy avoids the attack!'
+                'Coffee Machine uses Attack!<br>Andi braces himself!',
+                'PARRY! Andi reflects <span class="roll-damage-normal">4 DAMAGE</span>!',
+                'DODGE! Andi avoids the attack!'
             ]
         };
 
@@ -346,7 +346,7 @@
 
             // Step 1: Player defends
             console.log('Step 1: Player defends');
-            updateBattleLog('Andy defends! Recovered <span class="roll-hit">+3 MP</span>! (Cooldown: 2)');
+            updateBattleLog('Andi defends! Recovered <span class="roll-hit">+3 MP</span>! (Cooldown: 2)');
             await sleep(1500);
 
             // Check: row2 should have defend message
@@ -357,7 +357,7 @@
 
             // Step 2: Enemy attack announcement (pre-QTE)
             console.log('Step 2: Enemy attack (should shift defend to row1)');
-            updateBattleLog('Coffee Machine uses Attack!<br>Andy braces himself!');
+            updateBattleLog('Coffee Machine uses Attack!<br>Andi braces himself!');
             await sleep(1500);
 
             // Check: row1 should now have the defend message, row2 has enemy attack
@@ -371,7 +371,7 @@
 
             // Step 3: QTE result
             console.log('Step 3: QTE result (should shift enemy attack to row1)');
-            updateBattleLog('PARRY! Andy reflects <span class="roll-damage-normal">4 DAMAGE</span>!');
+            updateBattleLog('PARRY! Andi reflects <span class="roll-damage-normal">4 DAMAGE</span>!');
             await sleep(1000);
 
             // Verify the sequence worked

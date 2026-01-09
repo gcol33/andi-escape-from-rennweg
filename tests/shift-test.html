@@ -127,7 +127,7 @@
             monitoring = false;
         }
 
-        // Type "Andy rolled 18 HIT, 4 DAMAGE" character by character
+        // Type "Andi rolled 18 HIT, 4 DAMAGE" character by character
         async function typeAttackRoll() {
             logEntries = [];
             basePositions = null;
@@ -135,8 +135,8 @@
 
             logPosition('START');
 
-            // Type "Andy rolled "
-            const text1 = 'Andy rolled ';
+            // Type "Andi rolled "
+            const text1 = 'Andi rolled ';
             for (let char of text1) {
                 row2.appendChild(document.createTextNode(char));
                 logPosition(`char: "${char}"`);

@@ -8,7 +8,7 @@
  */
 
 const playerConfig = {
-  "name": "Andy",
+  "name": "Andi",
   "hp": 42,
   "mana": 10,
   "ac": 11,

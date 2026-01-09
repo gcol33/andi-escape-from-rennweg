@@ -1,16 +1,25 @@
 ---
 id: jk_return
-bg: office_corridor.png
+actions:
+  - type: goto
+    target: LISA_scene
+    requires: jk_return_lisa
+  - type: goto
+    target: JACQUELINE
+    requires: jk_return_jacqueline
+  - type: goto
+    target: SIEGRUN
+    requires: jk_return_siegrun
+  - type: goto
+    target: MICHI_rematch
+    requires: jk_return_michi, michi_defeated
+  - type: goto
+    target: MICHI
+    requires: jk_return_michi, !michi_defeated
+  - type: goto
+    target: dnd_group_rematch
+    requires: jk_return_dnd, dnd_group_defeated
+  - type: goto
+    target: dnd_group
+    requires: jk_return_dnd, !dnd_group_defeated
 ---
-
-You continue on your way through the building.
-
-### Choices
-
-- Continue (requires: jk_return_lisa) → LISA_scene
-- Continue (requires: jk_return_jacqueline) → JACQUELINE
-- Continue (requires: jk_return_siegrun) → SIEGRUN
-- Continue (requires: jk_return_michi, michi_defeated) → MICHI_rematch
-- Continue (requires: jk_return_michi, !michi_defeated) → MICHI
-- Continue (requires: jk_return_dnd, dnd_group_defeated) → dnd_group_rematch
-- Continue (requires: jk_return_dnd, !dnd_group_defeated) → dnd_group

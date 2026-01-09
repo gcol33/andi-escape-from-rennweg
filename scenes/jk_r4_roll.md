@@ -1,5 +1,6 @@
 ---
 id: jk_r4_roll
+bg: office_corridor.png
 actions:
   - type: roll_dice
     dice: d2

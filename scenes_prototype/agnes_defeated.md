@@ -14,7 +14,7 @@ Agnes staggers back, clutching her manila folder to her chest like a shield.
 
 She drops the folder. Papers scatter across the floor - your "exit interview" forms, all pre-filled with answers you never gave.
 
-"Fine. Go. But mark my words, Andy... HR *always* remembers."
+"Fine. Go. But mark my words, Andi... HR *always* remembers."
 
 ---
 

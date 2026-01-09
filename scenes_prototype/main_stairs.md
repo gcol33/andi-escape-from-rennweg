@@ -10,7 +10,7 @@ You turn right and walk toward the main stairwell. Just as you reach the landing
 
 She holds a single, thick manila envelope and smiles a very thin smile.
 
-"Andy. Perfect timing. Just a quick document I need you to sign before you are officially off the premises. Standard exit protocol."
+"Andi. Perfect timing. Just a quick document I need you to sign before you are officially off the premises. Standard exit protocol."
 
 ### Choices
 
