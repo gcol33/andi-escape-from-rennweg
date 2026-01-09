@@ -32,8 +32,10 @@
 
 /* === Log Content Area === */
 .battle-log-content {
-    /* Height for ~2 lines of text */
-    height: 3.5em;  /* ~2 lines at 1.6 line-height + padding */
+    /* Height set by JS measurement for accurate scaling */
+    /* Fallback uses em which scales with font-size */
+    height: 3.5em;  /* Fallback: ~2 lines at 1.6 line-height + padding */
+    height: var(--battle-log-measured-height, 3.5em);  /* JS-measured exact height */
     box-sizing: border-box;
     overflow-y: auto;
     overflow-x: hidden;

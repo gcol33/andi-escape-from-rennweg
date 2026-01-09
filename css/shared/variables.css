@@ -112,8 +112,8 @@
     --damage-font: 'Arial Black', 'Helvetica Neue', sans-serif;
 
     /* === Battle Text Tuning === */
-    /* Unified battle text size - same for numbers and labels */
-    --battle-text-size: 1.3rem;
+    /* Unified battle text size - scales with viewport like base-font-size */
+    --battle-text-size: clamp(1.1rem, 1.6vw, 1.6rem);
     --battle-text-color: #fff;
 
     /* Special battle text - NOW UNIFIED with battle-text-size */

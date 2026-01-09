@@ -242,6 +242,7 @@ var BattleUI = (function() {
         elements.container.appendChild(battleUI);
 
         cacheElements();
+        ensureResizeListener();
     }
 
     /**
@@ -333,6 +334,76 @@ var BattleUI = (function() {
         // battleLog points to row 2 - the active typing row
         elements.battleLog = elements.battleLogRow2;
         elements.battleChoices = document.getElementById('battle-choices');
+
+        // Measure and set battle log height after elements are ready
+        measureBattleLogHeight();
+    }
+
+    /**
+     * Measure actual battle log line height and set CSS variable.
+     * Creates a hidden measurement element with same styling as battle-log-content,
+     * measures the height of 2 lines, and sets --battle-log-measured-height accordingly.
+     * Called on battle UI creation and should be called on window resize.
+     */
+    function measureBattleLogHeight() {
+        var logContent = elements.battleLogContent || document.getElementById('battle-log-content');
+        if (!logContent) return;
+
+        // Create hidden measurement element
+        var measureEl = document.createElement('div');
+        var computedStyle = window.getComputedStyle(logContent);
+
+        // Copy ALL relevant styles from battle-log-content for accurate measurement
+        measureEl.style.position = 'absolute';
+        measureEl.style.visibility = 'hidden';
+        measureEl.style.pointerEvents = 'none';
+        measureEl.style.width = logContent.clientWidth + 'px';
+        measureEl.style.height = 'auto';
+        measureEl.style.maxHeight = 'none';
+        measureEl.style.overflow = 'visible';
+        measureEl.style.fontSize = computedStyle.fontSize;
+        measureEl.style.fontFamily = computedStyle.fontFamily;
+        measureEl.style.lineHeight = computedStyle.lineHeight;
+        measureEl.style.letterSpacing = computedStyle.letterSpacing;
+        measureEl.style.padding = '0';
+        measureEl.style.margin = '0';
+        measureEl.style.boxSizing = 'content-box';
+
+        // Add 2 lines of reference text (using "Mgy" for full ascender/descender/baseline)
+        var maxLines = config.ui.battleLogMaxLines || 2;
+        var lines = [];
+        for (var i = 0; i < maxLines; i++) {
+            lines.push('<div class="battle-log-row" style="min-height:0;max-height:none;">Mgy</div>');
+        }
+        measureEl.innerHTML = lines.join('');
+
+        document.body.appendChild(measureEl);
+        var measuredHeight = measureEl.offsetHeight;
+        document.body.removeChild(measureEl);
+
+        // Set the CSS variable with exact measured height
+        document.documentElement.style.setProperty('--battle-log-measured-height', measuredHeight + 'px');
+        _log.debug('BattleUI', 'Measured battle log height for ' + maxLines + ' lines: ' + measuredHeight + 'px');
+    }
+
+    // Resize handler for battle log measurement
+    var battleResizeTimeout = null;
+    function handleBattleResize() {
+        if (battleResizeTimeout) clearTimeout(battleResizeTimeout);
+        battleResizeTimeout = setTimeout(function() {
+            if (document.getElementById('battle-ui')) {
+                measureBattleLogHeight();
+            }
+        }, 100);
+    }
+
+    // Register resize listener once
+    var resizeListenerAdded = false;
+    function ensureResizeListener() {
+        if (!resizeListenerAdded) {
+            window.addEventListener('resize', handleBattleResize);
+            resizeListenerAdded = true;
+        }
     }
 
     /**
@@ -2571,6 +2642,9 @@ var BattleUI = (function() {
 
         // Expose config for external timing needs
         config: config,
+
+        // Measurement (for accurate scaling like text system)
+        measureBattleLogHeight: measureBattleLogHeight,
 
         // Element access (for engine.js choice rendering)
         getElements: function() { return elements; },

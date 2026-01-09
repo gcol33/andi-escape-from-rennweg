@@ -36,7 +36,7 @@
 /* === Progress Text === */
 
 .quiz-progress {
-    font-size: 0.9rem;
+    font-size: 1.8rem;
     color: rgba(255, 255, 255, 0.7);
     margin-bottom: 0.5rem;
     text-transform: uppercase;
@@ -46,7 +46,7 @@
 /* === Countdown Display === */
 
 .quiz-countdown {
-    font-size: 3rem;
+    font-size: 6rem;
     font-weight: bold;
     color: #fff;
     margin-bottom: 1rem;
@@ -90,7 +90,7 @@
 /* === Question Text === */
 
 .quiz-question {
-    font-size: 1.25rem;
+    font-size: 2.5rem;
     color: #fff;
     text-align: center;
     margin-bottom: 1.5rem;
@@ -115,7 +115,7 @@
     border-radius: 0.5rem;
     color: #fff;
     font-family: inherit;
-    font-size: 1rem;
+    font-size: 2rem;
     padding: 0.75rem 1rem;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -229,7 +229,7 @@
 /* === Quiz Outro Text === */
 
 .quiz-outro-text {
-    font-size: 2.5rem;
+    font-size: 5rem;
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 0.1rem;
@@ -268,7 +268,7 @@
 /* === Quiz Outro Subtext === */
 
 .quiz-outro-subtext {
-    font-size: 1.1rem;
+    font-size: 2.2rem;
     color: #fff;
     text-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.5);
     animation: quiz-outro-subtext-fade 0.8s ease-out forwards;
@@ -290,21 +290,21 @@
 
 @media (max-aspect-ratio: 4/3) {
     .quiz-countdown {
-        font-size: 2.5rem;
+        font-size: 5rem;
     }
 
     .quiz-question {
-        font-size: 1.1rem;
+        font-size: 2.2rem;
         max-width: 95%;
     }
 
     .quiz-answer-btn {
-        font-size: 0.9rem;
+        font-size: 1.8rem;
         padding: 0.625rem 0.875rem;
     }
 
     .quiz-outro-text {
-        font-size: 2rem;
+        font-size: 4rem;
     }
 }
 
@@ -316,17 +316,17 @@
     }
 
     .quiz-countdown {
-        font-size: 2rem;
+        font-size: 4rem;
         margin-bottom: 0.75rem;
     }
 
     .quiz-question {
-        font-size: 1rem;
+        font-size: 2rem;
         margin-bottom: 1rem;
     }
 
     .quiz-answer-btn {
-        font-size: 0.85rem;
+        font-size: 1.7rem;
         padding: 0.5rem 0.75rem;
     }
 
@@ -335,10 +335,10 @@
     }
 
     .quiz-outro-text {
-        font-size: 1.75rem;
+        font-size: 3.5rem;
     }
 
     .quiz-outro-subtext {
-        font-size: 0.9rem;
+        font-size: 1.8rem;
     }
 }
