@@ -2,7 +2,7 @@
 id: MICHI_victory
 bg: elevator_path.png
 music: victory.mp3
-set_flags:
+set_key_flags:
   - michi_defeated
 add_items:
   - name: Magnifying Glass

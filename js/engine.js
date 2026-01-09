@@ -3224,6 +3224,11 @@ var VNEngine = (function() {
             }
         }
 
+        // Clear flags if specified (must happen before set_flags)
+        if (scene.clear_flags && scene.clear_flags.length > 0) {
+            clearFlags(scene.clear_flags);
+        }
+
         // Set flags if specified
         if (scene.set_flags && scene.set_flags.length > 0) {
             setFlags(scene.set_flags);
@@ -4798,6 +4803,19 @@ var VNEngine = (function() {
         if (typeof flagManager !== 'undefined') {
             flags.forEach(function(flag) {
                 flagManager.set(flag);
+            });
+        }
+        updateInventoryDisplay();
+    }
+
+    /**
+     * Clear flags
+     * @param {string[]} flags - Array of flag names to clear
+     */
+    function clearFlags(flags) {
+        if (typeof flagManager !== 'undefined') {
+            flags.forEach(function(flag) {
+                flagManager.clear(flag);
             });
         }
         updateInventoryDisplay();

@@ -524,6 +524,7 @@ def parse_scene_file(filepath):
         'music': frontmatter.get('music', None),
         'chars': frontmatter.get('chars', []),
         'set_flags': frontmatter.get('set_flags', []),
+        'clear_flags': frontmatter.get('clear_flags', []),
         'set_key_flags': frontmatter.get('set_key_flags', []),
         'require_flags': frontmatter.get('require_flags', []),
         'set_skills': frontmatter.get('set_skills', []),
@@ -541,6 +542,8 @@ def parse_scene_file(filepath):
     # Clean up empty arrays to reduce output size
     if not scene['set_flags']:
         del scene['set_flags']
+    if not scene['clear_flags']:
+        del scene['clear_flags']
     if not scene['set_key_flags']:
         del scene['set_key_flags']
     if not scene['require_flags']:

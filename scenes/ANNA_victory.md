@@ -2,7 +2,7 @@
 id: ANNA_victory
 bg: office_corridor.png
 music: victory.mp3
-set_flags:
+set_key_flags:
   - anna_defeated
 add_items:
   - name: Break Room Snacks

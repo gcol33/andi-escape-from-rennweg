@@ -1,6 +1,11 @@
 ---
 id: jk_r1
 bg: office_corridor.png
+clear_flags:
+  - jk_return_jacqueline
+  - jk_return_siegrun
+  - jk_return_michi
+  - jk_return_dnd
 set_flags:
   - jk_return_lisa
 ---

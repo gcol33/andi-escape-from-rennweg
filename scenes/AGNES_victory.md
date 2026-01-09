@@ -2,7 +2,7 @@
 id: AGNES_victory
 bg: ../char/agnes_timesheet_annoyed.png
 music: victory.mp3
-set_flags:
+set_key_flags:
   - agnes_defeated
 ---
 
