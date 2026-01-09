@@ -1,9 +1,12 @@
 ---
 id: karl_check
+actions:
+  - type: goto
+    target: karl_battle
+    requires: jk_seen_2
+  - type: goto
+    target: karl_2
+    requires: jk_seen_1
+  - type: goto
+    target: karl_1
 ---
-
-### Choices
-
-- Continue (requires: jk_seen_2) → karl_battle
-- Continue (requires: jk_seen_1, !jk_seen_2) → karl_2
-- Continue (requires: !jk_seen_1) → karl_1

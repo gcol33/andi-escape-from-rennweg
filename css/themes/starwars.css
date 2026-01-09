@@ -532,13 +532,14 @@ h1 {
 .game-over {
     color: var(--sw-red-saber);
     font-weight: bold;
+    font-style: italic;
+    font-size: 3em;
     text-align: center;
     margin-top: 10px;
     padding: 12px;
     background: rgba(50, 0, 0, 0.8);
     border: 2px solid var(--sw-red-saber);
     box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
-    font-size: 1.1rem;
     text-transform: uppercase;
     letter-spacing: 0.1em;
 }

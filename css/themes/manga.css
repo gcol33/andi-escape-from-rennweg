@@ -612,6 +612,7 @@ h1 {
 .game-over {
     color: var(--manga-black);
     font-weight: bold;
+    font-style: italic;
     text-align: center;
     margin-top: 10px;
     padding: 12px;
@@ -619,7 +620,7 @@ h1 {
     border: 3px solid var(--manga-black);
     box-shadow: 4px 4px 0 var(--manga-black);
     font-family: 'Georgia', serif;
-    font-size: 1.1rem;
+    font-size: 3em;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     /* Cross-hatch pattern for dramatic effect */

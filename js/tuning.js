@@ -129,7 +129,8 @@ const TUNING = {
             // Page balancing: redistribute text when last page is too short
             // Set to 0 to disable (greedy fill), 1.0 for perfectly even distribution
             // 0.5 means: if last page < 50% full, redistribute for balance
-            pageBalanceThreshold: 0.5
+            // Disabled (0): was causing premature pagination of text that fits
+            pageBalanceThreshold: 0
         },
 
         // =====================================================================

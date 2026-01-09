@@ -549,6 +549,8 @@ h1 {
 /* === Game Over State === */
 .game-over {
     color: var(--ff-red);
+    font-style: italic;
+    font-size: 3em;
     text-align: center;
     margin-top: 10px;
     padding: 8px;
@@ -556,7 +558,6 @@ h1 {
     border: 3px solid var(--ff-red);
     border-radius: 4px;
     font-family: 'Press Start 2P', monospace;
-    font-size: 0.7rem;
 }
 
 #choices-container.has-game-over {

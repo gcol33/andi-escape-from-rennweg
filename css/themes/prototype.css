@@ -501,6 +501,8 @@ h1 {
 .game-over {
     color: #4b1f0d;
     font-weight: bold;
+    font-style: italic;
+    font-size: 3em;
     text-align: center;
     margin-top: 15px;
     padding: 10px;

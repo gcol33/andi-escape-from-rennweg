@@ -538,6 +538,8 @@ h1 {
 .game-over {
     color: var(--db-red);
     font-weight: bold;
+    font-style: italic;
+    font-size: 3em;
     text-align: center;
     margin-top: 10px;
     padding: 12px;
@@ -545,7 +547,6 @@ h1 {
     border: 3px solid var(--db-red);
     box-shadow: 0 0 20px rgba(204, 0, 0, 0.5);
     font-family: 'Impact', 'Arial Black', sans-serif;
-    font-size: 1.1rem;
     text-transform: uppercase;
 }
 

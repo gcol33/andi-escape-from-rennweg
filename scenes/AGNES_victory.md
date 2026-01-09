@@ -4,9 +4,6 @@ bg: ../char/agnes_timesheet_annoyed.png
 music: victory.mp3
 set_flags:
   - agnes_defeated
-add_items:
-  - name: Break Room Snacks
-    type: consumable
 ---
 
 Agnes staggers back, clutching her stack of forms. "This... isn't... protocol..." The forms scatter across the floor like bureaucratic confetti. She looks at you with new respect. "Fine. Your timesheets are... acceptable."

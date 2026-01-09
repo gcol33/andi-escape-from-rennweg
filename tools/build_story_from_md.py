@@ -530,7 +530,7 @@ def parse_scene_file(filepath):
         'add_items': frontmatter.get('add_items', []),
         'remove_items': frontmatter.get('remove_items', []),
         'actions': frontmatter.get('actions', []),
-        'ending_title': frontmatter.get('ending_title', None),
+        'ending_title': frontmatter.get('ending_title', '').strip('"\'') or None,
         'no_restart': frontmatter.get('no_restart', False),
         'random_flavor': frontmatter.get('random_flavor', []),
         'recap': frontmatter.get('recap', None),
@@ -698,9 +698,28 @@ def validate_scenes(scenes):
                         referenced_ids.add(target)
                         if target not in scene_ids:
                             errors.append(f"Scene '{scene['id']}': action {key} '{target}' does not exist")
+            elif action.get('type') == 'goto':
+                target = action.get('target')
+                if target:
+                    referenced_ids.add(target)
+                    if target not in scene_ids:
+                        errors.append(f"Scene '{scene['id']}': goto target '{target}' does not exist")
+            elif action.get('type') == 'draw_tarot':
+                for key in ['target', 'ready_target']:
+                    target = action.get(key)
+                    if target:
+                        referenced_ids.add(target)
+                        if target not in scene_ids:
+                            errors.append(f"Scene '{scene['id']}': draw_tarot {key} '{target}' does not exist")
+            elif action.get('type') == 'memory_chain':
+                target = action.get('fallback')
+                if target:
+                    referenced_ids.add(target)
+                    if target not in scene_ids:
+                        errors.append(f"Scene '{scene['id']}': memory_chain fallback '{target}' does not exist")
 
-    # Check for unreachable scenes (except 'start')
-    unreachable = scene_ids - referenced_ids - {'start'}
+    # Check for unreachable scenes (except 'start' and 'memory_start' which is called from engine)
+    unreachable = scene_ids - referenced_ids - {'start', 'memory_start'}
     for scene_id in unreachable:
         warnings.append(f"Scene '{scene_id}' is never referenced (unreachable)")
 

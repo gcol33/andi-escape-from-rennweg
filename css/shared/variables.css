@@ -164,13 +164,13 @@
 :root {
     --password-char-width: 100px;
     --password-char-height: 120px;
-    --password-char-font-size: 3rem;
+    --password-char-font-size: 4rem;
     --password-char-width-tablet: 80px;
     --password-char-height-tablet: 96px;
-    --password-char-font-size-tablet: 2.5rem;
+    --password-char-font-size-tablet: 3.4rem;
     --password-char-width-mobile: 60px;
     --password-char-height-mobile: 72px;
-    --password-char-font-size-mobile: 2rem;
+    --password-char-font-size-mobile: 2.7rem;
 }
 
 /* === UI Positioning System ===

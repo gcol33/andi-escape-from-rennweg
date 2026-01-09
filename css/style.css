@@ -534,11 +534,13 @@ h1 {
 .game-over {
     color: #4b1f0d;
     font-weight: bold;
+    font-style: italic;
     text-align: center;
     margin-top: 15px;
     padding: 10px;
     border: 2px solid #4b1f0d;
     border-radius: 5px;
+    font-size: 3em;
 }
 
 /* Stack game-over message above restart button in landscape */
@@ -596,6 +598,18 @@ h1 {
 .continue-button:hover {
     background-color: #8f6f46;
     transform: scale(1.02);
+}
+
+/* Play Again button in choices area - inverted colors */
+.continue-button.restart-button {
+    background-color: var(--text-color, #fffbe9);
+    color: var(--bg-color, #5c4732);
+    font-weight: bold;
+}
+
+.continue-button.restart-button:hover {
+    background-color: var(--text-color, #fffbe9);
+    opacity: 0.85;
 }
 
 /* === Dice Roll Display === */

@@ -56,8 +56,7 @@ var BattleUtils = (function() {
         BattleIntent: typeof BattleIntent !== 'undefined',
         BattleSummon: typeof BattleSummon !== 'undefined',
         BattleUI: typeof BattleUI !== 'undefined',
-        QTEEngine: typeof QTEEngine !== 'undefined',
-        EventEmitter: typeof EventEmitter !== 'undefined'
+        QTEEngine: typeof QTEEngine !== 'undefined'
     };
 
     /**
@@ -109,7 +108,6 @@ var BattleUtils = (function() {
             BattleSummon: _dependencies.BattleSummon,
             BattleUI: _dependencies.BattleUI,
             QTEEngine: _dependencies.QTEEngine,
-            EventEmitter: _dependencies.EventEmitter,
             TimerManager: typeof TimerManager !== 'undefined',
             ListenerManager: typeof ListenerManager !== 'undefined'
         };

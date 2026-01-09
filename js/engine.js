@@ -422,6 +422,42 @@ var VNEngine = (function() {
         // The ModuleRegistry fallback in executeActions() handles these.
 
         /**
+         * Goto action handler - conditional scene navigation
+         * Used for gate scenes that route based on flags without showing UI
+         *
+         * Actions are evaluated in order, first matching condition wins.
+         * Use a final goto without requires as a fallback.
+         *
+         * Supports:
+         * - target: scene to navigate to
+         * - requires: flag or comma-separated flags (supports ! negation)
+         *
+         * Returns true if navigation occurred (stops further action processing)
+         */
+        goto: function(action) {
+            var target = action.target;
+            if (!target) {
+                _log.warn('Engine', 'goto action missing target');
+                return false;
+            }
+
+            // Check flag requirements if specified
+            if (action.requires) {
+                var flags = typeof action.requires === 'string'
+                    ? action.requires.split(',').map(function(f) { return f.trim(); })
+                    : action.requires;
+
+                if (!checkFlags(flags)) {
+                    return false; // Condition not met, skip this goto
+                }
+            }
+
+            // Condition met (or no condition), navigate immediately
+            loadScene(target);
+            return true; // Signal that we navigated, stop processing actions
+        },
+
+        /**
          * Reset game state action handler
          * Resets flags, inventory, HP etc.
          * Used for "wake up" scenes after bad endings
@@ -3438,6 +3474,14 @@ var VNEngine = (function() {
 
         // Use processed text blocks (auto-split for non-ending scenes)
         var textBlocks = state.processedTextBlocks || scene.textBlocks || [];
+
+        // Gate scenes: no text blocks + only goto actions = execute immediately without rendering
+        var hasOnlyGotoActions = scene.actions && scene.actions.length > 0 &&
+            scene.actions.every(function(a) { return a.type === 'goto'; });
+        if (textBlocks.length === 0 && hasOnlyGotoActions) {
+            executeActions();
+            return;
+        }
         var currentText = textBlocks[state.currentBlockIndex] || '';
         var isLastBlock = state.currentBlockIndex >= textBlocks.length - 1;
 
@@ -4186,22 +4230,11 @@ var VNEngine = (function() {
             }
 
             if (endingOverlay) {
-                // Add completion message
+                // Add completion message to overlay
                 var completionMsg = document.createElement('p');
                 completionMsg.className = 'game-over';
                 completionMsg.textContent = state.endingTitle || 'The adventure is complete!';
                 endingOverlay.appendChild(completionMsg);
-
-                // Add restart button
-                var restartButton = document.createElement('button');
-                restartButton.className = 'restart-button';
-                restartButton.textContent = 'Play Again';
-                restartButton.onclick = function() {
-                    // Go to memory_start to play memory recap, then wake_up
-                    // memory_start triggers memory_chain which shows memories of items obtained this run
-                    loadScene('memory_start');
-                };
-                endingOverlay.appendChild(restartButton);
 
                 // Show the overlay (darkens scene 40%)
                 endingOverlay.classList.add('visible');
@@ -4210,6 +4243,18 @@ var VNEngine = (function() {
                 if (elements.textBox) {
                     elements.textBox.classList.add('ending-scene');
                 }
+
+                // Add Play Again button in choices container (where Continue normally appears)
+                elements.choicesContainer.innerHTML = '';
+                var restartButton = document.createElement('button');
+                restartButton.className = 'continue-button restart-button';
+                restartButton.textContent = 'Play Again';
+                restartButton.onclick = function() {
+                    // Go to memory_start to play memory recap, then wake_up
+                    // memory_start triggers memory_chain which shows memories of items obtained this run
+                    loadScene('memory_start');
+                };
+                elements.choicesContainer.appendChild(restartButton);
             }
         }
     }
@@ -4237,7 +4282,11 @@ var VNEngine = (function() {
 
             if (handler) {
                 try {
-                    handler(action);
+                    var result = handler(action);
+                    // If handler returns true (e.g., goto navigated), stop processing
+                    if (result === true) {
+                        return;
+                    }
                 } catch (e) {
                     _log.error('Engine', 'Error executing action:', e);
                     _log.error('Engine', 'Stack trace:', e.stack);
@@ -5484,7 +5533,13 @@ var VNEngine = (function() {
         if (!textBox) return;
 
         // Click on background or sprite layer toggles text box
+        // Only toggle if there's a real background (not black.svg) and typewriter isn't active
         function toggleTextBox(e) {
+            var bgImage = bgLayer && bgLayer.style.backgroundImage;
+            var hasRealBackground = bgImage && bgImage !== 'none' && bgImage.indexOf('black.svg') === -1;
+            if (!hasRealBackground) return;
+            // Don't toggle while typewriter is running
+            if (state.typewriter && state.typewriter.isTyping) return;
             textBox.classList.toggle('hidden-textbox');
             e.stopPropagation();
         }

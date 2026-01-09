@@ -172,8 +172,9 @@
 /* Ending overlay message - inherits from .game-over, centered here */
 #ending-overlay .game-over {
     text-align: center;
-    margin: 0;
-    padding: 0 1rem;
+    margin: 0 2rem;
+    padding: 0.5rem 1.5rem;
+    font-size: 2em;
 }
 
 /* Restart button in overlay - centered, accessible */
