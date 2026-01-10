@@ -9,5 +9,5 @@ You drop by Anna's office to say goodbye. She's sitting at her desk with a steam
 
 - Continue (requires: anna_defeated) → stairs_0
 - "Sure, why not?" (requires: !anna_defeated) → ANNA_battle
-- Offer Coffee Instead (requires: !anna_defeated, uses: Coffee Mug) → ANNA_battle_coffee
+- Offer Coffee Instead (requires: !anna_defeated) (uses: Coffee Mug) → ANNA_battle_coffee
 - Politely refuse (requires: !anna_defeated) → stairs_0

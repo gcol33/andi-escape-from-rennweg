@@ -6,7 +6,7 @@ add_items:
     type: key
 ---
 
-You step outside to the nearby Billa. The automatic doors slide open with a familiar whoosh. For Stefan's defense party, Sophy couldn't get a clear answer about what to buy. So she just bought EVERYTHING. A legendary shopping trip.
+You step outside to the nearby Billa. The automatic doors slide open with a familiar whoosh. You remember Stefan's defense party. Sophy had asked you what to buy, but you couldn't give her a clear answer. So she just bought EVERYTHING. Snacks, drinks, decorations, napkins in three colors, backup napkins, emergency napkins. The department is still working through the supplies years later.
 
 ---
 

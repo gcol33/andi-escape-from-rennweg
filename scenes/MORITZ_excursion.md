@@ -15,4 +15,5 @@ Moritz approaches you now. "Remember that excursion? I've got a quiz for you."
 
 ### Choices
 
-- "Bring it on!" → quiz_excursion
+- "Bring it on!" (requires: !quiz_moritz_complete) → quiz_excursion
+- Continue (requires: quiz_moritz_complete) → JEN

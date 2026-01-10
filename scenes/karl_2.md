@@ -3,7 +3,7 @@ id: karl_2
 bg: ../char/karl_neutral.png
 no_read_tracking: true
 set_flags:
-  - jk_seen_2
+  - karl_seen_2
 ---
 
 "Oh. You again." Karl is examining a wilting plant on someone's desk. "This ficus is dying. Like everything."

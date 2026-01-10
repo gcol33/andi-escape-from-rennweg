@@ -1027,27 +1027,50 @@ var BattleDiceUI = (function() {
                             damageNum.textContent = '?';
                             line.appendChild(damageNum);
 
+                            // Start with base damage roll, not final damage
+                            var baseDmg = options.baseDamageRoll || options.damage;
                             var damageRoll = {
-                                roll: options.damage,
+                                roll: baseDmg,
                                 sides: options.damageDice || 6,
                                 isMax: options.isMaxDamage,
                                 isMin: options.isMinDamage
                             };
 
                             animateRoll(damageNum, damageRoll, function() {
-                                var damagePart = ' <span class="keyword-damage">' + KEYWORDS.DAMAGE + '</span>';
+                                // If we have damage modifiers (like CRIT x2), animate them
+                                var damageModifiers = options.damageModifiers || [];
+                                if (damageModifiers.length > 0) {
+                                    showAllThenCollapse(line, damageNum, baseDmg, damageModifiers, function(finalDamage) {
+                                        var damagePart = ' <span class="keyword-damage">' + KEYWORDS.DAMAGE + '</span>';
 
-                                if (options.statusResult && options.statusResult.applied && options.statusResult.message) {
-                                    damagePart += ' <span class="keyword-status">' + options.statusResult.message + '</span>';
-                                }
+                                        if (options.statusResult && options.statusResult.applied && options.statusResult.message) {
+                                            damagePart += ' <span class="keyword-status">' + options.statusResult.message + '</span>';
+                                        }
 
-                                typewriter(line, damagePart, function() {
-                                    if (!rollResult.isCrit && !rollResult.isFumble) {
-                                        playSfx('thud.ogg');
+                                        typewriter(line, damagePart, function() {
+                                            if (!rollResult.isCrit && !rollResult.isFumble) {
+                                                playSfx('thud.ogg');
+                                            }
+                                            if (onTextComplete) onTextComplete();
+                                            diceTimeout(callback, config.lingerDelay);
+                                        });
+                                    });
+                                } else {
+                                    // No modifiers, just show DAMAGE keyword
+                                    var damagePart = ' <span class="keyword-damage">' + KEYWORDS.DAMAGE + '</span>';
+
+                                    if (options.statusResult && options.statusResult.applied && options.statusResult.message) {
+                                        damagePart += ' <span class="keyword-status">' + options.statusResult.message + '</span>';
                                     }
-                                    if (onTextComplete) onTextComplete();
-                                    diceTimeout(callback, config.lingerDelay);
-                                });
+
+                                    typewriter(line, damagePart, function() {
+                                        if (!rollResult.isCrit && !rollResult.isFumble) {
+                                            playSfx('thud.ogg');
+                                        }
+                                        if (onTextComplete) onTextComplete();
+                                        diceTimeout(callback, config.lingerDelay);
+                                    });
+                                }
                             }, 'damage');
                         });
                     } else {

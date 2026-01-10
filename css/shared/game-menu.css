@@ -60,6 +60,8 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    /* 2x text size for menu readability */
+    font-size: 2em;
 }
 
 /* --- Menu Header --- */
@@ -122,7 +124,7 @@
     color: var(--tab-color, rgba(255, 255, 255, 0.6));
     border: none;
     border-bottom: 2px solid transparent;
-    font-size: var(--small-font-size, 0.75rem);
+    font-size: 1em;
     font-family: inherit;
     cursor: pointer;
     transition: all 0.2s;
@@ -297,23 +299,10 @@
 }
 
 /* --- Journal Tab --- */
-.journal-entry {
-    padding: 0.75rem;
-    margin-bottom: 0.5rem;
-    background: var(--menu-item-bg, rgba(255, 255, 255, 0.05));
-    border-radius: 4px;
-}
-
-.journal-title {
-    font-weight: bold;
-    font-size: 0.9rem;
-    margin-bottom: 0.25rem;
-}
-
-.journal-recap {
-    font-size: 0.8rem;
-    opacity: 0.8;
-    line-height: 1.4;
+.journal-list {
+    font-size: 0.7em;
+    line-height: 1.6;
+    word-wrap: break-word;
 }
 
 /* --- Save/Load Tab --- */
@@ -420,11 +409,11 @@
 /* --- Narrow Screens --- */
 @media (max-width: 37.5em) {
     .menu-title {
-        font-size: 1rem;
+        font-size: 1em;
     }
 
     .menu-tab {
-        font-size: 0.65rem;
+        font-size: 0.9em;
         padding: 0.4rem 0.4rem;
     }
 
@@ -432,7 +421,7 @@
     .skill-item,
     .journal-entry,
     .save-slot {
-        font-size: 0.8rem;
+        font-size: 1em;
     }
 
     .save-slot-actions {

@@ -405,7 +405,7 @@ const TUNING = {
 
             // === Timing Bar Settings ===
             bar: {
-                duration: 2000,             // Time for one full pass (ms)
+                duration: 4000,             // Time for one full pass (ms) - doubled for easier gameplay
                 oscillations: 2,            // Number of back-and-forth cycles
                 markerSpeed: 1.0,           // Speed multiplier
                 oscillating: false          // Style 6: oscillating speed variant

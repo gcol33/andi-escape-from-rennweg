@@ -3,7 +3,7 @@ id: johannes_1
 bg: ../char/johannes_neutral.png
 no_read_tracking: true
 set_flags:
-  - jk_seen_1
+  - johannes_seen_1
 ---
 
 "Andi! Did you know that today is exactly 47 days until Pi Day?" Johannes adjusts his glasses, eyes gleaming. "I'm already planning the celebration. Pi-themed snacks. Recitation contests. The works."

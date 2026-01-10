@@ -1,6 +1,8 @@
 ---
 id: quiz_excursion_win
 bg: lunch_room.png
+set_key_flags:
+  - quiz_moritz_complete
 add_items:
   - name: Flora Book
     type: key

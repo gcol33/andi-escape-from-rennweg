@@ -516,7 +516,7 @@ var GameMenu = (function() {
     }
 
     /**
-     * Render Journal tab
+     * Render Journal tab - simple list of visited scenes
      */
     function renderJournal() {
         var panel = tabPanels.journal;
@@ -533,35 +533,27 @@ var GameMenu = (function() {
         var html = '';
 
         if (history.length > 0) {
-            // Show scenes in reverse order (most recent first)
-            var reversedHistory = history.slice().reverse();
+            // Get unique scenes in order visited
             var seenScenes = {};
+            var uniqueScenes = [];
 
-            reversedHistory.forEach(function(sceneId) {
-                // Skip duplicates
-                if (seenScenes[sceneId]) return;
-                seenScenes[sceneId] = true;
-
-                // Get scene data
-                var scene = null;
-                if (typeof story !== 'undefined' && story[sceneId]) {
-                    scene = story[sceneId];
-                }
-
-                // Show all scenes with titles (recap is optional)
-                if (scene && scene.title) {
-                    html += '<div class="journal-entry">';
-                    html += '<div class="journal-title">' + escapeHtml(scene.title) + '</div>';
-                    if (scene.recap) {
-                        html += '<div class="journal-recap">' + escapeHtml(scene.recap) + '</div>';
-                    }
-                    html += '</div>';
+            history.forEach(function(sceneId) {
+                if (!seenScenes[sceneId]) {
+                    seenScenes[sceneId] = true;
+                    uniqueScenes.push(sceneId);
                 }
             });
+
+            // Simple inline list: (scene1, scene2, scene3, ...)
+            html += '<div class="journal-list">(';
+            html += uniqueScenes.map(function(sceneId) {
+                return escapeHtml(sceneId);
+            }).join(', ');
+            html += ')</div>';
         }
 
         if (html === '') {
-            html = '<div class="menu-empty">No journal entries yet</div>';
+            html = '<div class="menu-empty">No scenes visited yet</div>';
         }
 
         panel.innerHTML = html;

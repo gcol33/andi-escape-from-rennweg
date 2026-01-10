@@ -1,6 +1,6 @@
 ---
 id: coffee_end
-bg: kitchen.png
+bg: coffee_high.png
 ending_title: "BAD ENDING: Coffee Ascension"
 ---
 

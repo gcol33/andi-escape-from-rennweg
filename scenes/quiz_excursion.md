@@ -20,7 +20,7 @@ actions:
       - question: "What's NOT a valid differential characteristic?"
         answers:
           - text: "Leaf shape"
-          - text: "Being hübsch (pretty)"
+          - text: "Being hübsch"
             correct: true
           - text: "Flower color"
     win_target: quiz_excursion_win

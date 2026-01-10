@@ -92,7 +92,11 @@
     /* Container-relative sizes in portrait mode */
     #vn-container {
         --base-font-size: clamp(1.25rem, 4vw, 1.75rem);  /* vw for battle UI consistency */
-        --story-font-size: calc(3.5cqw * var(--textbox-scale));  /* cqw for text scaling */
+        --story-font-size: calc(3cqw * var(--textbox-scale));  /* cqw for text scaling - reduced from 3.5 */
+
+        /* Button font sizes - use vw not cqw since portrait container is narrow */
+        --choice-font-size: clamp(0.85rem, 3.5vw, 1.1rem);
+        --continue-font-size: clamp(0.85rem, 3.5vw, 1.1rem);
     }
 
     /* --- Container & Layout --- */

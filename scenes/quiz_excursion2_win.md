@@ -1,6 +1,8 @@
 ---
 id: quiz_excursion2_win
 bg: gate_exit.png
+set_key_flags:
+  - quiz_siegrun_complete
 set_skills:
   - Floristic Knowledge
 ---

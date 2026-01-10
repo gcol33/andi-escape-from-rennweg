@@ -11,9 +11,14 @@ You'd made it, barely, thanks to the magical NASA pilot food tube you'd brought 
 
 ---
 
+But the real adventure came at night. Sharing a room with other people? Impossible. You'd rather sleep outside. Which is exactly what happened when you were the last one in and nobody realized you didn't have a key. Locked out of the Gasthof. Everyone asleep. You spent the night in the car, which was honestly not that bad. At least no one was snoring.
+
+---
+
 Siegrun smiles. "You survived! Let's see if you remember what you learned."
 
 ### Choices
 
-- Take the quiz → quiz_excursion2
+- Take the quiz (requires: !quiz_siegrun_complete) → quiz_excursion2
+- Continue (requires: quiz_siegrun_complete) → elevator1
 

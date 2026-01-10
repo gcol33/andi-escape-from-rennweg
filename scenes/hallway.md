@@ -15,5 +15,5 @@ Three corridors branch off from here. The kitchen is just around the corner. Dow
 ### Choices
 
 - Go to the kitchen (requires: !visited_kitchen) → kitchen
-- Check who's talking → JONI
-- Head toward the common area → ADRIAN
+- Check who's talking → hallway_whitespace
+- Head toward the common area → hallway_bug

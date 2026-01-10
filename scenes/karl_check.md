@@ -6,10 +6,10 @@ actions:
     requires: karl_defeated
   - type: goto
     target: karl_battle
-    requires: jk_seen_2
+    requires: karl_seen_2
   - type: goto
     target: karl_2
-    requires: jk_seen_1
+    requires: karl_seen_1
   - type: goto
     target: karl_1
 ---

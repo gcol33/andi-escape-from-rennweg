@@ -4,12 +4,9 @@ bg: staircase_downstairs.png
 music: victory.mp3
 set_key_flags:
   - dnd_group_defeated
-add_items:
-  - name: Beer
-    type: key
 ---
 
-The D&D group falls back in defeat. "Impressive," Tobias admits, gathering his scattered dice. "You fight like a level 20 character. The Shadowrun challenge shall wait for another day."
+The D&D group falls back in defeat. "Impressive," they admit, gathering their scattered dice. "You fight like a level 20 character. The Shadowrun challenge shall wait for another day."
 
 ---
 
@@ -17,5 +14,5 @@ Someone reaches into a cooler and pulls out a beer. "The golden liquid of friend
 
 ### Choices
 
-- Return upstairs → stairs_0
+- Continue → dnd_group_dancing
 

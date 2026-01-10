@@ -16,6 +16,9 @@
     --text-color: #0a0a0a;
     --page-bg: #0a0a0a;
 
+    /* Grayscale toggle - default to color mode, add .manga-bw class to body for B&W */
+    --manga-grayscale: none;
+
     /* Theme font - damage numbers use same font as body text */
     --theme-font: 'Courier New', 'Georgia', serif;
     --damage-font: var(--theme-font);
@@ -57,6 +60,11 @@
     --battle-mana: linear-gradient(to bottom, #2196f3, #1976d2);
     --battle-limit: linear-gradient(to bottom, #9c27b0, #7b1fa2);
     --battle-limit-ready: linear-gradient(to bottom, #ffd700, #ffc107);
+}
+
+/* Optional: Enable black & white mode by adding .manga-bw class to body */
+body.manga-bw {
+    --manga-grayscale: grayscale(100%);
 }
 
 /* === Password Overlay (Horror manga style) === */
@@ -327,8 +335,8 @@ h1 {
     background-repeat: no-repeat;
     background-color: var(--manga-light-gray);
     z-index: var(--z-background);
-    /* Desaturate to black and white */
-    filter: grayscale(100%) contrast(1.2);
+    /* Desaturate to black and white (controlled by --manga-grayscale variable) */
+    filter: var(--manga-grayscale) contrast(1.2);
 }
 
 /* === Character Sprite Layer === */
@@ -349,8 +357,8 @@ h1 {
     max-height: 100%;
     max-width: 300px;
     object-fit: contain;
-    /* High contrast black and white for horror manga look */
-    filter: grayscale(100%) contrast(1.4) drop-shadow(4px 6px 0 rgba(0, 0, 0, 0.8));
+    /* High contrast black and white for horror manga look (controlled by --manga-grayscale variable) */
+    filter: var(--manga-grayscale) contrast(1.4) drop-shadow(4px 6px 0 rgba(0, 0, 0, 0.8));
     margin: 0 10px;
 }
 

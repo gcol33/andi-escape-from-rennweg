@@ -351,9 +351,10 @@ def parse_frontmatter(content):
     return frontmatter, body
 
 
-def parse_choices(text):
+def parse_choices(text, scene_id=None):
     """Parse the ### Choices section into structured choices."""
     choices = []
+    warnings = []
 
     for line in text.strip().split('\n'):
         line = line.strip()
@@ -400,7 +401,14 @@ def parse_choices(text):
         # (requires: flag_name)
         requires_match = re.search(r'\(requires:\s*([^)]+)\)', label_part)
         if requires_match:
-            flags = [f.strip() for f in requires_match.group(1).split(',')]
+            requires_content = requires_match.group(1)
+            # Warn if nested directives are found inside (requires:)
+            nested_directives = ['require_skills:', 'require_items:', 'sets:', 'uses:', 'heals:', 'battle:']
+            for directive in nested_directives:
+                if directive in requires_content:
+                    scene_ref = f" in scene '{scene_id}'" if scene_id else ""
+                    warnings.append(f"Nested '{directive}' found inside (requires:){scene_ref}. Use separate parentheses: (requires: flag) ({directive} value)")
+            flags = [f.strip() for f in requires_content.split(',')]
             choice['require_flags'] = flags
             label_part = re.sub(r'\(requires:\s*[^)]+\)', '', label_part).strip()
 
@@ -479,18 +487,20 @@ def parse_choices(text):
 
         choices.append(choice)
 
-    return choices
+    return choices, warnings
 
 
-def parse_text_blocks(body):
+def parse_text_blocks(body, scene_id=None):
     """Split body into text blocks and extract choices."""
     # Check for ### Choices section
     choices_match = re.search(r'###\s*Choices\s*\n', body)
+    warnings = []
 
     if choices_match:
         text_part = body[:choices_match.start()]
         choices_part = body[choices_match.end():]
-        choices = parse_choices(choices_part)
+        choices, choice_warnings = parse_choices(choices_part, scene_id)
+        warnings.extend(choice_warnings)
     else:
         text_part = body
         choices = []
@@ -506,7 +516,7 @@ def parse_text_blocks(body):
         if block:
             text_blocks.append(block)
 
-    return text_blocks, choices
+    return text_blocks, choices, warnings
 
 
 def parse_scene_file(filepath):
@@ -515,7 +525,8 @@ def parse_scene_file(filepath):
         content = f.read()
 
     frontmatter, body = parse_frontmatter(content)
-    text_blocks, choices = parse_text_blocks(body)
+    scene_id = frontmatter.get('id', filepath.stem)
+    text_blocks, choices, warnings = parse_text_blocks(body, scene_id)
 
     # Build scene object
     scene = {
@@ -571,7 +582,7 @@ def parse_scene_file(filepath):
     if scene['recap'] is None:
         del scene['recap']
 
-    return scene
+    return scene, warnings
 
 
 def parse_theme_file():
@@ -1441,14 +1452,22 @@ def main():
 
     # Parse all scenes
     scenes = []
+    syntax_warnings = []
     for filepath in md_files:
         print(f"  Parsing: {filepath.name}")
         try:
-            scene = parse_scene_file(filepath)
+            scene, scene_warnings = parse_scene_file(filepath)
             scenes.append(scene)
+            syntax_warnings.extend(scene_warnings)
         except Exception as e:
             print(f"    Error: {e}")
             sys.exit(1)
+
+    # Show syntax warnings (these are errors that should be fixed)
+    if syntax_warnings:
+        print("\nSyntax warnings (please fix):")
+        for warning in syntax_warnings:
+            print(f"  Warning: {warning}")
 
     # Check for duplicate IDs
     ids = [s['id'] for s in scenes]

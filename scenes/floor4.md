@@ -7,4 +7,4 @@ The fourth floor. Botany territory. The air itself seems different up here, carr
 
 ### Choices
 
-- Explore → jk_r5
+- Explore → floor4_plant
