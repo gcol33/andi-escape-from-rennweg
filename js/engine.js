@@ -3171,6 +3171,13 @@ var VNEngine = (function() {
     function loadScene(sceneId, prependContent, entrySfx) {
         prependContent = prependContent || '';
 
+        // DEBUG: Track met_franz when navigating to elevator or Franz scenes
+        if (sceneId && (sceneId.indexOf('elevator') !== -1 || sceneId.indexOf('FRANZ') !== -1)) {
+            console.log('[DEBUG loadScene] Loading:', sceneId,
+                '| met_franz:', flagManager.has('met_franz'),
+                '| from:', state.currentSceneId);
+        }
+
         // Clean up resources from previous scene
         cleanupSceneResources();
 
@@ -4132,15 +4139,32 @@ var VNEngine = (function() {
         hideContinueButton();
 
         if (choices && choices.length > 0) {
+            // DEBUG: Log choice filtering for elevator scenes
+            if (state.currentSceneId && state.currentSceneId.indexOf('elevator') !== -1) {
+                console.log('[DEBUG renderChoices] Scene:', state.currentSceneId);
+                console.log('[DEBUG renderChoices] met_franz:', flagManager.has('met_franz'));
+                console.log('[DEBUG renderChoices] All choices:', choices.map(function(c) { return c.label + ' -> ' + c.target; }));
+            }
+
             // Filter choices by required flags, required skills, required items, AND items to use
             var availableChoices = choices.filter(function(choice) {
                 // Check flag requirements
                 if (choice.require_flags && choice.require_flags.length > 0) {
-                    if (!checkFlags(choice.require_flags)) return false;
+                    if (!checkFlags(choice.require_flags)) {
+                        if (state.currentSceneId && state.currentSceneId.indexOf('elevator') !== -1) {
+                            console.log('[DEBUG renderChoices] FILTERED OUT (flags):', choice.label, 'require_flags:', choice.require_flags);
+                        }
+                        return false;
+                    }
                 }
                 // Check skill requirements
                 if (choice.require_skills && choice.require_skills.length > 0) {
-                    if (!hasSkills(choice.require_skills)) return false;
+                    if (!hasSkills(choice.require_skills)) {
+                        if (state.currentSceneId && state.currentSceneId.indexOf('elevator') !== -1) {
+                            console.log('[DEBUG renderChoices] FILTERED OUT (skills):', choice.label, 'require_skills:', choice.require_skills);
+                        }
+                        return false;
+                    }
                 }
                 // Check item requirements
                 if (choice.require_items && choice.require_items.length > 0) {
@@ -4150,8 +4174,17 @@ var VNEngine = (function() {
                 if (choice.uses && choice.uses.length > 0) {
                     if (!hasItems(choice.uses)) return false;
                 }
+                // DEBUG: Log choices that PASS filtering
+                if (state.currentSceneId && state.currentSceneId.indexOf('elevator') !== -1) {
+                    console.log('[DEBUG renderChoices] PASSED:', choice.label, '→', choice.target);
+                }
                 return true;
             });
+
+            // DEBUG: Log available choices after filtering
+            if (state.currentSceneId && state.currentSceneId.indexOf('elevator') !== -1) {
+                console.log('[DEBUG renderChoices] Available after filter:', availableChoices.map(function(c) { return c.label + ' -> ' + c.target; }));
+            }
 
             availableChoices.forEach(function(choice, index) {
                 var button = document.createElement('button');
@@ -4210,6 +4243,14 @@ var VNEngine = (function() {
                     // Heal player if specified
                     if (choice.heals) {
                         healPlayer(choice.heals);
+                    }
+
+                    // DEBUG: Log choice click that navigates to Franz
+                    if (choice.target && choice.target.indexOf('FRANZ') !== -1) {
+                        console.log('[DEBUG Choice Click] Navigating to:', choice.target,
+                            '| Label:', choice.label,
+                            '| require_flags:', choice.require_flags,
+                            '| met_franz at click time:', flagManager.has('met_franz'));
                     }
 
                     // Navigate to target, passing SFX to play on new scene
@@ -4813,6 +4854,10 @@ var VNEngine = (function() {
     function setFlags(flags) {
         if (typeof flagManager !== 'undefined') {
             flags.forEach(function(flag) {
+                // DEBUG: Log when met_franz is set
+                if (flag === 'met_franz') {
+                    console.log('[DEBUG setFlags] Setting met_franz in scene:', state.currentSceneId);
+                }
                 flagManager.set(flag);
             });
         }
@@ -4826,6 +4871,11 @@ var VNEngine = (function() {
     function clearFlags(flags) {
         if (typeof flagManager !== 'undefined') {
             flags.forEach(function(flag) {
+                // DEBUG: Log when met_franz is cleared
+                if (flag === 'met_franz') {
+                    console.log('[DEBUG clearFlags] Clearing met_franz in scene:', state.currentSceneId);
+                    console.trace('[DEBUG clearFlags] Stack trace');
+                }
                 flagManager.clear(flag);
             });
         }
@@ -4847,7 +4897,12 @@ var VNEngine = (function() {
 
     function checkFlags(required) {
         if (typeof flagManager !== 'undefined') {
-            return flagManager.checkRequired(required);
+            var result = flagManager.checkRequired(required);
+            // DEBUG: Log checkFlags when met_franz is involved
+            if (required && required.some(function(f) { return f.indexOf('met_franz') !== -1; })) {
+                console.log('[DEBUG checkFlags] required:', required, '| result:', result, '| met_franz actual:', flagManager.has('met_franz'));
+            }
+            return result;
         }
         return true; // Fallback: allow if flagManager not available
     }
@@ -4866,7 +4921,7 @@ var VNEngine = (function() {
         return false;
     }
 
-    function clearFlags() {
+    function clearAllFlags() {
         if (typeof flagManager !== 'undefined') {
             flagManager.clearAll();
         }
@@ -5355,6 +5410,11 @@ var VNEngine = (function() {
             var flagsArr = typeof flagManager !== 'undefined' ? flagManager.getAll() : [];
             var keyFlagsArr = typeof flagManager !== 'undefined' ? flagManager.getAllKey() : [];
 
+            // DEBUG: Check if met_franz is in the flags being saved
+            if (flagsArr.indexOf('met_franz') !== -1) {
+                console.log('[DEBUG saveState] Saving met_franz in flags array');
+            }
+
             var saveData = {
                 currentSceneId: state.currentSceneId,
                 currentBlockIndex: state.currentBlockIndex,
@@ -5407,6 +5467,14 @@ var VNEngine = (function() {
                 // Handle both array (new) and object (legacy) formats
                 var savedFlags = saveData.flags || [];
                 var savedKeyFlags = saveData.keyFlags || [];
+
+                // DEBUG: Check if met_franz is in the saved data
+                if (savedFlags.indexOf && savedFlags.indexOf('met_franz') !== -1) {
+                    console.log('[DEBUG loadSavedState] Found met_franz in saved flags, restoring it');
+                } else {
+                    console.log('[DEBUG loadSavedState] met_franz NOT in saved flags:', savedFlags);
+                }
+
                 if (Array.isArray(savedFlags)) {
                     savedFlags.forEach(function(f) { flagManager.set(f); });
                 } else {
