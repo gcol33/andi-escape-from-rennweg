@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-180 0 560 560" width="260" height="520">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400" width="200" height="400">
   <!-- CAT Stage 5 - HUGE, fills entire frame, menacing -->
-  <!-- Body - massive round belly (2x) -->
-  <ellipse cx="100" cy="340" rx="240" ry="200" fill="#1a1a1a"/>
+  <!-- Body - extends beyond frame -->
+  <ellipse cx="100" cy="350" rx="120" ry="80" fill="#1a1a1a"/>
   <!-- Head - massive, center of frame -->
   <ellipse cx="100" cy="160" rx="85" ry="80" fill="#1a1a1a"/>
   <!-- Ears - extend to top -->
@@ -31,7 +31,10 @@
   <line x1="155" y1="210" x2="210" y2="190" stroke="#3a3a3a" stroke-width="3"/>
   <line x1="160" y1="225" x2="215" y2="230" stroke="#3a3a3a" stroke-width="3"/>
   <line x1="162" y1="240" x2="210" y2="265" stroke="#3a3a3a" stroke-width="3"/>
-  <!-- Paws at bottom -->
-  <ellipse cx="40" cy="390" rx="35" ry="20" fill="#1a1a1a"/>
-  <ellipse cx="160" cy="390" rx="35" ry="20" fill="#1a1a1a"/>
+  <!-- Paws coming from sides - claiming space -->
+  <ellipse cx="15" cy="380" rx="40" ry="25" fill="#1a1a1a"/>
+  <ellipse cx="185" cy="380" rx="40" ry="25" fill="#1a1a1a"/>
+  <!-- Darkness creeping from edges -->
+  <rect x="0" y="0" width="15" height="400" fill="#1a1a1a" opacity="0.5"/>
+  <rect x="185" y="0" width="15" height="400" fill="#1a1a1a" opacity="0.5"/>
 </svg>

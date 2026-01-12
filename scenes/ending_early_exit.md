@@ -3,7 +3,9 @@ id: ending_early_exit
 bg: gate_exit.png
 music: game_over.mp3
 chars:
-  - cat_5.svg
+  - file: cat_5.svg
+    scale: 2
+    y: 100
 ending_title: "BAD ENDING: Trapped by CATS"
 ---
 

@@ -1,9 +1,9 @@
 ---
 id: dnd_group
-bg: staircase_downstairs.png
+bg: back_stairwell_dim.jpg
 ---
 
-Deep in the basement, you find them: the legendary D&D group. A circle of folding chairs around a makeshift table. Character sheets everywhere. Tobias looks up from behind his DM screen. "Andi! You've found the dice rollers' lair." You remember his character, the taxi driver mage. A bit of a "gmiatlicher Versager" type, but secretly competent.
+Deep in the basement, you find them: the Shadowrun group. A circle of folding chairs around a makeshift table. Character sheets everywhere. Tobias looks up from behind his GM screen. "Andi! You've found the dice rollers' lair." You remember your character, the taxi driver mage. A bit of a "gmiatlicher Versager" type, but secretly competent.
 
 ---
 
@@ -11,7 +11,4 @@ Deep in the basement, you find them: the legendary D&D group. A circle of foldin
 
 ### Choices
 
-- Continue (requires: dnd_group_defeated) → stairs_0
-- Fight the D&D group (requires: !dnd_group_defeated) → dnd_group_battle
-- Bribe with Coffee (requires: !dnd_group_defeated) (uses: Coffee Mug) → dnd_group_battle_coffee
-
+- Fight the Shadowrun group → dnd_group_battle

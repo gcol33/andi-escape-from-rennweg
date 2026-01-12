@@ -1,6 +1,8 @@
 ---
 id: dnd_group_battle
-bg: ../char/dnd_group.png
+bg: back_stairwell_dim.jpg
+chars:
+  - dnd_group.svg
 music: BOSS_TIME.mp3
 actions:
   - type: start_battle
@@ -9,7 +11,7 @@ actions:
     lose_target: dnd_group_defeat
 ---
 
-The D&D group rises from their chairs, dice rattling in their hands. Character sheets flutter to the ground like fallen soldiers.
+The Shadowrun group rises from their chairs, dice rattling ominously in their hands. Character sheets flutter to the ground like fallen soldiers.
 
 ---
 

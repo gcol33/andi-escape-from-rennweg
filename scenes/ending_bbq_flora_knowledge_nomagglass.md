@@ -3,7 +3,9 @@ id: ending_bbq_flora_knowledge_nomagglass
 bg: rooftop.jpg
 music: game_over.mp3
 chars:
-  - cat_5.svg
+  - file: cat_5.svg
+    scale: 2
+    y: 100
 ending_title: "BAD ENDING: Can't See the Forest for the Trees"
 ---
 

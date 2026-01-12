@@ -1,20 +1,24 @@
 ---
 id: LISA_scene
-bg: ../char/lisa_searching.png
+bg: office_kitchen.jpg
+chars:
+  - lisa_neutral.svg
 ---
 
 You run into Lisa near the kitchen. She's making coffee. "Oh, Andi! Did you hear? Someone said they found a mouse in here." You glance around nervously. "A mouse?" "Yeah, but they couldn't find it anymore. Maybe it's hiding somewhere."
 
 ---
 
-Lisa reaches for the kitchen cabinet, the infamous party cabinet, and opens it. A MOUSE RUNS OUT! It darts past you both and into the small hallway in front of your office. You and Lisa quickly close the doors, trapping yourselves and the mouse in the two-square-meter space.
+Lisa reaches for the kitchen cabinet—the infamous party cabinet—and opens it. A MOUSE RUNS OUT! It darts past you both and into the small hallway in front of your office. You and Lisa quickly close the doors, trapping yourselves and the mouse in the two-square-meter space.
 
 ---
 
 Five solid minutes of chaos. Diving behind boxes. Scrambling over chairs. Finally, you manage to capture the tiny creature. Together, you release it into the garden. Lisa catches her breath. "Well. That happened."
 
-### Choices
+---
+Suddenly, you see a group of students gathering near the department bus and realize that today starts an excursion you accidentally signed up for. You feel somewhat uncomfortable and realize you have to take a decision.
 
-- Head toward the common area → ADRIAN
+
+### Choices
+- Hide behind a tree and escape to hallway → hallway
 - Join a field excursion → MORITZ_excursion
-- Explore the main hallway → hallway

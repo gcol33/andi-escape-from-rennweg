@@ -1,9 +1,9 @@
 ---
 id: cellar
-bg: staircase_downstairs.png
+bg: back_stairwell_dim.jpg
 ---
 
-You descend into the building's basement, following Wolfgang's vague directions. The dim corridor stretches ahead, filled with forgotten equipment and dusty filing cabinets. A cold draft blows through the darkness. Something feels off. Suddenly, a ghostly blue glow emanates from an old server rack in the corner.
+You descend into the building's basement. The dim corridor stretches ahead, filled with forgotten equipment and ancient filing cabinets. A cold draft blows through the darkness. Something feels off. Suddenly, a ghostly blue glow emanates from an old server rack in the corner.
 
 ---
 
@@ -15,6 +15,5 @@ The ghost of Hercules seems very angry. But wait, you hear voices from deeper in
 
 ### Choices
 
-- Investigate the voices → jk_r6
+- Investigate the voices → dnd_group
 - "Sorry Hercules, got to go!" → stairs_0
-

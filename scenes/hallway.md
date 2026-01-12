@@ -10,10 +10,10 @@ You reach the main crossing of the building, where all paths seem to intersect. 
 
 ---
 
-Three corridors branch off from here. The kitchen is just around the corner. Down one hallway, you can hear someone talking. Another corridor leads toward the common areas.
+Three corridors branch off from here. The kitchen is just around the corner. Down one hallway, you can hear someone talking. Another corridor leads toward the seminar room.
 
 ### Choices
 
 - Go to the kitchen (requires: !visited_kitchen) → kitchen
 - Check who's talking → hallway_whitespace
-- Head toward the common area → hallway_bug
+- Head toward the seminar room → hallway_bug
