@@ -1030,11 +1030,7 @@ const story = {
     "bg": "rooftop.jpg",
     "music": "game_over.mp3",
     "chars": [
-      {
-        "file": "cat_5.svg",
-        "scale": 2,
-        "y": 100
-      }
+      "cat_5.svg"
     ],
     "ending_title": "BAD ENDING: Dry Party",
     "textBlocks": [
@@ -1055,11 +1051,7 @@ const story = {
     "bg": "rooftop.jpg",
     "music": "game_over.mp3",
     "chars": [
-      {
-        "file": "cat_5.svg",
-        "scale": 2,
-        "y": 100
-      }
+      "cat_5.svg"
     ],
     "ending_title": "BAD ENDING: No Spark",
     "textBlocks": [
@@ -1080,11 +1072,7 @@ const story = {
     "bg": "rooftop.jpg",
     "music": "game_over.mp3",
     "chars": [
-      {
-        "file": "cat_5.svg",
-        "scale": 2,
-        "y": 100
-      }
+      "cat_5.svg"
     ],
     "ending_title": "BAD ENDING: Can't See the Forest for the Trees",
     "textBlocks": [
@@ -1105,11 +1093,7 @@ const story = {
     "bg": "rooftop.jpg",
     "music": "game_over.mp3",
     "chars": [
-      {
-        "file": "cat_5.svg",
-        "scale": 2,
-        "y": 100
-      }
+      "cat_5.svg"
     ],
     "ending_title": "BAD ENDING: Book Smart, Field Dumb",
     "textBlocks": [
@@ -1130,11 +1114,7 @@ const story = {
     "bg": "rooftop.jpg",
     "music": "game_over.mp3",
     "chars": [
-      {
-        "file": "cat_5.svg",
-        "scale": 2,
-        "y": 100
-      }
+      "cat_5.svg"
     ],
     "ending_title": "BAD ENDING: Cold Grill",
     "textBlocks": [
@@ -1155,11 +1135,7 @@ const story = {
     "bg": "rooftop.jpg",
     "music": "game_over.mp3",
     "chars": [
-      {
-        "file": "cat_5.svg",
-        "scale": 2,
-        "y": 100
-      }
+      "cat_5.svg"
     ],
     "ending_title": "BAD ENDING: Botanical Failure",
     "textBlocks": [
@@ -1180,11 +1156,7 @@ const story = {
     "bg": "rooftop.jpg",
     "music": "game_over.mp3",
     "chars": [
-      {
-        "file": "cat_5.svg",
-        "scale": 2,
-        "y": 100
-      }
+      "cat_5.svg"
     ],
     "ending_title": "BAD ENDING: The Awkward Farewell",
     "textBlocks": [
@@ -1205,11 +1177,7 @@ const story = {
     "bg": "gate_exit.png",
     "music": "game_over.mp3",
     "chars": [
-      {
-        "file": "cat_5.svg",
-        "scale": 2,
-        "y": 100
-      }
+      "cat_5.svg"
     ],
     "ending_title": "BAD ENDING: Trapped by CATS",
     "textBlocks": [

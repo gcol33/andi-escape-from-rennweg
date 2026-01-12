@@ -3,9 +3,7 @@ id: ending_bbq_charcoal_nolighter
 bg: rooftop.jpg
 music: game_over.mp3
 chars:
-  - file: cat_5.svg
-    scale: 2
-    y: 100
+  - cat_5.svg
 ending_title: "BAD ENDING: No Spark"
 ---
 
