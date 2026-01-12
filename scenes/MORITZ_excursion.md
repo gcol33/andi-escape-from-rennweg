@@ -1,8 +1,6 @@
 ---
 id: MORITZ_excursion
-bg: sunny_street_freedom.jpg
-chars:
-  - moritz_neutral.svg
+bg: ../char/moritz_excursion.png
 ---
 
 You remember a while back—one of Wolfgang's field excursions that you'd joined because you wanted to know how the data you work with are actually collected. Moritz was there, too. You'd arrived with equipment sufficient for a Himalaya expedition.

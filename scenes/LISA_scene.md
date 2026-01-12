@@ -1,8 +1,6 @@
 ---
 id: LISA_scene
-bg: office_kitchen.jpg
-chars:
-  - lisa_neutral.svg
+bg: ../char/lisa_questioning.png
 ---
 
 You run into Lisa near the kitchen. She's making coffee. "Oh, Andi! Did you hear? Someone said they found a mouse in here." You glance around nervously. "A mouse?" "Yeah, but they couldn't find it anymore. Maybe it's hiding somewhere."
@@ -20,5 +18,5 @@ Suddenly, you see a group of students gathering near the department bus and real
 
 
 ### Choices
-- Hide behind a tree and escape to hallway → hallway
-- Join a field excursion → MORITZ_excursion
+- Hide behind Lisa and escape to the hallway → hallway
+- Go with them and join the excursion → MORITZ_excursion

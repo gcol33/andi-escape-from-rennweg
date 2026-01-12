@@ -1,8 +1,6 @@
 ---
 id: WOLFGANG
-bg: stairwell_landing.jpg
-chars:
-  - wolfgang_neutral.svg
+bg: ../char/wolfgang_neutral.png
 ---
 
 The person ascending from the basement is Wolfgang. "Andi! Thanks god you are still here! I need your help!" Wolfgang looks unusually excited. "Believe it or not, Elon Musk contacted me this morning!" You raise an eyebrow skeptically.
