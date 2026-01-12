@@ -19,6 +19,7 @@ You start pacing back and forth, a habit you can't shake when you're thinking. A
 
 ### Choices
 
-- Continue (requires: agnes_defeated) → stairs_1
+- Continue (requires: agnes_defeated, manu_defeated) → stairs_1
+- Face Manu (requires: agnes_defeated, !manu_defeated) → MANU_battle
 - Face Agnes (requires: !agnes_defeated) → AGNES_battle
 - Offer Coffee (requires: !agnes_defeated) (uses: Coffee Mug) → AGNES_battle_coffee

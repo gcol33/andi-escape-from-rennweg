@@ -34,10 +34,17 @@ var Pagination = (function() {
         var el = document.createElement('div');
         var computed = window.getComputedStyle(referenceElement);
 
+        // Calculate actual content width (clientWidth includes padding)
+        var paddingLeft = parseFloat(computed.paddingLeft) || 0;
+        var paddingRight = parseFloat(computed.paddingRight) || 0;
+        var contentWidth = referenceElement.clientWidth - paddingLeft - paddingRight;
+        _log.debug('Pagination', 'createMeasurer: clientWidth=' + referenceElement.clientWidth + ', padding=' + paddingLeft + '/' + paddingRight + ', contentWidth=' + contentWidth);
+        _log.debug('Pagination', 'createMeasurer: fontSize=' + computed.fontSize + ', lineHeight=' + computed.lineHeight);
+
         el.style.position = 'absolute';
         el.style.visibility = 'hidden';
         el.style.pointerEvents = 'none';
-        el.style.width = referenceElement.clientWidth + 'px';
+        el.style.width = contentWidth + 'px';
         el.style.height = 'auto';
         el.style.maxHeight = 'none';
         el.style.overflow = 'visible';
@@ -83,6 +90,7 @@ var Pagination = (function() {
     function getMaxHeight(measurer) {
         var fixedHeightStr = document.documentElement.style.getPropertyValue('--story-fixed-height');
         var maxHeight = parseFloat(fixedHeightStr);
+        _log.debug('Pagination', 'getMaxHeight: CSS var=' + fixedHeightStr + ', parsed=' + maxHeight);
 
         if (isNaN(maxHeight) || maxHeight <= 0) {
             // Fallback: calculate using explicit line breaks
@@ -107,6 +115,12 @@ var Pagination = (function() {
      * @returns {string[]}
      */
     function doPaginate(measurer, text, targetHeight) {
+        // DEBUG: Log pagination parameters
+        var fullTextHeight = measureHeight(measurer, text);
+        _log.debug('Pagination', 'doPaginate: targetHeight=' + targetHeight + 'px, fullTextHeight=' + fullTextHeight + 'px, shouldSplit=' + (fullTextHeight > targetHeight));
+        if (fullTextHeight <= targetHeight) {
+            _log.debug('Pagination', 'Text fits in target height, returning single page');
+        }
         var words = text.split(/(\s+)/);  // Keep whitespace
         var pages = [];
         var currentPage = '';

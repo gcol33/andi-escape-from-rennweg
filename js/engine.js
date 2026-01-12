@@ -482,7 +482,7 @@ var VNEngine = (function() {
 
             // Skills and key items persist across soft reset (New Game+ style)
             // Consumables are cleared on soft reset
-            // Full reset clears everything including skills, key items, quiz progress, read history
+            // Full reset clears everything including skills, key items, quiz progress
             if (fullReset) {
                 state.inventory = { keyItems: [], consumables: {}, skills: [] };
                 if (typeof flagManager !== 'undefined') {
@@ -492,8 +492,6 @@ var VNEngine = (function() {
                 if (typeof QuizEngine !== 'undefined' && QuizEngine.clearSeenAnswers) {
                     QuizEngine.clearSeenAnswers();
                 }
-                // Clear read history on full reset only
-                state.readBlocks = {};
             } else {
                 // Keep skills and key items, clear only consumables
                 state.inventory.consumables = {};
@@ -3918,10 +3916,15 @@ var VNEngine = (function() {
         var computedStyle = window.getComputedStyle(storyOutput);
 
         // Copy ALL relevant styles from story-output for accurate measurement
+        // Calculate actual content width (clientWidth includes padding)
+        var paddingLeft = parseFloat(computedStyle.paddingLeft) || 0;
+        var paddingRight = parseFloat(computedStyle.paddingRight) || 0;
+        var contentWidth = storyOutput.clientWidth - paddingLeft - paddingRight;
+
         measureEl.style.position = 'absolute';
         measureEl.style.visibility = 'hidden';
         measureEl.style.pointerEvents = 'none';
-        measureEl.style.width = storyOutput.clientWidth + 'px';  // Use clientWidth (content area)
+        measureEl.style.width = contentWidth + 'px';  // Use actual content width (sans padding)
         measureEl.style.height = 'auto';
         measureEl.style.maxHeight = 'none';
         measureEl.style.overflow = 'visible';
@@ -4884,7 +4887,7 @@ var VNEngine = (function() {
             state.inventory.keyItems.push(item);
             _log.info('Engine','Added key item: ' + item);
             if (!silent) {
-                showItemNotification(item, 'added', 'key');
+                showAcquisitionModal(item, 'key');
             }
             // Emit inventory event
             if (typeof eventBus !== 'undefined' && typeof InventoryEvents !== 'undefined') {
@@ -4911,7 +4914,7 @@ var VNEngine = (function() {
         if (isNew) {
             state.inventory.skills.push(skill);
             _log.info('Engine','Learned skill: ' + skill);
-            showItemNotification(skill, 'added', 'skill');
+            showAcquisitionModal(skill, 'skill');
             // Emit inventory event
             if (typeof eventBus !== 'undefined' && typeof InventoryEvents !== 'undefined') {
                 eventBus.emit(InventoryEvents.ITEM_ADDED, { item: skill, type: 'skill' });
@@ -5171,6 +5174,106 @@ var VNEngine = (function() {
                 Utils.removeElement(notification);
             }, 500);
         }, 2000);
+    }
+
+    /**
+     * Show acquisition modal for key items and skills
+     * Full-screen black overlay with icon, name, and click to continue
+     * @param {string} name - Item or skill name
+     * @param {string} type - 'key' or 'skill'
+     * @param {Function} callback - Called when modal is dismissed
+     */
+    function showAcquisitionModal(name, type, callback) {
+        // Create modal container
+        var modal = document.createElement('div');
+        modal.className = 'acquisition-modal';
+        if (type === 'skill') {
+            modal.classList.add('acquisition-skill');
+        }
+
+        // Icon container
+        var iconContainer = document.createElement('div');
+        iconContainer.className = 'acquisition-icon';
+
+        // Generate icon path from name (lowercase, spaces to underscores)
+        var iconName = name.toLowerCase().replace(/\s+/g, '_');
+        var iconPath = type === 'skill'
+            ? 'assets/icons/skills/' + iconName + '.svg'
+            : 'assets/icons/items/' + iconName + '.svg';
+
+        var iconImg = document.createElement('img');
+        iconImg.src = iconPath;
+        iconImg.alt = name;
+        // Fallback to placeholder if icon doesn't exist
+        iconImg.onerror = function() {
+            this.src = type === 'skill'
+                ? 'assets/icons/skills/placeholder.svg'
+                : 'assets/icons/items/placeholder.svg';
+        };
+        iconContainer.appendChild(iconImg);
+
+        // Label ("Key Item Obtained" or "Skill Learned")
+        var label = document.createElement('div');
+        label.className = 'acquisition-label';
+        label.textContent = type === 'skill' ? 'Skill Learned' : 'Key Item Obtained';
+
+        // Item/skill name
+        var nameEl = document.createElement('div');
+        nameEl.className = 'acquisition-name';
+        nameEl.textContent = name;
+
+        // Continue prompt
+        var continueEl = document.createElement('div');
+        continueEl.className = 'acquisition-continue';
+        continueEl.textContent = 'Click to continue';
+
+        // Assemble modal
+        modal.appendChild(iconContainer);
+        modal.appendChild(label);
+        modal.appendChild(nameEl);
+        modal.appendChild(continueEl);
+
+        // Play sound effect (from music folder since it's a jingle, not SFX)
+        var obtainSound = new Audio('assets/music/item_obtain.mp3');
+        obtainSound.volume = 0.7;
+        obtainSound.play().catch(function() {});
+
+        // Click handler to dismiss (with delay to prevent accidental skip)
+        var dismissed = false;
+        var canDismiss = false;
+
+        // Allow dismissal after animations complete
+        setTimeout(function() {
+            canDismiss = true;
+        }, 2000);
+
+        function dismissModal() {
+            if (dismissed || !canDismiss) return;
+            dismissed = true;
+            modal.classList.add('fade-out');
+            setTimeout(function() {
+                Utils.removeElement(modal);
+                if (callback) callback();
+            }, 300);
+        }
+
+        modal.addEventListener('click', dismissModal);
+
+        // Also allow Enter/Space to dismiss
+        function keyHandler(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                dismissModal();
+                document.removeEventListener('keydown', keyHandler);
+            }
+        }
+        document.addEventListener('keydown', keyHandler);
+
+        // Add to DOM and trigger animation
+        document.body.appendChild(modal);
+        setTimeout(function() {
+            modal.classList.add('show');
+        }, 10);
     }
 
     /**

@@ -148,13 +148,17 @@
 
 /* Neutral/miss roll dice - grey */
 .battle-log-content .dice-number.roll-neutral-normal,
-.battle-log-content .dice-number.roll-hit-fail,
 .roll-result .dice-number.roll-neutral-normal,
+.dice-number.roll-neutral-normal {
+    color: var(--roll-color-neutral, #888) !important;
+}
+
+/* Fumble roll dice - red for visibility */
+.battle-log-content .dice-number.roll-hit-fail,
 .roll-result .dice-number.roll-hit-fail,
-.dice-number.roll-neutral-normal,
 .dice-number.roll-hit-fail,
 .roll-hit-fail {
-    color: var(--roll-color-neutral, #888) !important;
+    color: var(--emphasis-fail-glow, #ff4444) !important;
 }
 
 /* Highlight numbers in messages */

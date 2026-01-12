@@ -762,6 +762,27 @@ var DevPanel = (function() {
         unlockActions.appendChild(allItemsBtn);
         battleSection.appendChild(unlockActions);
 
+        // Third row: Respawn
+        var gameActions = document.createElement('div');
+        gameActions.className = 'dev-quick-actions';
+        gameActions.style.marginTop = '4px';
+
+        var respawnBtn = document.createElement('button');
+        respawnBtn.type = 'button';
+        respawnBtn.className = 'dev-quick-btn';
+        respawnBtn.textContent = '🔄 Respawn';
+        respawnBtn.title = 'Soft reset - restart game keeping skills/items/key flags';
+        respawnBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (typeof VNEngine !== 'undefined' && VNEngine.reset) {
+                VNEngine.reset();
+                callbacks.log.debug('[Dev] Game respawned (soft reset)');
+            }
+        });
+
+        gameActions.appendChild(respawnBtn);
+        battleSection.appendChild(gameActions);
+
         return battleSection;
     }
 

@@ -23,4 +23,5 @@ You walk around it.
 
 ### Choices
 
-- Continue → hallway
+- Continue (requires: visited_kitchen) → hallway_whitespace
+- Continue (requires: !visited_kitchen) → hallway

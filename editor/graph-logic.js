@@ -160,7 +160,8 @@ class GraphData {
         if (!scene.actions || scene.actions.length === 0) return 'scene';
         const action = scene.actions[0];
         if (action.type === 'start_battle') return 'battle';
-        if (action.type === 'dice_roll') return 'dice';
+        // Support both 'roll_dice' (used in scenes) and 'dice_roll' (legacy)
+        if (action.type === 'roll_dice' || action.type === 'dice_roll') return 'dice';
         return 'scene';
     }
 

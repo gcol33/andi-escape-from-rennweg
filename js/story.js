@@ -40,7 +40,16 @@ const story = {
         "label": "Continue",
         "target": "stairs_1",
         "require_flags": [
-          "agnes_defeated"
+          "agnes_defeated",
+          "manu_defeated"
+        ]
+      },
+      {
+        "label": "Face Manu",
+        "target": "MANU_battle",
+        "require_flags": [
+          "agnes_defeated",
+          "!manu_defeated"
         ]
       },
       {
@@ -169,18 +178,20 @@ const story = {
   "AGNES_victory": {
     "id": "AGNES_victory",
     "bg": "../char/agnes_timesheet_annoyed.png",
-    "music": "victory.mp3",
     "set_key_flags": [
       "agnes_defeated"
     ],
     "textBlocks": [
       "Agnes staggers back, clutching her stack of forms. \"This... isn't... protocol...\" The forms scatter across the floor like bureaucratic confetti. She looks at you with new respect. \"Fine. Your timesheets are... acceptable.\"",
-      "\"But this isn't over. HR never forgets.\" She steps aside, allowing you to pass. Freedom, for now."
+      "\"But this isn't over. HR never forgets.\" She steps aside, allowing you to pass.",
+      "But before you can celebrate, a door opens in the hall. It's Manu.",
+      "\"Oh Andi, there you are! I really need your help.\" She looks frazzled. \"I'm going crazy with this messy Bison tracking dataset they sent me. I could reaaaally use your Python skills.\"",
+      "She gives you a pleading look. \"Could you make my day less awful and give it a look?\""
     ],
     "choices": [
       {
-        "label": "Take the stairs",
-        "target": "stairs_1"
+        "label": "No way!",
+        "target": "MANU_battle"
       }
     ]
   },
@@ -570,7 +581,17 @@ const story = {
     "choices": [
       {
         "label": "Continue",
-        "target": "hallway"
+        "target": "hallway_whitespace",
+        "require_flags": [
+          "visited_kitchen"
+        ]
+      },
+      {
+        "label": "Continue",
+        "target": "hallway",
+        "require_flags": [
+          "!visited_kitchen"
+        ]
       }
     ]
   },
@@ -954,16 +975,6 @@ const story = {
         ]
       },
       {
-        "label": "Go to rooftop",
-        "target": "cat_scene_4",
-        "require_flags": [
-          "met_franz"
-        ],
-        "require_skills": [
-          "Rooftop Discovery"
-        ]
-      },
-      {
         "label": "Go to ground floor",
         "target": "floor0",
         "require_flags": [
@@ -976,6 +987,16 @@ const story = {
         "require_flags": [
           "met_franz",
           "!visited_4th_floor"
+        ]
+      },
+      {
+        "label": "Go to rooftop",
+        "target": "cat_scene_4",
+        "require_flags": [
+          "met_franz"
+        ],
+        "require_skills": [
+          "Rooftop Discovery"
         ]
       }
     ]
@@ -2339,6 +2360,85 @@ const story = {
       {
         "label": "Join a field excursion",
         "target": "MORITZ_excursion"
+      },
+      {
+        "label": "Explore the main hallway",
+        "target": "hallway"
+      }
+    ]
+  },
+  "MANU_battle": {
+    "id": "MANU_battle",
+    "bg": "../char/manuela_showing_clipper.png",
+    "music": "BOSS_TIME.mp3",
+    "actions": [
+      {
+        "type": "start_battle",
+        "enemy_id": "manu",
+        "win_target": "MANU_victory",
+        "lose_target": "MANU_defeat"
+      }
+    ],
+    "textBlocks": [
+      "Manu's eyes narrow. \"No way? NO WAY?! Do you have any idea how long I've been struggling with this?!\"",
+      "She pulls out her laptop, the screen glowing with endless rows of corrupted GPS coordinates. \"You WILL help me with this dataset!\""
+    ],
+    "choices": [
+      {
+        "label": "Attack!",
+        "target": "MANU_battle",
+        "battle_action": "attack"
+      },
+      {
+        "label": "Skills",
+        "target": "MANU_battle",
+        "battle_action": "skill"
+      },
+      {
+        "label": "Defend",
+        "target": "MANU_battle",
+        "battle_action": "defend"
+      },
+      {
+        "label": "Item",
+        "target": "MANU_battle",
+        "battle_action": "item"
+      }
+    ]
+  },
+  "MANU_defeat": {
+    "id": "MANU_defeat",
+    "bg": "../char/manuela_annoyed_with_code.png",
+    "music": "game_over.mp3",
+    "ending_title": "BAD ENDING: Lost in Python",
+    "textBlocks": [
+      "\"Okay, let's see.\" You sit down at Manu's desk and look at the dataset. \"It is really a mess.\"",
+      "You start scripting away and remember how beautiful the language of Python is. The elegant syntax, the clean logic, the satisfying click of keys as you wrangle the chaotic data into submission.",
+      "Suddenly you wake from your trance-like state because you hear Manu's voice: \"Wow Andi, it looks great! You've actually managed to fix it! Thanks a lot! Let's toast with a Coca-Cola.\"",
+      "You blink. Something feels wrong. Very wrong.",
+      "You realize that you've just spent a week at Manu's desk. She went home for breaks while you kept coding. You missed the start of your new job at the physics institute. Your phone has 47 missed calls.",
+      "The Coca-Cola tastes like regret."
+    ],
+    "choices": []
+  },
+  "MANU_victory": {
+    "id": "MANU_victory",
+    "bg": "../char/manuela_angnes_win.png",
+    "music": "victory.mp3",
+    "set_key_flags": [
+      "manu_defeated"
+    ],
+    "textBlocks": [
+      "Manu slumps back, her laptop clattering to the floor. \"Fine... FINE! I'll figure it out myself!\"",
+      "\"But seriously, Manu, you should really start using Python yourself. Once you get the basics, you'll see how powerful it is.\"",
+      "Manu looks skeptical but thoughtful. \"Maybe you're right. I keep hearing about it everywhere...\"",
+      "\"Tell you what,\" you add, \"I'll send you some good tutorials. You'll be cleaning datasets like a pro in no time.\"",
+      "She sighs. \"Okay, okay. I'll give it a try. Good luck with your new job, Andi. We'll miss you around here.\""
+    ],
+    "choices": [
+      {
+        "label": "Continue to the stairs",
+        "target": "stairs_1"
       }
     ]
   },

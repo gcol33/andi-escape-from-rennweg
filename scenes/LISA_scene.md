@@ -17,3 +17,4 @@ Five solid minutes of chaos. Diving behind boxes. Scrambling over chairs. Finall
 
 - Head toward the common area → ADRIAN
 - Join a field excursion → MORITZ_excursion
+- Explore the main hallway → hallway

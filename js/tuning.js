@@ -405,7 +405,7 @@ const TUNING = {
 
             // === Timing Bar Settings ===
             bar: {
-                duration: 4000,             // Time for one full pass (ms) - doubled for easier gameplay
+                duration: 2300,             // Time for one full pass (ms) - 75% faster than original
                 oscillations: 2,            // Number of back-and-forth cycles
                 markerSpeed: 1.0,           // Speed multiplier
                 oscillating: false          // Style 6: oscillating speed variant
@@ -587,7 +587,7 @@ const TUNING = {
                 startDelay: 300,            // Delay before QTE starts
                 resultDisplay: 800,         // Show result duration
                 fadeOut: 200,               // Fade out animation time
-                countdownDuration: 5        // Countdown seconds (5,4,3,2,1)
+                countdownDuration: 7        // Countdown seconds (7,6,5,4,3,2,1)
             },
 
             // === Difficulty Presets (for skill-based QTE scaling) ===

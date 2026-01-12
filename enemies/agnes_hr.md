@@ -4,7 +4,7 @@ name: Agnes (HR)
 sprite: agnes_blocking.svg
 
 # Base Stats
-hp: 38
+hp: 24
 ac: 11
 attack_bonus: 3
 damage: d8

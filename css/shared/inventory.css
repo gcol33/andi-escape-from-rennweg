@@ -176,3 +176,110 @@
 .item-notification.item-type-skill .item-icon {
     color: #9c27b0;
 }
+
+/* === Acquisition Modal (Key Items & Skills) === */
+.acquisition-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: var(--z-modal);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.4s ease-in;
+    cursor: pointer;
+}
+
+.acquisition-modal.show {
+    opacity: 1;
+}
+
+.acquisition-modal.fade-out {
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+}
+
+.acquisition-icon {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: opacity 0.5s ease-out 0.2s, transform 0.5s ease-out 0.2s;
+}
+
+.acquisition-modal.show .acquisition-icon {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.acquisition-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.5));
+}
+
+/* Skill icons get purple glow */
+.acquisition-modal.acquisition-skill .acquisition-icon img {
+    filter: drop-shadow(0 0 20px rgba(156, 39, 176, 0.6));
+}
+
+.acquisition-label {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.5rem;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.4s ease-out 0.4s, transform 0.4s ease-out 0.4s;
+}
+
+.acquisition-modal.show .acquisition-label {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.acquisition-name {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #ffd700;
+    text-align: center;
+    margin-bottom: 2rem;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.4s ease-out 0.5s, transform 0.4s ease-out 0.5s;
+}
+
+.acquisition-modal.show .acquisition-name {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Skill names get purple color */
+.acquisition-modal.acquisition-skill .acquisition-name {
+    color: #ce93d8;
+}
+
+.acquisition-continue {
+    font-size: 1.3rem;
+    color: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    transition: opacity 0.4s ease-out 0.8s;
+}
+
+.acquisition-modal.show .acquisition-continue {
+    opacity: 1;
+    animation: acquisition-pulse 2s ease-in-out infinite;
+}
+
+@keyframes acquisition-pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}

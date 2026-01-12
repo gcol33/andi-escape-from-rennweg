@@ -140,7 +140,7 @@
 }
 
 .roll-hit-fail {
-    color: var(--roll-color-neutral) !important;  /* Miss uses grey */
+    color: var(--emphasis-fail-glow, #ff4444) !important;  /* Fumbles use red for visibility */
     text-shadow: 0 0 8px var(--emphasis-fail-glow), 0 0 16px rgba(255, 0, 0, 0.6);
 }
 

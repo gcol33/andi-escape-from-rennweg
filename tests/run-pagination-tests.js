@@ -1,0 +1,401 @@
+/**
+ * Pagination Module Tests
+ *
+ * Run with: node tests/run-pagination-tests.js
+ * Or open tests/pagination-test.html in browser for visual testing
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+// Test data
+const testCases = [
+    {
+        name: 'Short text (should NOT paginate)',
+        text: 'This is a short text.',
+        expectedPages: 1
+    },
+    {
+        name: 'Medium text (might paginate)',
+        text: 'This is a medium length text that spans multiple sentences. It should test basic wrapping behavior.',
+        expectedPages: 1
+    },
+    {
+        name: 'Long text from squirrel_good scene',
+        text: 'You hold out your hand with a nut. The squirrel hesitates... then jumps onto your hand! Its tiny paws grip your fingers as it munches away. You feel the happiest you\'ve felt in a long time. From where you stand, you notice something through the trees. People on the rooftop terrace, setting up what looks like some kind of gathering. "Oh, something\'s happening up there!" Jen says. "You should definitely check that out later."',
+        expectedPages: 2  // At 3 lines per page, this should need 2+ pages
+    },
+    {
+        name: 'Very long text',
+        text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+        expectedPages: 3
+    }
+];
+
+console.log('Pagination Test Cases');
+console.log('=====================');
+console.log('');
+console.log('These tests need to run in browser context.');
+console.log('Open tests/pagination-test.html to run visual tests.');
+console.log('');
+console.log('Test cases defined:');
+testCases.forEach((tc, i) => {
+    console.log(`  ${i + 1}. ${tc.name}`);
+    console.log(`     Text length: ${tc.text.length} chars`);
+    console.log(`     Expected pages: ${tc.expectedPages}`);
+    console.log('');
+});
+
+// Generate HTML test file
+const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagination Tests</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        h1 { color: #ffd700; }
+        .test-case {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .test-case h3 {
+            margin-top: 0;
+            color: #4caf50;
+        }
+        .test-case.fail h3 {
+            color: #f44336;
+        }
+        .story-output-mock {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 1em;
+            font-size: 18px;
+            line-height: 1.6;
+            width: 600px;
+            border: 1px solid #555;
+            margin: 10px 0;
+        }
+        .story-output-mock.fixed-mode {
+            height: var(--story-fixed-height, 86px);
+            overflow: hidden;
+        }
+        .result {
+            font-family: monospace;
+            background: #333;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .pass { color: #4caf50; }
+        .fail { color: #f44336; }
+        .info { color: #2196f3; }
+        .controls {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #333;
+            border-radius: 8px;
+        }
+        .controls label {
+            margin-right: 20px;
+        }
+        .controls input {
+            width: 80px;
+            padding: 5px;
+            margin-left: 5px;
+        }
+        button {
+            background: #ffd700;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #ffed4a;
+        }
+        .page-display {
+            background: #1a1a1a;
+            border: 2px solid #ffd700;
+            padding: 15px;
+            margin: 10px 0;
+            min-height: 100px;
+        }
+        .page-nav {
+            margin-top: 10px;
+        }
+        .page-nav button {
+            background: #555;
+            color: #fff;
+        }
+        .page-indicator {
+            display: inline-block;
+            margin: 0 15px;
+            color: #ffd700;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pagination Module Tests</h1>
+
+    <div class="controls">
+        <label>
+            Container Width:
+            <input type="number" id="containerWidth" value="600"> px
+        </label>
+        <label>
+            Fixed Lines:
+            <input type="number" id="fixedLines" value="3" min="1" max="10">
+        </label>
+        <label>
+            Font Size:
+            <input type="number" id="fontSize" value="18"> px
+        </label>
+        <button onclick="runAllTests()">Run All Tests</button>
+        <button onclick="runInteractiveTest()">Interactive Test</button>
+    </div>
+
+    <div id="test-results"></div>
+
+    <div id="interactive-test" style="display: none;">
+        <h2>Interactive Pagination Test</h2>
+        <div class="test-case">
+            <textarea id="customText" rows="4" style="width: 100%; background: #333; color: #fff; border: 1px solid #555; padding: 10px;">You hold out your hand with a nut. The squirrel hesitates... then jumps onto your hand! Its tiny paws grip your fingers as it munches away. You feel the happiest you've felt in a long time. From where you stand, you notice something through the trees. People on the rooftop terrace, setting up what looks like some kind of gathering. "Oh, something's happening up there!" Jen says. "You should definitely check that out later."</textarea>
+            <button onclick="paginateCustomText()" style="margin-top: 10px;">Paginate</button>
+
+            <div id="interactive-result"></div>
+        </div>
+    </div>
+
+    <script>
+        // Mock the pagination logic (copy from pagination.js)
+        const PaginationTest = (function() {
+            function createMeasurer(referenceElement) {
+                const el = document.createElement('div');
+                const computed = window.getComputedStyle(referenceElement);
+
+                el.style.position = 'absolute';
+                el.style.visibility = 'hidden';
+                el.style.pointerEvents = 'none';
+                el.style.width = referenceElement.clientWidth + 'px';
+                el.style.height = 'auto';
+                el.style.maxHeight = 'none';
+                el.style.overflow = 'visible';
+                el.style.fontSize = computed.fontSize;
+                el.style.fontFamily = computed.fontFamily;
+                el.style.lineHeight = computed.lineHeight;
+                el.style.letterSpacing = computed.letterSpacing;
+                el.style.wordSpacing = computed.wordSpacing;
+                el.style.padding = '0';
+                el.style.margin = '0';
+                el.style.boxSizing = 'content-box';
+
+                document.body.appendChild(el);
+                return el;
+            }
+
+            function measureHeight(measurer, text) {
+                measurer.innerHTML = '<p style="margin:0;padding:0;display:block;">' + text + '</p>';
+                return measurer.offsetHeight;
+            }
+
+            function getMaxHeight(measurer, fixedLines) {
+                const lines = [];
+                for (let i = 0; i < fixedLines; i++) {
+                    lines.push('Mgy');
+                }
+                measurer.innerHTML = '<p style="margin:0;padding:0;display:block;">' + lines.join('<br>') + '</p>';
+                return measurer.offsetHeight;
+            }
+
+            function doPaginate(measurer, text, targetHeight) {
+                const words = text.split(/(\\s+)/);
+                const pages = [];
+                let currentPage = '';
+
+                for (let i = 0; i < words.length; i++) {
+                    const testText = currentPage + words[i];
+
+                    if (measureHeight(measurer, testText) > targetHeight && currentPage.trim() !== '') {
+                        pages.push(currentPage.trim());
+                        currentPage = words[i];
+                    } else {
+                        currentPage = testText;
+                    }
+                }
+
+                if (currentPage.trim() !== '') {
+                    pages.push(currentPage.trim());
+                }
+
+                return pages;
+            }
+
+            return {
+                test: function(text, referenceElement, fixedLines) {
+                    const measurer = createMeasurer(referenceElement);
+                    const maxHeight = getMaxHeight(measurer, fixedLines);
+                    const textHeight = measureHeight(measurer, text);
+                    const pages = doPaginate(measurer, text, maxHeight);
+
+                    const result = {
+                        text: text,
+                        textLength: text.length,
+                        containerWidth: referenceElement.clientWidth,
+                        fontSize: window.getComputedStyle(referenceElement).fontSize,
+                        lineHeight: window.getComputedStyle(referenceElement).lineHeight,
+                        maxHeight: maxHeight,
+                        fullTextHeight: textHeight,
+                        needsPagination: textHeight > maxHeight,
+                        pages: pages,
+                        pageCount: pages.length
+                    };
+
+                    // Cleanup
+                    if (measurer.parentNode) {
+                        measurer.parentNode.removeChild(measurer);
+                    }
+
+                    return result;
+                }
+            };
+        })();
+
+        const testCases = ${JSON.stringify(testCases, null, 2)};
+
+        function createMockContainer() {
+            const width = parseInt(document.getElementById('containerWidth').value);
+            const fontSize = parseInt(document.getElementById('fontSize').value);
+
+            const container = document.createElement('div');
+            container.className = 'story-output-mock';
+            container.style.width = width + 'px';
+            container.style.fontSize = fontSize + 'px';
+            container.style.lineHeight = '1.6';
+            document.body.appendChild(container);
+            return container;
+        }
+
+        function runAllTests() {
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML = '<h2>Test Results</h2>';
+
+            const fixedLines = parseInt(document.getElementById('fixedLines').value);
+
+            let passed = 0;
+            let failed = 0;
+
+            testCases.forEach((tc, index) => {
+                const container = createMockContainer();
+                const result = PaginationTest.test(tc.text, container, fixedLines);
+                document.body.removeChild(container);
+
+                const success = result.pageCount >= tc.expectedPages;
+                if (success) passed++; else failed++;
+
+                const caseDiv = document.createElement('div');
+                caseDiv.className = 'test-case' + (success ? '' : ' fail');
+                caseDiv.innerHTML = \`
+                    <h3>\${success ? '✓' : '✗'} Test \${index + 1}: \${tc.name}</h3>
+                    <div class="result">
+                        <div class="info">Container: \${result.containerWidth}px wide, font: \${result.fontSize}</div>
+                        <div class="info">Text: \${result.textLength} chars</div>
+                        <div class="info">Max height (for \${fixedLines} lines): \${result.maxHeight}px</div>
+                        <div class="info">Full text height: \${result.fullTextHeight}px</div>
+                        <div class="info">Needs pagination: \${result.needsPagination}</div>
+                        <div class="\${success ? 'pass' : 'fail'}">
+                            Pages: \${result.pageCount} (expected: \${tc.expectedPages}+)
+                        </div>
+                    </div>
+                    <details>
+                        <summary>Page contents</summary>
+                        \${result.pages.map((p, i) => \`<div style="margin: 5px 0; padding: 10px; background: #1a1a1a; border-left: 3px solid #ffd700;">Page \${i + 1}: \${p.substring(0, 100)}\${p.length > 100 ? '...' : ''}</div>\`).join('')}
+                    </details>
+                \`;
+                resultsDiv.appendChild(caseDiv);
+            });
+
+            const summary = document.createElement('div');
+            summary.innerHTML = \`<h3 class="\${failed === 0 ? 'pass' : 'fail'}">Summary: \${passed}/\${testCases.length} passed</h3>\`;
+            resultsDiv.insertBefore(summary, resultsDiv.firstChild.nextSibling);
+        }
+
+        function runInteractiveTest() {
+            document.getElementById('interactive-test').style.display = 'block';
+        }
+
+        function paginateCustomText() {
+            const text = document.getElementById('customText').value;
+            const fixedLines = parseInt(document.getElementById('fixedLines').value);
+            const container = createMockContainer();
+            const result = PaginationTest.test(text, container, fixedLines);
+            document.body.removeChild(container);
+
+            let currentPage = 0;
+
+            const resultDiv = document.getElementById('interactive-result');
+            resultDiv.innerHTML = \`
+                <div class="result">
+                    <div class="info">Container: \${result.containerWidth}px wide</div>
+                    <div class="info">Max height: \${result.maxHeight}px</div>
+                    <div class="info">Full text height: \${result.fullTextHeight}px</div>
+                    <div class="\${result.pageCount > 1 ? 'pass' : 'fail'}">
+                        Paginated into: \${result.pageCount} page(s)
+                    </div>
+                </div>
+                <div class="page-display" id="pageDisplay">\${result.pages[0]}</div>
+                <div class="page-nav">
+                    <button onclick="showPage(-1)">← Prev</button>
+                    <span class="page-indicator" id="pageIndicator">Page 1 of \${result.pageCount}</span>
+                    <button onclick="showPage(1)">Next →</button>
+                </div>
+            \`;
+
+            window.paginationResult = result;
+            window.currentPage = 0;
+        }
+
+        function showPage(delta) {
+            if (!window.paginationResult) return;
+
+            window.currentPage += delta;
+            if (window.currentPage < 0) window.currentPage = 0;
+            if (window.currentPage >= window.paginationResult.pageCount) {
+                window.currentPage = window.paginationResult.pageCount - 1;
+            }
+
+            document.getElementById('pageDisplay').textContent = window.paginationResult.pages[window.currentPage];
+            document.getElementById('pageIndicator').textContent =
+                'Page ' + (window.currentPage + 1) + ' of ' + window.paginationResult.pageCount;
+        }
+
+        // Run tests on load
+        window.onload = function() {
+            console.log('Pagination test page loaded');
+            console.log('Container width input:', document.getElementById('containerWidth').value);
+        };
+    </script>
+</body>
+</html>
+`;
+
+// Write HTML test file
+const htmlPath = path.join(__dirname, 'pagination-test.html');
+fs.writeFileSync(htmlPath, htmlContent);
+console.log(`Generated: ${htmlPath}`);
+console.log('');
+console.log('Open this file in your browser to run visual pagination tests.');
