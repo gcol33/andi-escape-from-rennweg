@@ -948,6 +948,7 @@ const story = {
   },
   "dnd_group_victory": {
     "id": "dnd_group_victory",
+    "bg": "../char/dnd_group.png",
     "music": "victory.mp3",
     "set_flags": [
       "has_beer"
