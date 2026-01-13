@@ -22,4 +22,6 @@ actions:
   - type: goto
     target: dnd_group
     requires: jk_return_dnd, !dnd_group_defeated
+  - type: goto
+    target: floor1
 ---
