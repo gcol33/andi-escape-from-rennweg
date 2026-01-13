@@ -1,6 +1,6 @@
 ---
 id: start
-bg: 4th_floor.png
+bg: office.png
 ---
 
 Your office. The familiar hum of monitors fills the air, punctuated by cooling fans cycling through their eternal duty. Colleagues learned long ago not to visit without a jacket.
