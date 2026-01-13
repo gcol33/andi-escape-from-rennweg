@@ -2200,7 +2200,7 @@ const story = {
     ],
     "random_texts": [
       "Karl is examining a potted plant near the window. \"Spathiphyllum,\" he says. \"Peace lily. Been here longer than most of us. Will probably outlast us too.\" ||| He nods at you. \"Good luck out there, Andi.\"",
-      "Karl looks up from his coffee. \"Heading off? Everything ends eventually, I suppose.\" ||| He gives a small wave. \"Take care.\"",
+      "Karl looks up from his coffee. \"Heading off? Everything ends eventually, I suppose.\" ||| He sighs. \"Still waiting on Reviewer 2. Three months now.\" ||| He gives a small wave. \"Take care.\"",
       "Karl notices you passing by. \"Andi. Last day. Time flies.\" ||| He shrugs. \"Or maybe it just feels that way. Hard to tell.\""
     ],
     "textBlocks": [],
