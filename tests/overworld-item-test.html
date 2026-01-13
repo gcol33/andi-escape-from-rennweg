@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overworld Item Pickup Test</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #1a1a2e;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+            color: #ffd700;
+        }
+
+        .instructions {
+            margin-bottom: 20px;
+            text-align: center;
+            opacity: 0.8;
+            font-size: 14px;
+        }
+
+        #game-container {
+            position: relative;
+            width: 480px;
+            height: 352px;
+            background: #000;
+            border: 4px solid #444;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        /* Overworld canvas styles */
+        .overworld-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+        }
+
+        .overworld-container.active {
+            display: flex;
+        }
+
+        .overworld-canvas {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        /* Notification popup */
+        .item-notification {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            border: 3px solid #ffd700;
+            border-radius: 12px;
+            padding: 20px 30px;
+            text-align: center;
+            z-index: 100;
+            animation: pop-in 0.3s ease-out;
+        }
+
+        .item-notification.hidden {
+            display: none;
+        }
+
+        .item-notification h3 {
+            color: #ffd700;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .item-notification p {
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .item-notification .item-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        @keyframes pop-in {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        /* Inventory display */
+        #inventory {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            min-width: 300px;
+        }
+
+        #inventory h3 {
+            margin-bottom: 10px;
+            color: #ffd700;
+        }
+
+        #inventory-items {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            min-height: 40px;
+        }
+
+        .inventory-item {
+            background: #333;
+            padding: 8px 12px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: slide-in 0.3s ease-out;
+        }
+
+        @keyframes slide-in {
+            0% { transform: translateY(-10px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        .inventory-item .icon {
+            font-size: 20px;
+        }
+
+        /* Debug log */
+        #debug-log {
+            margin-top: 20px;
+            padding: 10px;
+            background: #111;
+            border-radius: 4px;
+            font-size: 12px;
+            max-width: 480px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        #debug-log .log-entry {
+            padding: 2px 0;
+            opacity: 0.7;
+        }
+
+        #debug-log .log-entry.pickup {
+            color: #4CAF50;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <h1>Overworld Item Pickup Test</h1>
+    <div class="instructions">
+        Use <strong>WASD</strong> or <strong>Arrow Keys</strong> to move<br>
+        Walk over items to pick them up!
+    </div>
+
+    <div id="game-container"></div>
+
+    <div id="inventory">
+        <h3>Inventory</h3>
+        <div id="inventory-items">
+            <span style="opacity: 0.5;">Empty</span>
+        </div>
+    </div>
+
+    <div id="debug-log"></div>
+
+    <script>
+        // =====================================================================
+        // MINIMAL DEPENDENCIES
+        // =====================================================================
+
+        var TUNING = {
+            overworld: {
+                tileSize: 16,
+                renderScale: 2,
+                viewportTilesX: 15,
+                viewportTilesY: 11,
+                moveSpeed: 4,
+                walkAnimSpeed: 8
+            }
+        };
+
+        var Utils = {
+            getLogger: function() { return console; },
+            removeElement: function(el) { if (el && el.parentNode) el.parentNode.removeChild(el); }
+        };
+
+        var Logger = console;
+
+        // =====================================================================
+        // OVERWORLD ENGINE (simplified from overworld-engine.js)
+        // =====================================================================
+
+        var OverworldEngine = (function() {
+            var DIRECTIONS = {
+                up:    { dx: 0,  dy: -1 },
+                down:  { dx: 0,  dy: 1  },
+                left:  { dx: -1, dy: 0  },
+                right: { dx: 1,  dy: 0  }
+            };
+
+            var state = {
+                playerX: 0,
+                playerY: 0,
+                facing: 'down',
+                isMoving: false,
+                moveQueue: [],
+                currentMap: null,
+                mapWidth: 0,
+                mapHeight: 0,
+                collisionMap: [],
+                entities: [],
+                warps: []
+            };
+
+            var callbacks = {
+                onMove: null,
+                onFacingChange: null,
+                onInteract: null,
+                onWarp: null,
+                onEncounter: null,
+                onItemPickup: null,
+                playSfx: null
+            };
+
+            function canMoveTo(x, y) {
+                if (x < 0 || x >= state.mapWidth || y < 0 || y >= state.mapHeight) return false;
+                if (state.collisionMap[y] && state.collisionMap[y][x] === 1) return false;
+
+                for (var i = 0; i < state.entities.length; i++) {
+                    var entity = state.entities[i];
+                    if (entity.x === x && entity.y === y && entity.solid !== false && entity.type !== 'item') {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            function getEntityAt(x, y) {
+                for (var i = 0; i < state.entities.length; i++) {
+                    if (state.entities[i].x === x && state.entities[i].y === y) {
+                        return state.entities[i];
+                    }
+                }
+                return null;
+            }
+
+            function checkItemPickup(x, y) {
+                for (var i = state.entities.length - 1; i >= 0; i--) {
+                    var entity = state.entities[i];
+                    if (entity.x === x && entity.y === y && entity.type === 'item') {
+                        // Remove item from map
+                        state.entities.splice(i, 1);
+
+                        // Notify about pickup
+                        if (callbacks.onItemPickup) {
+                            callbacks.onItemPickup(entity);
+                        }
+                        return entity;
+                    }
+                }
+                return null;
+            }
+
+            function executeMove(direction) {
+                if (state.isMoving) return false;
+
+                var dir = DIRECTIONS[direction];
+                if (!dir) return false;
+
+                if (state.facing !== direction) {
+                    state.facing = direction;
+                    if (callbacks.onFacingChange) callbacks.onFacingChange(direction);
+                }
+
+                var newX = state.playerX + dir.dx;
+                var newY = state.playerY + dir.dy;
+
+                if (!canMoveTo(newX, newY)) return false;
+
+                state.isMoving = true;
+                var oldX = state.playerX;
+                var oldY = state.playerY;
+                state.playerX = newX;
+                state.playerY = newY;
+
+                if (callbacks.onMove) {
+                    callbacks.onMove({
+                        fromX: oldX,
+                        fromY: oldY,
+                        toX: newX,
+                        toY: newY,
+                        direction: direction
+                    });
+                }
+
+                return true;
+            }
+
+            function onMoveComplete() {
+                state.isMoving = false;
+
+                // Check for item at new position
+                checkItemPickup(state.playerX, state.playerY);
+
+                // Process queued movement
+                if (state.moveQueue.length > 0) {
+                    var nextDir = state.moveQueue.shift();
+                    executeMove(nextDir);
+                }
+            }
+
+            return {
+                init: function(cbs) {
+                    callbacks = Object.assign({}, callbacks, cbs || {});
+                },
+
+                loadMap: function(mapData) {
+                    state.currentMap = mapData;
+                    state.mapWidth = mapData.width || 16;
+                    state.mapHeight = mapData.height || 12;
+                    state.collisionMap = mapData.collision || [];
+                    state.entities = mapData.entities ? mapData.entities.slice() : [];
+                    state.warps = mapData.warps || [];
+
+                    if (mapData.playerStart) {
+                        state.playerX = mapData.playerStart.x;
+                        state.playerY = mapData.playerStart.y;
+                        state.facing = mapData.playerStart.facing || 'down';
+                    }
+
+                    return {
+                        width: state.mapWidth,
+                        height: state.mapHeight,
+                        playerX: state.playerX,
+                        playerY: state.playerY,
+                        facing: state.facing,
+                        tiles: mapData.tiles || [],
+                        entities: state.entities
+                    };
+                },
+
+                move: function(direction) {
+                    if (state.isMoving) {
+                        if (state.moveQueue.length < 2) state.moveQueue.push(direction);
+                        return;
+                    }
+                    executeMove(direction);
+                },
+
+                movementComplete: function() {
+                    onMoveComplete();
+                },
+
+                getEntities: function() {
+                    return state.entities;
+                },
+
+                stop: function() {
+                    state.isMoving = false;
+                    state.moveQueue = [];
+                }
+            };
+        })();
+
+        // =====================================================================
+        // OVERWORLD UI (simplified from overworld-ui.js)
+        // =====================================================================
+
+        var OverworldUI = (function() {
+            var config = TUNING.overworld;
+            var TILE_SIZE = config.tileSize;
+            var RENDER_SCALE = config.renderScale;
+            var SCALED_TILE = TILE_SIZE * RENDER_SCALE;
+            var VIEWPORT_TILES_X = config.viewportTilesX;
+            var VIEWPORT_TILES_Y = config.viewportTilesY;
+
+            var elements = { container: null, canvas: null, ctx: null };
+
+            var state = {
+                cameraX: 0, cameraY: 0,
+                playerPixelX: 0, playerPixelY: 0,
+                targetPixelX: 0, targetPixelY: 0,
+                isAnimating: false, animationFrame: null,
+                walkFrame: 0, walkTimer: 0, facing: 'down'
+            };
+
+            var mapData = { width: 0, height: 0, tiles: [], entities: [] };
+            var callbacks = { onMoveComplete: null };
+
+            // Tile colors for simple rendering
+            var TILE_COLORS = {
+                0: '#4a7c3f',  // Grass
+                1: '#8b7355',  // Path
+                2: '#4a6fa5',  // Water
+                3: '#2d5a27',  // Tree top
+                4: '#3d6b32',  // Tree bottom
+                5: '#5a8c4f',  // Flower grass
+                8: '#5a8c4f'   // Tall grass
+            };
+
+            // Item visuals
+            var ITEM_ICONS = {
+                'potion': { color: '#ff4444', symbol: '♥' },
+                'key': { color: '#ffd700', symbol: '🔑' },
+                'coin': { color: '#ffd700', symbol: '●' },
+                'scroll': { color: '#f0e68c', symbol: '📜' },
+                'gem': { color: '#9966ff', symbol: '◆' }
+            };
+
+            function createCanvas(parent) {
+                elements.container = document.createElement('div');
+                elements.container.className = 'overworld-container';
+
+                elements.canvas = document.createElement('canvas');
+                elements.canvas.className = 'overworld-canvas';
+                elements.canvas.width = VIEWPORT_TILES_X * SCALED_TILE;
+                elements.canvas.height = VIEWPORT_TILES_Y * SCALED_TILE;
+
+                elements.ctx = elements.canvas.getContext('2d');
+                elements.ctx.imageSmoothingEnabled = false;
+
+                elements.container.appendChild(elements.canvas);
+                parent.appendChild(elements.container);
+            }
+
+            function updateCamera() {
+                var canvasW = elements.canvas.width;
+                var canvasH = elements.canvas.height;
+                var mapPixelW = mapData.width * SCALED_TILE;
+                var mapPixelH = mapData.height * SCALED_TILE;
+
+                var targetCamX = state.playerPixelX - canvasW / 2 + SCALED_TILE / 2;
+                var targetCamY = state.playerPixelY - canvasH / 2 + SCALED_TILE / 2;
+
+                state.cameraX = Math.max(0, Math.min(targetCamX, mapPixelW - canvasW));
+                state.cameraY = Math.max(0, Math.min(targetCamY, mapPixelH - canvasH));
+            }
+
+            function drawMap() {
+                var ctx = elements.ctx;
+                var startTileX = Math.floor(state.cameraX / SCALED_TILE);
+                var startTileY = Math.floor(state.cameraY / SCALED_TILE);
+                var offsetX = -(state.cameraX % SCALED_TILE);
+                var offsetY = -(state.cameraY % SCALED_TILE);
+
+                for (var y = 0; y <= VIEWPORT_TILES_Y + 1; y++) {
+                    for (var x = 0; x <= VIEWPORT_TILES_X + 1; x++) {
+                        var tileX = startTileX + x;
+                        var tileY = startTileY + y;
+
+                        if (tileX >= 0 && tileX < mapData.width && tileY >= 0 && tileY < mapData.height) {
+                            var tileId = mapData.tiles[tileY] ? mapData.tiles[tileY][tileX] : 0;
+                            var drawX = x * SCALED_TILE + offsetX;
+                            var drawY = y * SCALED_TILE + offsetY;
+
+                            ctx.fillStyle = TILE_COLORS[tileId] || '#333';
+                            ctx.fillRect(drawX, drawY, SCALED_TILE, SCALED_TILE);
+
+                            // Add grid lines for visibility
+                            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+                            ctx.strokeRect(drawX, drawY, SCALED_TILE, SCALED_TILE);
+                        }
+                    }
+                }
+            }
+
+            function drawPlayer() {
+                var ctx = elements.ctx;
+                var drawX = state.playerPixelX - state.cameraX;
+                var drawY = state.playerPixelY - state.cameraY;
+
+                // Player body
+                ctx.fillStyle = '#4488ff';
+                ctx.fillRect(drawX + 4, drawY + 4, SCALED_TILE - 8, SCALED_TILE - 8);
+
+                // Direction indicator
+                ctx.fillStyle = '#fff';
+                var indicatorSize = 6;
+                var indicatorX = drawX + SCALED_TILE / 2 - indicatorSize / 2;
+                var indicatorY = drawY + SCALED_TILE / 2 - indicatorSize / 2;
+
+                switch (state.facing) {
+                    case 'up': indicatorY -= 6; break;
+                    case 'down': indicatorY += 6; break;
+                    case 'left': indicatorX -= 6; break;
+                    case 'right': indicatorX += 6; break;
+                }
+
+                ctx.beginPath();
+                ctx.arc(indicatorX + indicatorSize/2, indicatorY + indicatorSize/2, indicatorSize/2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            function drawEntities() {
+                var ctx = elements.ctx;
+                var entities = OverworldEngine.getEntities();
+
+                entities.forEach(function(entity) {
+                    var drawX = entity.x * SCALED_TILE - state.cameraX;
+                    var drawY = entity.y * SCALED_TILE - state.cameraY;
+
+                    if (drawX > -SCALED_TILE && drawX < elements.canvas.width &&
+                        drawY > -SCALED_TILE && drawY < elements.canvas.height) {
+
+                        if (entity.type === 'item') {
+                            var itemVisual = ITEM_ICONS[entity.itemType] || { color: '#fff', symbol: '?' };
+
+                            // Glow effect
+                            ctx.shadowColor = itemVisual.color;
+                            ctx.shadowBlur = 10;
+
+                            // Item background
+                            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                            ctx.beginPath();
+                            ctx.arc(drawX + SCALED_TILE/2, drawY + SCALED_TILE/2, SCALED_TILE/2 - 2, 0, Math.PI * 2);
+                            ctx.fill();
+
+                            // Item icon
+                            ctx.fillStyle = itemVisual.color;
+                            ctx.font = (SCALED_TILE - 8) + 'px Arial';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(itemVisual.symbol, drawX + SCALED_TILE/2, drawY + SCALED_TILE/2 + 2);
+
+                            ctx.shadowBlur = 0;
+                        } else {
+                            // NPC/other entity
+                            ctx.fillStyle = entity.color || '#ff00ff';
+                            ctx.fillRect(drawX + 4, drawY + 4, SCALED_TILE - 8, SCALED_TILE - 8);
+                        }
+                    }
+                });
+            }
+
+            function render() {
+                var ctx = elements.ctx;
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, elements.canvas.width, elements.canvas.height);
+
+                drawMap();
+                drawEntities();
+                drawPlayer();
+            }
+
+            function animate() {
+                if (!state.isAnimating) return;
+
+                var speed = config.moveSpeed;
+                var dx = state.targetPixelX - state.playerPixelX;
+                var dy = state.targetPixelY - state.playerPixelY;
+
+                if (Math.abs(dx) > speed) {
+                    state.playerPixelX += dx > 0 ? speed : -speed;
+                } else {
+                    state.playerPixelX = state.targetPixelX;
+                }
+
+                if (Math.abs(dy) > speed) {
+                    state.playerPixelY += dy > 0 ? speed : -speed;
+                } else {
+                    state.playerPixelY = state.targetPixelY;
+                }
+
+                state.walkTimer++;
+                if (state.walkTimer >= config.walkAnimSpeed) {
+                    state.walkTimer = 0;
+                    state.walkFrame = (state.walkFrame + 1) % 4;
+                }
+
+                updateCamera();
+                render();
+
+                if (state.playerPixelX === state.targetPixelX && state.playerPixelY === state.targetPixelY) {
+                    state.isAnimating = false;
+                    state.animationFrame = null;  // Clear so next move can start animation
+                    state.walkFrame = 0;
+                    render();
+
+                    if (callbacks.onMoveComplete) callbacks.onMoveComplete();
+                } else {
+                    state.animationFrame = requestAnimationFrame(animate);
+                }
+            }
+
+            return {
+                init: function(parent, cbs) {
+                    callbacks = Object.assign({}, callbacks, cbs || {});
+                    createCanvas(parent);
+                },
+
+                loadAssets: function() {
+                    return Promise.resolve();
+                },
+
+                setupMap: function(data) {
+                    mapData.width = data.width;
+                    mapData.height = data.height;
+                    mapData.tiles = data.tiles;
+                    mapData.entities = data.entities;
+
+                    state.playerPixelX = data.playerX * SCALED_TILE;
+                    state.playerPixelY = data.playerY * SCALED_TILE;
+                    state.targetPixelX = state.playerPixelX;
+                    state.targetPixelY = state.playerPixelY;
+                    state.facing = data.facing;
+
+                    updateCamera();
+                    render();
+                },
+
+                animateMove: function(moveData) {
+                    state.targetPixelX = moveData.toX * SCALED_TILE;
+                    state.targetPixelY = moveData.toY * SCALED_TILE;
+                    state.facing = moveData.direction;
+                    state.isAnimating = true;
+                    state.walkTimer = 0;
+
+                    if (!state.animationFrame) {
+                        state.animationFrame = requestAnimationFrame(animate);
+                    }
+                },
+
+                setFacing: function(direction) {
+                    state.facing = direction;
+                    render();
+                },
+
+                show: function() {
+                    if (elements.container) elements.container.classList.add('active');
+                },
+
+                hide: function() {
+                    if (elements.container) elements.container.classList.remove('active');
+                },
+
+                render: render
+            };
+        })();
+
+        // =====================================================================
+        // TEST MAP WITH ITEMS
+        // =====================================================================
+
+        function generateCollision(tiles) {
+            var blocked = [2, 3, 4, 9];
+            return tiles.map(function(row) {
+                return row.map(function(tile) {
+                    return blocked.indexOf(tile) !== -1 ? 1 : 0;
+                });
+            });
+        }
+
+        var testTiles = [
+            [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
+            [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+            [3, 4, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 3, 4],
+            [3, 4, 0, 5, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 5, 0, 0, 3, 4],
+            [3, 4, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 3, 4],
+            [3, 4, 0, 0, 8, 8, 1, 0, 0, 0, 0, 0, 1, 8, 8, 0, 0, 0, 3, 4],
+            [3, 4, 0, 0, 8, 8, 1, 1, 1, 1, 1, 1, 1, 8, 8, 0, 0, 0, 3, 4],
+            [3, 4, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 5, 0, 3, 4],
+            [3, 4, 5, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 3, 4],
+            [3, 4, 0, 0, 0, 3, 4, 0, 0, 1, 0, 0, 3, 4, 0, 0, 0, 0, 3, 4],
+            [3, 4, 0, 0, 0, 3, 4, 0, 0, 1, 0, 0, 3, 4, 0, 2, 2, 2, 2, 2],
+            [3, 4, 0, 8, 8, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2],
+            [3, 4, 0, 8, 8, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 3, 4],
+            [3, 4, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 5, 0, 0, 0, 3, 4],
+            [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
+            [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
+        ];
+
+        var TEST_MAP = {
+            id: 'test_items',
+            name: 'Item Test Map',
+            width: 20,
+            height: 16,
+            tiles: testTiles,
+            collision: generateCollision(testTiles),
+            playerStart: { x: 9, y: 7, facing: 'down' },
+            entities: [
+                // Items scattered around the map
+                { id: 'item_1', type: 'item', itemType: 'potion', x: 3, y: 3, name: 'Health Potion', solid: false },
+                { id: 'item_2', type: 'item', itemType: 'key', x: 15, y: 3, name: 'Golden Key', solid: false },
+                { id: 'item_3', type: 'item', itemType: 'coin', x: 7, y: 5, name: 'Gold Coin', solid: false },
+                { id: 'item_4', type: 'item', itemType: 'coin', x: 11, y: 5, name: 'Gold Coin', solid: false },
+                { id: 'item_5', type: 'item', itemType: 'scroll', x: 4, y: 8, name: 'Ancient Scroll', solid: false },
+                { id: 'item_6', type: 'item', itemType: 'gem', x: 14, y: 8, name: 'Purple Gem', solid: false },
+                { id: 'item_7', type: 'item', itemType: 'potion', x: 8, y: 13, name: 'Mana Potion', solid: false },
+                { id: 'item_8', type: 'item', itemType: 'coin', x: 10, y: 13, name: 'Gold Coin', solid: false }
+            ],
+            warps: []
+        };
+
+        // =====================================================================
+        // GAME INITIALIZATION
+        // =====================================================================
+
+        var inventory = [];
+        var debugLog = document.getElementById('debug-log');
+
+        function log(message, type) {
+            var entry = document.createElement('div');
+            entry.className = 'log-entry' + (type ? ' ' + type : '');
+            entry.textContent = message;
+            debugLog.appendChild(entry);
+            debugLog.scrollTop = debugLog.scrollHeight;
+        }
+
+        function updateInventoryDisplay() {
+            var container = document.getElementById('inventory-items');
+
+            if (inventory.length === 0) {
+                container.innerHTML = '<span style="opacity: 0.5;">Empty</span>';
+                return;
+            }
+
+            container.innerHTML = '';
+            inventory.forEach(function(item) {
+                var itemEl = document.createElement('div');
+                itemEl.className = 'inventory-item';
+
+                var ICONS = {
+                    'potion': '♥',
+                    'key': '🔑',
+                    'coin': '●',
+                    'scroll': '📜',
+                    'gem': '◆'
+                };
+
+                itemEl.innerHTML = '<span class="icon">' + (ICONS[item.itemType] || '?') + '</span>' + item.name;
+                container.appendChild(itemEl);
+            });
+        }
+
+        function showItemNotification(item) {
+            var existing = document.querySelector('.item-notification');
+            if (existing) existing.remove();
+
+            var ICONS = {
+                'potion': '♥',
+                'key': '🔑',
+                'coin': '●',
+                'scroll': '📜',
+                'gem': '◆'
+            };
+
+            var notification = document.createElement('div');
+            notification.className = 'item-notification';
+            notification.innerHTML =
+                '<div class="item-icon">' + (ICONS[item.itemType] || '?') + '</div>' +
+                '<h3>Item Acquired!</h3>' +
+                '<p>' + item.name + '</p>';
+
+            document.getElementById('game-container').appendChild(notification);
+
+            setTimeout(function() {
+                notification.remove();
+            }, 1500);
+        }
+
+        function handleItemPickup(item) {
+            log('Picked up: ' + item.name, 'pickup');
+            inventory.push(item);
+            updateInventoryDisplay();
+            showItemNotification(item);
+            OverworldUI.render();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            var gameContainer = document.getElementById('game-container');
+
+            log('Initializing overworld test...');
+
+            // Initialize UI
+            OverworldUI.init(gameContainer, {
+                onMoveComplete: function() {
+                    OverworldEngine.movementComplete();
+                }
+            });
+
+            // Initialize engine with item pickup callback
+            OverworldEngine.init({
+                onMove: function(moveData) {
+                    OverworldUI.animateMove(moveData);
+                },
+                onFacingChange: function(direction) {
+                    OverworldUI.setFacing(direction);
+                },
+                onItemPickup: handleItemPickup
+            });
+
+            // Load map
+            var mapState = OverworldEngine.loadMap(TEST_MAP);
+            OverworldUI.setupMap(mapState);
+            OverworldUI.show();
+
+            log('Map loaded with ' + TEST_MAP.entities.length + ' items');
+            log('Player starting at (' + mapState.playerX + ', ' + mapState.playerY + ')');
+
+            // Input handling
+            var keyState = {};
+
+            document.addEventListener('keydown', function(e) {
+                var direction = null;
+                switch (e.key) {
+                    case 'ArrowUp': case 'w': case 'W': direction = 'up'; break;
+                    case 'ArrowDown': case 's': case 'S': direction = 'down'; break;
+                    case 'ArrowLeft': case 'a': case 'A': direction = 'left'; break;
+                    case 'ArrowRight': case 'd': case 'D': direction = 'right'; break;
+                }
+
+                if (direction && !keyState[direction]) {
+                    keyState[direction] = true;
+                    OverworldEngine.move(direction);
+                    e.preventDefault();
+                }
+            });
+
+            document.addEventListener('keyup', function(e) {
+                var direction = null;
+                switch (e.key) {
+                    case 'ArrowUp': case 'w': case 'W': direction = 'up'; break;
+                    case 'ArrowDown': case 's': case 'S': direction = 'down'; break;
+                    case 'ArrowLeft': case 'a': case 'A': direction = 'left'; break;
+                    case 'ArrowRight': case 'd': case 'D': direction = 'right'; break;
+                }
+                if (direction) keyState[direction] = false;
+            });
+
+            log('Controls ready. Use WASD or Arrow Keys to move!');
+        });
+    </script>
+</body>
+</html>

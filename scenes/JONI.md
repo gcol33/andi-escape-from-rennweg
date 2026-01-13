@@ -7,7 +7,7 @@ You hear someone "granteln" around the corner. That distinctive Viennese grumbli
 
 ---
 
-He spots you and his face lights up. Well, as much as a Viennese face lights up. "Andi! Du bist ja da!" He comes over with a knowing smile. "I'm so glad you're still here. You know, while I was gone, I was SO annoyed by the toxic positivity around this place."
+He spots you and his face lights up. Well, as much as a Viennese face lights up. "Andi! Du bist ja EH da!" He comes over with a knowing smile. "I'm so glad you're still here. You know, while I was gone, I was SO annoyed by the toxic positivity around this place."
 
 ---
 
