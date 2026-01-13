@@ -1,12 +1,13 @@
 ---
 id: dnd_group_dancing
 bg: ../char/dnd_group_dancing.png
+music: dnd_dance.mp3
 add_items:
   - name: Beer
     type: key
 ---
 
-The defeat quickly turns into a celebration. Someone puts on music, and before you know it, the entire D&D group is dancing in the basement. "We're EXOTIC dancers! As we're drunk!" the group announces proudly, striking poses. Dice bags swing, cloaks twirl, and someone is doing an impressively bad robot.
+The defeat quickly turns into a celebration. Someone puts on music, and before you know it, the entire D&D group is dancing in the basement. "We're **EXOTIC** dancers! As we're drunk!" the group announces proudly, striking poses. Dice bags swing, cloaks twirl, and someone is doing an impressively bad robot.
 
 ---
 

@@ -44,7 +44,7 @@
     --roll-color-status: var(--manga-mid-gray);
     --roll-color-neutral: var(--manga-mid-gray);  /* Lighter for visibility on dark panel */
     --emphasis-crit-glow: #ffd700;
-    --emphasis-fail-glow: var(--manga-blood);
+    --emphasis-fail-glow: #ff4444;  /* Visible red for fumbles (manga-blood too dark) */
 
     /* Battle panel - dark for readability with white text */
     --battle-panel-bg: rgba(20, 20, 20, 0.95);
