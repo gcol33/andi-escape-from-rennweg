@@ -403,6 +403,26 @@
     overflow: hidden;
 }
 
+/* Portrait mode: allow button area to expand for stacked choices */
+@media (orientation: portrait) {
+    #button-area {
+        height: auto;
+        min-height: 3em;
+        max-height: 12em;  /* Allow up to ~4 stacked buttons */
+        overflow-y: auto;
+    }
+
+    #choices-container {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    #choices-container .choice-button {
+        width: 100%;
+        font-size: 1rem;  /* Larger text for mobile */
+    }
+}
+
 /* Choices container: horizontal row, centered, equal height buttons */
 #choices-container {
     display: flex;
