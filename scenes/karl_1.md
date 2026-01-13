@@ -3,7 +3,7 @@ id: karl_1
 bg: ../char/karl_neutral.png
 no_read_tracking: true
 set_flags:
-  - karl_seen_1
+  - jk_seen_1
 random_texts:
   - 'Karl is examining a potted plant near the window. "Spathiphyllum," he says. "Peace lily. Been here longer than most of us. Will probably outlast us too." ||| He nods at you. "Good luck out there, Andi."'
   - 'Karl looks up from his coffee. "Heading off? Everything ends eventually, I suppose." ||| He sighs. "Still waiting on Reviewer 2. Three months now." ||| He gives a small wave. "Take care."'
