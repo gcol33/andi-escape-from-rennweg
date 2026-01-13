@@ -12,4 +12,3 @@ You lean in, scanning the code. Something's off. Line 47—he's swapped the orde
 ### Choices
 
 - Help fix the code → GIS_ending
-- "Sorry, I need to say my goodbyes" → LISA_scene
