@@ -5,9 +5,9 @@ no_read_tracking: true
 set_flags:
   - karl_seen_1
 random_texts:
-  - 'Karl is leaning against the wall, observing the hallway traffic. ||| "Leaving already?" He nods thoughtfully. "Smart. The afternoon meetings can drag on forever." ||| He shifts his weight. "I''ve been here since 2015. Seen a lot of people come and go. It''s always the good ones who move on to bigger things."'
-  - 'Karl is examining a potted plant near the window. ||| "This ficus has been here longer than most of us," he says. "Someone told me it was already here in the 90s." ||| He turns to you. "Plants are resilient. Unlike the coffee machine, which breaks down every other week."'
-  - 'Karl looks up from his phone as you pass. ||| "Ah, Andi. Heading out?" He pockets the phone. "Good timing. The elevator gets crowded around now." ||| "Take care out there. And good luck with whatever comes next."'
+  - 'Karl spots you in the hallway. "Andi! Perfect timing. Quick question." ||| "So what''s the plan after this? Got something lined up already? Or are you taking a break first?" ||| You mumble something noncommittal. Karl nods sagely. "Smart. Keep your options open. Have you thought about consulting? Everyone does consulting these days."'
+  - 'Karl intercepts you near the stairs. "Hey, before you go - do you know anyone who needs a flatmate? My cousin is moving to Vienna." ||| "He''s very quiet. Mostly. Except when he practices violin. But only on weekends." ||| "Actually, do YOU need a flatmate? No? Well, keep it in mind. Here, I''ll give you his number anyway."'
+  - 'Karl waves you down. "Andi! Quick favor. Can you explain how the new timesheet system works? I''ve been doing it wrong for three months apparently." ||| You start to explain you''re in a hurry. Karl doesn''t notice. ||| "Also, while you''re here - do you know how to fix the printer? It keeps saying ''PC Load Letter'' and I don''t know what that means."'
 ---
 
 ### Choices
