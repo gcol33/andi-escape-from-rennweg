@@ -5,9 +5,9 @@ no_read_tracking: true
 set_flags:
   - karl_seen_1
 random_texts:
-  - 'Karl spots you in the hallway. "Andi! Perfect timing. Quick question." ||| "So what''s the plan after this? Got something lined up already? Or are you taking a break first?" ||| You mumble something noncommittal. Karl nods sagely. "Smart. Keep your options open. Have you thought about consulting? Everyone does consulting these days."'
-  - 'Karl intercepts you near the stairs. "Hey, before you go - do you know anyone who needs a flatmate? My cousin is moving to Vienna." ||| "He''s very quiet. Mostly. Except when he practices violin. But only on weekends." ||| "Actually, do YOU need a flatmate? No? Well, keep it in mind. Here, I''ll give you his number anyway."'
-  - 'Karl waves you down. "Andi! Quick favor. Can you explain how the new timesheet system works? I''ve been doing it wrong for three months apparently." ||| You start to explain you''re in a hurry. Karl doesn''t notice. ||| "Also, while you''re here - do you know how to fix the printer? It keeps saying ''PC Load Letter'' and I don''t know what that means."'
+  - 'Karl is examining a potted plant near the window. "Did you know this is a Spathiphyllum? Peace lily. Ironic name, really." ||| "It''s been here since before I started. Nobody waters it. Nobody talks to it. And yet it persists." ||| He looks at you. "There''s a lesson in that, I think. About institutional neglect. About survival despite the system."'
+  - 'Karl is staring at the wall with the intensity of someone having a profound realization. ||| "The academic system is fundamentally broken, you know," he says without preamble. "Publish or perish. Impact factors. Citation rings." ||| He sighs heavily. "I wrote a paper about invasive plant species once. Rejected three times. Meanwhile, someone publishes about blockchain and gets a million reads."'
+  - 'Karl notices you and gestures at a wilting fern in the corner. "See that? Nephrolepis exaltata. Boston fern. It''s dying." ||| "Nobody assigned responsibility for it. Classic diffusion of accountability. Everyone assumes someone else will water it." ||| "It''s a metaphor, really. For everything."'
 ---
 
 ### Choices
