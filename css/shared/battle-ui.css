@@ -253,12 +253,19 @@
     .tarot-card-slot {
         width: 90%;
         max-width: 280px;
-        display: none;  /* Hidden by default, JS adds .active when revealed */
         flex-shrink: 0;
+        /* Reserve space but hide until revealed - prevents layout shift */
+        visibility: hidden;
+        opacity: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: opacity 0.3s ease, max-height 0.3s ease;
     }
 
     .tarot-card-slot.active {
-        display: flex;
+        visibility: visible;
+        opacity: 1;
+        max-height: 300px; /* Enough for card + text */
     }
 
     .tarot-card-flip {
