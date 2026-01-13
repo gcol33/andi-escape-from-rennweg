@@ -3,15 +3,15 @@ id: MORITZ_excursion
 bg: ../char/moritz_excursion.png
 ---
 
-You climb onto the department bus. Moritz is there, along with a group of eager students. Wolfgang announces the destination: a field site in the Wachau. Latin names will be learned. Plants will be identified. "Hübsch" will NOT be accepted as a differential characteristic.
+You climb onto the department bus. Moritz is there, grinning. "Remember Wolfgang's excursion to the Wachau? You showed up with equipment for a Himalaya expedition."
 
 ---
 
-The bus winds through Vienna traffic. The engine hums. Your eyelids grow heavy somewhere around the Ringstraße...
+You remember it well. The Latin names. So many Latin names. And the two things that stuck: the proper equipment needed for fieldwork... and the fact that "hübsch" is NOT a valid differential characteristic. (Because all plants are "hübsch," apparently.)
 
 ---
 
-Moritz's face looms over you. "Quiz time. Let's see if you remember anything from that excursion."
+The bus starts moving. Moritz pulls out a battered flora book. "Quiz time. Let's see if you remember anything from that trip."
 
 ### Choices
 
