@@ -1,6 +1,7 @@
 ---
 id: MANU_intro
 bg: ../char/manuela_annoyed_with_code.png
+music: default2.mp3
 ---
 
 A door opens in the hall. It's Manu.
