@@ -11,6 +11,7 @@ var Typewriter = (function() {
     // Typewriter state
     var state = {
         isTyping: false,
+        isPaused: false,
         timeoutId: null,
         autoAdvanceId: null,
         segments: null,
@@ -169,6 +170,7 @@ var Typewriter = (function() {
 
             state = {
                 isTyping: true,
+                isPaused: false,
                 timeoutId: null,
                 autoAdvanceId: null,
                 segments: segments,
@@ -263,6 +265,41 @@ var Typewriter = (function() {
                 char: state.currentChar,
                 totalChars: charCount
             };
+        },
+
+        /**
+         * Pause typewriter (keeps position for resume)
+         */
+        pause: function() {
+            if (!state.isTyping) return;
+            if (state.timeoutId) {
+                if (typeof TimerManager !== 'undefined') {
+                    TimerManager.clear(state.timeoutId);
+                } else {
+                    clearTimeout(state.timeoutId);
+                }
+                state.timeoutId = null;
+            }
+            state.isTyping = false;
+            state.isPaused = true;
+        },
+
+        /**
+         * Resume paused typewriter
+         */
+        resume: function() {
+            if (!state.isPaused) return;
+            state.isPaused = false;
+            state.isTyping = true;
+            typeNextChar();
+        },
+
+        /**
+         * Check if typewriter is paused
+         * @returns {boolean}
+         */
+        isPaused: function() {
+            return state.isPaused === true;
         }
     };
 })();

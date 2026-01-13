@@ -100,6 +100,9 @@ var VNEngine = (function() {
             skills: []         // learned skills/abilities (persist across soft reset)
         },
         inventoryExpanded: false, // UI state for expandable panel
+        // Queue for acquisition modals (shown before scene text renders)
+        acquisitionQueue: [],
+        acquisitionModalShowing: false,
         playerHP: null, // player HP (null until first battle)
         playerMaxHP: typeof playerConfig !== 'undefined' && playerConfig.hp
             ? playerConfig.hp
@@ -749,6 +752,9 @@ var VNEngine = (function() {
                     setTimeout(scheduleWakeText, waitDuration);
                 }
             });
+
+            // Return true to indicate this action handles scene flow (prevents renderChoices from running)
+            return true;
         },
 
         /**
@@ -1101,6 +1107,8 @@ var VNEngine = (function() {
                 return false;
             }
             addSkill(skillName);
+            // Process queue immediately for actions (text already rendered)
+            processAcquisitionQueue();
             return false; // Don't interrupt scene flow
         },
 
@@ -1121,6 +1129,8 @@ var VNEngine = (function() {
             }
             var itemType = action.type || 'key';
             addItems([{ name: itemName, type: itemType }]);
+            // Process queue immediately for actions (text already rendered)
+            processAcquisitionQueue();
             return false; // Don't interrupt scene flow
         }
     };
@@ -3326,8 +3336,16 @@ var VNEngine = (function() {
             });
         }
 
-        // Render the scene (pass entry SFX if provided)
-        renderScene(scene, prependContent, entrySfx);
+        // Process any queued acquisition modals before rendering scene text
+        // This ensures modals are shown and dismissed before typewriter starts
+        if (state.acquisitionQueue.length > 0) {
+            processAcquisitionQueue(function() {
+                renderScene(scene, prependContent, entrySfx);
+            });
+        } else {
+            // Render the scene (pass entry SFX if provided)
+            renderScene(scene, prependContent, entrySfx);
+        }
     }
 
     // === Text Splitting ===
@@ -4310,6 +4328,9 @@ var VNEngine = (function() {
             }
 
             if (endingOverlay) {
+                // Clear any existing content before adding new
+                endingOverlay.innerHTML = '';
+
                 // Add completion message to overlay
                 var completionMsg = document.createElement('p');
                 completionMsg.className = 'game-over';
@@ -4945,7 +4966,8 @@ var VNEngine = (function() {
             state.inventory.keyItems.push(item);
             _log.info('Engine','Added key item: ' + item);
             if (!silent) {
-                showAcquisitionModal(item, 'key');
+                // Queue modal to show before scene text renders
+                state.acquisitionQueue.push({ name: item, type: 'key' });
             }
             // Emit inventory event
             if (typeof eventBus !== 'undefined' && typeof InventoryEvents !== 'undefined') {
@@ -4972,7 +4994,8 @@ var VNEngine = (function() {
         if (isNew) {
             state.inventory.skills.push(skill);
             _log.info('Engine','Learned skill: ' + skill);
-            showAcquisitionModal(skill, 'skill');
+            // Queue modal to show before scene text renders
+            state.acquisitionQueue.push({ name: skill, type: 'skill' });
             // Emit inventory event
             if (typeof eventBus !== 'undefined' && typeof InventoryEvents !== 'undefined') {
                 eventBus.emit(InventoryEvents.ITEM_ADDED, { item: skill, type: 'skill' });
@@ -5242,6 +5265,12 @@ var VNEngine = (function() {
      * @param {Function} callback - Called when modal is dismissed
      */
     function showAcquisitionModal(name, type, callback) {
+        // Pause typewriter while modal is showing
+        var wasTyping = typeof Typewriter !== 'undefined' && Typewriter.isTyping();
+        if (wasTyping) {
+            Typewriter.pause();
+        }
+
         // Create modal container
         var modal = document.createElement('div');
         modal.className = 'acquisition-modal';
@@ -5308,9 +5337,14 @@ var VNEngine = (function() {
         function dismissModal() {
             if (dismissed || !canDismiss) return;
             dismissed = true;
+            document.removeEventListener('keydown', keyHandler);
             modal.classList.add('fade-out');
             setTimeout(function() {
                 Utils.removeElement(modal);
+                // Resume typewriter if it was paused
+                if (wasTyping && typeof Typewriter !== 'undefined') {
+                    Typewriter.resume();
+                }
                 if (callback) callback();
             }, 300);
         }
@@ -5322,7 +5356,6 @@ var VNEngine = (function() {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 dismissModal();
-                document.removeEventListener('keydown', keyHandler);
             }
         }
         document.addEventListener('keydown', keyHandler);
@@ -5332,6 +5365,29 @@ var VNEngine = (function() {
         setTimeout(function() {
             modal.classList.add('show');
         }, 10);
+    }
+
+    /**
+     * Process queued acquisition modals sequentially
+     * Shows each modal one at a time, calling onComplete when all are done
+     * @param {Function} onComplete - Called when all modals are dismissed
+     */
+    function processAcquisitionQueue(onComplete) {
+        if (state.acquisitionQueue.length === 0) {
+            if (onComplete) onComplete();
+            return;
+        }
+
+        // Get next item from queue
+        var item = state.acquisitionQueue.shift();
+        state.acquisitionModalShowing = true;
+
+        // Show modal with callback to process next item
+        showAcquisitionModal(item.name, item.type, function() {
+            state.acquisitionModalShowing = false;
+            // Process remaining items in queue
+            processAcquisitionQueue(onComplete);
+        });
     }
 
     /**
