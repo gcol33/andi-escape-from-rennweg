@@ -4,12 +4,11 @@ bg: rooftop.jpg
 music: game_over.mp3
 chars:
   - cat_5.svg
-respawn_target: bbq1
-respawn_flavor: "You dreamt of Wolfgang asking about plants. You knew none of their names. They knew yours though."
+death_flag: bbq_noflora
 ending_title: "BAD ENDING: Botanical Failure"
 ---
 
-Without the Flora Book, you have no reference. Just years of looking at data ABOUT plants without ever learning to identify the actual living things. You approach the succulent. "That's obviously a... um... green plant. With leaves. Fleshy ones. Very... photosynthetic-looking."
+Without the Flora Book, you have no reference—just years of looking at data ABOUT plants without ever learning to identify the actual living things. You approach the succulent. "That's obviously a... um... green plant. With leaves. Fleshy ones. Very... photosynthetic-looking."
 
 ---
 
@@ -41,4 +40,4 @@ Cat. CATS. You wrote CATS. You understand code. Code is just symbols. Plants are
 
 ---
 
-You slip away from the party. CATS is waiting. It always is.
+You slip away from the party. Your desk is still warm.

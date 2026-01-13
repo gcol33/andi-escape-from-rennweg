@@ -4,9 +4,8 @@ bg: rooftop.jpg
 music: game_over.mp3
 chars:
   - cat_5.svg
+death_flag: bbq_nocharcoal
 ending_title: "BAD ENDING: Cold Grill"
-respawn_target: bbq1
-respawn_flavor: "You dreamt of empty grills. Cold, judgmental grills. The sausages were weeping."
 ---
 
 You approach the grill with confidence. Then you look down at the empty metal basin. No charcoal. The grill sits there, cold and accusatory. "Did anyone bring the charcoal?" All eyes turn to you.
@@ -41,4 +40,4 @@ Cat. CATS. Heat. Fuel. Maybe CATS needs a resource management module. A reminder
 
 ---
 
-You slip away before the pizza arrives. CATS is waiting. Warm. Humming. Always.
+You slip away before the pizza arrives. Back to your desk. Back to CATS.

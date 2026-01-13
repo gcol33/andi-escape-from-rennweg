@@ -3,11 +3,10 @@ id: dnd_group_defeat
 bg: back_stairwell_dim.jpg
 music: game_over.mp3
 ending_title: "BAD ENDING: Trapped in the Campaign"
-respawn_target: dnd_group
-respawn_flavor: "You dreamt of rolling nothing but natural 1s. Critical failures, all the way down."
+death_flag: dnd
 ---
 
-The D&D group overpowers you with their combined nerdery. A force that cannot be resisted by mere mortals. They've been honing these skills for years, debating rules minutiae while the world went about its business unaware of the arcane knowledge being accumulated.
+The D&D group overpowers you with their combined nerdery. You never stood a chance. They've been honing these skills for years, debating rules minutiae in this very basement while the world above went about its business unaware of the arcane knowledge being accumulated below.
 
 ---
 

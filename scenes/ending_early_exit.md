@@ -5,8 +5,7 @@ music: game_over.mp3
 chars:
   - cat_5.svg
 ending_title: "BAD ENDING: Trapped by CATS"
-respawn_target: floor0
-respawn_flavor: "You dreamt of cats. So many cats. They were blocking every exit. One of them had a clipboard."
+death_flag: early_exit
 ---
 
 You step through the front doors. The afternoon sun hits your face. Freedom! You could just walk away right now. Start fresh. Leave the Division of Conservation Biology behind forever.

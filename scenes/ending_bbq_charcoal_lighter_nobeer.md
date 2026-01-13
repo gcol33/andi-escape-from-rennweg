@@ -4,8 +4,7 @@ bg: rooftop.jpg
 music: game_over.mp3
 chars:
   - cat_5.svg
-respawn_target: bbq1
-respawn_flavor: "You dreamt of a desert. An endless, beerless desert. The mirages were all empty bottles."
+death_flag: bbq_nobeer
 ending_title: "BAD ENDING: Dry Party"
 ---
 
@@ -41,4 +40,4 @@ Cat. CATS. Drinks. Hydration. Maybe CATS needs a dependency checker. Something t
 
 ---
 
-You walk away from the sizzling grill. Someone will handle it. CATS needs you more. CATS has always needed you more.
+You walk away from the sizzling grill. Someone will handle it. The code won't write itself.

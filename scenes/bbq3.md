@@ -8,7 +8,7 @@ You step up to the grill. Charcoal from Billa? Check. Lighter from the smokers' 
 
 ---
 
-The lighter sparks. The flames catch, licking at the briquettes until they glow orange. Someone presses a spatula into your hands. The sun begins its descent toward the Vienna Woods, painting the sky gold and rose.
+The lighter sparks. The flames catch, licking at the briquettes until they glow orange. Someone presses a spatula into your hands. The sun begins its descent toward the Vienna Woods, turning the sky orange.
 
 ---
 

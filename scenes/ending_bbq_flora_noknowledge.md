@@ -4,12 +4,11 @@ bg: rooftop.jpg
 music: game_over.mp3
 chars:
   - cat_5.svg
-respawn_target: bbq1
-respawn_flavor: "You dreamt of a plant encyclopedia. It was written in a language you didn't speak. The pictures were blurry."
+death_flag: bbq_noknowledge
 ending_title: "BAD ENDING: Book Smart, Field Dumb"
 ---
 
-You flip through the Flora Book frantically. The pages blur together. Latin names, dichotomous keys, illustrations that all look the same. Crassulaceae? Aizoaceae? Something with an 'S'? None of it makes sense without field experience.
+You flip through the Flora Book frantically. The pages blur together—Latin names, dichotomous keys, illustrations that all look the same. Crassulaceae? Aizoaceae? Something with an 'S'? None of it makes sense without field experience.
 
 ---
 
@@ -17,7 +16,7 @@ You flip through the Flora Book frantically. The pages blur together. Latin name
 
 ---
 
-The botanists lose interest. The party continues, but you've been exposed. Someone with the tools but not the knowledge.
+The botanists lose interest. The party continues, but you've been exposed—someone with the tools but not the knowledge.
 
 ---
 
@@ -37,8 +36,8 @@ The cat stares at you. Knowingly? Or just hungry. Hard to tell with cats.
 
 ---
 
-Cat. CATS. Books and knowledge. Maybe CATS needs a machine learning module. You could train it on plant images. The code would understand even if you don't. The code always understands.
+Cat. CATS. Books and knowledge. Maybe CATS needs a machine learning module. You could train it on plant images. The code would understand even if you don't.
 
 ---
 
-You retreat to your office. CATS awaits.
+You retreat to your office.

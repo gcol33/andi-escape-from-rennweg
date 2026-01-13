@@ -3,8 +3,7 @@ id: ending_quiz_fail_siegrun
 bg: gate_exit.png
 music: game_over.mp3
 ending_title: "BAD ENDING: Failed the Field Test"
-respawn_target: SIEGRUN_excursion
-respawn_flavor: "You dreamt of field equipment. The GPS was mocking you. Even the compass looked disappointed."
+death_flag: quiz_siegrun
 ---
 
 Siegrun closes her field notebook with the finality of a verdict. "I cannot certify your floristic knowledge. You clearly weren't paying attention during the excursion."

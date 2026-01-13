@@ -4,7 +4,7 @@ bg: rooftop.jpg
 music: rooftop.mp3
 ---
 
-You push open the rooftop door and step out into the late afternoon sun. The terrace stretches before you, bathed in golden light. Potted plants, mismatched furniture, a panoramic view of Vienna spreading out to the distant hills. A warm breeze carries the scent of summer and something else... is that a grill warming up?
+You push open the rooftop door. The terrace stretches before you, lit by the afternoon sun. Potted plants, mismatched furniture, a panoramic view of Vienna spreading out to the distant hills. A warm breeze carries the scent of summer and something else... is that a grill warming up?
 
 ---
 

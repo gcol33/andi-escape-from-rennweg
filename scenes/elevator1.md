@@ -3,7 +3,7 @@ id: elevator1
 bg: elevator_path.png
 ---
 
-The elevator arrives with a familiar ding. You step inside. Scuffed interior, flickering fluorescent light, button panel worn smooth from years of use. Where to?
+The elevator arrives with a familiar ding. You step inside—scuffed interior, flickering fluorescent light, button panel worn smooth from years of use. Where to?
 
 ### Choices
 

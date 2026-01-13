@@ -3,7 +3,7 @@ id: charlie
 bg: ../char/charlie-jpg.png
 ---
 
-You step into the corridor. The fluorescent lights hum their familiar tune overhead. You're pacing back and forth, your usual thinking-and-walking routine, when you nearly collide with Charlie.
+You step into the corridor. The fluorescent lights hum their familiar tune overhead. You're pacing back and forth—your usual thinking-and-walking routine—when you nearly collide with Charlie.
 
 ---
 

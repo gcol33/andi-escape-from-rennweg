@@ -4,12 +4,11 @@ bg: rooftop.jpg
 music: game_over.mp3
 chars:
   - cat_5.svg
-respawn_target: bbq1
-respawn_flavor: "You dreamt of squinting at tiny plant features. Everything was slightly out of focus. Michi was there, shaking his head."
+death_flag: bbq_nomagglass
 ending_title: "BAD ENDING: Can't See the Forest for the Trees"
 ---
 
-You know exactly what to look for. Leaf margins, flower structure, the characteristics that distinguish one Sempervivum from another. But you can't quite see the details. The diagnostic features are too small for the naked eye.
+You know exactly what to look for—leaf margins, flower structure, the characteristics that distinguish one Sempervivum from another. But you can't quite see the details. The diagnostic features are too small for the naked eye.
 
 ---
 
@@ -17,7 +16,7 @@ You squint. Lean closer. Cup your hands around your eyes like binoculars. Nothin
 
 ---
 
-Franz taps his foot. "I'm... pretty sure it's Sempervivum tectorum?" "Pretty sure" doesn't cut it in academic circles. So close, yet missing one small tool.
+Franz taps his foot. "I'm... pretty sure it's Sempervivum tectorum?" "Pretty sure" doesn't cut it in academic circles. So close, yet missing one crucial tool.
 
 ---
 
@@ -41,4 +40,4 @@ Cat. CATS. Vision. Maybe you could add an image enhancement module to CATS. Zoom
 
 ---
 
-You leave the party. The succulent remains unidentified. CATS will have the answer. CATS always does.
+You leave the party. The succulent remains unidentified.

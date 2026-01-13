@@ -12,4 +12,4 @@ You lean in, scanning the code. Something's off. Line 47—he's swapped the orde
 ### Choices
 
 - Help fix the code → GIS_ending
-- "Sorry, but I really have to leave now, and I want to say goodby to everyone. " Head to the kitchen instead → LISA_scene
+- "Sorry, I need to say my goodbyes" → LISA_scene

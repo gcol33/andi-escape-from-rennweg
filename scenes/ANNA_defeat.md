@@ -3,8 +3,7 @@ id: ANNA_defeat
 bg: office_corridor.png
 music: game_over.mp3
 ending_title: "BAD ENDING: Mushroom Tea Incident"
-respawn_target: ANNA
-respawn_flavor: "You dreamt of giant rodents offering you tea. You politely declined this time."
+death_flag: anna
 ---
 
 You take a sip. After a few minutes, you feel lightheaded. The room starts to wobble. Anna's monitor begins growing fur. Is that... whiskers?

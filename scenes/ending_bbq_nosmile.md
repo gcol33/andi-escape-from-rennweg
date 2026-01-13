@@ -4,8 +4,7 @@ bg: rooftop.jpg
 music: game_over.mp3
 chars:
   - cat_5.svg
-respawn_target: bbq1
-respawn_flavor: "You dreamt of forced smiles. Yours wouldn't cooperate. Your face muscles had filed for resignation."
+death_flag: bbq_nosmile
 ending_title: "BAD ENDING: The Awkward Farewell"
 ---
 
@@ -13,7 +12,7 @@ You try to smile, but your face won't cooperate. The muscles pull in the wrong d
 
 ---
 
-Your colleagues exchange uncomfortable glances. "Maybe... Andi needs some more time alone?" Slowly, the group disperses, gravitating toward the grill and drinks. The party continues without you. Laughter drifting on the evening air.
+Your colleagues exchange uncomfortable glances. "Maybe... Andi needs some more time alone?" Slowly, the group disperses, gravitating toward the grill and drinks. The party continues without you—laughter drifting on the evening air.
 
 ---
 
@@ -41,4 +40,4 @@ Cat. CATS. The code. Maybe if you fix just one more bug, you'll remember how to 
 
 ---
 
-You walk back downstairs. The party continues without you. CATS is waiting.
+You walk back downstairs. The party continues without you. Your screen is still on.

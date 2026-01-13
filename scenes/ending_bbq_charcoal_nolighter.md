@@ -4,8 +4,7 @@ bg: rooftop.jpg
 music: game_over.mp3
 chars:
   - cat_5.svg
-respawn_target: bbq1
-respawn_flavor: "You dreamt of rubbing sticks together. For hours. The charcoal was laughing at you."
+death_flag: bbq_nolighter
 ending_title: "BAD ENDING: No Spark"
 ---
 
@@ -17,7 +16,7 @@ You arrange the charcoal perfectly, building a pyramid that would make a scout l
 
 ---
 
-The charcoal sits there, cold and useless. All the fuel in the world means nothing without a spark.
+The charcoal sits there, cold and useless.
 
 ---
 
@@ -37,8 +36,8 @@ The cat licks its paw, entirely unhelpful. Cats do not share fire. Cats have nev
 
 ---
 
-Cat. CATS. Spark. Ignition. Maybe CATS needs an initialization module. A bootstrap sequence. Something that starts everything. The code is the spark.
+Cat. CATS. Spark. Ignition. Maybe CATS needs an initialization module. Something that starts everything.
 
 ---
 
-You leave the cold grill behind. CATS awaits, already running. Always running.
+You leave the cold grill behind. The monitors are still on downstairs.
