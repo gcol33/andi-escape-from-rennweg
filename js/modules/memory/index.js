@@ -312,7 +312,7 @@
             memory_chain: function(action) {
                 if (!_engine) {
                     _log.error('MemoryModule', 'Module not initialized');
-                    return;
+                    return true; // Still return true to prevent renderChoices
                 }
 
                 fallbackScene = action.fallback || 'wake_up';
@@ -327,6 +327,9 @@
                     // Start the chain
                     advanceMemoryChain();
                 }
+
+                // Return true to indicate this action handles scene flow (prevents renderChoices)
+                return true;
             }
         },
 

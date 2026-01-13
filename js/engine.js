@@ -146,7 +146,8 @@ var VNEngine = (function() {
         devGuaranteeStatus: false,  // Dev mode: 100% status effect application
         devIntentsEnabled: true,  // Dev mode: enable/disable intent system
         kenBurns: false,  // Subtle zoom effect on backgrounds (Apple-style)
-        currentBackground: null  // Track current background to avoid Ken Burns reset on same bg
+        currentBackground: null,  // Track current background to avoid Ken Burns reset on same bg
+        deathFlag: null  // Death context for respawn flavor (e.g., 'agnes', 'coffee')
     };
 
     // === Engine API for Modules ===
@@ -591,6 +592,46 @@ var VNEngine = (function() {
         },
 
         /**
+         * Pick a conditional flavor text from random_flavor array.
+         * Matches entries with 'requires' against state.deathFlag.
+         * Falls back to generic entries (strings or objects without 'requires').
+         *
+         * @param {Array} flavors - Array of strings or {text, requires} objects
+         * @returns {string} Selected flavor text
+         */
+        pickConditionalFlavor: function(flavors) {
+            if (!flavors || flavors.length === 0) return '';
+
+            var conditionalMatches = [];
+            var genericEntries = [];
+
+            flavors.forEach(function(entry) {
+                if (typeof entry === 'string') {
+                    genericEntries.push(entry);
+                } else if (entry && typeof entry === 'object' && entry.text) {
+                    if (entry.requires) {
+                        // Check if deathFlag matches
+                        if (state.deathFlag === entry.requires) {
+                            conditionalMatches.push(entry.text);
+                        }
+                    } else {
+                        genericEntries.push(entry.text);
+                    }
+                }
+            });
+
+            // Prefer conditional matches if deathFlag matched
+            if (conditionalMatches.length > 0) {
+                return Utils.pickRandom(conditionalMatches);
+            }
+            // Fall back to generic entries
+            if (genericEntries.length > 0) {
+                return Utils.pickRandom(genericEntries);
+            }
+            return '';
+        },
+
+        /**
          * Wake sequence action handler
          * Shows "..." → waits → erases → shows wake text + random flavor → "Wake up" button → fade to target
          *
@@ -625,15 +666,14 @@ var VNEngine = (function() {
                 return !sequenceAborted && state.currentSceneId === sequenceId;
             }
 
-            // Get flavor text: prefer respawn_flavor from ending, fall back to random_flavor
+            // Get flavor text using conditional picker (matches deathFlag)
             var currentScene = story[state.currentSceneId];
             var flavorText = '';
-            if (state.respawnFlavor) {
-                flavorText = state.respawnFlavor;
-                state.respawnFlavor = null;  // Clear after use
-            } else if (currentScene && currentScene.random_flavor && currentScene.random_flavor.length > 0) {
-                flavorText = Utils.pickRandom(currentScene.random_flavor);
+            if (currentScene && currentScene.random_flavor && currentScene.random_flavor.length > 0) {
+                flavorText = actionHandlers.pickConditionalFlavor(currentScene.random_flavor);
             }
+            // Clear death flag after use
+            state.deathFlag = null;
 
             // Hide choices container during sequence
             if (elements.choicesContainer) {
@@ -3505,6 +3545,11 @@ var VNEngine = (function() {
             state.respawnFlavor = scene.respawn_flavor;
         }
 
+        // Set death flag if scene defines one (for conditional respawn flavor)
+        if (scene.death_flag) {
+            state.deathFlag = scene.death_flag;
+        }
+
         // Preprocess text blocks - split long ones unless it's an ending
         state.processedTextBlocks = preprocessTextBlocks(scene.textBlocks || [], isEnding);
         state.isEndingScene = isEnding;
@@ -3515,7 +3560,7 @@ var VNEngine = (function() {
             return a.type === 'wake_sequence';
         });
         if (scene.random_flavor && scene.random_flavor.length > 0 && !hasWakeSequence) {
-            var flavorText = Utils.pickRandom(scene.random_flavor);
+            var flavorText = actionHandlers.pickConditionalFlavor(scene.random_flavor);
             state.processedTextBlocks.push(flavorText);
         }
 

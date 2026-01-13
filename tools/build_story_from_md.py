@@ -74,6 +74,10 @@ def parse_frontmatter(content):
     current_item_object = None  # Current item object being parsed
     item_objects_list = None    # List to collect item objects (for add_items/remove_items)
 
+    # Random flavor parsing state (for conditional text with requires)
+    current_flavor = None       # Current flavor object being parsed
+    flavor_list = None          # List to collect flavor entries
+
     def get_indent(line):
         """Get number of leading spaces."""
         return len(line) - len(line.lstrip())
@@ -252,6 +256,28 @@ def parse_frontmatter(content):
             current_item_object[key] = value
             continue
 
+        # Check for random_flavor object format: - text: "..."
+        if current_key == 'random_flavor' and stripped.startswith('- text:'):
+            # Save previous flavor object if any
+            if current_flavor and flavor_list is not None:
+                flavor_list.append(current_flavor)
+            # Start new flavor object
+            value = stripped[7:].strip()
+            if (value.startswith('"') and value.endswith('"')) or (value.startswith("'") and value.endswith("'")):
+                value = value[1:-1]
+            current_flavor = {'text': value}
+            continue
+
+        # Check for flavor object properties (requires) under - text:
+        if current_flavor is not None and indent >= 4 and ':' in stripped:
+            key, _, value = stripped.partition(':')
+            key = key.strip()
+            value = value.strip()
+            if (value.startswith('"') and value.endswith('"')) or (value.startswith("'") and value.endswith("'")):
+                value = value[1:-1]
+            current_flavor[key] = value
+            continue
+
         # Check for simple list item (old format chars or other lists)
         if stripped.startswith('- '):
             item = stripped[2:].strip()
@@ -261,6 +287,13 @@ def parse_frontmatter(content):
             if current_key == 'chars' and current_char is None:
                 # Old format: simple filename
                 chars_list.append(item)
+            elif current_key == 'random_flavor' and flavor_list is not None:
+                # Save any pending flavor object before adding simple string
+                if current_flavor:
+                    flavor_list.append(current_flavor)
+                    current_flavor = None
+                # Add simple string to flavor list
+                flavor_list.append(item)
             elif current_list is not None:
                 current_list.append(item)
             continue
@@ -288,6 +321,14 @@ def parse_frontmatter(content):
                 item_objects_list.append(current_item_object)
                 current_item_object = None
 
+            # Finish any pending flavor object and save flavor_list
+            if current_flavor and flavor_list is not None:
+                flavor_list.append(current_flavor)
+                current_flavor = None
+            if flavor_list is not None:
+                frontmatter['random_flavor'] = flavor_list
+                flavor_list = None
+
             # Check if this starts a list
             if value == '':
                 if key == 'actions':
@@ -305,6 +346,11 @@ def parse_frontmatter(content):
                     current_list = []
                     item_objects_list = current_list  # Items go into same list
                     frontmatter[key] = current_list
+                elif key == 'random_flavor':
+                    # Random flavor list supports both string and object format
+                    current_key = key
+                    current_list = None
+                    flavor_list = []
                 else:
                     current_list = []
                     item_objects_list = None
@@ -342,6 +388,12 @@ def parse_frontmatter(content):
     # Finish any remaining item object
     if current_item_object and item_objects_list is not None:
         item_objects_list.append(current_item_object)
+
+    # Finish any remaining flavor object
+    if current_flavor and flavor_list is not None:
+        flavor_list.append(current_flavor)
+    if flavor_list is not None:
+        frontmatter['random_flavor'] = flavor_list
 
     if actions_list:
         frontmatter['actions'] = actions_list
@@ -544,8 +596,7 @@ def parse_scene_file(filepath):
         'actions': frontmatter.get('actions', []),
         'ending_title': frontmatter.get('ending_title', '').strip('"\'') or None,
         'no_restart': frontmatter.get('no_restart', False),
-        'respawn_target': frontmatter.get('respawn_target', None),
-        'respawn_flavor': frontmatter.get('respawn_flavor', None),
+        'death_flag': frontmatter.get('death_flag', None),
         'random_flavor': frontmatter.get('random_flavor', []),
         'recap': frontmatter.get('recap', None),
         'textBlocks': text_blocks,
@@ -579,6 +630,8 @@ def parse_scene_file(filepath):
         del scene['ending_title']
     if not scene['no_restart']:
         del scene['no_restart']
+    if scene['death_flag'] is None:
+        del scene['death_flag']
     if not scene['random_flavor']:
         del scene['random_flavor']
     if scene['recap'] is None:
