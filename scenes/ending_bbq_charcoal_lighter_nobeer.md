@@ -1,6 +1,6 @@
 ---
 id: ending_bbq_charcoal_lighter_nobeer
-bg: rooftop.jpg
+bg: rooftop_bbq_fire.png
 music: game_over.mp3
 chars:
   - cat_5.svg

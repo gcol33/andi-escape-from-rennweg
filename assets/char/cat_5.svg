@@ -34,7 +34,4 @@
   <!-- Paws coming from sides - claiming space -->
   <ellipse cx="15" cy="380" rx="40" ry="25" fill="#1a1a1a"/>
   <ellipse cx="185" cy="380" rx="40" ry="25" fill="#1a1a1a"/>
-  <!-- Darkness creeping from edges -->
-  <rect x="0" y="0" width="15" height="400" fill="#1a1a1a" opacity="0.5"/>
-  <rect x="185" y="0" width="15" height="400" fill="#1a1a1a" opacity="0.5"/>
 </svg>

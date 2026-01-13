@@ -7,6 +7,6 @@ You make your way down the stairs, ready to leave Rennweg for good. Suddenly, Je
 
 ### Choices
 
-- "Sure, let's share my snacks!" (require_items: Break Room Snacks) → squirrel_good
-- "Actually, I've got my own snacks..." → squirrel_bad
+- "Sure! I've got snacks too—let's share!" (require_items: Break Room Snacks) → squirrel_good
+- "Nah, I'll use my own food..." → squirrel_bad
 - "Sorry, I really should get going..." → JEN_no

@@ -19,31 +19,45 @@ moves:
     type: physical
     description: Michi swings the whiteboard!
 
-  - name: Marker Throw
+  - name: Methodology Defense
     damage: 2d4
-    type: physical
+    type: psychic
+    description: "Let me explain why this approach is valid..."
 
-  - name: Lecture
+  - name: Literature Review
     damage: d6
     type: psychic
     statusEffect:
       type: stun
       chance: 0.2
+    description: 47 citations. From memory.
+
+  - name: Permanent Marker
+    damage: 2d6
+    type: physical
+    description: This one doesn't wash off
 
 dialogue:
   battle_start:
-    - "Let's see what you've learned!"
+    - "I've been practicing this presentation for weeks."
+    - "Finally, someone to explain my research to!"
 
   attack_default:
-    - "Pay attention!"
-    - "This is important!"
-    - "Take notes!"
+    - "As you can see from this diagram—"
+    - "The whiteboard never lies."
+    - "This is simplified, obviously."
+    - "I have seventeen backup slides."
+
+  attack_player_low_hp:
+    - "Wait, I haven't even reached the methods section."
+    - "You're leaving? But I have supplementary materials!"
 
   victory:
-    - "Back to studying for you!"
+    - "Any questions? No? Good."
 
   defeat:
-    - "You've learned well..."
+    - "...I should revise this presentation."
+    - "Back to the literature, I suppose."
 ---
 
 Michi. The whiteboard master.

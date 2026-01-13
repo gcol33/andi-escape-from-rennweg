@@ -1,6 +1,6 @@
 ---
 id: bbq3
-bg: rooftop.jpg
+bg: rooftop_bbq_fire.png
 music: victory.mp3
 ---
 

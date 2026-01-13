@@ -1,6 +1,6 @@
 ---
 id: bbq1
-bg: rooftop.jpg
+bg: rooftop_bbq.png
 ---
 
 You smile. Genuinely. After everything today—the goodbyes, the unexpected challenges—you're actually happy to be here. Adrian gives you a thumbs up from across the terrace, grinning that infinite loop grin of his.

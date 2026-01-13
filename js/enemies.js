@@ -174,38 +174,56 @@ const enemies = {
     "ac": 12,
     "attack_bonus": 3,
     "damage": "d8",
-    "type": "physical",
+    "type": "poison",
     "stagger_threshold": 55,
     "ai": "default",
     "dialogue": {
       "battle_start": [
-        "Let's see what you've got!"
+        "You should have tried the tea.",
+        "Nobody ever accepts the tea."
       ],
       "attack_default": [
-        "Here I come!",
-        "Take this!"
+        "This blend is from the Ges\u00e4use!",
+        "Nettle builds character!",
+        "The aftertaste is supposed to linger!",
+        "It's an acquired taste. You'll acquire it."
+      ],
+      "attack_player_low_hp": [
+        "You look like you need some chamomile...",
+        "The weakness will pass. Probably."
       ],
       "victory": [
-        "Better luck next time!"
+        "Rest now. The tea will help."
       ],
       "defeat": [
-        "Well played..."
+        "Fine. More tea for me."
       ]
     },
     "moves": [
       {
-        "name": "Attack",
+        "name": "Herbal Infusion",
         "damage": "d6",
-        "type": "physical",
-        "description": "A swift strike!"
+        "type": "psychic",
+        "description": "The aroma alone is disorienting"
       },
       {
-        "name": "Focus Strike",
+        "name": "Mystery Blend",
         "damage": "2d4",
-        "type": "physical"
+        "type": "poison",
+        "statusEffect": {
+          "type": "confusion",
+          "chance": 0.25
+        },
+        "description": "You're not sure what's in this one"
+      },
+      {
+        "name": "Concentrated Extract",
+        "damage": "d10",
+        "type": "poison",
+        "description": "Triple-steeped for maximum potency"
       }
     ],
-    "description": "Anna. A placeholder enemy."
+    "description": "Anna. The tea alchemist."
   },
   "dnd_group": {
     "id": "dnd_group",
@@ -486,18 +504,25 @@ const enemies = {
     "ai": "default",
     "dialogue": {
       "battle_start": [
-        "Let's see what you've learned!"
+        "I've been practicing this presentation for weeks.",
+        "Finally, someone to explain my research to!"
       ],
       "attack_default": [
-        "Pay attention!",
-        "This is important!",
-        "Take notes!"
+        "As you can see from this diagram\u2014",
+        "The whiteboard never lies.",
+        "This is simplified, obviously.",
+        "I have seventeen backup slides."
+      ],
+      "attack_player_low_hp": [
+        "Wait, I haven't even reached the methods section.",
+        "You're leaving? But I have supplementary materials!"
       ],
       "victory": [
-        "Back to studying for you!"
+        "Any questions? No? Good."
       ],
       "defeat": [
-        "You've learned well..."
+        "...I should revise this presentation.",
+        "Back to the literature, I suppose."
       ]
     },
     "moves": [
@@ -508,18 +533,26 @@ const enemies = {
         "description": "Michi swings the whiteboard!"
       },
       {
-        "name": "Marker Throw",
+        "name": "Methodology Defense",
         "damage": "2d4",
-        "type": "physical"
+        "type": "psychic",
+        "description": "\"Let me explain why this approach is valid...\""
       },
       {
-        "name": "Lecture",
+        "name": "Literature Review",
         "damage": "d6",
         "type": "psychic",
         "statusEffect": {
           "type": "stun",
           "chance": 0.2
-        }
+        },
+        "description": "47 citations. From memory."
+      },
+      {
+        "name": "Permanent Marker",
+        "damage": "2d6",
+        "type": "physical",
+        "description": "This one doesn't wash off"
       }
     ],
     "description": "Michi. The whiteboard master."

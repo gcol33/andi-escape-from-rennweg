@@ -1,6 +1,6 @@
 ---
 id: rooftop
-bg: rooftop.jpg
+bg: rooftop_bbq.png
 music: rooftop.mp3
 ---
 

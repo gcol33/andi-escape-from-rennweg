@@ -1,6 +1,6 @@
 ---
 id: bbq2
-bg: rooftop.jpg
+bg: rooftop_bbq.png
 ---
 
 You pull out the Flora Book and the Magnifying Glass. Crouching by the terracotta pot, you examine the rosette-shaped succulent with the careful attention of someone who has learned, painfully, that "hübsch" is not a valid botanical term.

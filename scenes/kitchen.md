@@ -10,7 +10,15 @@ add_items:
     type: consumable
 ---
 
-You enter the kitchen for one last cup of coffee. You notice someone left a container of goulash in the fridge - still warm, smells spicy. You pocket it for later. On the counter, the monstera plant sits in an overflowing saucer. Someone watered it a little too enthusiastically. As you watch, water spills onto the counter and then the floor.
+You enter the kitchen for one last cup of coffee. You open the fridge and find a container of goulash. The sticky note reads: "Goulash - DO NOT EAT - Emma's experiment 14.11."
+
+---
+
+Today is not 14.11. You're not sure when 14.11 was. The goulash smells fine. Suspiciously fine for something of indeterminate age. Still warm, somehow. You pocket it for later.
+
+---
+
+On the counter, the monstera plant sits in an overflowing saucer. Someone watered it a little too enthusiastically. As you watch, water spills onto the counter and then the floor.
 
 ---
 

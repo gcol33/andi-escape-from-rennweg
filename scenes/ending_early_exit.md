@@ -8,30 +8,6 @@ ending_title: "BAD ENDING: Trapped by CATS"
 death_flag: early_exit
 ---
 
-You step through the front doors. The afternoon sun hits your face. Freedom! You could just walk away right now. Start fresh. Leave the Division of Conservation Biology behind forever.
-
----
-
-You take three steps toward the tram stop when a shadow falls over you. It's the cat. The cat that has been following you. It is now the size of a small car.
-
----
-
-"Leaving? Without saying goodbye? How very... human of you."
-
----
-
-The cat's eyes glow with that familiar golden light. Its whiskers stretch across the entire sidewalk. Pedestrians walk around it without seeming to notice. Only you see it. Only you have ever seen it.
-
----
-
-"I run from nothing. Except vacuums. You run from everything. Especially yourself."
-
----
-
-"...Back to your desk."
-
----
-
 Cat. CATS. The servers. The code. You never said goodbye to CATS. The backup scripts that only you understand. The mysterious cronjob that runs at 3:47 AM and nobody knows why but everything breaks if you disable it.
 
 ---

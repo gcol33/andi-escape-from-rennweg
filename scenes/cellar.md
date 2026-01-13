@@ -1,6 +1,6 @@
 ---
 id: cellar
-bg: back_stairwell_dim.jpg
+bg: staircase_downstairs.png
 ---
 
 You descend into the building's basement. The dim corridor stretches ahead, filled with forgotten equipment and ancient filing cabinets. A cold draft blows through the darkness. Something feels off. Suddenly, a ghostly blue glow emanates from an old server rack in the corner.

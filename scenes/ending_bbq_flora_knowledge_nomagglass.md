@@ -1,6 +1,6 @@
 ---
 id: ending_bbq_flora_knowledge_nomagglass
-bg: rooftop.jpg
+bg: rooftop_bbq.png
 music: game_over.mp3
 chars:
   - cat_5.svg

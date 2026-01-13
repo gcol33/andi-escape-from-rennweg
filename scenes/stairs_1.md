@@ -1,6 +1,6 @@
 ---
 id: stairs_1
-bg: stairwell_landing.jpg
+bg: staircase.png
 ---
 
 You descend to the first floor landing, your footsteps echoing off the concrete walls. The stairwell is busier than usual—someone is leaning against the wall by the window, someone is coming from the basement, someone is standing in the corner by the fire extinguisher.

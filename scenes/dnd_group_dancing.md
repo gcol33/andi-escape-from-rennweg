@@ -18,4 +18,4 @@ You crack open the beer and take a long sip. It's cold, it's refreshing, and for
 
 ### Choices
 
-- Return upstairs → stairs_0
+- Head upstairs → dnd_group_tobi

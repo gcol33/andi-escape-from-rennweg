@@ -1,6 +1,6 @@
 ---
 id: win_screen
-bg: rooftop.jpg
+bg: rooftop_bbq_fire.png
 music: victory.mp3
 ending_title: "GOOD ENDING: The Perfect Farewell"
 no_restart: true
@@ -13,3 +13,7 @@ You escaped from Rennweg with your dignity intact, your friendships stronger, an
 ---
 
 The sun sets over Vienna. The cat purrs. All is well.
+
+### Choices
+
+- Continue → credits
