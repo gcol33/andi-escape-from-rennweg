@@ -106,6 +106,7 @@ var SaveManager = (function() {
                 playerMaxMana: state.playerMaxMana,
                 readBlocks: state.readBlocks,
                 wonBattles: state.wonBattles,
+                wonQuizzes: state.wonQuizzes,
                 history: history
             };
             _log.debug('SaveManager', 'Saving state, history length:', history.length);

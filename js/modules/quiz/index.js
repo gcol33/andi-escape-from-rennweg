@@ -66,6 +66,11 @@
                     loseTarget: action.lose_target,
                     quizId: _engine.getCurrentScene()
                 }, function(result) {
+                    // Mark quiz as won for skip feature
+                    if (result.won && _engine.markQuizWon) {
+                        _engine.markQuizWon(_engine.getCurrentScene());
+                    }
+
                     // Quiz completed - navigate to appropriate scene
                     if (result.target) {
                         _engine.loadScene(result.target);

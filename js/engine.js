@@ -115,6 +115,7 @@ var VNEngine = (function() {
         history: [],
         readBlocks: {}, // tracks which scene+block combos have been read
         wonBattles: {}, // tracks which battles have been won (by sceneId)
+        wonQuizzes: {}, // tracks which quizzes have been won (by sceneId)
         // Pagination state for fixed-height text mode
         pagination: {
             active: false,       // true when current block has multiple pages
@@ -209,6 +210,9 @@ var VNEngine = (function() {
         },
         markBattleWon: function(sceneId) {
             state.wonBattles[sceneId] = true;
+        },
+        markQuizWon: function(sceneId) {
+            state.wonQuizzes[sceneId] = true;
         },
 
         // Action registration
@@ -1247,6 +1251,26 @@ var VNEngine = (function() {
      */
     function hasBattleBeenWon(sceneId) {
         return state.wonBattles[sceneId] === true;
+    }
+
+    /**
+     * Mark a quiz as won (for skip feature)
+     * @param {string} sceneId - The scene ID where the quiz occurred
+     */
+    function markQuizWon(sceneId) {
+        state.wonQuizzes[sceneId] = true;
+        saveState();
+        syncToStore();
+        _log.debug('Engine','Quiz marked as won: ' + sceneId);
+    }
+
+    /**
+     * Check if a quiz has been won before
+     * @param {string} sceneId - The scene ID to check
+     * @returns {boolean}
+     */
+    function hasQuizBeenWon(sceneId) {
+        return state.wonQuizzes[sceneId] === true;
     }
 
     /**
@@ -3109,6 +3133,10 @@ var VNEngine = (function() {
                 var battleAction = scene.actions.find(function(a) { return a.type === 'start_battle'; });
                 var isBattleWon = battleAction && hasBattleBeenWon(state.currentSceneId);
 
+                // Check if this is a quiz that has been won before
+                var quizAction = scene.actions.find(function(a) { return a.type === 'start_quiz'; });
+                var isQuizWon = quizAction && hasQuizBeenWon(state.currentSceneId);
+
                 if (isBattleWon) {
                     // Show Skip Battle / Fight!! buttons
                     showBattleSkipButtons(
@@ -3136,8 +3164,35 @@ var VNEngine = (function() {
                             }
                         }, 300); // Small delay to show buttons briefly
                     }
+                } else if (isQuizWon) {
+                    // Show Skip Quiz / Try Again buttons
+                    showQuizSkipButtons(
+                        function onSkip() {
+                            // Skip quiz - go directly to win scene
+                            if (quizAction.win_target) {
+                                loadScene(quizAction.win_target);
+                            }
+                        },
+                        function onRetry() {
+                            // Take quiz again
+                            executeActions();
+                        }
+                    );
+
+                    // Auto-skip if in skip mode
+                    if (config.currentSpeed === 'skip') {
+                        setTimeout(function() {
+                            if (quizAction.win_target) {
+                                var choicesContainer = document.getElementById('choices');
+                                if (choicesContainer) {
+                                    choicesContainer.innerHTML = '';
+                                }
+                                loadScene(quizAction.win_target);
+                            }
+                        }, 300); // Small delay to show buttons briefly
+                    }
                 } else {
-                    // Normal battle flow - show Continue to trigger them
+                    // Normal action flow - show Continue to trigger them
                     showContinueButton();
                     // Override Continue behavior to call renderCurrentBlock (which executes actions)
                     // Note: continueBtn normally calls advanceTextBlock which does nothing on last block
@@ -3850,6 +3905,43 @@ var VNEngine = (function() {
 
         choicesContainer.appendChild(skipBtn);
         choicesContainer.appendChild(fightBtn);
+        choicesContainer.style.display = 'flex';
+    }
+
+    /**
+     * Show quiz skip buttons (Skip Quiz / Try Again) for already-won quizzes
+     * @param {Function} onSkip - Callback for skip button
+     * @param {Function} onRetry - Callback for retry button
+     */
+    function showQuizSkipButtons(onSkip, onRetry) {
+        hideContinueButton();
+
+        var choicesContainer = document.getElementById('choices');
+        if (!choicesContainer) return;
+
+        // Clear existing choices
+        choicesContainer.innerHTML = '';
+
+        // Create Skip Quiz button
+        var skipBtn = document.createElement('button');
+        skipBtn.className = 'choice-button quiz-skip-button';
+        skipBtn.textContent = 'Skip Quiz';
+        skipBtn.addEventListener('click', function() {
+            choicesContainer.innerHTML = '';
+            onSkip();
+        });
+
+        // Create Try Again button
+        var retryBtn = document.createElement('button');
+        retryBtn.className = 'choice-button quiz-retry-button';
+        retryBtn.textContent = 'Try Again';
+        retryBtn.addEventListener('click', function() {
+            choicesContainer.innerHTML = '';
+            onRetry();
+        });
+
+        choicesContainer.appendChild(skipBtn);
+        choicesContainer.appendChild(retryBtn);
         choicesContainer.style.display = 'flex';
     }
 
@@ -5702,6 +5794,7 @@ var VNEngine = (function() {
                 playerMaxMana: state.playerMaxMana,
                 readBlocks: state.readBlocks,
                 wonBattles: state.wonBattles,
+                wonQuizzes: state.wonQuizzes,
                 history: state.history
             };
             _log.debug('Engine','saveState: history=' + JSON.stringify(state.history));
@@ -5805,6 +5898,7 @@ var VNEngine = (function() {
             }
             state.readBlocks = saveData.readBlocks || {};
             state.wonBattles = saveData.wonBattles || {};
+            state.wonQuizzes = saveData.wonQuizzes || {};
             state.history = saveData.history || [];
             _log.debug('Engine','loadSavedState: loaded history=' + JSON.stringify(state.history));
 
@@ -6096,6 +6190,9 @@ var VNEngine = (function() {
         // Battle skip feature
         markBattleWon: markBattleWon,
         hasBattleBeenWon: hasBattleBeenWon,
+        // Quiz skip feature
+        markQuizWon: markQuizWon,
+        hasQuizBeenWon: hasQuizBeenWon,
         // Dev mode
         showDevModeIndicator: showDevModeIndicator,
         isDevMode: function() { return state.devMode === true; },

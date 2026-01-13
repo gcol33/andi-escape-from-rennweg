@@ -653,6 +653,7 @@ var GameMenu = (function() {
                 playerMaxMana: state.playerMaxMana,
                 readBlocks: state.readBlocks || {},
                 wonBattles: state.wonBattles || {},
+                wonQuizzes: state.wonQuizzes || {},
                 history: state.history || [],
                 timestamp: Date.now()
             };
