@@ -2200,7 +2200,7 @@ const story = {
     ],
     "random_texts": [
       "Karl is examining a potted plant near the window. \"Did you know this is a Spathiphyllum? Peace lily. Ironic name, really.\" ||| \"It''s been here since before I started. Nobody waters it. Nobody talks to it. And yet it persists.\" ||| He looks at you. \"There''s a lesson in that, I think. About institutional neglect. About survival despite the system.\"",
-      "Karl is staring at the wall with the intensity of someone having a profound realization. ||| \"The academic system is fundamentally broken, you know,\" he says without preamble. \"Publish or perish. Impact factors. Citation rings.\" ||| He sighs heavily. \"I wrote a paper about invasive plant species once. Rejected three times. Meanwhile, someone publishes about blockchain and gets a million reads.\"",
+      "Karl is staring at the wall with the intensity of someone having a profound realization. ||| \"The academic system is fundamentally broken, you know,\" he says without preamble. \"Publish or perish. Impact factors. Citation rings.\" ||| He sighs heavily. \"I wrote a paper about invasive plant species once. Rejected three times. Meanwhile, someone repackages the same climate data with a new model and gets into Nature.\"",
       "Karl notices you and gestures at a wilting fern in the corner. \"See that? Nephrolepis exaltata. Boston fern. It''s dying.\" ||| \"Nobody assigned responsibility for it. Classic diffusion of accountability. Everyone assumes someone else will water it.\" ||| \"It''s a metaphor, really. For everything.\""
     ],
     "textBlocks": [],
