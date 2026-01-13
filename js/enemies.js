@@ -308,6 +308,7 @@ const enemies = {
     "type": "physical",
     "stagger_threshold": 50,
     "ai": "default",
+    "intentGlobalCooldown": 4,
     "dialogue": {
       "attack_default": [
         "Time for your annual review!",
@@ -421,9 +422,9 @@ const enemies = {
       {
         "id": "termination_notice",
         "type": "big_attack",
-        "chance": 0.24,
+        "chance": 0.2,
         "minTurn": 2,
-        "cooldown": 4,
+        "cooldown": 5,
         "prepTurns": 1,
         "dialogue": "I'm preparing your TERMINATION NOTICE! You can never DEFEND against my power!",
         "executeDialogue": "Your employment is TERMINATED!",
@@ -437,8 +438,8 @@ const enemies = {
       {
         "id": "policy_barrage",
         "type": "multi_hit",
-        "chance": 0.24,
-        "minTurn": 4,
+        "chance": 0.25,
+        "minTurn": 3,
         "cooldown": 5,
         "prepTurns": 1,
         "dialogue": "Let me pull up ALL your violations... Better DEFEND!",

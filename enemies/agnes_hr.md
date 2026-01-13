@@ -13,6 +13,7 @@ stagger_threshold: 50
 
 # AI Behavior: default, aggressive, defensive, support
 ai: default
+intentGlobalCooldown: 4
 
 # Moves - the attacks/abilities this enemy can use
 moves:
@@ -47,9 +48,9 @@ intents:
   # Big Attack intent - counter by defending
   - id: termination_notice
     type: big_attack
-    chance: 0.24
+    chance: 0.20
     minTurn: 2
-    cooldown: 4
+    cooldown: 5
     prepTurns: 1
     dialogue: "I'm preparing your TERMINATION NOTICE! You can never DEFEND against my power!"
     executeDialogue: "Your employment is TERMINATED!"
@@ -62,8 +63,8 @@ intents:
   # Multi-hit intent - counter with defense-boosting skills
   - id: policy_barrage
     type: multi_hit
-    chance: 0.24
-    minTurn: 4
+    chance: 0.25
+    minTurn: 3
     cooldown: 5
     prepTurns: 1
     dialogue: "Let me pull up ALL your violations... Better DEFEND!"
