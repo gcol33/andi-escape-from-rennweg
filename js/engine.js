@@ -3693,8 +3693,8 @@ var VNEngine = (function() {
                         }, config.autoDelay);
                 }
 
-                // Skip mode: auto-advance quickly until choice
-                if (config.currentSpeed === 'skip') {
+                // Skip mode: auto-advance quickly ONLY if text was already read
+                if (config.currentSpeed === 'skip' && state.lastBlockWasAlreadyRead) {
                     state.typewriter.autoAdvanceId = typeof TimerManager !== 'undefined'
                         ? TimerManager.setTimeout(function() {
                             advanceTextBlock();
@@ -3763,7 +3763,7 @@ var VNEngine = (function() {
                             ? TimerManager.setTimeout(advanceTextBlock, config.autoDelay, 'auto-advance')
                             : setTimeout(advanceTextBlock, config.autoDelay);
                     }
-                    if (config.currentSpeed === 'skip') {
+                    if (config.currentSpeed === 'skip' && state.lastBlockWasAlreadyRead) {
                         state.typewriter.autoAdvanceId = typeof TimerManager !== 'undefined'
                             ? TimerManager.setTimeout(advanceTextBlock, config.skipModeDelay, 'auto-advance')
                             : setTimeout(advanceTextBlock, config.skipModeDelay);
@@ -3900,6 +3900,9 @@ var VNEngine = (function() {
             state.readBlocks[blockKey] = true;
         }
 
+        // Store whether this block was already read (for skip mode auto-advance check)
+        state.lastBlockWasAlreadyRead = alreadyRead;
+
         // Update skip button visibility
         updateSkipButtonVisibility();
 
@@ -3925,9 +3928,9 @@ var VNEngine = (function() {
             showAlreadyReadIndicator(true);
             startTypewriter(formattedText, textElement, onComplete, true);
         } else if (config.currentSpeed === 'skip') {
-            // Skip mode on new text: use fast speed instead
+            // Skip mode on new text: use normal speed (don't skip unread content)
             showAlreadyReadIndicator(false);
-            startTypewriter(formattedText, textElement, onComplete, false, 'fast');
+            startTypewriter(formattedText, textElement, onComplete, false, 'normal');
         } else {
             // New text: typewriter effect (no skip allowed on first read)
             showAlreadyReadIndicator(false);
