@@ -356,7 +356,7 @@ var VNEngine = (function() {
                 } else {
                     loadScene(failureTarget);
                 }
-                return;
+                return true; // Signal navigation occurred
             }
 
             // Play appropriate SFX
@@ -374,6 +374,7 @@ var VNEngine = (function() {
             } else {
                 loadScene(failureTarget, resultText);
             }
+            return true; // Signal navigation occurred
         },
 
         /**
@@ -842,7 +843,7 @@ var VNEngine = (function() {
                 {
                     name: 'The Hierophant',
                     image: 'the_hierophant.svg',
-                    check: function() { return !checkFlags(['has_flora_book']); },
+                    check: function() { return !hasItem('Flora Book'); },
                     flavor: 'The keeper of ancient wisdom, holding sacred texts. Knowledge passed through trials.',
                     hint: 'A book from one who tests you on journeys through the city... prove your botanical worth.',
                     category: 'knowledge'
@@ -858,7 +859,7 @@ var VNEngine = (function() {
                 {
                     name: 'The Magician',
                     image: 'the_magician.svg',
-                    check: function() { return !checkFlags(['has_magnifying_glass']); },
+                    check: function() { return !hasItem('Magnifying Glass'); },
                     flavor: 'Tools of transformation laid upon the table. The power to see what others cannot.',
                     hint: 'The glass that magnifies... the whiteboard keeper guards it.',
                     category: 'knowledge'
@@ -867,7 +868,7 @@ var VNEngine = (function() {
                 {
                     name: 'The Chariot',
                     image: 'the_chariot.svg',
-                    check: function() { return !checkFlags(['has_charcoal']); },
+                    check: function() { return !hasItem('Charcoal'); },
                     flavor: 'Forward motion, driven by opposing forces united. The fuel for the journey ahead.',
                     hint: 'Black rocks from the market of Billa, that temple of commerce.',
                     category: 'supplies'
@@ -875,7 +876,7 @@ var VNEngine = (function() {
                 {
                     name: 'The Star',
                     image: 'the_star.svg',
-                    check: function() { return !checkFlags(['has_lighter']); },
+                    check: function() { return !hasItem('Lighter'); },
                     flavor: 'A spark of hope in darkness. The eternal flame that ignites new beginnings.',
                     hint: 'The spark of flame awaits at the smokers\' corner.',
                     category: 'supplies'
@@ -883,7 +884,7 @@ var VNEngine = (function() {
                 {
                     name: 'Temperance',
                     image: 'temperance.svg',
-                    check: function() { return !checkFlags(['has_beer']); },
+                    check: function() { return !hasItem('Beer'); },
                     flavor: 'The blending of elements, the flow between vessels. Celebration shared among companions.',
                     hint: 'The golden liquid of friendship from the dice rollers below.',
                     category: 'supplies'
@@ -3026,10 +3027,13 @@ var VNEngine = (function() {
                 var currentText = textBlocks[state.currentBlockIndex] || '';
                 var isLastBlock = state.currentBlockIndex >= textBlocks.length - 1;
 
-                // Render text with callback to show continue button
+                // Render text with callback to show continue button or choices
                 renderText(currentText, '', function() {
                     if (!isLastBlock) {
                         showContinueButton();
+                    } else {
+                        // Last block - show choices (same logic as renderCurrentBlock)
+                        renderChoices(scene.choices);
                     }
                 });
 
@@ -3727,7 +3731,11 @@ var VNEngine = (function() {
                         if (hasRollChoice) {
                             renderChoices(scene.choices);
                         } else {
-                            executeActions();
+                            var navigated = executeActions();
+                            // If no action navigated away, show choices
+                            if (!navigated) {
+                                renderChoices(scene.choices);
+                            }
                         }
                     } else {
                         renderChoices(scene.choices);
@@ -3834,6 +3842,17 @@ var VNEngine = (function() {
 
     function renderText(text, prependContent, onComplete, isPaginatedContinuation) {
         prependContent = prependContent || '';
+
+        // Wait for acquisition modal to close before rendering text
+        if (state.acquisitionModalShowing) {
+            var checkModal = setInterval(function() {
+                if (!state.acquisitionModalShowing) {
+                    clearInterval(checkModal);
+                    renderText(text, prependContent, onComplete, isPaginatedContinuation);
+                }
+            }, 100);
+            return;
+        }
 
         // Convert markdown bold (**text**) to HTML <strong>
         var formattedText = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
@@ -4363,6 +4382,7 @@ var VNEngine = (function() {
             }
 
             // Game over state - show ending overlay with restart button
+            stopTypewriter(); // Stop any ongoing text rendering
             var endingOverlay = document.getElementById('ending-overlay');
             var currentScene = story[state.currentSceneId];
 
@@ -5310,10 +5330,35 @@ var VNEngine = (function() {
      * @param {Function} callback - Called when modal is dismissed
      */
     function showAcquisitionModal(name, type, callback) {
-        // Pause typewriter while modal is showing
-        var wasTyping = typeof Typewriter !== 'undefined' && Typewriter.isTyping();
-        if (wasTyping) {
-            Typewriter.pause();
+        // Bug fix: Stop ALL text rendering while modal is showing
+        stopTypewriter();
+
+        // Also stop TextRenderer module if available
+        if (typeof TextRenderer !== 'undefined' && TextRenderer.stop) {
+            TextRenderer.stop();
+        }
+
+        // Clear all typewriter-related timers
+        if (typeof TimerManager !== 'undefined') {
+            TimerManager.clearAll('typewriter');
+            TimerManager.clearAll('auto-advance');
+        }
+
+        // Bug fix: Hide choices visually but preserve space for layout
+        if (elements.choicesContainer) {
+            elements.choicesContainer.style.visibility = 'hidden';
+        }
+
+        // Bug fix: Hide battle UI visually but preserve layout space
+        var battleUI = document.getElementById('battle-ui');
+        if (battleUI) {
+            battleUI.style.visibility = 'hidden';
+        }
+
+        // Bug fix: Pause background music during modal
+        var musicWasPlaying = elements.bgMusic && !elements.bgMusic.paused;
+        if (musicWasPlaying) {
+            elements.bgMusic.pause();
         }
 
         // Create modal container
@@ -5383,12 +5428,24 @@ var VNEngine = (function() {
             if (dismissed || !canDismiss) return;
             dismissed = true;
             document.removeEventListener('keydown', keyHandler);
+            // Stop the obtain jingle
+            obtainSound.pause();
+            obtainSound.currentTime = 0;
             modal.classList.add('fade-out');
             setTimeout(function() {
                 Utils.removeElement(modal);
-                // Resume typewriter if it was paused
-                if (wasTyping && typeof Typewriter !== 'undefined') {
-                    Typewriter.resume();
+                // Restore choices visibility
+                if (elements.choicesContainer) {
+                    elements.choicesContainer.style.visibility = '';
+                }
+                // Restore battle UI visibility (will be properly cleaned up by battle system)
+                var battleUI = document.getElementById('battle-ui');
+                if (battleUI) {
+                    battleUI.style.visibility = '';
+                }
+                // Resume music if it was playing before modal
+                if (musicWasPlaying && elements.bgMusic) {
+                    elements.bgMusic.play().catch(function() {});
                 }
                 if (callback) callback();
             }, 300);
