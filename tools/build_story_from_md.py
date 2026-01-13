@@ -544,6 +544,8 @@ def parse_scene_file(filepath):
         'actions': frontmatter.get('actions', []),
         'ending_title': frontmatter.get('ending_title', '').strip('"\'') or None,
         'no_restart': frontmatter.get('no_restart', False),
+        'respawn_target': frontmatter.get('respawn_target', None),
+        'respawn_flavor': frontmatter.get('respawn_flavor', None),
         'random_flavor': frontmatter.get('random_flavor', []),
         'recap': frontmatter.get('recap', None),
         'textBlocks': text_blocks,

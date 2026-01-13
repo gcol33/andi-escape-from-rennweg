@@ -1,6 +1,6 @@
 ---
 id: coffee_end
-bg: coffee_high.png
+bg: kitchen_high.png
 ---
 
 You take a sip of the suspicious coffee. It tastes like someone dissolved a battery in lukewarm water and added despair. Your hands start to shake slightly.

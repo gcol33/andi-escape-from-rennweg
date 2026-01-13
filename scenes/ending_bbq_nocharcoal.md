@@ -5,6 +5,8 @@ music: game_over.mp3
 chars:
   - cat_5.svg
 ending_title: "BAD ENDING: Cold Grill"
+respawn_target: bbq1
+respawn_flavor: "You dreamt of empty grills. Cold, judgmental grills. The sausages were weeping."
 ---
 
 You approach the grill with confidence. Then you look down at the empty metal basin. No charcoal. The grill sits there, cold and accusatory. "Did anyone bring the charcoal?" All eyes turn to you.

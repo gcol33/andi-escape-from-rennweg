@@ -4,6 +4,8 @@ bg: rooftop.jpg
 music: game_over.mp3
 chars:
   - cat_5.svg
+respawn_target: bbq1
+respawn_flavor: "You dreamt of forced smiles. Yours wouldn't cooperate. Your face muscles had filed for resignation."
 ending_title: "BAD ENDING: The Awkward Farewell"
 ---
 

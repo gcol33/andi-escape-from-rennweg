@@ -3,6 +3,8 @@ id: STEFAN_defeat
 bg: staircase_elevator.png
 music: game_over.mp3
 ending_title: "BAD ENDING: Haunted by Hardware"
+respawn_target: STEFAN
+respawn_flavor: "You dreamt of server rooms. The blinking lights spelled out 'HELP ME' in binary."
 ---
 
 Stefan stands victorious in the stairwell, barely winded. "You know what this means, right? You're staying to help me finally build Hercules. We're going to assemble every single component. By hand. Tonight."

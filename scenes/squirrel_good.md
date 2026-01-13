@@ -1,10 +1,11 @@
 ---
 id: squirrel_good
 bg: gate_exit.png
-set_skills:
-  - Rooftop Discovery
 use_items:
   - Break Room Snacks
+actions:
+  - type: grant_skill
+    skill: Rooftop Discovery
 ---
 
 Together, you stroll through the park behind the building. The autumn sun filters through the trees as you walk along the familiar path. Soon, you spot a fluffy squirrel sitting on a branch, watching you curiously. You share your snacks with Jen, who offers some to the squirrel. "Here, try feeding it directly!"

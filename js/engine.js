@@ -599,9 +599,13 @@ var VNEngine = (function() {
          * - wait_duration: time to show "..." before erasing (default 1500)
          */
         wake_sequence: function(action) {
-            var target = action.target || 'start';
+            // Use respawn target from last ending if available, otherwise use action target
+            var target = state.respawnTarget || action.target || 'start';
             var totalFadeDuration = action.fade_duration || 4000;  // Total fade across whole sequence
             var waitDuration = action.wait_duration || 1500;
+
+            // Clear respawn target after use
+            state.respawnTarget = null;
 
             var targetScene = story[target];
             if (!targetScene) {
@@ -618,10 +622,13 @@ var VNEngine = (function() {
                 return !sequenceAborted && state.currentSceneId === sequenceId;
             }
 
-            // Get random flavor from current scene
+            // Get flavor text: prefer respawn_flavor from ending, fall back to random_flavor
             var currentScene = story[state.currentSceneId];
             var flavorText = '';
-            if (currentScene && currentScene.random_flavor && currentScene.random_flavor.length > 0) {
+            if (state.respawnFlavor) {
+                flavorText = state.respawnFlavor;
+                state.respawnFlavor = null;  // Clear after use
+            } else if (currentScene && currentScene.random_flavor && currentScene.random_flavor.length > 0) {
                 flavorText = Utils.pickRandom(currentScene.random_flavor);
             }
 
@@ -1077,6 +1084,44 @@ var VNEngine = (function() {
             // Cards start face-down, user clicks to reveal each one
             // Add visual hint that cards are clickable
             overlay.style.cursor = 'pointer';
+        },
+
+        /**
+         * Grant skill action handler
+         * Grants a skill with acquisition modal shown AFTER text is read
+         * Use this instead of set_skills in frontmatter for proper timing
+         *
+         * Supports:
+         * - skill: name of the skill to grant (required)
+         */
+        grant_skill: function(action) {
+            var skillName = action.skill;
+            if (!skillName) {
+                _log.warn('Engine', 'grant_skill action missing skill name');
+                return false;
+            }
+            addSkill(skillName);
+            return false; // Don't interrupt scene flow
+        },
+
+        /**
+         * Grant item action handler
+         * Grants an item with acquisition modal shown AFTER text is read
+         * Use this instead of add_items in frontmatter for proper timing
+         *
+         * Supports:
+         * - name: name of the item (required)
+         * - type: 'key' for key items, 'consumable' for consumables (default: 'key')
+         */
+        grant_item: function(action) {
+            var itemName = action.name;
+            if (!itemName) {
+                _log.warn('Engine', 'grant_item action missing item name');
+                return false;
+            }
+            var itemType = action.type || 'key';
+            addItems([{ name: itemName, type: itemType }]);
+            return false; // Don't interrupt scene flow
         }
     };
 
@@ -3434,6 +3479,14 @@ var VNEngine = (function() {
         // Store ending title from scene frontmatter
         state.endingTitle = scene.ending_title || null;
 
+        // Store respawn target and flavor for context-aware respawns (persists to wake_up)
+        if (scene.respawn_target) {
+            state.respawnTarget = scene.respawn_target;
+        }
+        if (scene.respawn_flavor) {
+            state.respawnFlavor = scene.respawn_flavor;
+        }
+
         // Preprocess text blocks - split long ones unless it's an ending
         state.processedTextBlocks = preprocessTextBlocks(scene.textBlocks || [], isEnding);
         state.isEndingScene = isEnding;
@@ -3535,7 +3588,11 @@ var VNEngine = (function() {
                     } else {
                         // Execute actions directly
                         _log.debug('Engine', 'Calling executeActions()');
-                        executeActions();
+                        var navigated = executeActions();
+                        // If no action navigated away, show choices
+                        if (!navigated) {
+                            renderChoices(scene.choices);
+                        }
                     }
                 } else {
                     // Show choices or game over
@@ -4286,7 +4343,7 @@ var VNEngine = (function() {
     function executeActions() {
         var scene = story[state.currentSceneId];
         if (!scene || !scene.actions || scene.actions.length === 0) {
-            return;
+            return false;
         }
 
         // Execute all actions in order
@@ -4308,7 +4365,7 @@ var VNEngine = (function() {
                     var result = handler(action);
                     // If handler returns true (e.g., goto navigated), stop processing
                     if (result === true) {
-                        return;
+                        return true; // Navigation occurred
                     }
                 } catch (e) {
                     _log.error('Engine', 'Error executing action:', e);
@@ -4318,6 +4375,7 @@ var VNEngine = (function() {
                 _log.warn('Engine','Unknown action type: ' + action.type);
             }
         }
+        return false; // No navigation occurred
     }
 
     // === Asset Management ===

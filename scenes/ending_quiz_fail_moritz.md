@@ -3,6 +3,8 @@ id: ending_quiz_fail_moritz
 bg: lunch_room.png
 music: game_over.mp3
 ending_title: "BAD ENDING: Failed the Floristic Test"
+respawn_target: MORITZ_excursion
+respawn_flavor: "You dreamt of Latin plant names. They were laughing at you. Quercus robur was particularly smug."
 ---
 
 Moritz closes the Flora Book with a disappointed shake of his head. "I had hoped for better. All those excursions, all those hours in the field..."

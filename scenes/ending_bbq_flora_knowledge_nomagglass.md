@@ -4,6 +4,8 @@ bg: rooftop.jpg
 music: game_over.mp3
 chars:
   - cat_5.svg
+respawn_target: bbq1
+respawn_flavor: "You dreamt of squinting at tiny plant features. Everything was slightly out of focus. Michi was there, shaking his head."
 ending_title: "BAD ENDING: Can't See the Forest for the Trees"
 ---
 

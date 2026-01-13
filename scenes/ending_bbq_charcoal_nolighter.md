@@ -4,6 +4,8 @@ bg: rooftop.jpg
 music: game_over.mp3
 chars:
   - cat_5.svg
+respawn_target: bbq1
+respawn_flavor: "You dreamt of rubbing sticks together. For hours. The charcoal was laughing at you."
 ending_title: "BAD ENDING: No Spark"
 ---
 

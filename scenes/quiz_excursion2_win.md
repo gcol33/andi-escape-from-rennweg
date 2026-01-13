@@ -3,8 +3,9 @@ id: quiz_excursion2_win
 bg: gate_exit.png
 set_key_flags:
   - quiz_siegrun_complete
-set_skills:
-  - Floristic Knowledge
+actions:
+  - type: grant_skill
+    skill: Floristic Knowledge
 ---
 
 Siegrun closes her notebook with satisfaction. "Not bad. You actually paid attention during those vegetation surveys. I was half convinced you were just there for the astronaut food."

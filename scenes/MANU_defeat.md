@@ -3,6 +3,8 @@ id: MANU_defeat
 bg: ../char/manuela_annoyed_with_code.png
 music: game_over.mp3
 ending_title: "BAD ENDING: Lost in Python"
+respawn_target: MANU_intro
+respawn_flavor: "You dreamt of indentation errors. So many indentation errors. The tabs and spaces were fighting."
 ---
 
 "Okay, let's see." You sit down at Manu's desk and look at the dataset. "It is really a mess."

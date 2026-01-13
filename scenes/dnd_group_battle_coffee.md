@@ -10,7 +10,7 @@ actions:
     lose_target: dnd_group_defeat
 ---
 
-You offer your coffee as tribute. The group passes it around, each taking a sip. Tobias nods approvingly. "The offering is accepted. But you still face our challenge... at reduced difficulty."
+You offer your coffee as tribute. The group passes it around, each taking a sip. Fabio nods approvingly. "The offering is accepted. But you still face our challenge... at reduced difficulty."
 
 ---
 

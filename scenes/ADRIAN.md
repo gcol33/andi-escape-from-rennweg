@@ -1,8 +1,9 @@
 ---
 id: ADRIAN
 bg: ../char/adrian_smiling.png
-set_skills:
-  - Smile
+actions:
+  - type: grant_skill
+    skill: Smile
 ---
 
 You turn the corner and run straight into Adrian. As always, he's smiling. Radiantly. Permanently. "Andi! Great to see you!" How is he always smiling?

@@ -3,11 +3,11 @@ id: dnd_group_rematch
 bg: staircase_downstairs.png
 ---
 
-The D&D group looks up as you enter the basement. "Ah, the champion returns!" Tobias announces dramatically. The others raise their dice in salute. "Your legend has spread. We speak of your deeds between campaigns."
+The D&D group looks up as you enter the basement. "Ah, the champion returns!" Fabio announces dramatically. Gilles and Ekin raise their dice in salute. "Your legend has spread. We speak of your deeds between campaigns."
 
 ---
 
-"The Shadowrun challenge shall be postponed... indefinitely." He winks. "Safe travels, adventurer. May your rolls always crit." The group parts to let you through, one of them humming an epic fantasy theme.
+"Safe travels, adventurer. May your rolls always crit." Fabio winks. The group parts to let you through, Ekin humming an epic fantasy theme while Gilles debates whether that counts as bardic inspiration.
 
 ### Choices
 

@@ -4,6 +4,8 @@ bg: rooftop.jpg
 music: game_over.mp3
 chars:
   - cat_5.svg
+respawn_target: bbq1
+respawn_flavor: "You dreamt of a plant encyclopedia. It was written in a language you didn't speak. The pictures were blurry."
 ending_title: "BAD ENDING: Book Smart, Field Dumb"
 ---
 

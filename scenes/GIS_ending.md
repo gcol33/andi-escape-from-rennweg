@@ -3,6 +3,8 @@ id: GIS_ending
 bg: ../char/charlie-jpg.png
 music: game_over.mp3
 ending_title: "BAD ENDING: Trapped in the GIS Matrix"
+respawn_target: GIS_scene
+respawn_flavor: "You dreamt of coordinate systems. WGS84 and MGI were having a territorial dispute over your soul."
 ---
 
 You fix the coordinate swap. Charlie runs the transformation again. The points land exactly where they should. Somewhere in the Wienerwald, not the Atlantic. "That's amazing!" Charlie beams. But then his expression shifts. "Actually, while you're here... there's this other script that's been giving me trouble..."

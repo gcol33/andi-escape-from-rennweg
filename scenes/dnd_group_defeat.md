@@ -3,13 +3,15 @@ id: dnd_group_defeat
 bg: back_stairwell_dim.jpg
 music: game_over.mp3
 ending_title: "BAD ENDING: Trapped in the Campaign"
+respawn_target: dnd_group
+respawn_flavor: "You dreamt of rolling nothing but natural 1s. Critical failures, all the way down."
 ---
 
-The Shadowrun group overpowers you with their combined nerdery. A force that cannot be resisted by mere mortals. They've been honing these skills for years, debating rules minutiae while the world went about its business unaware of the arcane knowledge being accumulated.
+The D&D group overpowers you with their combined nerdery. A force that cannot be resisted by mere mortals. They've been honing these skills for years, debating rules minutiae while the world went about its business unaware of the arcane knowledge being accumulated.
 
 ---
 
-"You have failed the challenge," Tobias announces with the gravity of a high priest declaring judgment. "As punishment, you must stay and listen to a full explanation of Shadowrun's matrix rules." Your blood runs cold. Hours pass. You lose track of time. The rules never end. There's always another exception, another subsystem, another edition that handled things differently and might be worth comparing.
+"You have failed the challenge," Fabio announces with the gravity of a high priest declaring judgment. "As punishment, you must stay and listen to a full explanation of THAC0 and why 2nd Edition was actually the best." Your blood runs cold. Hours pass. You lose track of time. The edition wars never end.
 
 ---
 

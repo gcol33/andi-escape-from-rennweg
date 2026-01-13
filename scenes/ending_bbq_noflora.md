@@ -4,6 +4,8 @@ bg: rooftop.jpg
 music: game_over.mp3
 chars:
   - cat_5.svg
+respawn_target: bbq1
+respawn_flavor: "You dreamt of Wolfgang asking about plants. You knew none of their names. They knew yours though."
 ending_title: "BAD ENDING: Botanical Failure"
 ---
 

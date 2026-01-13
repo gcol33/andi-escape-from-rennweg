@@ -3,6 +3,8 @@ id: karl_defeat
 bg: ../char/karl_neutral.png
 music: game_over.mp3
 ending_title: "BAD ENDING: Return to Baseline"
+respawn_target: karl_1
+respawn_flavor: "You dreamt of regression lines. They all pointed downward. Your R-squared was embarrassingly low."
 ---
 
 "As expected." Karl doesn't gloat. He simply observes. "All things return to equilibrium. You've returned to yours."

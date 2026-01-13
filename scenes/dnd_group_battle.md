@@ -9,7 +9,7 @@ actions:
     lose_target: dnd_group_defeat
 ---
 
-The Shadowrun group rises from their chairs, dice rattling ominously in their hands. Character sheets flutter to the ground like fallen soldiers.
+The D&D group rises from their chairs, dice rattling ominously in their hands. Character sheets flutter to the ground like fallen soldiers.
 
 ---
 

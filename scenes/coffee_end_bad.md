@@ -3,6 +3,8 @@ id: coffee_end_bad
 bg: coffee_high.png
 music: game_over.mp3
 ending_title: "BAD ENDING: Coffee Ascension"
+respawn_target: kitchen
+respawn_flavor: "You dreamt you could see in four dimensions. And taste colors. The new color was called 'Regret.'"
 ---
 
 You keep drinking. For a moment, nothing happens. Then everything happens.

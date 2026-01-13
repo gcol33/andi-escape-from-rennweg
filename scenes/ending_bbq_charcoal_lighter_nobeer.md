@@ -4,6 +4,8 @@ bg: rooftop.jpg
 music: game_over.mp3
 chars:
   - cat_5.svg
+respawn_target: bbq1
+respawn_flavor: "You dreamt of a desert. An endless, beerless desert. The mirages were all empty bottles."
 ending_title: "BAD ENDING: Dry Party"
 ---
 
