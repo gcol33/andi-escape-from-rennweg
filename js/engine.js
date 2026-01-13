@@ -3554,8 +3554,21 @@ var VNEngine = (function() {
             state.deathFlag = scene.death_flag;
         }
 
+        // Handle random_texts - pick a random entry and use it as text blocks
+        var textBlocksToUse = scene.textBlocks || [];
+        if (scene.random_texts && scene.random_texts.length > 0) {
+            var randomIndex = Math.floor(Math.random() * scene.random_texts.length);
+            var selectedText = scene.random_texts[randomIndex];
+            // Split by ||| separator to get multiple blocks
+            textBlocksToUse = selectedText.split('|||').map(function(block) {
+                return block.trim();
+            }).filter(function(block) {
+                return block.length > 0;
+            });
+        }
+
         // Preprocess text blocks - split long ones unless it's an ending
-        state.processedTextBlocks = preprocessTextBlocks(scene.textBlocks || [], isEnding);
+        state.processedTextBlocks = preprocessTextBlocks(textBlocksToUse, isEnding);
         state.isEndingScene = isEnding;
 
         // Add random flavor text if scene has random_flavor array

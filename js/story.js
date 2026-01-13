@@ -1994,11 +1994,12 @@ const story = {
     "set_flags": [
       "johannes_seen_1"
     ],
-    "textBlocks": [
-      "\"Andi! Did you know that today is exactly 47 days until Pi Day?\" Johannes adjusts his glasses, eyes gleaming. \"I'm already planning the celebration. Pi-themed snacks. Recitation contests. The works.\"",
-      "You nod politely while calculating the fastest escape route. Johannes doesn't notice.",
-      "\"You should come! Last year I recited pi to 314 digits. This year I'm aiming for 628. Twice the pi!\""
+    "random_texts": [
+      "\"Andi! Did you know that today is exactly 47 days until Pi Day?\" Johannes adjusts his glasses, eyes gleaming. \"I''m already planning the celebration. Pi-themed snacks. Recitation contests. The works.\" ||| You nod politely while calculating the fastest escape route. Johannes doesn''t notice. ||| \"You should come! Last year I recited pi to 314 digits. This year I''m aiming for 628. Twice the pi!\"",
+      "\"Andi!\" Johannes intercepts you with alarming precision. \"Have you heard about the Collatz conjecture? Pick any number. If it''s even, divide by two. If it''s odd, multiply by three and add one. It ALWAYS reaches one. But nobody can prove why!\" ||| His eyes have that dangerous gleam. You recognize the symptoms of an impending mathematical spiral. ||| \"I''ve been testing numbers in my spare time. I''m up to 47 trillion. All of them reach one. ISN''T THAT INCREDIBLE?\"",
+      "\"Perfect timing!\" Johannes appears from nowhere, clipboard in hand. \"I''m conducting a survey on calculator preferences. TI-84 versus Casio fx-991EX. The data is FASCINATING.\" ||| You realize there is no escape. Johannes has positioned himself between you and both exits. ||| \"Did you know the TI-84 has a hidden game mode? I wrote a paper on it. Seventeen pages. Would you like to read it?\""
     ],
+    "textBlocks": [],
     "choices": [
       {
         "label": "Escape politely",
@@ -2167,7 +2168,7 @@ const story = {
     "bg": "../char/joni_smoking.png",
     "textBlocks": [
       "You hear someone \"granteln\" around the corner. That distinctive Viennese grumbling, complaining in that derogatory, ranting way. You immediately recognize who it is. You round the corner to find Joni, freshly returned from somewhere, talking to a colleague.",
-      "He spots you and his face lights up. Well, as much as a Viennese face lights up. \"Andi! Du bist ja da!\" He comes over with a knowing smile. \"I'm so glad you're still here. You know, while I was gone, I was SO annoyed by the toxic positivity around this place.\"",
+      "He spots you and his face lights up. Well, as much as a Viennese face lights up. \"Andi! Du bist ja EH da!\" He comes over with a knowing smile. \"I'm so glad you're still here. You know, while I was gone, I was SO annoyed by the toxic positivity around this place.\"",
       "You nod sympathetically. Sometimes you need someone who properly \"grantelt\" to balance out all that cheerfulness."
     ],
     "choices": [
@@ -2197,12 +2198,12 @@ const story = {
     "set_flags": [
       "karl_seen_1"
     ],
-    "textBlocks": [
-      "Karl is leaning against the wall, staring at nothing in particular. His Birkenstocks squeak against the linoleum as he shifts weight.",
-      "\"Leaving?\" He doesn't look up. \"Makes sense. Everything ends eventually. Species. Careers. Civilizations.\" A pause. \"Lunch breaks.\"",
-      "\"I've been studying the lifecycle of the common house spider. They live about a year. We live about eighty. In the grand scheme, not much difference.\"",
-      "He finally looks at you. \"Speaking of survival adaptations, how do you work in that office of yours? It's like a refrigerator in there. I walked in once and you were sitting there in a short-sleeved shirt. In January. The rest of us were wearing three layers.\""
+    "random_texts": [
+      "Karl is leaning against the wall, staring at nothing in particular. His Birkenstocks squeak against the linoleum as he shifts weight. ||| \"Leaving?\" He doesn''t look up. \"Makes sense. Everything ends eventually. Species. Careers. Civilizations.\" A pause. \"Lunch breaks.\" ||| \"I''ve been studying the lifecycle of the common house spider. They live about a year. We live about eighty. In the grand scheme, not much difference.\" ||| He finally looks at you. \"Speaking of survival adaptations, how do you work in that office of yours? It''s like a refrigerator in there. I walked in once and you were sitting there in a short-sleeved shirt. In January. The rest of us were wearing three layers.\"",
+      "Karl is examining a potted plant with the intensity of someone witnessing the heat death of the universe in miniature. ||| \"This ficus,\" he says without looking up. \"It''s been here since 1987. It''s watched seventeen employees come and go. Marriages. Divorces. Retirements. Deaths.\" ||| \"The plant doesn''t care. It just photosynthesizes. There''s wisdom in that.\" ||| He turns to you. \"You know what the oldest living organism is? A seagrass meadow in Australia. 200,000 years old. It''s watched entire civilizations rise and fall. And it''s just... grass.\"",
+      "Karl is standing perfectly still in the hallway, like a man waiting for a bus that will never come. ||| \"Did you know,\" he says to no one in particular, \"that the universe is 13.8 billion years old, and in another 10^100 years, all matter will decay into radiation?\" ||| \"I find that comforting somehow. Nothing we do matters in the long run. It takes the pressure off.\" ||| He finally acknowledges your presence. \"Anyway. How''s your Monday going?\""
     ],
+    "textBlocks": [],
     "choices": [
       {
         "label": "Back away slowly",

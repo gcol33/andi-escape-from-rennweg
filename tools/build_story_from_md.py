@@ -78,6 +78,9 @@ def parse_frontmatter(content):
     current_flavor = None       # Current flavor object being parsed
     flavor_list = None          # List to collect flavor entries
 
+    # Random texts parsing state (for random first text block)
+    random_texts_list = None    # List to collect random text options
+
     def get_indent(line):
         """Get number of leading spaces."""
         return len(line) - len(line.lstrip())
@@ -351,6 +354,12 @@ def parse_frontmatter(content):
                     current_key = key
                     current_list = None
                     flavor_list = []
+                elif key == 'random_texts':
+                    # Random texts list - simple strings with ||| separator for multi-block
+                    current_key = key
+                    current_list = []
+                    random_texts_list = current_list
+                    frontmatter[key] = current_list
                 else:
                     current_list = []
                     item_objects_list = None
@@ -598,6 +607,7 @@ def parse_scene_file(filepath):
         'no_restart': frontmatter.get('no_restart', False),
         'death_flag': frontmatter.get('death_flag', None),
         'random_flavor': frontmatter.get('random_flavor', []),
+        'random_texts': frontmatter.get('random_texts', []),
         'recap': frontmatter.get('recap', None),
         'textBlocks': text_blocks,
         'choices': choices
@@ -634,6 +644,8 @@ def parse_scene_file(filepath):
         del scene['death_flag']
     if not scene['random_flavor']:
         del scene['random_flavor']
+    if not scene['random_texts']:
+        del scene['random_texts']
     if scene['recap'] is None:
         del scene['recap']
 
