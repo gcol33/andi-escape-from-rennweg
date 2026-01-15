@@ -7,7 +7,7 @@ The elevator doors slide open with their familiar mechanical wheeze. You step in
 
 ### Choices
 
-- Go to rooftop (require_skills: Rooftop Discovery) → cat_scene_4
 - Go to 1st floor → floor1
 - Go to 4th floor (requires: !visited_4th_floor) → floor4
+- Go to rooftop (require_skills: Rooftop Discovery) → cat_scene_4
 

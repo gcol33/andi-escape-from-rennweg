@@ -8,163 +8,55 @@
  */
 
 const enemies = {
-  "agnes_hr": {
-    "id": "agnes_hr",
-    "name": "Agnes (HR)",
-    "sprite": "agnes_blocking.svg",
-    "hp": 24,
-    "ac": 11,
-    "attack_bonus": 3,
-    "damage": "d8",
+  "dnd_group": {
+    "id": "dnd_group",
+    "name": "D&D Group",
+    "sprite": "dnd_group.svg",
+    "hp": 50,
+    "ac": 13,
+    "attack_bonus": 4,
+    "damage": "d10",
     "type": "physical",
-    "stagger_threshold": 50,
+    "stagger_threshold": 70,
     "ai": "default",
-    "intentGlobalCooldown": 4,
     "dialogue": {
-      "attack_default": [
-        "Time for your annual review!",
-        "This is going in your file!",
-        "HR always wins!"
-      ],
-      "attack_player_low_hp": [
-        "Your termination is imminent!",
-        "Should've read the employee handbook!",
-        "Exit interview time!"
-      ],
-      "attack_player_healed": [
-        "Wellness programs won't save you!",
-        "Self-care? In THIS economy?",
-        "Band-aids don't fix policy violations!"
-      ],
-      "attack_player_defended": [
-        "No hiding behind bureaucracy!",
-        "Your shield is not OSHA-approved!",
-        "Defense won't help your performance review!"
-      ],
-      "attack_player_missed": [
-        "Missed! Just like your deadlines!",
-        "That's going in your file!",
-        "Attendance issues AND accuracy issues?"
-      ],
-      "attack_got_hit": [
-        "Ow! That's workplace violence!",
-        "I'm filing a complaint!",
-        "HR will remember this!"
-      ],
-      "attack_got_crit": [
-        "That's... actually impressive.",
-        "Noted for your performance review!",
-        "Fine! Gloves are OFF!"
-      ],
-      "attack_self_low_hp": [
-        "I won't be outsourced!",
-        "HR never surrenders!",
-        "You can't fire ME!"
-      ],
-      "attack_has_status": [
-        "This is a hostile work environment!",
-        "I'm documenting EVERYTHING!",
-        "Workers' comp will hear about this!"
-      ],
-      "attack_player_stunned": [
-        "Mandatory meeting time!",
-        "No skipping this one!",
-        "Captive audience!"
-      ],
       "battle_start": [
-        "Your resignation has been... REJECTED!",
-        "Let's discuss your future here!",
-        "Time for your exit interview!"
+        "Roll for initiative!",
+        "You dare challenge our party?"
+      ],
+      "attack_default": [
+        "Natural 20!",
+        "The dice gods favor us!",
+        "Critical hit incoming!"
       ],
       "victory": [
-        "Back to the cubicle with you!",
-        "HR: 1, Employee: 0",
-        "Your termination is complete!"
+        "TPK! Total Party Kill!"
       ],
       "defeat": [
-        "This... isn't... protocol...",
-        "I'll be back... with forms...",
-        "HR will hear about this!"
-      ],
-      "move_performance_review": [
-        "Let's review your quarterly goals!",
-        "Your metrics are... disappointing."
-      ],
-      "move_break_room_retreat": [
-        "Coffee break!",
-        "Even HR needs a breather..."
+        "We... need a long rest..."
       ]
     },
     "moves": [
       {
-        "name": "HR Memo",
-        "damage": "d6",
-        "type": "physical",
-        "description": "A sharply worded memo flies your way!"
+        "name": "Fireball",
+        "damage": "2d6",
+        "type": "fire",
+        "description": "The wizard casts fireball!"
       },
       {
-        "name": "Performance Review",
+        "name": "Sneak Attack",
         "damage": "2d4",
-        "type": "psychic",
-        "statusEffect": {
-          "type": "stun",
-          "chance": 0.15
-        },
-        "description": "Agnes critiques your life choices."
-      },
-      {
-        "name": "Policy Enforcement",
-        "damage": "d4",
         "type": "physical",
-        "statusEffect": {
-          "type": "bleed",
-          "chance": 0.25
-        },
-        "description": "Red tape cuts deep!"
+        "description": "The rogue strikes from the shadows!"
       },
       {
-        "name": "Break Room Retreat",
-        "isHeal": true,
-        "healAmount": "1d4+1",
-        "description": "Agnes takes a coffee break."
+        "name": "Smite",
+        "damage": "d10",
+        "type": "holy",
+        "description": "The paladin channels divine energy!"
       }
     ],
-    "intents": [
-      {
-        "id": "termination_notice",
-        "type": "big_attack",
-        "chance": 0.2,
-        "minTurn": 2,
-        "cooldown": 5,
-        "prepTurns": 1,
-        "dialogue": "I'm preparing your TERMINATION NOTICE! You can never DEFEND against my power!",
-        "executeDialogue": "Your employment is TERMINATED!",
-        "skill": {
-          "name": "Termination Notice",
-          "damage": 15,
-          "type": "psychic",
-          "description": "A devastating psychological attack. You should have defended!"
-        }
-      },
-      {
-        "id": "policy_barrage",
-        "type": "multi_hit",
-        "chance": 0.25,
-        "minTurn": 3,
-        "cooldown": 5,
-        "prepTurns": 1,
-        "dialogue": "Let me pull up ALL your violations... Better DEFEND!",
-        "executeDialogue": "DEFEND! Violation 5... 4... 3... 2... 1!",
-        "skill": {
-          "name": "Policy Barrage",
-          "damage": "d4",
-          "type": "physical",
-          "hits": 5,
-          "description": "A rapid barrage of policy violations!"
-        }
-      }
-    ],
-    "description": "Agnes from HR. The final boss of every office worker's nightmare. Her weapon? Paperwork. Her armor? Policy. Her weakness? Actual human connection (which she lacks)."
+    "description": "The D&D group. A formidable party of nerds."
   },
   "anna": {
     "id": "anna",
@@ -239,338 +131,6 @@ const enemies = {
       }
     ],
     "description": "Anna. The tea alchemist."
-  },
-  "dnd_group": {
-    "id": "dnd_group",
-    "name": "D&D Group",
-    "sprite": "dnd_group.svg",
-    "hp": 50,
-    "ac": 13,
-    "attack_bonus": 4,
-    "damage": "d10",
-    "type": "physical",
-    "stagger_threshold": 70,
-    "ai": "default",
-    "dialogue": {
-      "battle_start": [
-        "Roll for initiative!",
-        "You dare challenge our party?"
-      ],
-      "attack_default": [
-        "Natural 20!",
-        "The dice gods favor us!",
-        "Critical hit incoming!"
-      ],
-      "victory": [
-        "TPK! Total Party Kill!"
-      ],
-      "defeat": [
-        "We... need a long rest..."
-      ]
-    },
-    "moves": [
-      {
-        "name": "Fireball",
-        "damage": "2d6",
-        "type": "fire",
-        "description": "The wizard casts fireball!"
-      },
-      {
-        "name": "Sneak Attack",
-        "damage": "2d4",
-        "type": "physical",
-        "description": "The rogue strikes from the shadows!"
-      },
-      {
-        "name": "Smite",
-        "damage": "d10",
-        "type": "holy",
-        "description": "The paladin channels divine energy!"
-      }
-    ],
-    "description": "The D&D group. A formidable party of nerds."
-  },
-  "johannes": {
-    "id": "johannes",
-    "name": "Johannes",
-    "sprite": "johannes.svg",
-    "hp": 48,
-    "ac": 11,
-    "attack_bonus": 2,
-    "damage": "d8",
-    "type": "psychic",
-    "stagger_threshold": 50,
-    "ai": "default",
-    "dialogue": {
-      "battle_start": [
-        "Did you know today is exactly 3.14159... days until the next pi day?"
-      ],
-      "attack_default": [
-        "The numbers don't lie!",
-        "Let me show you some elegant proofs!",
-        "This is statistically optimal!"
-      ],
-      "victory": [
-        "Q.E.D."
-      ],
-      "defeat": [
-        "But... the math was perfect..."
-      ]
-    },
-    "moves": [
-      {
-        "name": "Pi Recitation",
-        "damage": "d6",
-        "type": "psychic",
-        "description": "He starts reciting pi to 50 decimal places. Your brain hurts."
-      },
-      {
-        "name": "Euler's Identity",
-        "damage": "2d4",
-        "type": "psychic",
-        "statusEffect": {
-          "type": "confusion",
-          "chance": 0.2
-        },
-        "description": "The most beautiful equation in mathematics. Too beautiful. It burns."
-      },
-      {
-        "name": "Statistical Analysis",
-        "damage": "d4",
-        "type": "psychic",
-        "description": "He calculates your probability of winning. It's not looking good."
-      }
-    ],
-    "description": "Johannes. Mathematician. Pi enthusiast. Will corner you to talk about prime numbers."
-  },
-  "karl": {
-    "id": "karl",
-    "name": "Karl",
-    "sprite": "karl.svg",
-    "hp": 48,
-    "ac": 10,
-    "attack_bonus": 3,
-    "damage": "d10",
-    "type": "psychic",
-    "stagger_threshold": 55,
-    "ai": "defensive",
-    "dialogue": {
-      "battle_start": [
-        "None of this matters, you know. But sure, let's do this."
-      ],
-      "attack_default": [
-        "...",
-        "Interesting.",
-        "If you say so.",
-        "That's one way to look at it."
-      ],
-      "victory": [
-        "As expected."
-      ],
-      "defeat": [
-        "Well. That happened."
-      ]
-    },
-    "moves": [
-      {
-        "name": "Existential Observation",
-        "damage": "d8",
-        "type": "psychic",
-        "description": "He points out that all species eventually go extinct. Including yours."
-      },
-      {
-        "name": "Nihilistic Sigh",
-        "damage": "d6",
-        "type": "psychic",
-        "statusEffect": {
-          "type": "poison",
-          "chance": 0.15
-        },
-        "description": "The weight of meaninglessness seeps into your bones."
-      },
-      {
-        "name": "Passive Aggressive Comment",
-        "damage": "2d4",
-        "type": "psychic",
-        "description": "\"That's an... interesting approach to life you have there.\""
-      }
-    ],
-    "description": "Karl. Biologist. Wears Birkenstocks with socks. Has seen too much of nature to believe in anything."
-  },
-  "manu": {
-    "id": "manu",
-    "name": "Manu",
-    "sprite": "manuela_annoyed_with_code.png",
-    "hp": 18,
-    "ac": 10,
-    "attack_bonus": 4,
-    "damage": "d10",
-    "type": "psychic",
-    "stagger_threshold": 40,
-    "ai": "aggressive",
-    "dialogue": {
-      "attack_default": [
-        "Just one more column to fix!",
-        "The GPS coordinates are all wrong!",
-        "Who even formatted this CSV?!"
-      ],
-      "attack_player_low_hp": [
-        "You're almost done, just a few more hours!",
-        "Don't give up now, we're so close!",
-        "The Bisons are counting on you!"
-      ],
-      "attack_player_healed": [
-        "Coffee break? Good idea!",
-        "Refreshed? Great, back to coding!"
-      ],
-      "attack_player_defended": [
-        "You can't hide from messy data!",
-        "The dataset will find you!"
-      ],
-      "attack_player_missed": [
-        "Ha! Even the data misses sometimes!",
-        "Null pointer exception!"
-      ],
-      "attack_got_hit": [
-        "Ow! That's not very collaborative!",
-        "I thought we were friends!"
-      ],
-      "attack_got_crit": [
-        "Okay okay, I'll try it myself...",
-        "That was harsh!"
-      ],
-      "attack_self_low_hp": [
-        "Please, I really need this!",
-        "The deadline is tomorrow!"
-      ],
-      "battle_start": [
-        "I could reaaaally use your Python skills!",
-        "Just a quick look at this dataset?"
-      ],
-      "victory": [
-        "Thanks for helping! See you next week!",
-        "The Coca-Cola is on me!"
-      ],
-      "defeat": [
-        "Fine, I'll learn Python myself...",
-        "Maybe R isn't so bad after all..."
-      ]
-    },
-    "moves": [
-      {
-        "name": "Dataset Disaster",
-        "damage": "2d6",
-        "type": "psychic",
-        "description": "She shows you the horrifying state of the data!"
-      },
-      {
-        "name": "Pleading Eyes",
-        "damage": "d8",
-        "type": "psychic",
-        "statusEffect": {
-          "type": "confusion",
-          "chance": 0.2
-        },
-        "description": "Those desperate eyes bore into your soul..."
-      },
-      {
-        "name": "Python Pressure",
-        "damage": "d10+2",
-        "type": "psychic",
-        "description": "\"Just a quick script, pleeeease?\""
-      },
-      {
-        "name": "Bison Stampede",
-        "damage": "3d4",
-        "type": "physical",
-        "description": "The chaotic dataset overwhelms you!"
-      }
-    ],
-    "intents": [
-      {
-        "id": "week_long_project",
-        "type": "big_attack",
-        "chance": 0.25,
-        "minTurn": 2,
-        "cooldown": 4,
-        "prepTurns": 1,
-        "dialogue": "This dataset is HUGE... You should DEFEND yourself from getting trapped!",
-        "executeDialogue": "You've been here for a WEEK!",
-        "skill": {
-          "name": "Week-Long Project",
-          "damage": 18,
-          "type": "psychic",
-          "description": "Time flies when you're debugging..."
-        }
-      }
-    ],
-    "description": "Manu from the Bison tracking project. Armed with a hopelessly messy dataset and puppy-dog eyes that could trap you for weeks."
-  },
-  "michi": {
-    "id": "michi",
-    "name": "Michi",
-    "sprite": "michi_whiteboard.svg",
-    "hp": 55,
-    "ac": 13,
-    "attack_bonus": 4,
-    "damage": "d10",
-    "type": "physical",
-    "stagger_threshold": 65,
-    "ai": "default",
-    "dialogue": {
-      "battle_start": [
-        "I've been practicing this presentation for weeks.",
-        "Finally, someone to explain my research to!"
-      ],
-      "attack_default": [
-        "As you can see from this diagram\u2014",
-        "The whiteboard never lies.",
-        "This is simplified, obviously.",
-        "I have seventeen backup slides."
-      ],
-      "attack_player_low_hp": [
-        "Wait, I haven't even reached the methods section.",
-        "You're leaving? But I have supplementary materials!"
-      ],
-      "victory": [
-        "Any questions? No? Good."
-      ],
-      "defeat": [
-        "...I should revise this presentation.",
-        "Back to the literature, I suppose."
-      ]
-    },
-    "moves": [
-      {
-        "name": "Whiteboard Strike",
-        "damage": "d8",
-        "type": "physical",
-        "description": "Michi swings the whiteboard!"
-      },
-      {
-        "name": "Methodology Defense",
-        "damage": "2d4",
-        "type": "psychic",
-        "description": "\"Let me explain why this approach is valid...\""
-      },
-      {
-        "name": "Literature Review",
-        "damage": "d6",
-        "type": "psychic",
-        "statusEffect": {
-          "type": "stun",
-          "chance": 0.2
-        },
-        "description": "47 citations. From memory."
-      },
-      {
-        "name": "Permanent Marker",
-        "damage": "2d6",
-        "type": "physical",
-        "description": "This one doesn't wash off"
-      }
-    ],
-    "description": "Michi. The whiteboard master."
   },
   "stefan": {
     "id": "stefan",
@@ -769,6 +329,446 @@ const enemies = {
       }
     ],
     "description": "Stefan. Former IT colleague. Still bitter about the abandoned Hercules server project. His power grows with his rage - push him too far and face his ultimate form."
+  },
+  "agnes_hr": {
+    "id": "agnes_hr",
+    "name": "Agnes (HR)",
+    "sprite": "agnes_blocking.svg",
+    "hp": 24,
+    "ac": 11,
+    "attack_bonus": 3,
+    "damage": "d8",
+    "type": "physical",
+    "stagger_threshold": 50,
+    "ai": "default",
+    "intentGlobalCooldown": 4,
+    "dialogue": {
+      "attack_default": [
+        "Time for your annual review!",
+        "This is going in your file!",
+        "HR always wins!"
+      ],
+      "attack_player_low_hp": [
+        "Your termination is imminent!",
+        "Should've read the employee handbook!",
+        "Exit interview time!"
+      ],
+      "attack_player_healed": [
+        "Wellness programs won't save you!",
+        "Self-care? In THIS economy?",
+        "Band-aids don't fix policy violations!"
+      ],
+      "attack_player_defended": [
+        "No hiding behind bureaucracy!",
+        "Your shield is not OSHA-approved!",
+        "Defense won't help your performance review!"
+      ],
+      "attack_player_missed": [
+        "Missed! Just like your deadlines!",
+        "That's going in your file!",
+        "Attendance issues AND accuracy issues?"
+      ],
+      "attack_got_hit": [
+        "Ow! That's workplace violence!",
+        "I'm filing a complaint!",
+        "HR will remember this!"
+      ],
+      "attack_got_crit": [
+        "That's... actually impressive.",
+        "Noted for your performance review!",
+        "Fine! Gloves are OFF!"
+      ],
+      "attack_self_low_hp": [
+        "I won't be outsourced!",
+        "HR never surrenders!",
+        "You can't fire ME!"
+      ],
+      "attack_has_status": [
+        "This is a hostile work environment!",
+        "I'm documenting EVERYTHING!",
+        "Workers' comp will hear about this!"
+      ],
+      "attack_player_stunned": [
+        "Mandatory meeting time!",
+        "No skipping this one!",
+        "Captive audience!"
+      ],
+      "battle_start": [
+        "Your resignation has been... REJECTED!",
+        "Let's discuss your future here!",
+        "Time for your exit interview!"
+      ],
+      "victory": [
+        "Back to the cubicle with you!",
+        "HR: 1, Employee: 0",
+        "Your termination is complete!"
+      ],
+      "defeat": [
+        "This... isn't... protocol...",
+        "I'll be back... with forms...",
+        "HR will hear about this!"
+      ],
+      "move_performance_review": [
+        "Let's review your quarterly goals!",
+        "Your metrics are... disappointing."
+      ],
+      "move_break_room_retreat": [
+        "Coffee break!",
+        "Even HR needs a breather..."
+      ]
+    },
+    "moves": [
+      {
+        "name": "HR Memo",
+        "damage": "d6",
+        "type": "physical",
+        "description": "A sharply worded memo flies your way!"
+      },
+      {
+        "name": "Performance Review",
+        "damage": "2d4",
+        "type": "psychic",
+        "statusEffect": {
+          "type": "stun",
+          "chance": 0.15
+        },
+        "description": "Agnes critiques your life choices."
+      },
+      {
+        "name": "Policy Enforcement",
+        "damage": "d4",
+        "type": "physical",
+        "statusEffect": {
+          "type": "bleed",
+          "chance": 0.25
+        },
+        "description": "Red tape cuts deep!"
+      },
+      {
+        "name": "Break Room Retreat",
+        "isHeal": true,
+        "healAmount": "1d4+1",
+        "description": "Agnes takes a coffee break."
+      }
+    ],
+    "intents": [
+      {
+        "id": "termination_notice",
+        "type": "big_attack",
+        "chance": 0.2,
+        "minTurn": 2,
+        "cooldown": 5,
+        "prepTurns": 1,
+        "dialogue": "I'm preparing your TERMINATION NOTICE! You can never DEFEND against my power!",
+        "executeDialogue": "Your employment is TERMINATED!",
+        "skill": {
+          "name": "Termination Notice",
+          "damage": 15,
+          "type": "psychic",
+          "description": "A devastating psychological attack. You should have defended!"
+        }
+      },
+      {
+        "id": "policy_barrage",
+        "type": "multi_hit",
+        "chance": 0.25,
+        "minTurn": 3,
+        "cooldown": 5,
+        "prepTurns": 1,
+        "dialogue": "Let me pull up ALL your violations... Better DEFEND!",
+        "executeDialogue": "DEFEND! Violation 5... 4... 3... 2... 1!",
+        "skill": {
+          "name": "Policy Barrage",
+          "damage": "d4",
+          "type": "physical",
+          "hits": 5,
+          "description": "A rapid barrage of policy violations!"
+        }
+      }
+    ],
+    "description": "Agnes from HR. The final boss of every office worker's nightmare. Her weapon? Paperwork. Her armor? Policy. Her weakness? Actual human connection (which she lacks)."
+  },
+  "karl": {
+    "id": "karl",
+    "name": "Karl",
+    "sprite": "karl.svg",
+    "hp": 48,
+    "ac": 10,
+    "attack_bonus": 3,
+    "damage": "d10",
+    "type": "psychic",
+    "stagger_threshold": 55,
+    "ai": "defensive",
+    "dialogue": {
+      "battle_start": [
+        "None of this matters, you know. But sure, let's do this."
+      ],
+      "attack_default": [
+        "...",
+        "Interesting.",
+        "If you say so.",
+        "That's one way to look at it."
+      ],
+      "victory": [
+        "As expected."
+      ],
+      "defeat": [
+        "Well. That happened."
+      ]
+    },
+    "moves": [
+      {
+        "name": "Existential Observation",
+        "damage": "d8",
+        "type": "psychic",
+        "description": "He points out that all species eventually go extinct. Including yours."
+      },
+      {
+        "name": "Nihilistic Sigh",
+        "damage": "d6",
+        "type": "psychic",
+        "statusEffect": {
+          "type": "poison",
+          "chance": 0.15
+        },
+        "description": "The weight of meaninglessness seeps into your bones."
+      },
+      {
+        "name": "Passive Aggressive Comment",
+        "damage": "2d4",
+        "type": "psychic",
+        "description": "\"That's an... interesting approach to life you have there.\""
+      }
+    ],
+    "description": "Karl. Biologist. Wears Birkenstocks with socks. Has seen too much of nature to believe in anything."
+  },
+  "michi": {
+    "id": "michi",
+    "name": "Michi",
+    "sprite": "michi_whiteboard.svg",
+    "hp": 55,
+    "ac": 13,
+    "attack_bonus": 4,
+    "damage": "d10",
+    "type": "physical",
+    "stagger_threshold": 65,
+    "ai": "default",
+    "dialogue": {
+      "battle_start": [
+        "I've been practicing this presentation for weeks.",
+        "Finally, someone to explain my research to!"
+      ],
+      "attack_default": [
+        "As you can see from this diagram\u2014",
+        "The whiteboard never lies.",
+        "This is simplified, obviously.",
+        "I have seventeen backup slides."
+      ],
+      "attack_player_low_hp": [
+        "Wait, I haven't even reached the methods section.",
+        "You're leaving? But I have supplementary materials!"
+      ],
+      "victory": [
+        "Any questions? No? Good."
+      ],
+      "defeat": [
+        "...I should revise this presentation.",
+        "Back to the literature, I suppose."
+      ]
+    },
+    "moves": [
+      {
+        "name": "Whiteboard Strike",
+        "damage": "d8",
+        "type": "physical",
+        "description": "Michi swings the whiteboard!"
+      },
+      {
+        "name": "Methodology Defense",
+        "damage": "2d4",
+        "type": "psychic",
+        "description": "\"Let me explain why this approach is valid...\""
+      },
+      {
+        "name": "Literature Review",
+        "damage": "d6",
+        "type": "psychic",
+        "statusEffect": {
+          "type": "stun",
+          "chance": 0.2
+        },
+        "description": "47 citations. From memory."
+      },
+      {
+        "name": "Permanent Marker",
+        "damage": "2d6",
+        "type": "physical",
+        "description": "This one doesn't wash off"
+      }
+    ],
+    "description": "Michi. The whiteboard master."
+  },
+  "manu": {
+    "id": "manu",
+    "name": "Manu",
+    "sprite": "manuela_annoyed_with_code.png",
+    "hp": 18,
+    "ac": 10,
+    "attack_bonus": 4,
+    "damage": "d10",
+    "type": "psychic",
+    "stagger_threshold": 40,
+    "ai": "aggressive",
+    "dialogue": {
+      "attack_default": [
+        "Just one more column to fix!",
+        "The GPS coordinates are all wrong!",
+        "Who even formatted this CSV?!"
+      ],
+      "attack_player_low_hp": [
+        "You're almost done, just a few more hours!",
+        "Don't give up now, we're so close!",
+        "The Bisons are counting on you!"
+      ],
+      "attack_player_healed": [
+        "Coffee break? Good idea!",
+        "Refreshed? Great, back to coding!"
+      ],
+      "attack_player_defended": [
+        "You can't hide from messy data!",
+        "The dataset will find you!"
+      ],
+      "attack_player_missed": [
+        "Ha! Even the data misses sometimes!",
+        "Null pointer exception!"
+      ],
+      "attack_got_hit": [
+        "Ow! That's not very collaborative!",
+        "I thought we were friends!"
+      ],
+      "attack_got_crit": [
+        "Okay okay, I'll try it myself...",
+        "That was harsh!"
+      ],
+      "attack_self_low_hp": [
+        "Please, I really need this!",
+        "The deadline is tomorrow!"
+      ],
+      "battle_start": [
+        "I could reaaaally use your Python skills!",
+        "Just a quick look at this dataset?"
+      ],
+      "victory": [
+        "Thanks for helping! See you next week!",
+        "The Coca-Cola is on me!"
+      ],
+      "defeat": [
+        "Fine, I'll learn Python myself...",
+        "Maybe R isn't so bad after all..."
+      ]
+    },
+    "moves": [
+      {
+        "name": "Dataset Disaster",
+        "damage": "2d6",
+        "type": "psychic",
+        "description": "She shows you the horrifying state of the data!"
+      },
+      {
+        "name": "Pleading Eyes",
+        "damage": "d8",
+        "type": "psychic",
+        "statusEffect": {
+          "type": "confusion",
+          "chance": 0.2
+        },
+        "description": "Those desperate eyes bore into your soul..."
+      },
+      {
+        "name": "Python Pressure",
+        "damage": "d10+2",
+        "type": "psychic",
+        "description": "\"Just a quick script, pleeeease?\""
+      },
+      {
+        "name": "Bison Stampede",
+        "damage": "3d4",
+        "type": "physical",
+        "description": "The chaotic dataset overwhelms you!"
+      }
+    ],
+    "intents": [
+      {
+        "id": "week_long_project",
+        "type": "big_attack",
+        "chance": 0.25,
+        "minTurn": 2,
+        "cooldown": 4,
+        "prepTurns": 1,
+        "dialogue": "This dataset is HUGE... You should DEFEND yourself from getting trapped!",
+        "executeDialogue": "You've been here for a WEEK!",
+        "skill": {
+          "name": "Week-Long Project",
+          "damage": 18,
+          "type": "psychic",
+          "description": "Time flies when you're debugging..."
+        }
+      }
+    ],
+    "description": "Manu from the Bison tracking project. Armed with a hopelessly messy dataset and puppy-dog eyes that could trap you for weeks."
+  },
+  "johannes": {
+    "id": "johannes",
+    "name": "Johannes",
+    "sprite": "johannes.svg",
+    "hp": 48,
+    "ac": 11,
+    "attack_bonus": 2,
+    "damage": "d8",
+    "type": "psychic",
+    "stagger_threshold": 50,
+    "ai": "default",
+    "dialogue": {
+      "battle_start": [
+        "Did you know today is exactly 3.14159... days until the next pi day?"
+      ],
+      "attack_default": [
+        "The numbers don't lie!",
+        "Let me show you some elegant proofs!",
+        "This is statistically optimal!"
+      ],
+      "victory": [
+        "Q.E.D."
+      ],
+      "defeat": [
+        "But... the math was perfect..."
+      ]
+    },
+    "moves": [
+      {
+        "name": "Pi Recitation",
+        "damage": "d6",
+        "type": "psychic",
+        "description": "He starts reciting pi to 50 decimal places. Your brain hurts."
+      },
+      {
+        "name": "Euler's Identity",
+        "damage": "2d4",
+        "type": "psychic",
+        "statusEffect": {
+          "type": "confusion",
+          "chance": 0.2
+        },
+        "description": "The most beautiful equation in mathematics. Too beautiful. It burns."
+      },
+      {
+        "name": "Statistical Analysis",
+        "damage": "d4",
+        "type": "psychic",
+        "description": "He calculates your probability of winning. It's not looking good."
+      }
+    ],
+    "description": "Johannes. Mathematician. Pi enthusiast. Will corner you to talk about prime numbers."
   }
 };
 
