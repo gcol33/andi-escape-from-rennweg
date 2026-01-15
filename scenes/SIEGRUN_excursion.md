@@ -1,6 +1,6 @@
 ---
 id: SIEGRUN_excursion
-bg: gate_exit.png
+bg: ../char/siegrun_thumbs_up.png
 ---
 
 The memories come flooding back. The Gasthof Ödsteinblick in Johnsbach. The program: vegetation surveys, plant identification, steep terrain. Quite demanding when you're used to a flat computer-screen environment. The climb to the Haindlkarhütte was the real challenge. Past rock walls, through forests, across scree slopes with massive boulders. In the midday heat. On steep, narrow paths.

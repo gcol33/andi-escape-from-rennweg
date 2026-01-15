@@ -1,8 +1,6 @@
 ---
 id: elias_norbert
-bg: gate_exit.png
-chars:
-  - elias_norbert.png
+bg: ../char/elias_norbert.png
 ---
 
 On your way out, you spot Elias and Norbert near the gate.

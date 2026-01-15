@@ -1,6 +1,6 @@
 ---
 id: quiz_excursion2
-bg: gate_exit.png
+bg: ../char/siegrun_thumbs_up.png
 actions:
   - type: start_quiz
     time_per_question: 15

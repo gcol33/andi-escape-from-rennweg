@@ -6,7 +6,7 @@ set_flags:
   - met_franz
 actions:
   - type: draw_tarot
-    target: floor0
+    target: elevator1
     ready_target: FRANZ_impressed
 ---
 

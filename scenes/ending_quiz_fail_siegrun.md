@@ -1,6 +1,6 @@
 ---
 id: ending_quiz_fail_siegrun
-bg: gate_exit.png
+bg: ../char/siegrun_thumbs_up.png
 music: game_over.mp3
 ending_title: "BAD ENDING: Failed the Field Test"
 death_flag: quiz_siegrun

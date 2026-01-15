@@ -1,6 +1,6 @@
 ---
 id: quiz_excursion2_win
-bg: gate_exit.png
+bg: ../char/siegrun_thumbs_up.png
 set_key_flags:
   - quiz_siegrun_complete
 actions:
