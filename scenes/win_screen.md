@@ -1,6 +1,6 @@
 ---
 id: win_screen
-bg: rooftop_bbq_fire.png
+bg: rooftop_bbq_fire.jpg
 music: victory.mp3
 ending_title: "GOOD ENDING: The Perfect Farewell"
 no_restart: true
