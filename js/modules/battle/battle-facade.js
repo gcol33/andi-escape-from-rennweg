@@ -3134,6 +3134,66 @@ var BattleEngine = (function() {
         }
     }
 
+    /**
+     * Handle enemy phase transition (boss transforms)
+     * Updates sprite/background, shows dialogue, changes music if specified
+     * @param {Object} phaseTransition - Phase transition info from BattleCore
+     */
+    function handlePhaseTransition(phaseTransition) {
+        if (!phaseTransition || !phaseTransition.newPhase) return;
+
+        var state = BattleCore.getState();
+        var newPhase = phaseTransition.newPhase;
+
+        _log.info('BattleFacade', 'Phase transition to:', newPhase.id, '| Sprite:', newPhase.sprite);
+
+        // Update enemy sprite/background in DOM
+        // Battle scenes often use bg: for enemy display, not chars:
+        if (newPhase.sprite) {
+            var spritePath = 'assets/char/' + newPhase.sprite;
+            var updated = false;
+
+            // Try sprite-layer first (if enemy is shown as character)
+            var spriteLayer = document.getElementById('sprite-layer');
+            if (spriteLayer) {
+                var img = spriteLayer.querySelector('img');
+                if (img) {
+                    img.src = spritePath;
+                    updated = true;
+                    _log.debug('BattleFacade', 'Updated sprite-layer img to:', spritePath);
+                }
+            }
+
+            // Also update background-layer (battle scenes often use bg: for enemy)
+            var bgLayer = document.getElementById('background-layer');
+            if (bgLayer) {
+                bgLayer.style.backgroundImage = 'url("' + spritePath + '")';
+                updated = true;
+                _log.debug('BattleFacade', 'Updated background-layer to:', spritePath);
+            }
+
+            if (!updated) {
+                _log.warn('BattleFacade', 'Could not find sprite-layer or background-layer to update');
+            }
+        }
+
+        // Show phase transition dialogue as a battle log message
+        if (newPhase.dialogue) {
+            var dialogueMsg = '<em>' + newPhase.dialogue + '</em>';
+            updateBattleLog(dialogueMsg);
+        }
+
+        // Change music if specified
+        if (newPhase.music && typeof VNEngine !== 'undefined' && VNEngine.playMusic) {
+            VNEngine.playMusic(newPhase.music);
+        }
+
+        // Update enemy name in UI if it changed
+        if (newPhase.name && _hasBattleUI && BattleUI.updateEnemyName) {
+            BattleUI.updateEnemyName(newPhase.name);
+        }
+    }
+
     function updateDisplay() {
         if (typeof BattleUI !== 'undefined') {
             var state = BattleCore.getState();
@@ -3602,11 +3662,16 @@ var BattleEngine = (function() {
                 };
             } else {
                 // Normal damage to enemy
-                BattleCore.damageEnemy(result.pendingDamage.amount, {
+                var damageResult = BattleCore.damageEnemy(result.pendingDamage.amount, {
                     source: result.pendingDamage.source,
                     type: result.pendingDamage.type,
                     isCrit: result.pendingDamage.isCrit
                 });
+
+                // Handle phase transition (boss transforms)
+                if (damageResult.phaseTransition) {
+                    handlePhaseTransition(damageResult.phaseTransition);
+                }
             }
         } else if (target === 'player' && result.pendingDamage) {
             BattleCore.damagePlayer(result.pendingDamage.amount, {
@@ -3641,10 +3706,14 @@ var BattleEngine = (function() {
 
         // Handle counter damage (player counters enemy)
         if (result.pendingCounter) {
-            BattleCore.damageEnemy(result.pendingCounter.amount, {
+            var counterResult = BattleCore.damageEnemy(result.pendingCounter.amount, {
                 source: result.pendingCounter.source,
                 type: result.pendingCounter.type
             });
+            // Handle phase transition from counter damage
+            if (counterResult.phaseTransition) {
+                handlePhaseTransition(counterResult.phaseTransition);
+            }
         }
 
         // ROBUST: Check for battle end immediately after any damage

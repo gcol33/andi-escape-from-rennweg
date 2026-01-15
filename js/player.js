@@ -28,9 +28,9 @@ const playerConfig = {
       "name": "Short Rest",
       "manaCost": 0,
       "isRest": true,
-      "restoreMana": "2d4",
+      "restoreMana": 5,
       "skipsTurn": true,
-      "description": "Take a breather to restore 2d4 MP. Skips your turn!"
+      "description": "Take a breather to restore 5 MP. Skips your turn!"
     },
     {
       "id": "lighter_ignite",
@@ -40,10 +40,10 @@ const playerConfig = {
       "manaCost": 2,
       "statusEffect": {
         "type": "burn",
-        "chance": 0.6
+        "chance": 1.0
       },
       "requiresItem": "Lighter",
-      "description": "Flick your lighter at the enemy. High burn chance!"
+      "description": "Flick your lighter at the enemy. Guaranteed burn!"
     },
     {
       "id": "charming_smile",
@@ -52,17 +52,17 @@ const playerConfig = {
       "manaCost": 3,
       "statusEffect": {
         "type": "charmed",
-        "chance": 0.5
+        "chance": 1.0
       },
       "requiresFlag": "can_smile",
-      "description": "Flash your best smile. May charm the enemy!"
+      "description": "Flash your best smile. Guaranteed charm!"
     },
     {
       "id": "focused_strike",
       "name": "Focused Strike",
       "damage": "2d6",
       "type": "physical",
-      "manaCost": 4,
+      "manaCost": 3,
       "critBonus": 5,
       "requiresItem": "Magnifying Glass",
       "description": "Focus sunlight for a precise strike. Much higher crit chance!"
@@ -70,6 +70,7 @@ const playerConfig = {
     {
       "id": "botanical_lecture",
       "name": "Botanical Lecture",
+      "damage": "1d4",
       "type": "psychic",
       "manaCost": 3,
       "statusEffect": {
@@ -111,7 +112,7 @@ const playerConfig = {
       "name": "Granola Bar",
       "manaCost": 0,
       "isHeal": true,
-      "healAmount": 10,
+      "healAmount": 12,
       "appliesSelfBuff": {
         "type": "fortified",
         "duration": "infinite",
@@ -119,14 +120,14 @@ const playerConfig = {
       },
       "requiresItem": "Granola Bar",
       "consumesItem": true,
-      "description": "A healthy snack. +10 HP and +1 AC for this fight."
+      "description": "A healthy snack. +12 HP and +1 AC for this fight."
     },
     {
       "id": "energy_drink",
       "name": "Energy Drink",
       "manaCost": 0,
       "isHeal": true,
-      "healAmount": 8,
+      "healAmount": 10,
       "appliesSelfBuff": {
         "type": "energized",
         "duration": "infinite",
@@ -134,14 +135,14 @@ const playerConfig = {
       },
       "requiresItem": "Energy Drink",
       "consumesItem": true,
-      "description": "Caffeinated boost. +8 HP and +2 Attack for this fight."
+      "description": "Caffeinated boost. +10 HP and +2 Attack for this fight."
     },
     {
       "id": "aspirin",
       "name": "Aspirin",
       "manaCost": 0,
       "isHeal": true,
-      "healAmount": 5,
+      "healAmount": 6,
       "appliesSelfBuff": {
         "type": "clear_headed",
         "duration": "infinite",
@@ -152,14 +153,14 @@ const playerConfig = {
       },
       "requiresItem": "Aspirin",
       "consumesItem": true,
-      "description": "Clear your head. +5 HP and immune to stun/confusion this fight."
+      "description": "Clear your head. +6 HP and immune to stun/confusion this fight."
     },
     {
       "id": "spicy_goulash",
       "name": "Spicy Goulash",
       "manaCost": 0,
       "isHeal": true,
-      "healAmount": 5,
+      "healAmount": 6,
       "appliesSelfStatus": {
         "type": "burn",
         "duration": 1
@@ -171,28 +172,28 @@ const playerConfig = {
       },
       "requiresItem": "Spicy Goulash",
       "consumesItem": true,
-      "description": "Hot stuff! +5 HP, burn yourself, but next 3 attacks apply burn."
+      "description": "Hot stuff! +6 HP, burn yourself, but next 3 attacks apply burn."
     },
     {
       "id": "break_room_snacks",
       "name": "Break Room Snacks",
       "manaCost": 0,
       "isHeal": true,
-      "healAmount": 10,
+      "healAmount": 12,
       "requiresItem": "Break Room Snacks",
       "consumesItem": true,
-      "description": "Stolen from Agnes's stash. +10 HP."
+      "description": "Stolen from Agnes's stash. +12 HP."
     },
     {
       "id": "first_aid_kit",
       "name": "First Aid Kit",
       "manaCost": 0,
       "isHeal": true,
-      "healAmount": 15,
+      "healAmount": 18,
       "clearsStatus": true,
       "requiresItem": "First Aid Kit",
       "consumesItem": true,
-      "description": "Proper medical supplies. +15 HP and removes all negative status effects."
+      "description": "Proper medical supplies. +18 HP and removes all negative status effects."
     }
   ]
 };

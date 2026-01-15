@@ -223,6 +223,21 @@ const enemies = {
         "description": "Triple-steeped for maximum potency"
       }
     ],
+    "phases": [
+      {
+        "id": "normal",
+        "name": "Anna",
+        "hp_threshold": 1,
+        "sprite": "anna_neutral.svg"
+      },
+      {
+        "id": "hallucinating",
+        "name": "Anna?",
+        "hp_threshold": 0.5,
+        "sprite": "anna_coffee_high_copyu.png",
+        "dialogue": "\"Wait... is she growing whiskers?\""
+      }
+    ],
     "description": "Anna. The tea alchemist."
   },
   "dnd_group": {
@@ -560,7 +575,7 @@ const enemies = {
   "stefan": {
     "id": "stefan",
     "name": "Stefan",
-    "sprite": "stefan_neutral.svg",
+    "sprite": "stefan_arms_crossed.png",
     "hp": 110,
     "ac": 12,
     "attack_bonus": 3,
@@ -725,9 +740,9 @@ const enemies = {
     "phases": [
       {
         "id": "base",
-        "name": "Base",
+        "name": "Stefan",
         "hp_threshold": 1,
-        "sprite": "stefan_neutral.svg",
+        "sprite": "stefan_arms_crossed.png",
         "attack_bonus": 3,
         "damage": "d8"
       },
@@ -735,7 +750,7 @@ const enemies = {
         "id": "super",
         "name": "Super Stefan",
         "hp_threshold": 0.66,
-        "sprite": "stefan_super.svg",
+        "sprite": "stefan_super.png",
         "attack_bonus": 5,
         "damage": "d10",
         "dialogue": "\"You think this is my full power? HAAAAAAAA!\"",
@@ -745,7 +760,7 @@ const enemies = {
         "id": "ultra",
         "name": "Ultra Stefan",
         "hp_threshold": 0.33,
-        "sprite": "stefan_ultra.svg",
+        "sprite": "stefan_ultra.png",
         "attack_bonus": 7,
         "damage": "d12",
         "dialogue": "\"No one has ever pushed me this far...\"",

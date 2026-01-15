@@ -32,8 +32,8 @@
 
 /* === Log Content Area === */
 .battle-log-content {
-    /* Height: 2 rows × 1.8em line-height = 3.6em */
-    height: 3.6em;  /* 2 lines at 1.8 line-height */
+    /* Height: 2 rows × 1.8em line-height + 0.8em padding = 4.4em */
+    height: 4.4em;  /* 2 lines at 1.8 line-height + vertical padding */
     box-sizing: border-box;
     overflow-y: auto;
     overflow-x: hidden;
@@ -63,6 +63,11 @@
     overflow: hidden;     /* Hide overflowing text until JS splits it */
 }
 
+/* Prevent empty rows from collapsing */
+.battle-log-row:empty::before {
+    content: '\200b';  /* Zero-width space */
+}
+
 /* Mobile portrait: allow text wrapping to prevent cutoff */
 @media (orientation: portrait) {
     .battle-log-row {
@@ -74,9 +79,8 @@
     }
 
     .battle-log-content {
-        height: auto;
-        min-height: 3.2em;  /* 2 lines minimum */
-        max-height: 6em;    /* Allow up to ~4 lines */
+        height: 7.2em;      /* Fixed: 4 lines × 1.6 line-height + 0.8em padding */
+        overflow-y: auto;
         overflow-x: visible;
     }
 }

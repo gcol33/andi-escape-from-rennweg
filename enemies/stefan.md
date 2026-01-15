@@ -1,7 +1,7 @@
 ---
 id: stefan
 name: Stefan
-sprite: stefan_neutral.svg
+sprite: stefan_arms_crossed.png
 
 # Base Stats
 hp: 110
@@ -18,16 +18,16 @@ ai: aggressive
 # Phase 3: Ultra (<33% HP) - Intents only, maximum power
 phases:
   - id: base
-    name: Base
+    name: Stefan
     hp_threshold: 1.0
-    sprite: stefan_neutral.svg
+    sprite: stefan_arms_crossed.png
     attack_bonus: 3
     damage: d8
 
   - id: super
     name: Super Stefan
     hp_threshold: 0.66
-    sprite: stefan_super.svg
+    sprite: stefan_super.png
     attack_bonus: 5
     damage: d10
     dialogue: "You think this is my full power? HAAAAAAAA!"
@@ -36,7 +36,7 @@ phases:
   - id: ultra
     name: Ultra Stefan
     hp_threshold: 0.33
-    sprite: stefan_ultra.svg
+    sprite: stefan_ultra.png
     attack_bonus: 7
     damage: d12
     dialogue: "No one has ever pushed me this far..."

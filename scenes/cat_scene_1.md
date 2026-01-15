@@ -19,4 +19,4 @@ The cat does not elaborate. It stares at you with an intensity that feels dispro
 
 ### Choices
 
-- Continue → charlie
+- Continue → charly

@@ -1,6 +1,6 @@
 ---
 id: STEFAN_battle_coffee
-bg: ../char/stefan_super.png
+bg: ../char/stefan_arms_crossed.png
 music: BOSS_TIME.mp3
 actions:
   - type: start_battle

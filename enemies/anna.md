@@ -12,6 +12,19 @@ type: poison
 stagger_threshold: 55
 ai: default
 
+# Phase System - Hallucination kicks in as you take damage from the tea
+phases:
+  - id: normal
+    name: Anna
+    hp_threshold: 1.0
+    sprite: anna_neutral.svg
+
+  - id: hallucinating
+    name: Anna?
+    hp_threshold: 0.5
+    sprite: anna_coffee_high_copyu.png
+    dialogue: "Wait... is she growing whiskers?"
+
 # Moves
 moves:
   - name: Herbal Infusion
