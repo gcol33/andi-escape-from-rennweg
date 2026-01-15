@@ -1,6 +1,6 @@
 ---
 id: squirrel_good
-bg: gate_exit.png
+bg: ../char/jen_nuts.png
 use_items:
   - Break Room Snacks
 actions:

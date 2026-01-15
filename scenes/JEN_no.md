@@ -7,7 +7,7 @@ Jen looks a bit disappointed but nods understandingly. She's used to people decl
 
 ---
 
-She gives you a warm smile, the kind that makes you feel like you're part of something, even when you're leaving. "Take care, Andi. It won't be the same without you here. The IT department will fall apart within a week, mark my words." You wave goodbye and continue on your way, slightly relieved to have avoided whatever adventures the squirrels had in store.
+She gives you a warm smile, the kind that makes you feel like you're part of something, even when you're leaving. "Take care, Andi. It won't be the same without you here. The department will fall apart within a week, mark my words." You wave goodbye and continue on your way, slightly relieved to have avoided whatever adventures the squirrels had in store.
 
 ### Choices
 
