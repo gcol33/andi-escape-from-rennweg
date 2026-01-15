@@ -459,7 +459,7 @@ const enemies = {
         "minTurn": 2,
         "cooldown": 5,
         "prepTurns": 1,
-        "dialogue": "I'm preparing your TERMINATION NOTICE! You can never DEFEND against my power!",
+        "dialogue": "Preparing your TERMINATION NOTICE!",
         "executeDialogue": "Your employment is TERMINATED!",
         "skill": {
           "name": "Termination Notice",
