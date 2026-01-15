@@ -1,6 +1,6 @@
 ---
 id: dnd_group_rematch
-bg: staircase_downstairs.png
+bg: basement.png
 ---
 
 The D&D group looks up as you enter the basement. "Ah, the champion returns!" Fabio announces dramatically. Gilles and Ekin raise their dice in salute. "Your legend has spread. We speak of your deeds between campaigns."

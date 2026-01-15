@@ -3,11 +3,11 @@ id: JONI_2
 bg: ../char/joni_neutral.png
 ---
 
-He spots you and his face lights up. Well, as much as a Viennese face lights up. "Andi! Du bist ja EH da!" He comes over with a knowing smile. "I'm so glad you're still here. You know, while I was gone, I was SO annoyed by the toxic positivity around this place."
+He spots you and his face lights up. Well ... at least as much as someone from Vienna can tolerate his face lighting up. "Andi, so good to see you!" He comes over with an impish smile. "I'm so glad you're still here. I was barely able to fight off the toxic positivity that pollutes this place"
 
 ---
 
-You nod sympathetically. Sometimes you need someone who properly "grantelt" to balance out all that cheerfulness.
+You nod sympathetically. There really is such a thing as too much positivity. And the limit is reached much sooner than most people realize. Sometimes you need someone who properly "grantelt" to balance out all that gut-wrenching cheerfulness.
 
 ### Choices
 

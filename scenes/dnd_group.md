@@ -1,6 +1,6 @@
 ---
 id: dnd_group
-bg: staircase_downstairs.png
+bg: basement.png
 ---
 
 Deep in the basement, you find them: the D&D group. A circle of folding chairs around a makeshift table. Character sheets everywhere. Fabio looks up from behind his DM screen. "Andi! You've found the dice rollers' lair." Gilles is arguing about spell slots while Ekin rolls dice menacingly.

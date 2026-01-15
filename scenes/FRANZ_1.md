@@ -5,15 +5,15 @@ set_flags:
   - met_franz
 ---
 
-In the stairwell, half-illuminated by afternoon light filtering through a dusty window, you encounter Franz. Where you speak in code and algorithms, he speaks in Latin plant names. Where you live in digital realms, he is the quintessential "digital non-native". A man who prefers handwritten notes and regards computers with deep suspicion.
+In the stairwell, half-illuminated by afternoon light filtering through a dusty window, you encounter Franz. Where you speak in code and algorithms, he speaks in Latin plant names. Where you live in digital realms, he is the quintessential "digital non-native"—a man who prefers handwritten notes and regards computers with deep suspicion.
 
 ---
 
-Yet there's a knowing look in his eyes. As if he sees something you don't. "Ah, young traveler," he says with that mysterious air you've never been able to tell is genuine wisdom or theatrical affectation. "Your journey is not yet complete. The path to a proper farewell requires... preparation."
+Yet there's a knowing look in his eyes. As if he sees something you don't. "Ah, young traveler", he says, surrounded by this air of mystery. You've never been able to tell whether that's genuine gravity or studied irony. "Your journey is not yet complete. The path to a proper farewell requires ... preparation."
 
 ---
 
-He produces a worn deck of cards from his pocket, the edges soft with age. "Let me consult the cards. They see what we cannot."
+He produces a worn deck of cards from his pocket, the edges soft and yellowed with age. "Let me consult the cards. They see what we cannot."
 
 ### Choices
 
