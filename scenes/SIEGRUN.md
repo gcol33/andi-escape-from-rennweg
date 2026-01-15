@@ -8,5 +8,5 @@ You encounter Siegrun in the corridor. She looks at you with a mix of fondness a
 ### Choices
 
 - Reminisce about the Gesäuse → SIEGRUN_excursion
-- Take the elevator → elevator1
+- Take the elevator → before_elevator1
 

@@ -16,5 +16,5 @@ Siegrun closes her notebook with satisfaction. "Not bad. You actually paid atten
 
 ### Choices
 
-- Take the elevator → elevator1
+- Take the elevator → before_elevator1
 

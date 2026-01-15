@@ -20,5 +20,5 @@ Siegrun smiles. "You survived! Let's see if you remember what you learned."
 ### Choices
 
 - Take the quiz (requires: !quiz_siegrun_complete) → quiz_excursion2
-- Continue (requires: quiz_siegrun_complete) → elevator1
+- Continue (requires: quiz_siegrun_complete) → before_elevator1
 

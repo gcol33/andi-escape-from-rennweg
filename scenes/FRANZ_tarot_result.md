@@ -16,5 +16,5 @@ He tucks the deck back into his pocket. "Go now. When you have found what you se
 ### Choices
 
 - Take the stairs → stairs_0
-- Take the elevator → elevator1
+- Take the elevator → before_elevator1
 

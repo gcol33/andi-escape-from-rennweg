@@ -25,5 +25,5 @@ You shift uncomfortably. The topic of driving always makes you a bit nervous. Yo
 
 ### Choices
 
-- Take the elevator → elevator1
+- Take the elevator → before_elevator1
 

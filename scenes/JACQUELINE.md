@@ -16,5 +16,5 @@ You spot Jacqueline struggling with a large stack of boxes. She's visibly pregna
 ### Choices
 
 - Leave the building → ending_early_exit
-- Take the elevator → elevator0
+- Take the elevator → before_elevator0
 
