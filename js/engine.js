@@ -1177,6 +1177,30 @@ var VNEngine = (function() {
             // Process queue immediately for actions (text already rendered)
             processAcquisitionQueue();
             return false; // Don't interrupt scene flow
+        },
+
+        /**
+         * Heal player action handler
+         * Restores player HP (full heal if no amount specified)
+         *
+         * Supports:
+         * - amount: HP to restore (optional, defaults to full heal)
+         */
+        heal_player: function(action) {
+            // Initialize HP if not set
+            if (state.playerHP === null) {
+                initPlayerHP();
+            }
+            var amount = action.amount;
+            if (amount) {
+                healPlayer(amount);
+            } else {
+                // Full heal
+                state.playerHP = state.playerMaxHP;
+                updatePlayerHPDisplay();
+            }
+            _log.debug('Engine', 'heal_player: healed to ' + state.playerHP + '/' + state.playerMaxHP);
+            return false; // Don't interrupt scene flow
         }
     };
 
