@@ -80,18 +80,6 @@ skills:
     requiresItem: Charcoal
     description: Throw charcoal dust. If they burn, they take DOUBLE burn damage!
 
-  - id: beer_chug
-    name: Liquid Courage
-    manaCost: 0
-    isHeal: true
-    healsToFull: true
-    appliesSelfStatus:
-      type: confusion
-      duration: 2
-    requiresItem: Beer
-    consumesItem: true
-    description: Chug a beer. Full HP but confused for 2 turns!
-
   # Consumable items (one-time use, found during exploration or after battles)
   - id: granola_bar
     name: Granola Bar
@@ -147,15 +135,6 @@ skills:
     requiresItem: Spicy Goulash
     consumesItem: true
     description: Hot stuff! +6 HP, burn yourself, but next 3 attacks apply burn.
-
-  - id: break_room_snacks
-    name: Break Room Snacks
-    manaCost: 0
-    isHeal: true
-    healAmount: 12
-    requiresItem: Break Room Snacks
-    consumesItem: true
-    description: Stolen from Agnes's stash. +12 HP.
 
   - id: first_aid_kit
     name: First Aid Kit
