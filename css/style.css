@@ -191,20 +191,9 @@ h1 {
     z-index: var(--z-background);
 }
 
-/* Fullscreen background mode - background covers all UI via z-index */
-body.fullscreen-bg #background-layer {
-    z-index: calc(var(--z-modal) + 10) !important;
-    background-size: 100% auto !important;
-    background-position: top center !important;
-}
-
-/* Credits text overlay - shown on top of fullscreen background */
+/* Credits text overlay - shown when hide_textbox is true */
 #credits-text {
     display: none;
-}
-
-body.fullscreen-bg #credits-text {
-    display: block;
     position: absolute;
     bottom: 10%;
     left: 0;
@@ -213,7 +202,7 @@ body.fullscreen-bg #credits-text {
     font-size: 2em;
     color: white;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-    z-index: calc(var(--z-modal) + 20);
+    z-index: var(--z-text-box);
 }
 
 /* === Character Sprite Layer === */

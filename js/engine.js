@@ -3640,18 +3640,32 @@ var VNEngine = (function() {
         // Store ending title from scene frontmatter
         state.endingTitle = scene.ending_title || null;
 
-        // Fullscreen background mode - hides all UI
+        // Fullscreen background mode - hides text box UI (reuses tap-to-hide mechanism)
+        var textBox = document.getElementById('text-box');
         var creditsTextEl = document.getElementById('credits-text');
+        var bgLayer = document.getElementById('background-layer');
         if (scene.hide_textbox) {
-            document.body.classList.add('fullscreen-bg');
+            if (textBox) textBox.classList.add('hidden-textbox');
+            // Set background to 100% width, top-aligned for fullscreen credits
+            if (bgLayer) {
+                bgLayer.style.backgroundSize = '100% auto';
+                bgLayer.style.backgroundPosition = 'top center';
+            }
             // Show credits text if provided
             if (creditsTextEl && scene.credits_text) {
                 creditsTextEl.textContent = scene.credits_text;
+                creditsTextEl.style.display = 'block';
             }
         } else {
-            document.body.classList.remove('fullscreen-bg');
+            if (textBox) textBox.classList.remove('hidden-textbox');
+            // Reset background to default
+            if (bgLayer) {
+                bgLayer.style.backgroundSize = '';
+                bgLayer.style.backgroundPosition = '';
+            }
             if (creditsTextEl) {
                 creditsTextEl.textContent = '';
+                creditsTextEl.style.display = 'none';
             }
         }
 
