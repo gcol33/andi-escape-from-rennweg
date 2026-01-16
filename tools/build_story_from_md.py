@@ -622,6 +622,7 @@ def parse_scene_file(filepath):
         'ending_title': frontmatter.get('ending_title', '').strip('"\'') or None,
         'no_restart': frontmatter.get('no_restart', False),
         'hide_textbox': frontmatter.get('hide_textbox', False),
+        'credits_text': frontmatter.get('credits_text', None),
         'death_flag': frontmatter.get('death_flag', None),
         'random_flavor': frontmatter.get('random_flavor', []),
         'random_texts': frontmatter.get('random_texts', []),
@@ -659,6 +660,8 @@ def parse_scene_file(filepath):
         del scene['no_restart']
     if not scene['hide_textbox']:
         del scene['hide_textbox']
+    if scene['credits_text'] is None:
+        del scene['credits_text']
     if scene['death_flag'] is None:
         del scene['death_flag']
     if not scene['random_flavor']:

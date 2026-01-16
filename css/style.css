@@ -192,8 +192,28 @@ h1 {
 }
 
 /* Fullscreen background mode - background covers all UI via z-index */
-body.fullscreen-bg #scene-bg {
-    z-index: var(--z-modal) !important;
+body.fullscreen-bg #background-layer {
+    z-index: calc(var(--z-modal) + 10) !important;
+    background-size: 100% auto !important;
+    background-position: top center !important;
+}
+
+/* Credits text overlay - shown on top of fullscreen background */
+#credits-text {
+    display: none;
+}
+
+body.fullscreen-bg #credits-text {
+    display: block;
+    position: absolute;
+    bottom: 10%;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 2em;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    z-index: calc(var(--z-modal) + 20);
 }
 
 /* === Character Sprite Layer === */

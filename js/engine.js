@@ -3641,10 +3641,18 @@ var VNEngine = (function() {
         state.endingTitle = scene.ending_title || null;
 
         // Fullscreen background mode - hides all UI
+        var creditsTextEl = document.getElementById('credits-text');
         if (scene.hide_textbox) {
             document.body.classList.add('fullscreen-bg');
+            // Show credits text if provided
+            if (creditsTextEl && scene.credits_text) {
+                creditsTextEl.textContent = scene.credits_text;
+            }
         } else {
             document.body.classList.remove('fullscreen-bg');
+            if (creditsTextEl) {
+                creditsTextEl.textContent = '';
+            }
         }
 
         // Store respawn target and flavor for context-aware respawns (persists to wake_up)
