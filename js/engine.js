@@ -6076,6 +6076,9 @@ var VNEngine = (function() {
             if (!hasRealBackground) return;
             // Don't toggle while typewriter is running
             if (state.typewriter && state.typewriter.isTyping) return;
+            // Don't toggle on fullscreen scenes (credits) - UI should stay hidden
+            var scene = getScene(state.currentScene);
+            if (scene && scene.hide_textbox) return;
             textBox.classList.toggle('hidden-textbox');
             e.stopPropagation();
         }
