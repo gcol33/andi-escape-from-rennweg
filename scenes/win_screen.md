@@ -16,4 +16,4 @@ The sun sets over Vienna. The cat purrs. All is well.
 
 ### Choices
 
-- Continue → credits
+- Continue → leaving_rennweg

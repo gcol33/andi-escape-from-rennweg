@@ -3640,6 +3640,13 @@ var VNEngine = (function() {
         // Store ending title from scene frontmatter
         state.endingTitle = scene.ending_title || null;
 
+        // Fullscreen background mode - hides all UI
+        if (scene.hide_textbox) {
+            document.body.classList.add('fullscreen-bg');
+        } else {
+            document.body.classList.remove('fullscreen-bg');
+        }
+
         // Store respawn target and flavor for context-aware respawns (persists to wake_up)
         if (scene.respawn_target) {
             state.respawnTarget = scene.respawn_target;
