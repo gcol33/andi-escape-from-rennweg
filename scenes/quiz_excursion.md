@@ -1,6 +1,6 @@
 ---
 id: quiz_excursion
-bg: lunch_room.png
+bg: flora_book.png
 actions:
   - type: start_quiz
     time_per_question: 15
