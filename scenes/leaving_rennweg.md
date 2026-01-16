@@ -24,7 +24,7 @@ You step through the gate of Rennweg 14. Behind you: years of code, countless co
 
 ---
 
-The iron gate swings shut with a familiar clang. You escaped from Rennweg. And somehow, you're leaving richer than when you arrived.
+The iron gate swings shut with a familiar clang. **You escaped from Rennweg.**
 
 ### Choices
 
