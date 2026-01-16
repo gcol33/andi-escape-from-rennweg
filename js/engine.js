@@ -6022,6 +6022,21 @@ var VNEngine = (function() {
                     }
                 }
 
+                // Handle fullscreen mode for credits (hide_textbox)
+                var creditsTextEl = document.getElementById('credits-text');
+                var bgLayer = document.getElementById('background-layer');
+                if (scene.hide_textbox) {
+                    if (textBox) textBox.classList.add('hidden-textbox');
+                    if (bgLayer) {
+                        bgLayer.style.backgroundSize = '100% auto';
+                        bgLayer.style.backgroundPosition = 'top center';
+                    }
+                    if (creditsTextEl && scene.credits_text) {
+                        creditsTextEl.textContent = scene.credits_text;
+                        creditsTextEl.style.display = 'block';
+                    }
+                }
+
                 renderCurrentBlock();
                 return true;
             } else if (saveData.currentSceneId) {
