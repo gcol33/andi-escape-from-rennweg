@@ -1,6 +1,6 @@
 ---
 id: victory_screen
-bg: victory.png
+bg: victory.jpeg
 music: victory.mp3
 no_restart: true
 ---
