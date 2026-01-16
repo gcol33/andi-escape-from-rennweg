@@ -19,6 +19,10 @@ He sighs, pulling out a crumpled piece of paper. "Perhaps... perhaps there are t
 
 "You've earned this." He hands you his prized pi-day commemorative pin. "May the ratio be with you."
 
+---
+
+You pin it to your shirt. It's surprisingly heavy for something so nerdy. Johannes nods approvingly and returns to his calculations, muttering about decimal places.
+
 ### Choices
 
 - Continue (requires: jk_return_lisa) → LISA_scene

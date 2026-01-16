@@ -15,6 +15,10 @@ Michi steps back, impressed. "Not bad, computer guy. Not bad at all." He reaches
 
 You pocket the magnifying glass. Essential for any serious botanical identification.
 
+---
+
+Michi nods and turns back to his whiteboard, already sketching out his next experiment. "Good luck out there, Andi. Don't forget to stop and look at the flowers."
+
 ### Choices
 
 - Move on → EMMA

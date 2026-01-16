@@ -23,6 +23,10 @@ He removes one Birkenstock and hands it to you. "Here. Take this. I have another
 
 "Go. Live your brief existence. It's what we do."
 
+---
+
+You take the sandal. It smells faintly of existential dread and cork. Karl has already closed his eyes, meditating on the void.
+
 ### Choices
 
 - Continue (requires: jk_return_lisa) → LISA_scene

@@ -11,6 +11,10 @@ Agnes staggers back, clutching her stack of forms. "This... isn't... protocol...
 
 "But this isn't over. HR never forgets." She steps aside, allowing you to pass.
 
+---
+
+You step over the scattered forms, careful not to disturb her filing system. Some battles you win. Others just get deferred to next quarter.
+
 ### Choices
 
 - Continue → MANU_intro

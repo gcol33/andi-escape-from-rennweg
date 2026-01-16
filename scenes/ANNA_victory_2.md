@@ -10,7 +10,11 @@ add_items:
 
 ---
 
-You make a mental note to never accept tea from Anna again. Your head is still throbbing, but you're okay. "Sorry about that... here, have some snacks from my secret stash." She hands you a bag of treats. "They're not drugged, I promise."
+You make a mental note to never accept tea from Anna again. Your head is still throbbing, but you're okay. "Sorry about that... here, have some snacks from my secret stash." She hands you a bag of treats. "They're not drugged, probably?"
+
+---
+
+You pocket the snacks and back away slowly. Anna waves cheerfully, already reaching for her teacup again. Time to get out of here before she offers you another "special blend."
 
 ### Choices
 
