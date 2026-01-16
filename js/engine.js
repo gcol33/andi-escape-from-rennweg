@@ -6069,11 +6069,11 @@ var VNEngine = (function() {
         if (!textBox) return;
 
         // Click on background or sprite layer toggles text box
-        // Only toggle if there's a real background (not black.svg) and typewriter isn't active
+        // Only toggle if scene has hide_textbox enabled (fullscreen credit scenes)
         function toggleTextBox(e) {
-            var bgImage = bgLayer && bgLayer.style.backgroundImage;
-            var hasRealBackground = bgImage && bgImage !== 'none' && bgImage.indexOf('black.svg') === -1;
-            if (!hasRealBackground) return;
+            var scene = getScene(state.currentScene);
+            // Only allow toggle on scenes with hide_textbox: true
+            if (!scene || !scene.hide_textbox) return;
             // Don't toggle while typewriter is running
             if (state.typewriter && state.typewriter.isTyping) return;
             textBox.classList.toggle('hidden-textbox');
