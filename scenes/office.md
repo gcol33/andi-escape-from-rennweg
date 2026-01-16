@@ -11,5 +11,4 @@ Something feels wrong. You're not supposed to be here. Not today. Today is about
 
 ### Choices
 
-- Head for the exit → ending_early_exit
-- Go back to the elevator → elevator0
+- Continue → ending_early_exit
