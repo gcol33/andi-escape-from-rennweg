@@ -7,5 +7,4 @@ You head toward the elevator.
 
 ### Choices
 
-- Continue (requires: !met_franz) → FRANZ_before_elevator0
-- Continue (requires: met_franz) → elevator0
+- Continue → before_elevator0_gate

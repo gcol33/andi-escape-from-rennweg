@@ -4,9 +4,6 @@ bg: ../char/johannes_neutral.png
 set_key_flags:
   - johannes_defeated
   - jk_battle_done
-add_items:
-  - name: Pi Pin
-    type: key
 ---
 
 Johannes adjusts his cracked glasses. "Impossible. I calculated every variable. The math was perfect."
@@ -14,14 +11,6 @@ Johannes adjusts his cracked glasses. "Impossible. I calculated every variable. 
 ---
 
 He sighs, pulling out a crumpled piece of paper. "Perhaps... perhaps there are things that can't be quantified."
-
----
-
-"You've earned this." He hands you his prized pi-day commemorative pin. "May the ratio be with you."
-
----
-
-You pin it to your shirt. It's surprisingly heavy for something so nerdy. Johannes nods approvingly and returns to his calculations, muttering about decimal places.
 
 ### Choices
 

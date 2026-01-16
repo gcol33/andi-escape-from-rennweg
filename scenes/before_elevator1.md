@@ -1,11 +1,10 @@
 ---
 id: before_elevator1
-bg: elevator_path.png
+bg: elevator_floor_4.png
 ---
 
 You head toward the elevator.
 
 ### Choices
 
-- Continue (requires: !met_franz) → FRANZ_before_elevator1
-- Continue (requires: met_franz) → elevator1
+- Continue → before_elevator1_gate

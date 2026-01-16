@@ -1,6 +1,6 @@
 ---
 id: billa_checkout
-bg: billa.jpg
+bg: billa_2.png
 add_items:
   - name: Charcoal
     type: key

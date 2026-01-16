@@ -51,7 +51,7 @@ random_flavor:
   - text: "You dreamt of forced smiles. Yours wouldn't cooperate. Your face muscles had filed for resignation."
     requires: bbq_nosmile
   # Quiz endings
-  - text: "You dreamt of Latin plant names. They were laughing at you. Quercus robur was particularly smug."
+  - text: "You dreamt of Latin plant names. They were laughing at you. *Quercus robur* was particularly smug."
     requires: quiz_moritz
   - text: "You dreamt of field equipment. The GPS was mocking you. Even the compass looked disappointed."
     requires: quiz_siegrun

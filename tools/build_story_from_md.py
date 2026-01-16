@@ -192,6 +192,19 @@ def parse_frontmatter(content):
                 current_questions = []
                 continue
 
+            # Check if this starts a list property (require_items, require_skills)
+            if key in ('require_items', 'require_skills') and value == '':
+                # Save current nested if any
+                if current_nested and current_nested_key:
+                    current_action[current_nested_key] = current_nested
+                    current_nested = None
+                    current_nested_key = None
+                # Initialize as a list, stored directly in the action
+                current_action[key] = []
+                current_nested_key = key  # Track which list we're building
+                current_nested = None  # Not a nested object
+                continue
+
             # Check if this starts a nested object (value is empty)
             if value == '':
                 # Save current nested if any
@@ -287,7 +300,10 @@ def parse_frontmatter(content):
             # Strip surrounding quotes if present
             if (item.startswith('"') and item.endswith('"')) or (item.startswith("'") and item.endswith("'")):
                 item = item[1:-1]
-            if current_key == 'chars' and current_char is None:
+            # Check if we're building a list inside an action (require_items, require_skills)
+            if current_action is not None and current_nested_key in ('require_items', 'require_skills'):
+                current_action[current_nested_key].append(item)
+            elif current_key == 'chars' and current_char is None:
                 # Old format: simple filename
                 chars_list.append(item)
             elif current_key == 'random_flavor' and flavor_list is not None:

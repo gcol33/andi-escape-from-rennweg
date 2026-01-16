@@ -16,5 +16,4 @@ You hold out your hand with a nut. The squirrel hesitates... then jumps onto you
 
 ### Choices
 
-- Head back inside (requires: agnes_defeated) → AGNES_rematch
-- Head back inside (requires: !agnes_defeated) → AGNES
+- Continue → squirrel_garden_transition

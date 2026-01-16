@@ -440,6 +440,8 @@ var VNEngine = (function() {
          * Supports:
          * - target: scene to navigate to
          * - requires: flag or comma-separated flags (supports ! negation)
+         * - require_items: array of item names player must have
+         * - require_skills: array of skill names player must have
          *
          * Returns true if navigation occurred (stops further action processing)
          */
@@ -461,7 +463,25 @@ var VNEngine = (function() {
                 }
             }
 
-            // Condition met (or no condition), navigate immediately
+            // Check item requirements if specified
+            if (action.require_items) {
+                for (var i = 0; i < action.require_items.length; i++) {
+                    if (!hasItem(action.require_items[i])) {
+                        return false; // Missing required item
+                    }
+                }
+            }
+
+            // Check skill requirements if specified
+            if (action.require_skills) {
+                for (var j = 0; j < action.require_skills.length; j++) {
+                    if (!hasSkill(action.require_skills[j])) {
+                        return false; // Missing required skill
+                    }
+                }
+            }
+
+            // All conditions met, navigate immediately
             loadScene(target);
             return true; // Signal that we navigated, stop processing actions
         },

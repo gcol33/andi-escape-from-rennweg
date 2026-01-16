@@ -15,5 +15,4 @@ He places a hand on your shoulder. Perhaps the first physical gesture he's made 
 
 ### Choices
 
-- Leave → stairs_0
-
+- Leave → elevator_rooftop

@@ -1,6 +1,6 @@
 ---
 id: floor4_plant
-bg: elevator_path.png
+bg: elevator_floor_4.png
 ---
 
 You notice a plant sitting on a windowsill. Something about it looks... wrong. A colleague rushes up to you. "Andi! Perfect timing! This plant has been looking sick for weeks. Can you figure out what's wrong with it?"
