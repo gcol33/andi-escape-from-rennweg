@@ -46,6 +46,7 @@ var VNEngine = (function() {
         },
         autoDelay: typeof TUNING !== 'undefined' ? TUNING.text.autoAdvanceDelay : 1500,
         skipModeDelay: typeof TUNING !== 'undefined' ? TUNING.text.skipModeDelay : 150,
+        actionPreDelay: typeof TUNING !== 'undefined' && TUNING.text.actionPreDelay !== undefined ? TUNING.text.actionPreDelay : 1200,
         currentSpeed: 'normal',
         // localStorage keys
         saveKey: 'andi_vn_save',
@@ -3794,13 +3795,16 @@ var VNEngine = (function() {
                     if (hasRollChoice) {
                         renderChoices(scene.choices);
                     } else {
-                        // Execute actions directly
-                        _log.debug('Engine', 'Calling executeActions()');
-                        var navigated = executeActions();
-                        // If no action navigated away, show choices
-                        if (!navigated) {
-                            renderChoices(scene.choices);
-                        }
+                        // Execute actions after a delay so player can read last text
+                        _log.debug('Engine', 'Scheduling executeActions() after delay');
+                        setTimeout(function() {
+                            _log.debug('Engine', 'Calling executeActions()');
+                            var navigated = executeActions();
+                            // If no action navigated away, show choices
+                            if (!navigated) {
+                                renderChoices(scene.choices);
+                            }
+                        }, config.actionPreDelay);
                     }
                 } else {
                     // Show choices or game over
@@ -3872,11 +3876,14 @@ var VNEngine = (function() {
                         if (hasRollChoice) {
                             renderChoices(scene.choices);
                         } else {
-                            var navigated = executeActions();
-                            // If no action navigated away, show choices
-                            if (!navigated) {
-                                renderChoices(scene.choices);
-                            }
+                            // Execute actions after a delay so player can read last text
+                            setTimeout(function() {
+                                var navigated = executeActions();
+                                // If no action navigated away, show choices
+                                if (!navigated) {
+                                    renderChoices(scene.choices);
+                                }
+                            }, config.actionPreDelay);
                         }
                     } else {
                         renderChoices(scene.choices);

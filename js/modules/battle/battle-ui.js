@@ -168,10 +168,10 @@ var BattleUI = (function() {
 
         hideTextBox();
 
-        // Don't recreate if already exists
-        if (document.getElementById('battle-ui')) {
-            cacheElements();
-            return;
+        // Remove existing battle UI to ensure fresh state with new enemy name
+        var existingUI = document.getElementById('battle-ui');
+        if (existingUI) {
+            Utils.removeElement(existingUI);
         }
 
         var battleUI = document.createElement('div');

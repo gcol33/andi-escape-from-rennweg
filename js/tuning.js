@@ -114,6 +114,7 @@ const TUNING = {
             // Auto-advance timing
             autoAdvanceDelay: 1500,     // ms to wait before auto-advancing
             skipModeDelay: 150,         // ms delay between blocks in skip mode
+            actionPreDelay: 1200,       // ms to wait after last text before executing actions (battle, tarot, etc.)
 
             // Text block limits
             maxBlockLength: 350,        // Characters before auto-splitting

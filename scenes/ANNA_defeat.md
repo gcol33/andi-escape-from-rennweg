@@ -10,7 +10,7 @@ You take a sip. After a few minutes, you feel lightheaded. The room starts to wo
 
 ---
 
-You look at Anna. She's sprouting whiskers too. Her teeth are getting larger. Her nose is twitching. She looks suspiciously like a Coypu. A giant South American rodent is offering you tea. This seems wrong somehow.
+You look at Anna. She's sprouting whiskers too. Her teeth are getting larger. Her nose is twitching. She looks suspiciously like a Coipu. A giant South American rodent is offering you tea. This seems wrong somehow.
 
 ---
 
@@ -18,5 +18,5 @@ You look at Anna. She's sprouting whiskers too. Her teeth are getting larger. He
 
 ---
 
-You wake up a week later in hospital. Apparently, you'd been found unconscious on Anna's office floor, mumbling something about Coypus. The doctors say you'll make a full recovery, but you missed your first week at Boltzmanngasse. The physics institute is not impressed by your excuse.
+You wake up a week later in hospital. Apparently, you'd been found unconscious on Anna's office floor, mumbling something about Coipus. The doctors say you'll make a full recovery, but you missed your first week at Boltzmanngasse. The physics institute is not impressed by your excuse.
 
